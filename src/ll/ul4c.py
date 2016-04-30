@@ -3453,6 +3453,7 @@ class Template(Block):
 		encoder.dump(self.whitespace)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
+		encoder.dump(self.parenttemplate)
 
 		# Signature can be ``None`` or an instance of :class:`inspect.Signature` or :class:`Signature`
 		if self.signature is None or isinstance(self.signature, Signature):
@@ -3487,6 +3488,7 @@ class Template(Block):
 		self.whitespace = decoder.load()
 		self.startdelim = decoder.load()
 		self.enddelim = decoder.load()
+		self.parenttemplate = decoder.load()
 
 		dump = decoder.load()
 		if dump is None or isinstance(dump, Signature):
