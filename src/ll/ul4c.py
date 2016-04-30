@@ -3859,7 +3859,7 @@ class Template(Block):
 		self.startpos = 0
 		self.endpos = len(source)
 		blockstack = [self] # This stack stores the nested for/if/elif/else/def blocks
-		templatestack = [self] # This stack store the nested templates
+		templatestack = [self] # This stack stores the nested templates
 
 		def parsedeclaration(tag):
 			try:
@@ -3922,6 +3922,7 @@ class Template(Block):
 			raise ValueError("whitespace mode {!r} unknown".format(self.whitespace))
 
 		for tag in tags:
+			tag.template = templatestack[-1]
 			try:
 				if isinstance(tag, Text):
 					blockstack[-1].append(tag)
@@ -3999,6 +4000,7 @@ class Template(Block):
 					block = Template(None, name=name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
 					block.tag = tag # Set start ``tag`` of sub template
 					block.parenttemplate = templatestack[-1]
+					tag.template = block
 					templatestack.append(block)
 					# The source is always the complete source of the top level template
 					# (so that the offsets in all :class:`Text`/:class:`Tag` objects are correct)
