@@ -94,15 +94,15 @@ class Error(Exception):
 			code = repr(node.text)[1:-1]
 			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(self._templateprefix(node.template), node.startpos, node.endpos, line, col, code, error_underline*len(code))
 		else:
-			if self.node.tag is None:
+			if node.tag is None:
 				# ``self.node`` is a top level template
-				template = self.node
+				template = node
 				startpos = 0
 				endpos = len(template.source)
 			else:
-				template = self.node.tag.template
-				startpos = self.node.tag.startpos
-				endpos = self.node.tag.endpos
+				template = node.tag.template
+				startpos = node.tag.startpos
+				endpos = node.tag.endpos
 			prefix = repr(template.source[startpos:node.startpos])[1:-1]
 			code = repr(template.source[node.startpos:node.endpos])[1:-1]
 			suffix = repr(template.source[node.endpos:endpos])[1:-1]
