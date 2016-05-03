@@ -1,8 +1,15 @@
 Changes in 5.17 (released ??/??/2016)
 -------------------------------------
 
-*	Changed the internal structure of UL4 templates to simplify exception
+*	The internal structure of UL4 templates has changed to simplify exception
 	handling.
+
+*	The ``rul4`` function ``import`` has been dropped. Instead two functions
+	``load`` (for reading the content of a file) and ``compile`` (for compiling
+	a string into an UL4 template) have been added.
+
+*	A function ``error`` for outputting an error message and aborting template
+	rendering have been added to ``rul4``.
 
 
 Changes in 5.16 (released 04/13/2016)

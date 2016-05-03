@@ -1,3 +1,19 @@
+Migrating to version 5.17
+=========================
+
+Changes to ``rul4``
+-------------------
+
+The function ``import`` has been split into ``load`` for loading the content of
+a file and ``compile`` for compiling a string, so::
+
+	<?code template = import("/home/user/template/foo.ul4")?>
+
+has to be replaced with::
+
+	<?code template = compile(load("/home/user/template/foo.ul4"))?>
+
+
 Migrating to version 5.16
 =========================
 

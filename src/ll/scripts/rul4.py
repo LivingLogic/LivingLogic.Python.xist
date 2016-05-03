@@ -39,8 +39,11 @@ Options
 	``--system`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
 		Provide the object ``system`` to the template or not (see below)?
 
-	``--import`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the function ``import`` to the template or not (see below)?
+	``--load`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Provide the function ``load`` to the template or not (see below)?
+
+	``--compile`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
+		Provide the function ``compile`` to the template or not (see below)?
 
 	``-e``, ``--encoding``
 		The encoding of the templates files (default ``utf-8``)
@@ -141,13 +144,30 @@ the matching options):
 		the connect strings passed in. The connectstring is of the form
 		``hostname:port/db``. ``port`` and ``db`` are optional.
 
-	``import``
-		``import`` is a function that reads a file (containing an UL4 template)
-		from disk and returns the compiled UL4 template. Its first parameter is
-		the filename and its second parameter is the encoding of the file. The
-		encoding parameter is optional and defaults to ``"utf-8"``::
+	``load``
+		``load`` is a function that reads a file from disk and returns the
+		content. Its first parameter is the filename and its second parameter is
+		the encoding of the file. The encoding parameter is optional and defaults
+		to ``"utf-8"``::
 
-			<?code template = import("/home/user/template/foo.ul4")?>
+			<?code data = load("/home/user/data.txt", "iso-8859-1")?>
+
+	``compile``
+		``compile`` is a function that compiles a string into an UL4 template.
+		The signature is::
+
+			compile(source, name=None, whitespace="keep",
+			        signature=None, startdelim="<?", enddelim="?>")
+
+	``error``
+		``error`` is a function that can be called to output an error message and
+		abort template execution. The signature is::
+
+			error(message, ast=None)
+
+		``message`` is the error message and ``ast`` can be an AST node from an
+		UL4 template syntax tree to print an error message that originates from
+		that node.
 
 All variables defined via the :option:`-D`/:option:`--define` option will also
 be available. (Note that you can't overwrite any of the predefined variables).
@@ -194,7 +214,6 @@ drops it again::
 	<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
 	<?print vout.value?>
 	<?code db.execute('drop function ul4test')?>
-
 
 Redis connections have a ``get`` and a ``put`` method::
 
@@ -267,13 +286,21 @@ class System:
 		return os.popen(cmd).read()
 
 
-def import_(filename, encoding="utf-8"):
+def load(filename, encoding="utf-8"):
 	with open(filename, "r", encoding=encoding) as f:
-		data = f.read()
+		return f.read()
 
-	template = ul4c.Template(data)
 
-	return template
+def compile(source, name=None, whitespace="keep", signature=None, startdelim="<?", enddelim="?>"):
+	return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature, startdelim=startdelim, enddelim=enddelim)
+
+
+def error(message, ast=None):
+	exc = Exception(message)
+	if ast is not None:
+		raise ul4c.Error(ast) from exc
+	else:
+		raise exc
 
 
 class Var:
@@ -535,7 +562,8 @@ def main(args=None):
 	p.add_argument(      "--mysql", dest="mysql", help="Allow the templates to connect to MySQL databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--redis", dest="redis", help="Allow the templates to connect to Redis databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--system", dest="system", help="Allow the templates to execute system commands? (default %(default)s)", action=misc.FlagAction, default=True)
-	p.add_argument(      "--import", dest="import_", help="Allow the templates to import templates from arbitrary paths? (default %(default)s)", action=misc.FlagAction, default=True)
+	p.add_argument(      "--load", dest="load", help="Allow the templates to load data from arbitrary paths? (default %(default)s)", action=misc.FlagAction, default=True)
+	p.add_argument(      "--compile", dest="compile", help="Allow the templates access to the compile function? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument("-D", "--define", dest="defines", metavar="var=value", help="Pass additional parameters to the template (can be specified multiple times).", action="append", type=define)
 
 	args = p.parse_args(args)
@@ -566,7 +594,7 @@ def main(args=None):
 			maintemplate = template
 		templates[template.name] = template
 
-	vars = dict(templates=templates, encoding=sys.stdout.encoding)
+	vars = dict(templates=templates, encoding=sys.stdout.encoding, error=error)
 	if args.defines:
 		vars.update(args.defines)
 	if args.oracle:
@@ -579,8 +607,10 @@ def main(args=None):
 		vars["redis"] = redis
 	if args.system:
 		vars["system"] = system
-	if args.import_:
-		vars["import"] = import_
+	if args.load:
+		vars["load"] = load
+	if args.compile:
+		vars["compile"] = compile
 	if args.stacktrace == "short":
 		try:
 			for part in maintemplate.render(**vars):
