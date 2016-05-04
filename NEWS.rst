@@ -1,4 +1,4 @@
-Changes in 5.17 (released ??/??/2016)
+Changes in 5.17 (released 05/04/2016)
 -------------------------------------
 
 *	The internal structure of UL4 templates has changed to simplify exception
