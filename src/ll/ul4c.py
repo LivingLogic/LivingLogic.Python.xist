@@ -3287,7 +3287,7 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "renders"})
+	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
 
 	version = "35"
 
