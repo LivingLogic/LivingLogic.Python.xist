@@ -79,12 +79,12 @@ class Error(Exception):
 		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.node, id(self))
 
 	def _templateprefix(self, template):
-		if template.parenttemplate is not None:
-			return "in local template {!r}".format(template.name)
-		elif template.name:
-			return "in template {!r}".format(template.name)
-		else:
-			return "in unnamed template"
+		prefix = "in local template" if template.parenttemplate is not None else "in template"
+		out = []
+		while template is not None:
+			out.append(repr(template.name) if template.name is not None else "(unnamed)")
+			template = template.parenttemplate
+		return "{} {}".format(prefix, " in ".join(out))
 
 	def __str__(self):
 		node = self.node
