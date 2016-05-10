@@ -1,3 +1,9 @@
+Changes in 5.17.1 (released 05/10/2016)
+---------------------------------------
+
+*	Fixed a bug in the query done by :meth:`orasql.Connection.getobject`.
+
+
 Changes in 5.17 (released 05/04/2016)
 -------------------------------------
 

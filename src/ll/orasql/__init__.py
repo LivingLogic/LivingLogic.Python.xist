@@ -598,7 +598,7 @@ class Connection(Connection):
 						'function'
 					) as object_type
 				from
-					ddprefix0}_procedures
+					{ddprefix}_procedures
 				where
 					lower(procedure_name) = lower(:object_name) and
 					lower(owner) = lower(nvl(:owner, user)) and
