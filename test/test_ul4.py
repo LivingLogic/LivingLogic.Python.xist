@@ -615,6 +615,20 @@ def test_color(T):
 
 
 @pytest.mark.ul4
+def test_slice(T):
+	sourceattr = "<?print repr(obj.start)?>:<?print repr(obj.stop)?>"
+	sourceitem = "<?print repr(obj['start'])?>:<?print repr(obj['stop'])?>"
+
+	obj = slice(17, 42)
+	assert "17:42" == T(sourceattr).renders(obj=obj)
+	assert "17:42" == T(sourceitem).renders(obj=obj)
+
+	obj = slice(None, None)
+	assert "None:None" == T(sourceattr).renders(obj=obj)
+	assert "None:None" == T(sourceitem).renders(obj=obj)
+
+
+@pytest.mark.ul4
 def test_list(T):
 	assert '' == T('<?for item in []?><?print item?>;<?end for?>').renders()
 	assert '1;' == T('<?for item in [1]?><?print item?>;<?end for?>').renders()
@@ -3930,8 +3944,8 @@ def test_templateattributes_localtemplate(T):
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
 	assert source + "<?print lower.source?>" == T(source + "<?print lower.source?>").renders()
-	assert source == T(source + "<?print lower.source[lower.tag.startpos:lower.endtag.endpos]?>").renders()
-	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.tag.endpos:lower.endtag.startpos]?>").renders()
+	assert source == T(source + "<?print lower.source[lower.tag.pos.start:lower.endtag.pos.stop]?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.tag.pos.stop:lower.endtag.pos.start]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 

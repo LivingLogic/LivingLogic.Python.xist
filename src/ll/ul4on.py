@@ -428,7 +428,6 @@ class Decoder:
 		elif typecode in "rR":
 			if typecode == "R":
 				oldpos = self._beginfakeloading()
-			self._loading(None)
 			start = self._load(None)
 			stop = self._load(None)
 			value = slice(start, stop)
