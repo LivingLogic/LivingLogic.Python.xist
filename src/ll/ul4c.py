@@ -1949,11 +1949,11 @@ class Attr(Code):
 	@_handleexpressioneval
 	def eval(self, context):
 		obj = self.obj.eval(context)
-		if hasattr(obj, "ul4attrs"):
+		if hasattr(obj, "ul4getattr"):
+			return _ul4getattr(obj, self.attrname)
+		elif hasattr(obj, "ul4attrs"):
 			if self.attrname in {"items", "values"}:
 				return self.method_ul4attrs(obj, self.attrname)
-			return _ul4getattr(obj, self.attrname)
-		elif hasattr(obj, "ul4getattr"):
 			return _ul4getattr(obj, self.attrname)
 		elif isinstance(obj, str):
 			return self.method_str(obj, self.attrname)
