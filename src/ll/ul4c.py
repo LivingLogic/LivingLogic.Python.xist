@@ -1956,104 +1956,106 @@ class Attr(Code):
 				return self.method_ul4attrs(obj, self.attrname)
 			return _ul4getattr(obj, self.attrname)
 		elif isinstance(obj, str):
-			return self.method_str(obj, self.attrname)
+			return self.attr_str(obj, self.attrname)
 		elif isinstance(obj, collections.Mapping):
-			return self.method_dict(obj, self.attrname)
+			return self.attr_dict(obj, self.attrname)
 		elif isinstance(obj, collections.Set):
-			return self.method_set(obj, self.attrname)
+			return self.attr_set(obj, self.attrname)
 		elif isinstance(obj, collections.Sequence):
-			return self.method_list(obj, self.attrname)
+			return self.attr_list(obj, self.attrname)
 		elif isinstance(obj, (datetime.datetime, datetime.date)):
-			return self.method_date(obj, self.attrname)
+			return self.attr_date(obj, self.attrname)
 		elif isinstance(obj, datetime.timedelta):
-			return self.method_timedelta(obj, self.attrname)
+			return self.attr_timedelta(obj, self.attrname)
 		elif isinstance(obj, slice):
-			return self.method_slice(obj, self.attrname)
+			return self.attr_slice(obj, self.attrname)
+		elif isinstance(obj, BaseException):
+			return self.attr_exception(obj, self.attrname)
 		else:
 			return _ul4getattr(obj, self.attrname)
 
-	def method_str(self, obj, methname):
-		if methname == "split":
+	def attr_str(self, obj, attrname):
+		if attrname == "split":
 			def split(sep=None, count=None):
 				return obj.split(sep, count if count is not None else -1)
 			result = split
-		elif methname == "rsplit":
+		elif attrname == "rsplit":
 			def rsplit(sep=None, count=None):
 				return obj.rsplit(sep, count if count is not None else -1)
 			result = rsplit
-		elif methname == "splitlines":
+		elif attrname == "splitlines":
 			def splitlines(keepends=False):
 				return obj.splitlines(keepends)
 			result = splitlines
-		elif methname == "strip":
+		elif attrname == "strip":
 			def strip(chars=None):
 				return obj.strip(chars)
 			result = strip
-		elif methname == "lstrip":
+		elif attrname == "lstrip":
 			def lstrip(chars=None):
 				return obj.lstrip(chars)
 			result = lstrip
-		elif methname == "rstrip":
+		elif attrname == "rstrip":
 			def rstrip(chars=None):
 				return obj.rstrip(chars)
 			result = rstrip
-		elif methname == "find":
+		elif attrname == "find":
 			def find(sub, start=None, end=None):
 				return obj.find(sub, start, end)
 			result = find
-		elif methname == "rfind":
+		elif attrname == "rfind":
 			def rfind(sub, start=None, end=None):
 				return obj.rfind(sub, start, end)
 			result = rfind
-		elif methname == "startswith":
+		elif attrname == "startswith":
 			def startswith(prefix):
 				return obj.startswith(prefix)
 			result = startswith
-		elif methname == "endswith":
+		elif attrname == "endswith":
 			def endswith(suffix):
 				return obj.endswith(suffix)
 			result = endswith
-		elif methname == "upper":
+		elif attrname == "upper":
 			def upper():
 				return obj.upper()
 			result = upper
-		elif methname == "lower":
+		elif attrname == "lower":
 			def lower():
 				return obj.lower()
 			result = lower
-		elif methname == "capitalize":
+		elif attrname == "capitalize":
 			def capitalize():
 				return obj.capitalize()
 			result = capitalize
-		elif methname == "replace":
+		elif attrname == "replace":
 			def replace(old, new, count=None):
 				if count is None:
 					return obj.replace(old, new)
 				else:
 					return obj.replace(old, new, count)
 			result = replace
-		elif methname == "join":
+		elif attrname == "join":
 			def join(iterable):
 				return obj.join(iterable)
 			result = join
 		else:
-			result = UndefinedKey(methname)
+			result = UndefinedKey(attrname)
 		return result
 
-	def method_list(self, obj, methname):
-		if methname == "append":
+	def attr_list(self, obj, attrname):
+		if attrname == "append":
 			def append(*items):
 				obj.extend(items)
 			result = append
-		elif methname == "insert":
+		elif attrname == "insert":
 			def insert(pos, *items):
 				obj[pos:pos] = items
 			result = insert
-		elif methname == "pop":
+		elif attrname == "pop":
 			def pop(pos=-1):
 				return obj.pop(pos)
 			result = pop
-		elif methname == "find":
+		elif attrname == "find":
 			def find(sub, start=None, end=None):
 				try:
 					if end is None:
@@ -2064,7 +2066,7 @@ class Attr(Code):
 				except ValueError:
 					return -1
 			result = find
-		elif methname == "rfind":
+		elif attrname == "rfind":
 			def rfind(sub, start=None, end=None):
 				for i in reversed(range(*slice(start, end).indices(len(obj)))):
 					if obj[i] == sub:
@@ -2072,58 +2074,58 @@ class Attr(Code):
 				return -1
 			result = rfind
 		else:
-			result = UndefinedKey(methname)
+			result = UndefinedKey(attrname)
 		return result
 
-	def method_set(self, obj, methname):
-		if methname == "add":
+	def attr_set(self, obj, attrname):
+		if attrname == "add":
 			def add(*items):
 				obj.update(items)
 			result = add
 		else:
-			result = UndefinedKey(methname)
+			result = UndefinedKey(attrname)
 		return result
 
-	def method_ul4attrs(self, obj, methname):
-		if methname == "items":
+	def method_ul4attrs(self, obj, attrname):
+		if attrname == "items":
 			def items():
 				for attrname in obj.ul4attrs:
 					yield (attrname, _ul4getattr(obj, attrname))
 			return items
-		elif methname == "values":
+		elif attrname == "values":
 			def values():
 				for attrname in obj.ul4attrs:
 					yield _ul4getattr(obj, attrname)
 			return values
 
-	def method_dict(self, obj, methname):
-		if methname == "items":
+	def attr_dict(self, obj, attrname):
+		if attrname == "items":
 			return obj.items
-		elif methname == "values":
+		elif attrname == "values":
 			return obj.values
-		elif methname == "update":
+		elif attrname == "update":
 			def update(*others, **kwargs):
 				for other in others:
 					obj.update(other)
 				obj.update(**kwargs)
 			result = update
-		elif methname == "get":
+		elif attrname == "get":
 			def get(key, default=None):
 				return obj.get(key, default)
 			result = get
 		else:
 			try:
-				result = obj[methname]
+				result = obj[attrname]
 			except KeyError:
-				result = UndefinedKey(methname)
+				result = UndefinedKey(attrname)
 		return result
 
-	def method_date(self, obj, methname):
-		if methname == "weekday":
+	def attr_date(self, obj, attrname):
+		if attrname == "weekday":
 			def weekday():
 				return obj.weekday()
 			result = weekday
-		elif methname == "week":
+		elif attrname == "week":
 			def week(firstweekday=None):
 				if firstweekday is None:
 					firstweekday = 0
@@ -2139,41 +2141,41 @@ class Attr(Code):
 						jan1weekday = 0
 				return yearday//7
 			result = week
-		elif methname == "day":
+		elif attrname == "day":
 			def day():
 				return obj.day
 			result = day
-		elif methname == "month":
+		elif attrname == "month":
 			def month():
 				return obj.month
 			result = month
-		elif methname == "year":
+		elif attrname == "year":
 			def year():
 				return obj.year
 			result = year
-		elif methname == "hour":
+		elif attrname == "hour":
 			def hour():
 				return obj.hour
 			result = hour
-		elif methname == "minute":
+		elif attrname == "minute":
 			def minute():
 				return obj.minute
 			result = minute
-		elif methname == "second":
+		elif attrname == "second":
 			def second():
 				return obj.second
 			result = second
-		elif methname == "microsecond":
+		elif attrname == "microsecond":
 			def microsecond():
 				return obj.microsecond
 			result = microsecond
-		elif methname == "mimeformat":
+		elif attrname == "mimeformat":
 			def mimeformat():
 				weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 				monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 				return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
 			result = mimeformat
-		elif methname == "isoformat":
+		elif attrname == "isoformat":
 			def isoformat():
 				result = obj.isoformat()
 				suffix = "T00:00:00"
@@ -2181,38 +2183,38 @@ class Attr(Code):
 					return result[:-len(suffix)]
 				return result
 			result = isoformat
-		elif methname == "yearday":
+		elif attrname == "yearday":
 			def yearday():
 				return (obj - obj.__class__(obj.year, 1, 1)).days+1
 			result = yearday
 		else:
-			result = UndefinedKey(methname)
+			result = UndefinedKey(attrname)
 		return result
 
-	def method_timedelta(self, obj, methname):
-		if methname == "days":
+	def attr_timedelta(self, obj, attrname):
+		if attrname == "days":
 			def days():
 				return obj.days
 			result = days
-		elif methname == "seconds":
+		elif attrname == "seconds":
 			def seconds():
 				return obj.seconds
 			result = seconds
-		elif methname == "microseconds":
+		elif attrname == "microseconds":
 			def microseconds():
 				return obj.microseconds
 			result = microseconds
 		else:
-			result = UndefinedKey(methname)
+			result = UndefinedKey(attrname)
 		return result
 
-	def method_slice(self, obj, methname):
-		if methname == "start":
+	def attr_slice(self, obj, attrname):
+		if attrname == "start":
 			return obj.start
-		elif methname == "stop":
+		elif attrname == "stop":
 			return obj.stop
 		else:
-			result = UndefinedKey(methname)
+			result = UndefinedKey(attrname)
 		return result
 
 	@_handleexpressioneval
