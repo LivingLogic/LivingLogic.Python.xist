@@ -2132,7 +2132,7 @@ class Attr(Code):
 			result = UndefinedKey(attrname)
 		return result
 
-	def method_ul4attrs(self, obj, attrname):
+	def attr_ul4attrs(self, obj, attrname):
 		if attrname == "items":
 			def items():
 				for attrname in obj.ul4attrs:
