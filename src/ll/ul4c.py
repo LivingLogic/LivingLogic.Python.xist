@@ -68,7 +68,7 @@ error_underline = os.environ.get("LL_UL4_ERRORUNDERLINE", "~")[:1] or "~"
 ### Exceptions
 ###
 
-class Error(Exception):
+class LocationError(Exception):
 	"""
 	Exception class that wraps another exception and provides a location.
 	"""
@@ -277,11 +277,11 @@ def _handleexpressioneval(f):
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
-		except Error:
+		except LocationError:
 			raise
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
-			raise Error(self) from exc
+			raise LocationError(self) from exc
 		finally:
 			context.asts.pop()
 	return wrapped
@@ -304,11 +304,11 @@ def _handleoutputeval(f):
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
-		except Error:
+		except LocationError:
 			raise
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
-			raise Error(self) from exc
+			raise LocationError(self) from exc
 		finally:
 			context.asts.pop()
 	return wrapped
@@ -1548,11 +1548,11 @@ class GenExpr(Code):
 						lvalue.evalset(context, value)
 					if self.condition is None or self.condition.eval(context):
 						yield self.item.eval(context)
-		except Error:
+		except LocationError:
 			raise
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
-			raise Error(self) from exc
+			raise LocationError(self) from exc
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -3230,16 +3230,16 @@ class Call(Code):
 
 		try:
 			return self._call(context, obj, args, kwargs)
-		except Error as exc:
+		except LocationError as exc:
 			if isinstance(obj, (Template, TemplateClosure)):
-				raise Error(self) from exc
+				raise LocationError(self) from exc
 			elif inspect.ismethod(obj) and isinstance(obj.__self__, (Template, TemplateClosure)):
-				raise Error(self) from exc
+				raise LocationError(self) from exc
 			else:
 				raise
 		except Exception as exc:
 			# Always wrap the original exception in another exception so that we see the location of the call
-			raise Error(self) from exc
+			raise LocationError(self) from exc
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -3316,7 +3316,7 @@ class Render(Call):
 				raise TypeError("{} object can't be rendered".format(misc.format_class(obj)))
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
-			raise Error(self) from exc
+			raise LocationError(self) from exc
 
 	def _str(self):
 		yield "render "
@@ -3929,7 +3929,7 @@ class Template(Block):
 			try:
 				return self._parser(tag, "declaration required").definition()
 			except Exception as exc:
-				raise Error(tag) from exc
+				raise LocationError(tag) from exc
 
 		def parseexpr(tag):
 			return self._parser(tag, "expression required").expression()
@@ -3973,7 +3973,7 @@ class Template(Block):
 							try:
 								raise ValueError("whitespace mode {!r} unknown".format(whitespace))
 							except Exception as exc:
-								raise Error(tag) from exc
+								raise LocationError(tag) from exc
 
 		# Flatten lines and update whitespace according to the whitespace mode specified
 		if self.whitespace == "keep":
@@ -4096,9 +4096,9 @@ class Template(Block):
 					raise ValueError("unknown tag {!r}".format(tag.tag))
 				lasttag = tag
 			except Exception as exc:
-				raise Error(tag) from exc
+				raise LocationError(tag) from exc
 		if len(blockstack) > 1:
-			raise Error(blockstack[-1]) from BlockError("block unclosed")
+			raise LocationError(blockstack[-1]) from BlockError("block unclosed")
 
 	@_handleexpressioneval
 	def eval(self, context):

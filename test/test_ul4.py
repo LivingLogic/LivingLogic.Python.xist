@@ -4018,9 +4018,9 @@ def test_exception(T):
 		"""
 
 		expected = [
-			"ll.ul4c.Error: '<?return outer(x)?>'",
-			"ll.ul4c.Error: '<?return inner(x)?>'",
-			"ll.ul4c.Error: '<?return x*x?>'",
+			"ll.ul4c.LocationError: '<?return outer(x)?>'",
+			"ll.ul4c.LocationError: '<?return inner(x)?>'",
+			"ll.ul4c.LocationError: '<?return x*x?>'",
 			"TypeError: unsupported operand type(s) for *: 'NoneType' and 'NoneType'",
 		]
 
