@@ -1602,6 +1602,15 @@ Line breaks are not included in the resulting list unless a second parameter is
 given and true.
 
 
+``count``
+"""""""""
+
+This method counts non-overlapping occurrences of a substring in string or
+occurrences of an item in a list. For example ``"abababa".count("aba")``
+returns 2. The optional second and third argument specify the start and end
+position for the search.
+
+
 ``find``
 """"""""
 

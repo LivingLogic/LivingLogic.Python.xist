@@ -2067,6 +2067,18 @@ class Attr(Code):
 			def pop(pos=-1):
 				return obj.pop(pos)
 			result = pop
+		elif attrname == "count":
+			def count(sub, start=None, end=None):
+				if start is None and end is None:
+					return obj.count(sub)
+				else:
+					(start, stop, stride) = slice(start, end).indices(len(obj))
+					count = 0
+					for i in range(start, stop, stride):
+						if obj[i] == sub:
+							count += 1
+					return count
+			result = count
 		elif attrname == "find":
 			def find(sub, start=None, end=None):
 				try:

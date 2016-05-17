@@ -3710,6 +3710,51 @@ def test_method_join(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert '1,2,3,4' == T('<?print ",".join(iterable="1234")?>').renders()
 
+@pytest.mark.ul4
+def test_method_count(T):
+	source = "<?ul4 f(haystack, needle, start=None, end=None)?><?print haystack.count(needle, start, end)?>"
+
+	assert "3" == T(source).renders(haystack='aaa', needle='a')
+	assert "0" == T(source).renders(haystack='aaa', needle='b')
+	assert "3" == T(source).renders(haystack='aaa', needle='a')
+	assert "0" == T(source).renders(haystack='aaa', needle='b')
+	assert "3" == T(source).renders(haystack='aaa', needle='a')
+	assert "0" == T(source).renders(haystack='aaa', needle='b')
+	assert "0" == T(source).renders(haystack='aaa', needle='b')
+	assert "2" == T(source).renders(haystack='aaa', needle='a', start=1)
+	assert "0" == T(source).renders(haystack='aaa', needle='a', start=10)
+	assert "1" == T(source).renders(haystack='aaa', needle='a', start=-1)
+	assert "3" == T(source).renders(haystack='aaa', needle='a', start=-10)
+	assert "1" == T(source).renders(haystack='aaa', needle='a', start=0, end=1)
+	assert "3" == T(source).renders(haystack='aaa', needle='a', start=0, end=10)
+	assert "2" == T(source).renders(haystack='aaa', needle='a', start=0, end=-1)
+	assert "0" == T(source).renders(haystack='aaa', needle='a', start=0, end=-10)
+	assert "3" == T(source).renders(haystack='aaa', needle='', start=1)
+	assert "1" == T(source).renders(haystack='aaa', needle='', start=3)
+	assert "0" == T(source).renders(haystack='aaa', needle='', start=10)
+	assert "2" == T(source).renders(haystack='aaa', needle='', start=-1)
+	assert "4" == T(source).renders(haystack='aaa', needle='', start=-10)
+
+	assert "1" == T(source).renders(haystack='',  needle='')
+	assert "0" == T(source).renders(haystack='',  needle='', start=1, end=1)
+	assert "0" == T(source).renders(haystack='',  needle='', start=0x7fffffff, end=0)
+
+	assert "0" == T(source).renders(haystack='',  needle='xx')
+	assert "0" == T(source).renders(haystack='',  needle='xx', start=1, end=1)
+	assert "0" == T(source).renders(haystack='',  needle='xx', start=0x7fffffff, end=0)
+
+	assert "1" == T(source).renders(haystack='aba', needle='ab', start=None, end=2)
+	assert "0" == T(source).renders(haystack='aba', needle='ab', start=None, end=1)
+
+	# Matches are non overlapping
+	assert "1" == T(source).renders(haystack='aaa', needle='aa')
+
+	# Test the list version
+	assert "0" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle='a')
+	assert "3" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2)
+	assert "2" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2)
+	assert "1" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2, end=7)
+
 
 @pytest.mark.ul4
 def test_method_find(T):
