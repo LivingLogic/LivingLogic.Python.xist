@@ -161,6 +161,12 @@ class for_(xsc.ProcInst):
 	prettyindentafter = 1
 
 
+class while_(xsc.ProcInst):
+	xmlname = "while"
+	prettyindentbefore = 0
+	prettyindentafter = 1
+
+
 class break_(xsc.ProcInst):
 	xmlname = "break"
 
