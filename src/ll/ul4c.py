@@ -2029,6 +2029,10 @@ class Attr(Code):
 			def rstrip(chars=None):
 				return obj.rstrip(chars)
 			result = rstrip
+		elif attrname == "count":
+			def count(sub, start=None, end=None):
+				return obj.count(sub, start, end)
+			result = count
 		elif attrname == "find":
 			def find(sub, start=None, end=None):
 				return obj.find(sub, start, end)
