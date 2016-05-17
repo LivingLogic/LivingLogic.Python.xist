@@ -12,6 +12,9 @@ Changes in 5.18 (released 05/??/2016)
 	``outerpos`` (the position of the tag where the error occurred) and
 	``innerpos`` (the position of the AST node where the error occurred).
 
+*	The UL4 function ``type`` now returns the Python class name for date, color,
+	template exception objects.
+
 
 Changes in 5.17.1 (released 05/10/2016)
 ---------------------------------------
