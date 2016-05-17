@@ -1,4 +1,4 @@
-Changes in 5.18 (released 05/??/2016)
+Changes in 5.18 (released 05/17/2016)
 -------------------------------------
 
 *	Added a function :func:`isexception` to UL4 that returns true if the
