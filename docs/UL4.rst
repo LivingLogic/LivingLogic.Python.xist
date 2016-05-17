@@ -1944,6 +1944,35 @@ non-existant or readonly attributes)
 Without a :meth:`ul4setattr` method, attributes will never be made writable.
 
 
+Exceptions
+==========
+
+Exception objects can not be created directly by UL4 templates, but UL4
+templates can work with exceptions and access their attributes. The function
+``isexception`` returns ``True`` is the argument is an exception object and
+exception objects have an attribute ``cause`` that exposed the ``__cause__`` or
+``__context__`` attribute of the Python exception object.
+
+Exceptions that happen in UL4 templates use exception chaining to add
+information about the location of the error while the exception bubbles up the
+Python call stack. These exception objects have the following UL4 attributes:
+
+``location``
+	The AST node or tag where the error occured;
+
+``template``
+	The innermost template where the exception occurred (as a ``slice`` object);
+
+``outerpos``
+	The position of the tag where the error occurred (as a ``slice`` object);
+
+``innerpos``
+	The position of the AST node where the error occurred.
+
+	If the error location is a tag (e.g. when there's an error with the block
+	structure of the template), ``outerpos`` and ``innerpos`` are the same.
+
+
 Delimiters
 ==========
 

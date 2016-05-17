@@ -90,22 +90,34 @@ class Error(Exception):
 		location = self.location
 		(line, col) = location._linecol()
 
-		if isinstance(location, Tag):
-			code = repr(location.text)[1:-1]
-			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(self._templateprefix(location.template), location.pos.start, location.pos.stop, line, col, code, error_underline*len(code))
-		else:
-			if location.tag is None:
-				# ``self.location`` is a top level template
-				template = location
-				pos = slice(0, len(template.location))
-			else:
-				template = location.tag.template
-				pos = location.tag.pos
-			prefix = repr(template.source[pos.start:location.pos.start])[1:-1]
-			code = repr(template.source[location.pos])[1:-1]
-			suffix = repr(template.source[location.pos.stop:pos.stop])[1:-1]
+		template = self._template()
+		outerpos = self._outerpos()
+		innerpos = self._innerpos()
 
-			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), location.pos.start, location.pos.stop, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+		prefix = repr(template.source[outerpos.start:innerpos.start])[1:-1]
+		code = repr(template.source[innerpos])[1:-1]
+		suffix = repr(template.source[innerpos.stop:outerpos.stop])[1:-1]
+
+		return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), location.pos.start, location.pos.stop, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+
+	def _template(self):
+		if isinstance(self.location, Tag):
+			return self.location.template
+		else:
+			return self.location.tag.template
+
+	def _outerpos(self):
+		if isinstance(self.location, Tag):
+			return self.location.pos
+		else:
+			tag = self.location.tag
+			if tag is None: # A top level template as no tag
+				return self.location.pos
+			else:
+				return tag.pos
+
+	def _innerpos(self):
+		return self.location.pos
 
 	def ul4getattr(self, name):
 		if name == "cause":
@@ -116,6 +128,12 @@ class Error(Exception):
 			return None
 		elif name == "location":
 			return self.location
+		elif name == "template":
+			return self._template()
+		elif name == "outerpos":
+			return self._outerpos()
+		elif name == "innerpos":
+			return self._innerpos()
 		else:
 			return UndefinedKey(name)
 
