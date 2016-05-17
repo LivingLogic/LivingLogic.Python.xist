@@ -325,13 +325,12 @@ class TemplateJavascript:
 			cmd = command.format(cmd=command, dir=dir, fn=f.name)
 			result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8", "passbytes")
-		stderr = result.stderr.decode("utf-8", "passbytes")
-		# Check if we have an exception
-		if result.returncode:
-			print(stdout, file=sys.stdout)
-			print(stderr, file=sys.stderr)
-			raise RuntimeError((stderr or stdout).strip())
-		return stdout
+		data = ul4on.loads(stdout)
+		# Check if we had an exception
+		if data["status"] == "error":
+			raise RuntimeError(data["result"])
+		else:
+			return data["result"]
 
 
 class TemplateJavascriptV8(TemplateJavascript):
@@ -342,10 +341,17 @@ class TemplateJavascriptV8(TemplateJavascript):
 		source = """
 			template = {};
 			data = ul4._map2object(ul4on.loads({}));
-			print(JSON.stringify(template.renders(data)));
+			try
+			{{
+				print(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
+			}}
+			catch (exc)
+			{{
+				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return json.loads(self.runcode("d8 {dir}/ul4.js {fn}", source))
+		return self.runcode("d8 {dir}/ul4.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -357,10 +363,17 @@ class TemplateJavascriptV8(TemplateJavascript):
 		source = """
 			template = {};
 			data = ul4._map2object(ul4on.loads({}));
-			print(ul4on.dumps(template.call(data)));
+			try
+			{{
+				print(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
+			}}
+			catch (exc)
+			{{
+				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return ul4on.loads(self.runcode("d8 {dir}/ul4.js {fn}", source))
+		return self.runcode("d8 {dir}/ul4.js {fn}", source)
 
 
 class TemplateJavascriptSpidermonkey(TemplateJavascript):
@@ -371,10 +384,17 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 		source = """
 			template = {};
 			data = ul4._map2object(ul4on.loads({}));
-			print(JSON.stringify(template.renders(data)));
+			try
+			{{
+				print(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
+			}}
+			catch (exc)
+			{{
+				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return json.loads(self.runcode("js -f {dir}/ul4.js -f {fn}", source))
+		return self.runcode("js -f {dir}/ul4.js -f {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -386,10 +406,17 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 		source = """
 			template = {};
 			data = ul4._map2object(ul4on.loads({}));
-			print(ul4on.dumps(template.call(data)));
+			try
+			{{
+				print(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
+			}}
+			catch (exc)
+			{{
+				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return ul4on.loads(self.runcode("js -f {dir}/ul4.js -f {fn}", source))
+		return self.runcode("js -f {dir}/ul4.js -f {fn}", source)
 
 
 all_templates = dict(
