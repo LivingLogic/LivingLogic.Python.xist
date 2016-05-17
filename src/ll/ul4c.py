@@ -72,11 +72,11 @@ class Error(Exception):
 	"""
 	Exception class that wraps another exception and provides a location.
 	"""
-	def __init__(self, node):
-		self.node = node
+	def __init__(self, location):
+		self.location = location
 
 	def __repr__(self):
-		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.node, id(self))
+		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.location, id(self))
 
 	def _templateprefix(self, template):
 		prefix = "in local template" if template.parenttemplate is not None else "in template"
@@ -87,25 +87,37 @@ class Error(Exception):
 		return "{} {}".format(prefix, " in ".join(out))
 
 	def __str__(self):
-		node = self.node
-		(line, col) = node._linecol()
+		location = self.location
+		(line, col) = location._linecol()
 
-		if isinstance(node, Tag):
-			code = repr(node.text)[1:-1]
-			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(self._templateprefix(node.template), node.pos.start, node.pos.stop, line, col, code, error_underline*len(code))
+		if isinstance(location, Tag):
+			code = repr(location.text)[1:-1]
+			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}\n{}".format(self._templateprefix(location.template), location.pos.start, location.pos.stop, line, col, code, error_underline*len(code))
 		else:
-			if node.tag is None:
-				# ``self.node`` is a top level template
-				template = node
-				pos = slice(0, len(template.source))
+			if location.tag is None:
+				# ``self.location`` is a top level template
+				template = location
+				pos = slice(0, len(template.location))
 			else:
-				template = node.tag.template
-				pos = node.tag.pos
-			prefix = repr(template.source[pos.start:node.pos.start])[1:-1]
-			code = repr(template.source[node.pos])[1:-1]
-			suffix = repr(template.source[node.pos.stop:pos.stop])[1:-1]
+				template = location.tag.template
+				pos = location.tag.pos
+			prefix = repr(template.source[pos.start:location.pos.start])[1:-1]
+			code = repr(template.source[location.pos])[1:-1]
+			suffix = repr(template.source[location.pos.stop:pos.stop])[1:-1]
 
-			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), node.pos.start, node.pos.stop, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+			return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), location.pos.start, location.pos.stop, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+
+	def ul4getattr(self, name):
+		if name == "cause":
+			if self.__cause__ is not None:
+				return self.__cause__
+			elif self.__context__ is not None and not self.__suppress_context__:
+				return self.__context__
+			return None
+		elif name == "location":
+			return self.location
+		else:
+			return UndefinedKey(name)
 
 
 class BlockError(Exception):
@@ -2213,6 +2225,17 @@ class Attr(Code):
 			return obj.start
 		elif attrname == "stop":
 			return obj.stop
+		else:
+			result = UndefinedKey(attrname)
+		return result
+
+	def attr_exception(self, obj, attrname):
+		if attrname == "cause":
+			if obj.__cause__ is not None:
+				return obj.__cause__
+			elif obj.__context__ is not None and not obj.__suppress_context__:
+				return obj.__context__
+			return None
 		else:
 			result = UndefinedKey(attrname)
 		return result
@@ -4394,6 +4417,11 @@ def function_ismonthdelta(obj):
 
 
 @Context.makefunction
+def function_isexception(obj):
+	return isinstance(obj, BaseException)
+
+
+@Context.makefunction
 def function_islist(obj):
 	from ll import color
 	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
@@ -4532,9 +4560,11 @@ def function_type(obj):
 		return "color"
 	elif isinstance(obj, collections.Sequence):
 		return "list"
+	elif isinstance(obj, BaseException):
+		return misc.format_class(obj)
 	elif callable(obj):
 		return "function"
-	return None
+	return misc.format_class(obj)
 
 
 @Context.makefunction

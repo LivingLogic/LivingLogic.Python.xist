@@ -1063,6 +1063,20 @@ is returned.
 ``False`` is returned.
 
 
+``isset``
+"""""""""
+
+``isset(foo)`` returns ``True`` if ``foo`` is a set object, else
+``False`` is returned.
+
+
+``isexception``
+"""""""""""""""
+
+``isexception(foo)`` returns ``True`` if ``foo`` is an exception object, else
+``False`` is returned.
+
+
 ``iscolor``
 """""""""""
 

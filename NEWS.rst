@@ -1,3 +1,10 @@
+Changes in 5.18 (released 05/??/2016)
+-------------------------------------
+
+*	Added a function :func:`isexception` to UL4, that returns true if the
+	argument is an exception object.
+
+
 Changes in 5.17.1 (released 05/10/2016)
 ---------------------------------------
 

@@ -2875,6 +2875,38 @@ def test_function_ismonthdelta(T):
 	assert "False" == T("<?print ismonthdelta(obj=data)?>").renders(data=None)
 
 
+@pytest.mark.ul4
+def test_function_isexception(T):
+	t = T("<?print isexception(data)?>")
+
+	with raises(argumentmismatchmessage):
+		T("<?print isexception()?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print isexception(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	if t in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS): # can't serialize exception in UL4ON
+		assert "True" == t.renders(data=ValueError("broken"))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isexception(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "False" == T("<?print isexception(obj=data)?>").renders(data=None)
+
+
 def repr_ascii(T, ascii):
 	name = "ascii" if ascii else "repr"
 	t = T("<?print {}(data)?>".format(name))
@@ -3911,6 +3943,46 @@ def test_nested_exceptions(T):
 @pytest.mark.ul4
 def test_note(T):
 	assert "foo" == T("f<?note This is?>o<?note a comment?>o").renders()
+
+
+@pytest.mark.ul4
+def test_exception(T):
+	if T in (TemplatePython, TemplatePythonDumpS, TemplatePythonDump):
+		assert "None" == T("<?print repr(exc.cause)?>").renders(exc=ValueError("broken"))
+		exc = ValueError("broken")
+		exc.__cause__ = ValueError("because")
+		assert "ValueError" == T("<?print type(exc.cause)?>").renders(exc=exc)
+		assert "because" == T("<?print exc.cause?>").renders(exc=exc)
+
+		stacktrace = """
+			<?ul4 stacktrace(exc)?>
+			<?whitespace strip?>
+			<?while exc is not None?>
+				<?if exc.location?>
+					<?if exc.location.tag?>
+						<?print type(exc)?>: <?print repr(exc.location.tag.template.source[exc.location.tag.pos])?>
+					<?else?>
+						<?print type(exc)?>: <?print repr(exc.location.source)?>
+					<?end if?>
+				<?else?>
+					<?print type(exc)?>: <?print exc?>
+				<?end if?>
+				<?print "\\n"?>
+				<?code exc = exc.cause?>
+			<?end while?>
+		"""
+
+		expected = [
+			"ll.ul4c.Error: '<?return outer(x)?>'",
+			"ll.ul4c.Error: '<?return inner(x)?>'",
+			"ll.ul4c.Error: '<?return x*x?>'",
+			"TypeError: unsupported operand type(s) for *: 'NoneType' and 'NoneType'",
+		]
+
+		try:
+			T("<?def outer(x)?><?def inner(x)?><?return x*x?><?end def?><?return inner(x)?><?end def?><?return outer(x)?>")(x=None)
+		except Exception as exc:
+			assert expected == T(stacktrace).renders(exc=exc).splitlines()
 
 
 @pytest.mark.ul4
