@@ -1,3 +1,16 @@
+Migrating to version 5.18
+=========================
+
+Changes to ``ul4``
+------------------
+
+*	The UL4 exception :class:`ll.ul4c.Error` has been renamed to
+	:class:`LocationError`.
+
+*	The UL4 function ``type`` now returns the Python class name for date, color,
+	template exception objects.
+
+
 Migrating to version 5.17
 =========================
 
