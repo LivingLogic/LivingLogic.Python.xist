@@ -4573,35 +4573,14 @@ def function_type(obj):
 		return "none"
 	elif isinstance(obj, Undefined):
 		return "undefined"
-	elif isinstance(obj, str):
-		return "str"
-	elif isinstance(obj, bool):
-		return "bool"
-	elif isinstance(obj, int):
-		return "int"
-	elif isinstance(obj, float):
-		return "float"
-	elif isinstance(obj, (datetime.datetime, datetime.date)):
-		return "date"
-	elif isinstance(obj, datetime.timedelta):
-		return "timedelta"
-	elif isinstance(obj, misc.monthdelta):
-		return "monthdelta"
-	elif isinstance(obj, color.Color):
-		return "color"
-	elif isinstance(obj, (Template, TemplateClosure)):
-		return "template"
 	elif isinstance(obj, collections.Mapping):
 		return "dict"
-	elif isinstance(obj, color.Color):
-		return "color"
-	elif isinstance(obj, collections.Sequence):
+	elif isinstance(obj, collections.Sequence) and not isinstance(obj, (str, color.Color)):
 		return "list"
-	elif isinstance(obj, BaseException):
-		return misc.format_class(obj)
-	elif callable(obj):
+	elif callable(obj) and not isinstance(obj, (Template, TemplateClosure)):
 		return "function"
-	return misc.format_class(obj)
+	else:
+		return misc.format_class(obj)
 
 
 @Context.makefunction
