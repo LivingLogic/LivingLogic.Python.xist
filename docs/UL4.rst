@@ -1162,6 +1162,7 @@ stop index (i.e. ``slice(foo, 10)`` is an iterator over the first 10 items from
 to 20th item from ``foo``) or a start and stop index and a step size. If given
 start and stop must be non-negative and step must be positive.
 
+
 ``asjson``
 """"""""""
 
@@ -1189,6 +1190,12 @@ object. (Date objects, color objects and templates are not supported by
 
 ``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
 object.
+
+
+``csv``
+"""""""
+
+``csv(foo)`` formats the value ``foo`` for output into a CSV file.
 
 
 ``len``
