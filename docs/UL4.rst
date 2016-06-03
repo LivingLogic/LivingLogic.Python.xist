@@ -821,7 +821,7 @@ Binary comparison operators
 
 The comparison operators ``==``, ``!=``, ``<``, ``<=``, ``>`` and ``>=`` compare
 the value of the two operands. ``==`` and ``!=`` support comparison of all
-types of object. All others support comparsison of "compatible" objects, which
+types of object. All others support comparison of "compatible" objects, which
 means all "number" objects (integer, float and boolean) can be compared with
 each other, all other objects can only be compared to objects of the same type.
 
@@ -842,7 +842,7 @@ Containment tests
 The ``in`` operator
 +++++++++++++++++++
 
-The ``in`` operator test whether the first operand is contained in the second
+The ``in`` operator tests whether the first operand is contained in the second
 operand. In the expression ``a in b`` the following type combinations are
 supported:
 
