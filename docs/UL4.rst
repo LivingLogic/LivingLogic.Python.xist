@@ -885,7 +885,7 @@ otherwise, ``b`` is evaluated and the resulting value is returned.
 Boolean "or" operator
 """""""""""""""""""""
 
-The binary operator ``or`` returns whether any of it's operands is true. Like
+The binary operator ``or`` returns whether any of its operands is true. Like
 ``and`` evaluation is short-circuited and one of the operands is returned.
 
 For example, the following code will output the ``data.title`` object if it's
