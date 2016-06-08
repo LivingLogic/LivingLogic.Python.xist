@@ -711,22 +711,22 @@ class Publisher:
 					self._prefix2ns[prefix] = xmlns
 		return prefix
 
-	def getobjectprefix(self, object):
+	def getobjectprefix(self, obj):
 		"""
-		Get and register a namespace prefix for the namespace :obj:`object` lives
-		in (specified by the :attr:`xmlns` attribute of :obj:`object`). Similar
+		Get and register a namespace prefix for the namespace :obj:`obj` lives
+		in (specified by the :attr:`xmlns` attribute of :obj:`obj`). Similar
 		to :meth:`getnamespaceprefix` this honors the namespace configuration from
 		``self.prefixes`` and ``self.prefixdefault`` (except when a global
 		attribute requires a non-empty prefix).
 		"""
-		xmlns = getattr(object, "xmlns")
+		xmlns = getattr(obj, "xmlns")
 		if xmlns is None:
 			return None
 
 		if xmlns == xml_xmlns: # We don't need a namespace mapping for the xml namespace
 			prefix = "xml"
 		else:
-			emptyok = isinstance(object, Element) # If it's e.g. a procinst assume we need a non-empty prefix
+			emptyok = isinstance(obj, Element) # If it's e.g. a procinst assume we need a non-empty prefix
 			try:
 				prefix = self._ns2prefix[xmlns]
 			except KeyError: # A namespace we haven't encountered yet
