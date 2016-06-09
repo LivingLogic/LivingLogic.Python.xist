@@ -1259,13 +1259,13 @@ class ResetSequenceCommand(Command):
 
 class var:
 	"""
-	:class:`var` instances are used to mark procedure values that are ``OUT``
+	:class:`var` objects are used to mark procedure values that are ``OUT``
 	parameters. On first use the parameter is used as an ``OUT`` parameter and
 	PySQL will remembers the OUT value under the unique key specified in the
 	constructor. When a :class:`var` object is used a second time its value will
 	be passed to the procedure as a normal ``IN`` parameter instead. This also
 	means that it is possible to have Python expressions as parameter values that
-	transform the value.
+	transform the variable value.
 	"""
 
 	def __init__(self, key=None, type=int):
@@ -1273,7 +1273,7 @@ class var:
 		Create a :class:`var` instance. :obj:`key` is a unique name for the value.
 		:obj:`type` is the type of the value (defaulting to :class:`int`).
 
-		Note that when the :obj:`key` is :const:`None` PySQL will *not* remember
+		Note that when the :obj:`key` is :const:`None`, PySQL will *not* remember
 		the value, instead each use of ``var(None)`` will create a new OUT
 		parameter. This can be used for OUT parameters whose values is not
 		required by subsequent commands.

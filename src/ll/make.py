@@ -26,7 +26,9 @@ Relevant classes are:
 
 A simple script that copies a file :file:`foo.txt` to :file:`bar.txt`
 reencoding it from ``"latin-1"`` to ``"utf-8"`` in the process looks like
-this::
+this:
+
+.. sourcecode:: python
 
 	from ll import make
 

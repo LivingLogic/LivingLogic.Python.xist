@@ -8,6 +8,18 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.19 (released 06/??/2016)
+-------------------------------------
+
+*	The documentation has been ported to Sphinx_.
+
+	.. _Sphinx: http://www.sphinx-doc.org/
+
+*	:mod:`ll.pysql` now supports :class:`~ll.pysql.var` objects with
+	:const:`None` as the key. Those variables will be used as OUT parameter, but
+	will be thrown away after the procedure call.
+
+
 Changes in 5.18 (released 05/17/2016)
 -------------------------------------
 

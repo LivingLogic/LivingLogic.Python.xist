@@ -80,7 +80,7 @@ Options
 
 	Don't enter directories whose name matches one of the specified patterns.
 
-.. option:: -n``, ``--context`` : integer
+.. option:: -n <integer>, --context`` <integer>
 
 	How many lines of copied context to show (default 2).
 

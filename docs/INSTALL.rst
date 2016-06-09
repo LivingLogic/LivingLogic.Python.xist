@@ -1,14 +1,16 @@
 Installation
 ============
 
+Requirements
+------------
+
 To use XIST you need the following software packages:
 
 	*	`Python 3.5`_;
 
 	*	`cssutils`_;
 
-	*	`Pillow`_ (if you want to use automatic image size
-		calculation);
+	*	`Pillow`_ (if you want to use automatic image size calculation);
 
 	*	`lxml`_ (if you want to parse "broken" HTML; at least version 3.0);
 
@@ -30,6 +32,10 @@ To use XIST you need the following software packages:
 	.. _pytest: http://pytest.org/latest/
 	.. _execnet: http://codespeak.net/execnet/
 
+
+Installation
+------------
+
 pip is used for installation so you can install this package
 with the following command:
 
@@ -37,18 +43,16 @@ with the following command:
 
 	$ pip install ll-xist
 
-If you want to install from source, you can download one of the
-`distribution archives`__, unpack it, enter the directory and execute the
-following command:
-
-.. sourcecode:: bash
-
-	$ python setup.py install
-
-__ http://www.livinglogic.de/Python/Download.html#xist
-
-This will copy :file:`*.py` files, compile :file:`*.c` files and install everything in
-the :file:`site-packages` directory as the :mod:`ll.xist` package.
-
 For some versions a Windows distribution is provided. To install it, double
 click it, and follow the instructions.
+
+
+Download
+--------
+
+If you want to download an XIST distribution archive, the best way is via the
+Cheeseshop_. XIST is also available via FTP_ or HTTP_.
+
+.. _FTP: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
+.. _HTTP: http://ftp.livinglogic.de/xist/
+.. _Cheeseshop: http://cheeseshop.python.org/pypi/ll-xist

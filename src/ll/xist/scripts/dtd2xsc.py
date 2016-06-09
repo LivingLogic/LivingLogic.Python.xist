@@ -76,9 +76,9 @@ Note that :program:`dtd2xsc` requires lxml_ to work.
 Example
 -------
 
-Suppose we have the following DTD file (named ``foo.dtd``):
+Suppose we have the following DTD file (named :file:`foo.dtd`):
 
-.. sourcecode:: dtd
+.. sourcecode:: xml
 
 	<?xml version="1.0" encoding="ISO-8859-1"?>
 	<!ELEMENT persons (person*)>

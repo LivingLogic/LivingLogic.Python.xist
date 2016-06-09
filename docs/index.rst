@@ -8,8 +8,8 @@ Welcome to the XIST documentation!
 
 .. include:: /../README.rst
 
-
-Contents:
+Content
+=======
 
 .. toctree::
    :maxdepth: 1
@@ -20,6 +20,7 @@ Contents:
    URL_Howto
    make
    daemon
+   sisyphus
    color
    misc
    pysql

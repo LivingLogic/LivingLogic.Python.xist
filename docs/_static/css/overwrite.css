@@ -1,5 +1,15 @@
 @import url("theme.css");
 
+p
+{
+	margin-bottom: 12px;
+}
+
+.codeblock, pre.literal-block, .rst-content .literal-block, .rst-content pre.literal-block, div[class^='highlight']
+{
+	margin-bottom: 12px;
+}
+
 .caption-text
 {
 	font-size: 90%;

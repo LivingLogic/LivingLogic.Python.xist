@@ -1,5 +1,5 @@
-Purpose
--------
+Overview
+--------
 
 XIST provides an extensible HTML and XML generator. XIST is also a XML parser
 with a very simple and pythonesque tree API. Every XML element type corresponds
@@ -32,8 +32,8 @@ XIST also includes the following modules and packages:
 
 	-	It allows calling functions and procedures with keyword arguments.
 
-	-	Query results will be put into Record objects, where database fields
-		are accessible as object attributes.
+	-	Query results will be put into :class:`~ll.orasql.Record` objects,
+		where database fields are accessible as object attributes.
 
 	-	The :class:`~ll.orasql.Connection`` class provides methods for iterating
 		through the database metadata.

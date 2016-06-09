@@ -10,6 +10,8 @@
 
 
 """
+.. program:: sisyphus
+
 :mod:`ll.sisyphus` simplifies running Python stuff as cron jobs.
 
 There will be no more than one sisyphus job of a certain name running at any
@@ -20,7 +22,7 @@ in case of job failure an email can be sent.
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
 
-Logs will (by default) be created in the :dir:`~/ll.sisyphus` directory.
+Logs will (by default) be created in the :file:`~/ll.sisyphus` directory.
 This can be changed by deriving a new subclass and overwriting the appropriate
 class attribute.
 
@@ -31,7 +33,9 @@ To execute a job, use the module level function :func:`execute` (or
 Example
 -------
 
-The following example illustrates the use of this module::
+The following example illustrates the use of this module:
+
+.. sourcecode:: python
 
 	#!/usr/bin/env python
 
@@ -63,13 +67,16 @@ The following example illustrates the use of this module::
 	if __name__=="__main__":
 		sisyphus.executewithargs(Fetch())
 
-You will find the log files for this job in ``~/ll.sisyphus/ACME.FooBar/Fetch/``.
+You will find the log files for this job in
+:file:`~/ll.sisyphus/ACME.FooBar/Fetch/`.
 
 
 Logging and tags
 ----------------
 
-Logging itself is done by calling ``self.log``::
+Logging itself is done by calling :meth:`~Job.log`:
+
+.. sourcecode:: python
 
 	self.log("can't parse XML file {}".format(filename))
 
@@ -77,46 +84,50 @@ This logs the argument without tagging the line.
 
 It is possible to add tags to the logging call. This is done by accessing
 attributes of the ``log`` pseudo method. I.e. to add the tags ``xml`` and
-``warning`` to a log call you can do the following::
+``warning`` to a log call you can do the following:
+
+.. sourcecode:: python
 
 	self.log.xml.warning("can't parse XML file {}".format(filename))
 
 It's also possible to do this via ``__getitem__`` calls, i.e. the above can be
-written like this::
+written like this:
+
+.. sourcecode:: python
 
 	self.log['xml']['warning']("can't parse XML file {}".format(filename))
 
 :mod:`ll.sisyphus` itself uses the following tags:
 
-	``sisyphus``
-		This tag will be added to all log lines produced by :mod:`ll.sisyphus`
-		itself.
+``sisyphus``
+	This tag will be added to all log lines produced by :mod:`ll.sisyphus`
+	itself.
 
-	``init``
-		This tag is used for the log lines output at the start of the job.
+``init``
+	This tag is used for the log lines output at the start of the job.
 
-	``report``
-		This tag will be added for all log messages related to sending the
-		failure report email.
+``report``
+	This tag will be added for all log messages related to sending the
+	failure report email.
 
-	``result``
-		This tag is used for the final line written to the log files that shows a
-		summary of what the job did (or why it failed).
+``result``
+	This tag is used for the final line written to the log files that shows a
+	summary of what the job did (or why it failed).
 
-	``fail``
-		This tag is used in the result line if the job failed with an exception.
+``fail``
+	This tag is used in the result line if the job failed with an exception.
 
-	``errors``
-		This tag is used in the result line if the job ran to completion, but some
-		exceptions where logged.
+``errors``
+	This tag is used in the result line if the job ran to completion, but some
+	exceptions where logged.
 
-	``ok``
-		This tag is used in the result line if the job ran to completion without
-		any exceptions.
+``ok``
+	This tag is used in the result line if the job ran to completion without
+	any exceptions.
 
-	``kill``
-		This tag is used in the result line if the job was killed because it
-		exceeded the maximum allowed runtime.
+``kill``
+	This tag is used in the result line if the job was killed because it
+	exceeded the maximum allowed runtime.
 
 
 Exceptions
@@ -132,10 +143,10 @@ Email
 It is possible to send an email when a job fails. For this the options
 :option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
 set. If the job terminates because of an exception, or exceeds its maximum
-runtime (and the option :option:`--noisykills` is set) or any of the calls to
-``self.log`` include the tag ``email``, the email will be sent. This email
-includes all logging calls and the final exception (if there is any) in plain
-text and HTML format as well as as a JSON attachment.
+runtime (and the option :option:`--noisykills` is set) or any of the calls
+to :meth:`~Job.log`` include the tag ``email``, the email will be sent. This
+email includes the last 10 logging calls and the final exception (if there is
+any) in plain text and HTML format as well as as a JSON attachment.
 """
 
 
@@ -197,115 +208,145 @@ class Job:
 	The job can be configured in three ways: By class attributes in the
 	:class:`Job` subclass, by attributes of the :class:`Job` instance (e.g. set
 	in :meth:`__init__`) and by command line arguments (if :func:`executewithargs`
-	is used). The following attributes/arguments are supported:
+	is used). The following command line arguments are supported (the name of the
+	attribute is the same as the long command line argument name):
 
-	``projectname`` : :option:`-p` or :option:`--projectname`
+	.. option:: -p <projectname>, --projectname <projectname>
+
 		The name of the project this job belongs to. This might be a dot-separated
 		hierarchical project name (e.g. including customer names or similar stuff).
 
-	``jobname`` : :option:`-j` or :option:`--jobname`
+	.. option:: -j <jobname>, --jobname <jobname>
+
 		The name of the job itself (defaulting to the name of the class if none
 		is given).
 
-	``identifier`` : :option:`--identifier`
+	.. option:: --identifier <identifier>
+
 		An additional identifier that will be added to the failure report email.
 
-	``argdescription`` : No command line equivalent
-		Description for help message of the command line argument parser.
+	.. option:: --fromemail <emailadress>
 
-	``fromemail`` : :option:`--fromemail`
 		The sender email address for the failure report email.
 
 		This email will only be sent if the options :option:`--fromemail`,
 		:option:`--toemail` and :option:`--smtphost` are set (and any error
 		or output to the email log occured).
 
-	``toemail`` : :option:`--toemail`
+	.. option:: --toemail <emailadress>
+
 		An email address where an email will be sent in case of a failure.
 
-	``smtphost`` : :option:`--smtphost`
+	.. option:: --smtphost <servername>
+
 		The SMTP server to be used for sending the failure report email.
 
-	``smtpport`` : :option:`--smtpport`
+	.. option:: --smtpport <integer>
+
 		The port number used for the connection to the SMTP server.
 
-	``smtpuser`` : :option:`--smtpuser`
+	.. option:: --smtpuser <username>
+
 		The user name used to log into the SMTP server. (Login will only be done
 		if both :option:`--smtpuser` and :option:`--smtppassword` are given)
 
-	``smtppassword`` : :option:`--smtppassword`
+	.. option:: --smtppassword <password>
+
 		The password used to log into the SMTP server.
 
-	``maxtime`` : :option:`-m` or :option:`--maxtime`
+	.. option:: -m <seconds>, --maxtime <seconds>
+
 		Maximum allowed runtime for the job (as the number of seconds). If the job
 		runs longer than that it will kill itself.
 
-	``fork`` : :option:`--fork`
+	.. option:: --fork
+
 		Forks the process and does the work in the child process. The parent
 		process is responsible for monitoring the maximum runtime (this is the
 		default). In non-forking mode the single process does both the work and
 		the runtime monitoring.
 
-	``noisykills`` : :option:`--noisykills`
+	.. option:: --noisykills
+
 		Should a message be printed/a failure email be sent when the maximum
 		runtime is exceeded?
 
-	``notify`` : :option:`-n` or :option:`--notify`
+	.. option:: -n, --notify
+
 		Should a notification be issued to the OS X Notification center?
 		(done via terminal-notifier__).
 
 		__ https://github.com/alloy/terminal-notifier
 
-	``logfilename`` : :option:`--logfilename`
+	.. option:: --logfilename <filename>
+
 		Path/name of the logfile for this job as an UL4 template. Variables
 		available in the template include ``user_name``, ``projectname``,
 		``jobname`` and ``starttime``.
 
-	``loglinkname`` : :option:`--loglinkname`
+	.. option:: --loglinkname <filename>
+
 		The filename of a link that points to the currently active logfile
 		(as an UL4 template). If this is :const:`None` no link will be created.
 
-	``log2file`` : :option:`-f` or :option:`--log2file`
+	.. option:: -f, --log2file
+
 		Should a logfile be written at all?
 
-	``formatlogline`` : :option:`--formatlogline`
+	.. option:: --formatlogline <format>
+
 		An UL4 template for formatting each line in the logfile. Available
 		variables are ``time`` (current time), ``starttime`` (start time of the
 		job), ``tags`` (list of tags for the line) and ``line`` (the log line
 		itself).
 
-	``keepfilelogs`` : :option:`--keepfilelogs`
+	.. option:: --keepfilelogs <days>
+
 		The number of days the logfiles are kept. Old logfiles (i.e. all files in
 		the same directory as the current logfile that are more than
 		``keepfilelogs`` days old) will be removed at the end of the job.
 
-	``compressfilelogs`` : :option:`--compressfilelogs`
-		The number of days after which log files are compressed (if they aren't
-		deleted via ``keepfilelogs``).
+	.. option:: --compressfilelogs <days>
 
-	``compressmode`` : :option:`--compressmode`
+		The number of days after which log files are compressed (if they aren't
+		deleted via :option:`--keepfilelogs`).
+
+	.. option:: --compressmode <mode>
+
 		How to compress the logfiles. Possible values are: ``"gzip"``, ``"bzip2"``
 		and ``"lzma"``. The default is ``"bzip2"``.
 
-	``encoding`` : :option:`--encoding`
+	.. option:: --encoding <encodingname>
+
 		The encoding to be used for the logfile. The default is ``"utf-8"``.
 
-	``errors`` : :option:`--errors`
-		Encoding error handler name (goes with ``encoding``). The default is
+	.. option:: --errors <erroehandlingname>
+
+		Encoding error handler name (goes with :option:`--encoding`). The default is
 		``"strict"``.
 
-	``maxemailerrors`` : :option:`--maxemailerrors`
+	.. option:: --maxemailerrors <integer>
+
 		This options limits the number of exceptions and errors messages that
 		will get attached to the failure email. The default is 10.
 
-	``proctitle`` : :option:`--proctitle`
+	.. option:: --proctitle
+
 		When this options is specified, the process title will be modified during
-		execution of the job, so that the ``ps`` command shows what the processes
-		are doing. (This requires :mod:`setproctitle`.)
+		execution of the job, so that the :command:`ps` command shows what the
+		processes are doing. (This requires :mod:`setproctitle`.)
 
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
 	attributes.
+
+	Furthermore the following class attribute can be set to customize the
+	help message:
+
+	:attr:`argdescription``
+
+		Description for help message of the command line argument parser.
+
 	"""
 
 	projectname = None
