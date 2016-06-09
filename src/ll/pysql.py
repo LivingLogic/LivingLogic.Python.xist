@@ -642,9 +642,7 @@ class _SQLCommand(Command):
 			if isinstance(argvalue, sql):
 				continue # no value
 			if isinstance(argvalue, var):
-				if argvalue.key is None:
-					argvalue = None
-				elif argvalue.key in context.keys:
+				if argvalue.key is not None and argvalue.key in context.keys:
 					argvalue = context.keys[argvalue.key]
 				else:
 					argvalue = context.cursor.var(argvalue.type)
@@ -658,8 +656,11 @@ class _SQLCommand(Command):
 
 		newkeys = {}
 		for (argname, argvalue) in self.args.items():
-			if isinstance(argvalue, var) and argvalue.key is not None and argvalue.key not in context.keys:
-				newkeys[argname] = context.keys[argvalue.key] = _makevalue(argname, queryargvars[argname].getvalue(0))
+			if isinstance(argvalue, var) and argvalue.key not in context.keys:
+				value = _makevalue(argname, queryargvars[argname].getvalue(0))
+				newkeys[argname] = value
+				if argvalue.key is not None:
+					context.keys[argvalue.key] = value
 		return newkeys
 
 	def _formatargs(self, context):
@@ -1262,15 +1263,20 @@ class var:
 	parameters. On first use the parameter is used as an ``OUT`` parameter and
 	PySQL will remembers the OUT value under the unique key specified in the
 	constructor. When a :class:`var` object is used a second time its value will
-	be passed to the procedure as a normal ``IN`` parameter.
-
-	Note that 
+	be passed to the procedure as a normal ``IN`` parameter instead. This also
+	means that it is possible to have Python expressions as parameter values that
+	transform the value.
 	"""
 
-	def __init__(self, key, type=int):
+	def __init__(self, key=None, type=int):
 		"""
 		Create a :class:`var` instance. :obj:`key` is a unique name for the value.
 		:obj:`type` is the type of the value (defaulting to :class:`int`).
+
+		Note that when the :obj:`key` is :const:`None` PySQL will *not* remember
+		the value, instead each use of ``var(None)`` will create a new OUT
+		parameter. This can be used for OUT parameters whose values is not
+		required by subsequent commands.
 		"""
 		self.key = key
 		self.type = type

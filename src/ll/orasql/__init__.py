@@ -3064,9 +3064,9 @@ class Procedure(Callable):
 	def __call__(self, cursor, *args, **kwargs):
 		"""
 		Call the procedure with arguments :obj:`args` and keyword arguments
-		:obj:`kwargs`. :obj:`cursor` must be a :mod:`ll.orasql` cursor. This will
-		return a :class:`Record` object containing the result of the call (i.e.
-		this record will contain all specified and all out parameters).
+		:obj:`kwargs`. :obj:`cursor` must be a :class:`ll.orasql.Cursor` object.
+		This will return a :class:`Record` object containing the result of the
+		call (i.e. this record will contain all specified and all out parameters).
 		"""
 		self._calcargs(cursor)
 
@@ -3094,7 +3094,7 @@ class Function(Callable):
 	def __call__(self, cursor, *args, **kwargs):
 		"""
 		Call the function with arguments :obj:`args` and keyword arguments
-		:obj:`kwargs`. :obj:`cursor` must be an :mod:`ll.orasql` cursor.
+		:obj:`kwargs`. :obj:`cursor` must be an :class:`ll.orasql.Cursor` object.
 		This will return a tuple containing the result and a :class:`Record`
 		object containing the modified parameters (i.e. this record will contain
 		all specified and out parameters).

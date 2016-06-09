@@ -12,81 +12,105 @@
 
 """
 Purpose
--------
+=======
 
-``udiff`` is a script that can be used to show the differences between files
-or directories. It is an URL-enabled version of the ``diff`` system command.
-Via :mod:`ll.url` and :mod:`ll.orasql` ``udiff`` supports ``ssh`` and
-``oracle`` URLs.
+:program:`udiff` is a script that can be used to show the differences between
+files or directories. It is an URL-enabled version of the :command:`diff`
+system command. Via :mod:`ll.url` and :mod:`ll.orasql` :program:`udiff` supports
+``ssh`` and ``oracle`` URLs.
 
 
 Options
--------
+=======
 
-``udiff`` supports the following options:
+:program:`udiff` supports the following options:
 
-	``url1``
-		The first URL to be compared (Note that a trailing ``/`` is required for
-		directories).
+.. program:: udiff
 
-	``url2``
-		The second URL to be compared (Note that a trailing ``/`` is required for
-		directories).
+.. option:: url1
 
-	``--encoding`` : encoding name
-		The encoding name to use for decoding files (default ``utf-8``).
+	The first URL to be compared (Note that a trailing ``/`` is required for
+	directories).
 
-	``--errors`` : encoding error handler name
-		Encoding error handling to use for reading text files (e.g. ``strict``,
-		``replace``, ``ignore``, ``xmlcharrefreplace`` or ``backslashreplace``;
-		default ``replace``).
+.. option:: url2
 
-	``--color``: ``yes``, ``no`` or ``auto``
-		Should the output of ``udiff`` be colored? The default ``auto`` uses
-		coloring if ``stdout`` supports it.
+	The second URL to be compared (Note that a trailing ``/`` is required for
+	directories).
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Prints which files are compare before the comparison. Without ``-v1``
-		``udiff`` will be silent as long as no differences are detected.
+.. option:: --encoding <encodingname>
 
-	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Compare directories recursively.
+	The encoding name to use for decoding files (default ``utf-8``).
 
-	``-i``, ``--include`` : pattern(s)
-		Only compares files whose name matches one of the specified patterns.
+.. option:: --error <errorhandlingname>
 
-	``-e``, ``--exclude`` : pattern(s)
-		Don't compares files whose name matches one of the specified patterns.
+	Encoding error handling to use for reading text files (e.g. ``strict``,
+	``replace``, ``ignore``, ``xmlcharrefreplace`` or ``backslashreplace``;
+	default ``replace``).
 
-	``--enterdir`` : pattern(s)
-		Only enter directories whose name matches one of the specified patterns.
+.. option:: -c <mode>, --color <mode>
 
-	``--skipdir`` : pattern(s)
-		Don't enter directories whose name matches one of the specified patterns.
+	Should the output of :program:`udiff` be colored? The default ``auto`` uses
+	coloring if ``stdout`` supports it. Valid modes are ``yes``, ``no`` or
+	``auto``.
 
-	``-n``, ``--context`` : integer
-		How many lines of copied context to show (default 2).
+.. option:: -v <flag>, --verbose <flag>
 
-	``-b``, ``--blank`` : ``literal``, ``trail``, ``lead``, ``both`` or ``collapse``
-		How to compare whitespace within lines. ``literal`` compares whitespace
-		literally. ``trail`` ignores differences in trailing whitespace, ``lead``
-		ignores differences in leading whitespace, ``both`` ignores both leading
-		and trailing whitespace and ``collapse`` collapses whitespace into a single
-		space before comparing lines.
+	Prints which files are compare before the comparison. When false
+	:program:`udiff` will be silent as long as no differences are detected.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -r <flag>, --recursive <flag>
+
+	Compare directories recursively.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <pattern(s)>, --include <pattern(s)>
+
+	Only compares files whose name matches one of the specified patterns.
+
+.. option:: -e <pattern(s)>, --exclude <pattern(s)>
+
+	Don't compares files whose name matches one of the specified patterns.
+
+.. option:: --enterdir <pattern(s)>
+
+	Only enter directories whose name matches one of the specified patterns.
+
+.. option:: --skipdir <pattern(s)>
+
+	Don't enter directories whose name matches one of the specified patterns.
+
+.. option:: -n``, ``--context`` : integer
+
+	How many lines of copied context to show (default 2).
+
+.. option:: -b <mode>, --blank <mode>
+
+	How to compare whitespace within lines. ``literal`` compares whitespace
+	literally. ``trail`` ignores differences in trailing whitespace, ``lead``
+	ignores differences in leading whitespace, ``both`` ignores both leading
+	and trailing whitespace and ``collapse`` collapses whitespace into a single
+	space before comparing lines.
 
 
 Examples
 --------
 
-Compare two files::
+Compare two files:
+
+.. sourcecode:: bash
 
 	$ udiff foo.txt bar.txt
 
-Recursively compare two directories, but skip the ``.git`` directory::
+Recursively compare two directories, but skip the ``.git`` directory:
+
+.. sourcecode:: bash
 
 	$ udiff foo/ bar/ -r --skipdir=.git
 
-Recursively compare two Oracle schemas::
+Recursively compare two Oracle schemas:
+
+.. sourcecode:: bash
 
 	$ udiff oracle://user1:pwd@database1  oracle://user2:pwd@database2 -r
 """

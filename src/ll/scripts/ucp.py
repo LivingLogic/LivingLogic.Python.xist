@@ -12,87 +12,116 @@
 
 """
 Purpose
--------
+=======
 
-``ucp`` is a script that copies files or directories. It is an URL-enabled
-version of the ``cp`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
-``ucp`` supports ``ssh`` and ``oracle`` URLs.
+:program:`ucp` is a script that copies files or directories. It is an
+URL-enabled version of the :command:`cp` system command. Via :mod:`ll.url` and
+:mod:`ll.orasql` :program:`ucp` supports ``ssh`` and ``oracle`` URLs.
 
 
 Options
--------
+=======
 
-``ucp`` supports the following options:
+:program:`ucp` supports the following options:
 
-	``urls``
-		Two or more URLs. If more than two URLs are given or the last URL refers
-		to an existing directory, the last URL is the target directory. All other
-		sources are copied into this target directory. Otherwise one file is
-		copied to another file.
+.. program:: ucp
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Give a report during the copy process about the files copied and their
-		sizes.
+.. option:: urls
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output be colored? If ``auto`` is specified (the default) then
-		the output is colored if stdout is a terminal.
+	Two or more URLs. If more than two URLs are given or the last URL refers
+	to an existing directory, the last URL is the target directory. All other
+	sources are copied into this target directory. Otherwise one file is
+	copied to another file.
 
-	``-u``, ``--user``
-		A user id or name. If given ``ucp`` will change the owner of the
-		target files.
+.. option:: -v <flag>, --verbose <flag>
 
-	``-g``, ``--group``
-		A group id or name. If given ``ucp`` will change the group of the
-		target files.
+	Give a report during the copy process about the files copied and their
+	sizes?
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Copies files recursively.
+.. option:: -c <mode>, --color <mode>
 
-	``-x``, ``--ignoreerrors`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Ignores errors occuring during the copy process (otherwise the copy
-		process is aborted).
+	Should the output be colored? If ``auto`` is specified (the default) then
+	the output is colored if stdout is a terminal. Valid modes are ``yes``,
+	``no`` or ``auto``.
 
-	``-i``, ``--include`` : pattern
-		Only copy files that match the pattern.
+.. option:: -u <user>, --user <user>
 
-	``-e``, ``--exclude`` : pattern
-		Don't copy files that match the pattern.
+	A user id or name. If given :program:`ucp` will change the owner of the
+	target files.
 
-	``--enterdir`` : pattern
-		Only enter directories that match the pattern.
+.. option:: -g <group>, --group <group>
 
-	``--skipdir`` : pattern
-		Skip directories that match the pattern.
+	A group id or name. If given :program:`ucp` will change the group of the
+	target files.
 
-	``--ignorecase`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Perform case-insensitive pattern matching.
+.. option:: -r <flag>, --recursive <flag>
+
+	Copies files recursively.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -x <flag>, --ignoreerrors <flag>
+
+	Ignores errors occuring during the copy process (otherwise the copy
+	process is aborted).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <pattern(s)>, --include <pattern(s)>
+
+	Only copy files that match one of the specified patterns.
+
+.. option:: -e <pattern(s)>, --exclude <pattern(s)>
+
+	Don't copy files that match one of the specified patterns.
+
+.. option:: --enterdir <pattern(s)>
+
+	Only enter directories that match one of the specified patterns.
+
+.. option:: --skipdir <pattern(s)>
+
+	Skip directories that match one of the specified patterns.
+
+.. option:: --ignorecase <flag>
+
+	Perform case-insensitive pattern matching?
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
 
 Examples
---------
+========
 
-Copy one file to another::
+Copy one file to another:
+
+.. sourcecode:: bash
 
 	$ ucp foo.txt bar.txt
 
-Copy a file into an existing directory::
+Copy a file into an existing directory:
+
+.. sourcecode:: bash
 
 	$ ucp foo.txt dir/
 
 Copy multiple files into a new or existing directory (and give a progress
-report)::
+report):
+
+.. sourcecode:: bash
 
 	$ ucp foo.txt bar.txt baz.txt dir/ -v
 	ucp: foo.txt -> dir/foo.txt (1,114 bytes)
 	ucp: bar.txt -> dir/bar.txt (2,916 bytes)
 	ucp: baz.txt -> dir/baz.txt (35,812 bytes)
 
-Recursively copy the schema objects in an Oracle database to a local directory::
+Recursively copy the schema objects in an Oracle database to a local directory:
+
+.. sourcecode:: bash
 
 	ucp oracle://user:pwd@oracle.example.org/ db/ -r
 
-Recursively copy the schema objects in an Oracle database to a remote directory::
+Recursively copy the schema objects in an Oracle database to a remote directory:
+
+.. sourcecode:: bash
 
 	ucp oracle://user:pwd@oracle.example.org/ ssh://user@www.example.org/~/db/ -r
 """

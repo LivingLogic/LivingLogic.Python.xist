@@ -11,31 +11,35 @@
 """
 This package contains the following scripts:
 
-	``dtd2xsc``
-		``dtd2xsc`` creates a skeleton XIST namespace module from a DTD.
+:program:`dtd2xsc`
+	:program:`dtd2xsc` creates a skeleton XIST namespace module from a DTD.
 
-	``xml2xsc``
-		``xml2xsc`` is a script that generates a skeleton XIST namespace module
-		from one or more XML files.
+:program:`xml2xsc`
+	:program:`xml2xsc` is a script that generates a skeleton XIST namespace
+	module from one or more XML files.
 
-	``tld2xsc``
-		``tld2xsc`` converts a Java tag library description XML file to a skeleton
-		XIST namespace.
+:program:`tld2xsc`
+	:program:`tld2xsc` converts a Java tag library description XML file to a
+	skeleton XIST namespace.
 
-	``doc2txt``
-		``doc2txt`` creates a plain text file from a XML file using XISTs doc
-		XML vocabulary.
+:program:`doc2txt`
+	:program:`doc2txt` creates a plain text file from a XML file using XISTs doc
+	XML vocabulary.
 
-	``uhpp``
-		``uhpp`` is a script for pretty printing HTML files. It is URL-enabled,
-		so you can specify local file names and URLs (and remote files via
-		``ssh`` URLs).
+:program:`uhpp`
+	:program:`uhpp` is a script for pretty printing HTML files. It is
+	URL-enabled, so you can specify local file names and URLs (and remote files
+	via ``ssh`` URLs).
 
-These scripts can either be called via Pythons :option:`-m` option::
+These scripts can either be called via Pythons :option:`-m` option:
+
+.. sourcecode:: bash
 
 	python -mll.xist.scripts.xml2xsc --help
 
-or as a simple script installed in the search path::
+or as a simple script installed in the search path:
+
+.. sourcecode:: bash
 
 	xml2xsc --help
 """

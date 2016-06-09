@@ -1,3 +1,13 @@
+.. _MIGRATION:
+
+Migration
+#########
+
+This document describes how to update your code to each versions of XIST. Only
+incompatible changes are listed here. For a list of all changes see
+:ref:`NEWS`.
+
+
 Migrating to version 5.18
 =========================
 
@@ -946,8 +956,8 @@ Changes to UL4
 Changes to XIST
 ---------------
 
-*	Building trees with ``with`` blocks has changed slightly. Unchanged code will
-	lead to the following exception::
+*	Building trees with :keyword:`with` blocks has changed slightly. Unchanged
+	code will lead to the following exception::
 
 		File "/usr/local/lib/python2.5/site-packages/ll/xist/xsc.py", line 1285, in __enter__
 			threadlocalnodehandler.handler.enter(self)
@@ -970,7 +980,7 @@ Changes to XIST
 				with html.body():
 					+html.p("The foo page!")
 
-	(i.e. wrap the outermost ``with`` block in another ``with xsc.build()``
+	(i.e. wrap the outermost :keyword:`with` block in another ``with xsc.build()``
 	block.)
 
 

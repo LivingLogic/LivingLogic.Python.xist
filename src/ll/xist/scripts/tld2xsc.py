@@ -14,30 +14,34 @@
 Purpose
 -------
 
-``tld2xsc`` is a script that converts a JSP Tag Library Descriptor XML file
-into a skeleton XIST namespace module. The tld file is read from stdin and
+:program:`tld2xsc` is a script that converts a JSP Tag Library Descriptor XML
+file into a skeleton XIST namespace module. The tld file is read from stdin and
 the namespace module is printed to stdout.
 
 
 Options
 -------
 
-``tld2xsc`` supports the following options:
+:program:`tld2xsc` supports the following options:
 
-	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
-		Should attributes be shared among the elements? ``none`` means that each
-		element will have its own standalone :class:`Attrs` class directly derived
-		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
-		used by more than one element will be moved into its own :class:`Attrs`
-		class. For ``all`` this will be done for all attributes.
+.. program:: tld2xsc
 
-	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
-		Add model information to the namespace. ``no`` doesn't add any model
-		information. ``simple`` only adds ``model = False`` or ``model = True``
-		(i.e. only the information whether the element must be empty or not).
-		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
-		``fullonce`` adds full model information to, but reuses model objects for
-		elements which have the same model.
+.. option:: -s <value>, --shareattrs <value
+
+	Should attributes be shared among the elements? ``none`` means that each
+	element will have its own standalone :class:`Attrs` class directly derived
+	from :class:`ll.xist.xsc.Elements.Attrs`. For ``dupes`` each attribute that
+	is used by more than one element will be moved into its own :class:`Attrs`
+	class. For ``all`` this will be done for all attributes.
+
+.. option:: -m <model>, --model <model>
+
+	Add model information to the namespace. ``no`` doesn't add any model
+	information. ``simple`` only adds ``model = False`` or ``model = True``
+	(i.e. only the information whether the element must be empty or not).
+	``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+	``fullonce`` adds full model information to, but reuses model objects for
+	elements which have the same model.
 """
 
 __docformat__ = "reStructuredText"

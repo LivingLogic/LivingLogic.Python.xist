@@ -613,7 +613,7 @@ class CSSTypeSelector(xfind.Selector):
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	"""
 	A :class:`CSSAdjacentSiblingCombinator` works similar to an
-	:class:`xfind.AdjacentSiblingCombinator` except that only preceding
+	:class:`~ll.xist.xfind.AdjacentSiblingCombinator` except that only preceding
 	*elements* are considered.
 	"""
 

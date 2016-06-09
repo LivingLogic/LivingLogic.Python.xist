@@ -12,67 +12,90 @@
 
 """
 Purpose
--------
+=======
 
-``oracreate`` prints the SQL of all objects in an Oracle database schema in a
-way that can be used to recreate the schema (i.e. objects will be ordered so
-that no errors happen for non-existant objects during script execution).
-``oracreate`` can also be used to actually recreate the schema.
+:program:`oracreate` prints the SQL of all objects in an Oracle database schema
+in a way that can be used to recreate the schema (i.e. objects will be ordered
+so that no errors happen for non-existant objects during script execution).
+:program:`oracreate` can also be used to actually recreate the schema.
 
 
 Options
--------
+=======
 
-``oracreate`` supports the following options:
+:program:`oracreate` supports the following options:
 
-	``connectstring``
+.. program:: oracreate
+
+.. option:: connectstring
+
 		An Oracle connectstring.
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read or written.
+.. option:: -v, --verbose
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+	Produces output (on stderr) while the database is read or written.
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-s``, ``--seqcopy`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Outputs ``CREATE SEQUENCE`` statements for the existing sequences that have
-		the current value of the sequence as the starting value (otherwise the
-		sequences will restart with their initial value).
+.. option:: -c <mode>, --color <mode>
 
-	``-x``, ``--execute`` : connectstring
-		When the ``-x`` argument is given the SQL script isn't printed on stdout
-		but executed in the database specfied as the ``-x`` argument.
+	Should the output (when the ``-v`` option is used) be colored? If ``auto``
+	is specified (the default) then the output is colored if stderr is a
+	terminal. Valid modes are ``yes``, ``no`` or ``auto``.
 
-	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, database objects that have ``$`` or ``SYS_EXPORT_SCHEMA_`` in
-		their name will be skipped (otherwise these objects will be included).
+.. option:: -s <flag>, --seqcopy <flag>
 
-	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, any exception that occurs while the database is read or written
-		will be ignored.
+	Outputs ``CREATE SEQUENCE`` statements for the existing sequences that have
+	the current value of the sequence as the starting value (otherwise the
+	sequences will restart with their initial value).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--format`` : ``sql`` or ``pysql``
-		If ``--execute`` is not given, this determines the output format: Plain
-		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+.. option:: -x <connectstring>, --execute <connectstring>
 
-	``--include`` : regexp
-		Only include objects in the output if their name contains the regular
-		expression.
+	When the ``-x`` argument is given the SQL script isn't printed on stdout
+	but executed in the database specfied as the ``-x`` argument.
 
-	``--exclude`` : regexp
-		Exclude objects from the output if their name contains the regular
-		expression.
+.. option:: -k <flag>, --keepjunk <flag>
+
+	If false (the default), database objects that have ``$`` or
+	``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+	objects will be included).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <flag>, --ignore <flag>
+
+	If true, any exception that occurs while the database is read or written
+	will be ignored.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --format <format>
+
+	If ``--execute`` is not given, this determines the output format: Plain
+	SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped into
+	:mod:`ll.pysql`.
+
+.. option:: --include <regexp>
+
+	Only include objects in the output if their name contains the regular
+	expression.
+
+.. option:: --exclude <regexp>
+
+	Exclude objects from the output if their name contains the regular
+	expression.
+
 
 Examples
---------
+========
 
-Print the content of the database schema ``user@db``::
+Print the content of the database schema ``user@db``:
+
+.. sourcecode:: bash
 
 	$ oracreate user/pwd@db >db.sql
 
-Copy the database schema ``user@db`` to ``user2@db2``::
+Copy the database schema ``user@db`` to ``user2@db2``:
+
+.. sourcecode:: bash
 
 	$ oracreate user/pwd@db -x user2/pwd2@db2 -v
 """

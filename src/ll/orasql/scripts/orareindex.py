@@ -12,39 +12,52 @@
 
 """
 Purpose
--------
+=======
 
-``orareindex`` recreates/rebuilds all indexes and unique constraints in an
-Oracle database schema.
+:program:`orareindex` recreates/rebuilds all indexes and unique constraints in
+an Oracle database schema.
 
 
 Options
--------
+=======
 
-``orareindex`` supports the following options:
+:program:`orareindex` supports the following options:
 
-	``connectstring``
-		An Oracle connectstring.
+.. program:: orareindex
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read or written.
+.. option:: connectstring
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+	An Oracle connectstring.
 
-	``-x``, ``--execute`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		When the ``-x`` argument is given the SQL script isn't printed on stdout,
-		but is executed directly.
+.. option:: -v <flag>, --verbose <flag>
 
-	``-r``, ``--rebuild`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, the script uses ``ALTER INDEX ... REBUILD`` to rebuild indexes
-		instead of dropping and recreating them.
+	Produces output (on stderr) while the database is read or written.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--format`` : ``sql`` or ``pysql``
-		If ``--execute`` is not given, this determines the output format: Plain
-		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+.. option:: -c <mode>, --color <mode>
+
+	Should the output (when the :option:`-v` option is used) be colored?
+	If ``auto`` is specified (the default) then the output is colored if stderr
+	is a terminal. Valid modes are ``yes``, ``no`` or ``auto``.
+
+.. option:: -x <flag>, --execute <flag>
+
+	When the :option:`-x` argument is given the SQL script isn't printed on
+	stdout, but is executed directly in the schema specified via the
+	:option:`connectstring` option.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -r <flag>, --rebuild <flag>
+
+	If given, the script uses ``ALTER INDEX ... REBUILD`` to rebuild indexes
+	instead of dropping and recreating them.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --format <format>
+
+	If :option:`--execute` is not given, this determines the output format:
+	Plain SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped
+	into :mod:`ll.pysql`.
 """
 
 

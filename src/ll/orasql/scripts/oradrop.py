@@ -12,62 +12,79 @@
 
 """
 Purpose
--------
+=======
 
-``oradrop`` prints the drop statements for all objects in an Oracle database
+:program:`oradrop` prints the drop statements for all objects in an Oracle database
 schema in the correct order (i.e. objects will be dropped so that no errors
-happen during script execution). ``oradrop`` can also be used to actually
+happen during script execution). :program:`oradrop` can also be used to actually
 make the schema empty.
 
 
 Options
--------
+=======
 
-``oradrop`` supports the following options:
+:program:`oradrop` supports the following options:
 
-	``connectstring``
-		An Oracle connectstring.
+.. program:: oradrop
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read or written.
+.. option:: connectstring
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+	An Oracle connectstring.
 
-	``-f``, ``--fks`` : ``keep``, ``disable``, ``drop``
-		Specifies how foreign keys from other schemas pointing to this schema
-		should be treated: ``keep`` will not change the foreign keys in any way
-		(this *will* lead to errors); ``disable`` will disable the foreign keys
-		and ``drop`` will drop them completely.
+.. option:: -v <flag>, --verbose <flag>
 
-	``-x``, ``--execute`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		When the ``-x`` argument is given the SQL script isn't printed on stdout,
-		but is executed directly. Be careful with this: You *will* have an empty
-		schema after ``oradrop -x``.
+	Produces output (on stderr) while the database is read or written.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true (the default), database objects that have ``$`` or
-		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
-		objects will be included in the output).
+.. option:: -c <mode>, --color <mode>
 
-	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, any exception that occurs while the database is read or written
-		will be ignored.
+	Should the output (when the :option:`-v` option is used) be colored? If
+	``auto`` is specified (the default) then the output is colored if stderr is
+	a terminal. Valid modes are ``yes``, ``no`` or ``auto``.
 
-	``--format`` : ``sql`` or ``pysql``
-		If ``--execute`` is not given, this determines the output format: Plain
-		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+.. option:: -f <mode>, --fks <mode>
 
-	``--include`` : regexp
-		Only include objects in the output if their name contains the regular
-		expression.
+	Specifies how foreign keys from other schemas pointing to this schema
+	should be treated: ``keep`` will not change the foreign keys in any way
+	(this *will* lead to errors); ``disable`` will disable the foreign keys
+	and ``drop`` will drop them completely.
 
-	``--exclude`` : regexp
-		Exclude objects from the output if their name contains the regular
-		expression.
+.. option:: -x <flag>, --execute <flag>
 
+	When the :option:`-x` argument is given the SQL script isn't printed on
+	stdout, but is executed directly in the schema specified via the
+	:option:`connectstring` option. Be careful with this: You *will* have an
+	empty schema after ``oradrop -x``.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -k <flag>, --keepjunk <flag>
+
+	If false (the default), database objects that have ``$`` or
+	``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+	objects will be included in the output).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <flag>, --ignore <flag>
+
+	If true, any exception that occurs while the database is read or written
+	will be ignored.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --format <format>
+
+	If ``--execute`` is not given, this determines the output format: Plain
+	SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped into
+	:mod:`ll.pysql`.
+
+.. option:: --include <regexp>
+
+	Only include objects in the output if their name contains the regular
+	expression.
+
+.. option:: --exclude <regexp>
+
+	Exclude objects from the output if their name contains the regular
+	expression.
 """
 
 

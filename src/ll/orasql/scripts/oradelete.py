@@ -12,62 +12,83 @@
 
 """
 Purpose
--------
+=======
 
-``oradelete`` prints the delete statements for all tables in an Oracle database
-schema in the correct order (i.e. records will be deleted so that no errors
-happen during script execution). ``oradelete`` can also be used to actually
-make all tables empty.
+:program:`oradelete` prints the delete statements for all tables in an Oracle
+database schema in the correct order (i.e. records will be deleted so that no
+errors happen during script execution). :program:`oradelete` can also be used
+to actually make all tables empty.
 
 
 Options
--------
+=======
 
-``oradelete`` supports the following options:
+:program:`oradelete` supports the following options:
 
-	``connectstring``
-		An Oracle connectstring.
+.. program:: oradelete
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read or written.
+.. option:: connectstring
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+	An Oracle connectstring.
 
-	``-s``, ``--sequences`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Should sequences be reset to their initial values?
+.. option:: -v <flag>, --verbose <flag>
 
-	``-x``, ``--execute`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		When the ``-x`` argument is given the SQL script isn't printed on stdout,
-		but is executed directly. Be careful with this: You *will* have empty
-		tables after ``oradelete -x``.
+	Produces output (on stderr) while the database is read or written.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true (the default), database objects that have ``$`` or
-		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
-		objects will be included in the output).
+.. option:: -c <flag>, --color <flag>
 
-	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, any exception that occurs while the database is read or written
-		will be ignored.
+	Should the output (when the ``-v`` option is used) be colored? If ``auto``
+	is specified (the default) then the output is colored if stderr is a
+	terminal. Valid modes are ``yes``, ``no`` or ``auto``.
 
-	``-t``, ``--truncate`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``
-		command.
+.. option:: -s <flag>, --sequences <flag>
 
-	``--format`` : ``sql`` or ``pysql``
-		If ``--execute`` is not given, this determines the output format: Plain
-		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+	Should sequences be reset to their initial values?
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--include`` : regexp
-		Only include objects in the output if their name contains the regular
-		expression.
+.. option:: -x <flag>, --execute <flag>
 
-	``--exclude`` : regexp
-		Exclude objects from the output if their name contains the regular
-		expression.
+	When the :option:`-x` argument is given the SQL script isn't printed on
+	stdout, but is executed directly in the schema specified via the
+	:option:`connectstring` option. Be careful with this: You *will* have empty
+	tables after ``oradelete -x``.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -k <flag>, --keepjunk <flag>
+
+	If false (the default), database objects that have ``$`` or
+	``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+	objects will be included in the output).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <flag>, --ignore <flag>
+
+	If true, any exception that occurs while the database is read or written
+	will be ignored.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -t <flag>, --truncate <flag>
+
+	If given the script uses the ``TRUNCATE`` command instead of the ``DELETE``
+	command.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --format <format>
+
+	If ``--execute`` is not given, this determines the output format: Plain
+	SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped into
+	:mod:`ll.pysql`.
+
+.. option:: --include <regexp>
+
+	Only include objects in the output if their name contains the regular
+	expression.
+
+.. option:: --exclude <regexp>
+
+	Exclude objects from the output if their name contains the regular
+	expression.
 """
 
 

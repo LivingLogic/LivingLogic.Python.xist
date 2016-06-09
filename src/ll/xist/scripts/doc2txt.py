@@ -11,17 +11,21 @@
 
 
 """
-``doc2txt`` is a script that converts an XML files using XIST doc vocabulary
-(i.e. the :mod:`ll.xist.ns.doc` namespace module) into plain text (by using
-:func:`ll.xist.ns.html.astext`).
+:program:`doc2txt` is a script that converts an XML files using XIST doc
+vocabulary (i.e. the :mod:`ll.xist.ns.doc` namespace module) into plain text
+(by using :func:`ll.xist.ns.html.astext`).
 
-``doc2txt`` supports the following options:
+:program:`doc2txt` supports the following options:
 
-	``-t``, ``--title``
+.. program:: doc2txt
+
+.. option:: -t <title>, --title <title>
+
 		The title for the document
 
-	``-w``, ``--width``
-		The width of the formatted text output (default 72)
+..	option:: -w <width>, --width <width>
+
+	The width of the formatted text output (default 72)
 
 The input is read from stdin and printed to stdout.
 
@@ -29,7 +33,10 @@ The input is read from stdin and printed to stdout.
 Example
 -------
 
-The following generates ``spam.txt`` from ``spam.xml`` formatted to 80 columns::
+The following generates :file:`spam.txt` from :file:`spam.xml` formatted to 80
+columns:
+
+.. sourcecode:: bash
 
 	$ doc2txt <spam.xml >spam.txt -w80
 """

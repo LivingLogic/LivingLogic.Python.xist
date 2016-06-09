@@ -1,3 +1,13 @@
+.. _NEWS:
+
+History
+=======
+
+This document describes the new features, bug fixes and changes in each version
+of XIST. For a description of how to update your code to each versions of XIST
+see :ref:`MIGRATION`.
+
+
 Changes in 5.18 (released 05/17/2016)
 -------------------------------------
 
@@ -439,7 +449,8 @@ Changes in 5.8 (released 05/05/2014)
 	recursively, so ``item(["foo", "bar"], (1, -1))`` returns ``'r'``.
 
 *	A new context manager :func:`misc.timeout` has been added, that uses
-	:func:`signal.alarm` to limit the runtime of the body of the ``with`` block.
+	:func:`signal.alarm` to limit the runtime of the body of the :keyword:`with`
+	block.
 
 *	Updated the required version of :mod:`cssutils` to 1.0.
 
@@ -1661,8 +1672,8 @@ Changes in 3.13 (released 10/22/2010)
 -------------------------------------
 
 *	sisyphus jobs now have a new method :meth:`prefix`. This method is a context
-	manager. For the duration of the ``with`` block, the passed in prefix will be
-	prepended to all log lines.
+	manager. For the duration of the :keyword:`with` block, the passed in prefix
+	will be prepended to all log lines.
 
 *	:mod:`ll.sisyphus` job can now log to ``stdout`` and ``stderr`` with the new
 	options :option:`-o`/:option:`--log2stdout` and
@@ -2101,7 +2112,7 @@ Changes in 3.6.1 (released 01/27/2009)
 *	Fixed a buffer overrun in the C portions of the url module.
 
 *	Added a class :class:`addattr` to :mod:`ll.xist.xsc`. This can be used
-	to extend XML attributes via ``with`` blocks.
+	to extend XML attributes via :keyword:`with` blocks.
 
 *	Added the function :func:`ll.xist.ns.jsp.fromul4` which can turn an UL4
 	template into JSP source code.
@@ -2191,8 +2202,8 @@ Changes in 3.4.1 (released 08/29/2008)
 --------------------------------------
 
 *	Bugs with thread local storage have been fixed so using :class:`xsc.Pool`,
-	:class:`xsc.build` and URL contexts in ``with`` blocks in multithreaded
-	applications should work now.
+	:class:`xsc.build` and URL contexts in :keyword:`with` blocks in
+	multithreaded applications should work now.
 
 
 Changes in 3.4 (released 08/19/2008)
@@ -2245,10 +2256,10 @@ Changes in 3.4 (released 08/19/2008)
 	"conditional attributes" (via the new classes :class:`attr_if` and
 	:class:`attr_ifnn`).
 
-*	Building trees with ``with`` blocks has changed slightly. Nodes used in
-	``with`` blocks and with ``+`` are now passed to a ``with`` handler instead
-	of building the tree directly. This fixes a problem when nested
-	:meth:`convert` calls use ``with`` blocks.
+*	Building trees with :keyword:`with` blocks has changed slightly. Nodes used
+	in :keyword:`with` blocks and with ``+`` are now passed to a :keyword:`with`
+	handler instead of building the tree directly. This fixes a problem when
+	nested :meth:`convert` calls use :keyword:`with` blocks.
 
 *	The element :class:`ll.xist.ns.form.memo` has been renamed to
 	:class:`textarea` and :class:`ll.xist.ns.form.edit` has been renamed to
@@ -2558,8 +2569,8 @@ Changes in 3.0 (released 01/07/2008)
 *	The function :func:`selector` returns a tree walk filter from a CSS selector
 	passed in as a string.
 
-*	Constructing trees can now be done with ``with`` blocks. Code looks like
-	this::
+*	Constructing trees can now be done with :keyword:`with` blocks. Code looks
+	like this::
 
 		with xsc.Frag() as node:
 			+xml.XML()
@@ -2578,7 +2589,7 @@ Changes in 3.0 (released 01/07/2008)
 		print node.conv().bytes(encoding="us-ascii")
 
 	Also the function :func:`xsc.append` has been renamed to :func:`add` and
-	supports ``with`` blocks now instead of XPython__.
+	supports :keyword:`with` blocks now instead of XPython__.
 
 	__ http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
 
@@ -2816,7 +2827,7 @@ Changes in 2.11 (released 07/29/2005)
 *	Fixed a bug with ``xmlns`` attributes in nested elements. When an element
 	ended the parser restored the wrong prefix mapping.
 
-*	The :dir:`python-quotes` demo has been updated to use the current version of
+*	The :file:`python-quotes` demo has been updated to use the current version of
 	AMK's XML file.
 
 *	Removed iterator stuff from :mod:`ll.xist.xfind`, as this is now part of the
@@ -3589,7 +3600,7 @@ Changes in 2.0 (released 10/16/2002)
 	the new class :class:`StyleAttr`, which uses the :class:`CSSTokenizer`, to
 	prepend the base URL to all URLs found in a style attribute.
 
-*	The pixel images have been moved to the directory :dir:`px` to make image
+*	The pixel images have been moved to the directory :file:`px` to make image
 	URLs shorter.
 
 
@@ -4016,7 +4027,7 @@ Changes in 1.0 (released 06/18/2001)
 	childrens' :meth:`asHTML` method. As the name :meth:`asHTML` no longer
 	makes sense, :meth:`asHTML` has been renamed to :meth:`convert`.
 
-*	There is now a tool :file:`dtd2xsc.py` in the :dir:`scripts` directory that
+*	There is now a tool :file:`dtd2xsc.py` in the :file:`scripts` directory that
 	creates a skeleton XIST module from a DTD (this requires xmlproc from the
 	PyXML package).
 
@@ -4065,7 +4076,7 @@ Changes in 1.0 (released 06/18/2001)
 	__ http://w3m.sf.net/
 
 *	:file:`make.py` has been renamed to :file:`xscmake.py` and moved to the
-	:dir:`scripts` directory, it will be installed as a callable script with
+	:file:`scripts` directory, it will be installed as a callable script with
 	``python setup.py install_scripts``.
 
 *	:file:`xscmake.py` has a new option :option:`--files`/:option:`-f`.

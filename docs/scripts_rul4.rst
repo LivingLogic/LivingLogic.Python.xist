@@ -1,0 +1,4 @@
+:mod:`rul4` -- Rendering UL4 templates
+======================================
+
+.. automodule:: ll.scripts.rul4

@@ -9,7 +9,9 @@ the :mod:`ll.orasql` module.
 
 __ http://www.cherrypy.org/
 
-For example, you might have the following PL/SQL function::
+For example, you might have the following PL/SQL function:
+
+.. sourcecode:: sql
 
 	create or replace function helloworld
 	(
@@ -21,12 +23,13 @@ For example, you might have the following PL/SQL function::
 		return '<html><head><h>Hello ' || who || '</h></head><body><h1>Hello, ' || who || '!</h1></body></html>';
 	end;
 
-Using this function as a CherryPy response handler can be done like this::
+Using this function as a CherryPy response handler can be done like this:
+
+.. sourcecode:: python
 
 	import cherrypy
 
 	from ll import orasql, nightshade
-
 
 	proc = nightshade.Call(orasql.Function("helloworld"), connectstring="user/pwd")
 

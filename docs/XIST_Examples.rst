@@ -1,5 +1,11 @@
+.. _XIST_Examples:
+
+Examples
+========
+
+
 Creating HTML
-=============
+-------------
 
 You can create and output HTML like this:
 
@@ -27,7 +33,8 @@ You can create and output HTML like this:
 		)
 	)
 
-You can also use ``with`` blocks (and the unary ``+`` operator) to generate the same HTML:
+You can also use :keyword:`with` blocks (and the unary ``+`` operator) to
+generate the same HTML:
 
 .. sourcecode:: python
 
@@ -54,7 +61,7 @@ You can also use ``with`` blocks (and the unary ``+`` operator) to generate the 
 
 
 Printing HTML
-=============
+-------------
 
 When you have an XIST tree you can print it with the :meth:`string` method like this:
 
@@ -95,7 +102,7 @@ When you want to save this into a file, use the :meth:`bytes` method instead of
 
 
 Defining new elements
-=====================
+---------------------
 
 You can define new elements and how they should be converted to HTML
 (or other XML vocabularies) like this:</p>
@@ -137,7 +144,7 @@ You can define new elements and how they should be converted to HTML
 
 
 Parsing HTML
-============
+------------
 
 Parsing HTML is done like this:
 
@@ -155,7 +162,7 @@ Parsing HTML is done like this:
 
 
 Finding and counting nodes
-==========================
+--------------------------
 
 The following example shows you how to output the URLs of all images
 inside links on Python's homepage:
@@ -210,7 +217,7 @@ If you want to count the number of links on the page you can do the following:
 
 
 Replacing text
-==============
+--------------
 
 This example demonstrates how to make a copy of an XML tree with some
 text replacements:
@@ -236,7 +243,7 @@ text replacements:
 
 
 Converting HTML to XIST code
-============================
+----------------------------
 
 The class :class:`ll.xist.present.CodePresenter` makes it possible to output an
 XIST tree as usable Python source code:
@@ -292,7 +299,7 @@ XIST tree as usable Python source code:
 
 
 Using converter contexts to pass information between elements
-=============================================================
+-------------------------------------------------------------
 
 Converter contexts can be used to pass information between elements.
 The following example will generate HTML ``<h1>``, ..., ``<h6>`` elements
@@ -355,7 +362,7 @@ The output of this script will be:
 
 
 Formatting HTML as plain text
-=============================
+-----------------------------
 
 The function :func:`ll.xist.ns.html.astext` can to used to format HTML into
 plain text:

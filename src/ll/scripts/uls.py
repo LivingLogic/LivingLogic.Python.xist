@@ -14,66 +14,89 @@
 Purpose
 -------
 
-``uls`` is a script that lists the content of directories. It is an URL-enabled
-version of the ``ls`` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
-``uls`` supports ``ssh`` and ``oracle`` URLs.
+:program:`uls` is a script that lists the content of directories. It is an
+URL-enabled version of the :command:`ls` system command. Via :mod:`ll.url`
+and :mod:`ll.orasql` :program:`uls` supports ``ssh`` and ``oracle`` URLs.
 
 
 Options
 -------
 
-``uls`` supports the following options:
+:program:`uls` supports the following options:
 
-	``urls``
-		Zero or more URLs. If no URL is given the current directory is listed.
+.. program:: uls
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output be colored? If ``auto`` is specified (the default) then
-		the output is colored if stdout is a terminal.
+.. option:: urls
 
-	``-1``, ``--one`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Force output to be one URL per line. The default is to output URLs in
-		multiple columns (as many as fit on the screen).
+	Zero or more URLs. If no URL is given the current directory is listed.
 
-	``-l``, ``--long`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Ouput in long format: One URL per line containing the following information:
-		file mode, owner name, group name, number of bytes in the file,
-		number of links, URL.
+.. option:: -c <mode>, --color <mode>
 
-	``-s``, ``--human-readable-sizes`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Output the file size in human readable form (e.g. ``42M`` for 42 megabytes).
+	Should the output be colored? If ``auto`` is specified (the default) then
+	the output is colored if stdout is a terminal. Valid modes are ``yes``,
+	``no`` or ``auto``
 
-	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		List directories recursively.
+.. option:: -1 <flag>, --one <flag>
 
-	``-w``, ``--spacing`` : integer
-		The number of spaces (or padding characters) between columns (only
-		relevant for multicolumn output, i.e. when neither ``--long`` nor
-		``--one`` is specified).
+	Force output to be one URL per line. The default is to output URLs in
+	multiple columns (as many as fit on the screen).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-P``, ``--padding`` : characters
-		The characters used for padding output in multicolumn or long format.
+.. option:: -l <flag>, --long <flag>
 
-	``-i``, ``--include`` : pattern
-		Only list files that match the pattern.
+	Output in long format: One URL per line containing the following information:
+	file mode, owner name, group name, number of bytes in the file,
+	number of links, URL.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-e``, ``--exclude`` : pattern
-		Don't list files that match the pattern.
+.. option:: -s <flag>, --human-readable-sizes <flag>
 
-	``--enterdir`` : pattern
-		Only enter directories that match the pattern.
+	Output the file size in human readable form (e.g. ``42M`` for 42 megabytes).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--skipdir`` : pattern
-		Skip directories that match the pattern.
+.. option:: -r <flag>, --recursive <flag>
 
-	``--ignorecase`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Perform case-insensitive pattern matching.
+	List directories recursively.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -w <width>, --spacing <width>
+
+	The number of spaces (or padding characters) between columns (only
+	relevant for multicolumn output, i.e. when neither :option:`--long` nor
+	:option:`--one` is specified).
+
+.. option:: -P <string>, --padding <string>
+
+	The characters used for padding output in multicolumn or long format.
+
+.. option:: -i <pattern(s)>, --include <pattern(s)>
+
+	Only list files that match one of the specified patterns.
+
+.. option:: -e <pattern(s)>, --exclude <pattern(s)>
+
+	Don't list files that match one of the specified patterns.
+
+.. option:: --enterdir <pattern(s)>
+
+	Only enter directories that match one of the specified patterns.
+
+.. option:: --skipdir <pattern(s)>
+
+	Skip directories that match one of the specified patterns.
+
+.. option:: --ignorecase <flag>
+
+	Perform case-insensitive pattern matching.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
 
 Examples
 --------
 
-List the current directory::
+List the current directory:
+
+.. sourcecode:: bash
 
 	$ uls
 	CREDITS.rst   installer.bmp   NEWS.rst           scripts/    test/
@@ -81,7 +104,9 @@ List the current directory::
 	docs/         MANIFEST.in     OLDNEWS.rst        setup.py
 	INSTALL.rst   MIGRATION.rst   README.rst         src/
 
-List the current directory in long format with human readable file sizes::
+List the current directory in long format with human readable file sizes:
+
+.. sourcecode:: bash
 
 	$ uls -s -l
 	rw-r--r--  walter    staff      1114    1  2008-01-06 22:27:15  CREDITS.rst
@@ -102,14 +127,18 @@ List the current directory in long format with human readable file sizes::
 	rwxr-xr-x  walter    staff       136    4  2007-12-04 01:43:13  src/
 	rwxr-xr-x  walter    staff        2K   68  2011-03-03 13:27:46  test/
 
-Recursively list a remote directory::
+Recursively list a remote directory:
 
-	uls ssh://user@www.example.org/~/dir/ -r
+.. sourcecode:: bash
+
+	$ uls ssh://user@www.example.org/~/dir/ -r
 	...
 
-Recursively list the schema objects in an Oracle database::
+Recursively list the schema objects in an Oracle database:
 
-	uls oracle://user:pwd@oracle.example.org/ -r
+.. sourcecode:: bash
+
+	$ uls oracle://user:pwd@oracle.example.org/ -r
 	...
 """
 

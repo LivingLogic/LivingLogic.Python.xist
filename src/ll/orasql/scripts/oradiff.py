@@ -12,64 +12,82 @@
 
 """
 Purpose
--------
+=======
 
-``oradiff`` can be used to find the difference between two Oracle database schemas.
+:program:`oradiff` can be used to find the difference between two Oracle
+database schemas.
 
 
 Options
--------
+=======
 
-``oradiff`` supports the following options:
+:program:`oradiff` supports the following options:
 
-	``connectstring1``
-		Oracle connectstring for the first database schema.
+.. program:: oradiff
 
-	``connectstring2``
-		Oracle connectstring for the second database schema.
+.. option:: connectstring1
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read.
+	Oracle connectstring for the first database schema.
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+.. option:: connectstring2
 
-	``-m``, ``--mode`` : ``brief``, ``udiff`` or ``full``
-		Specifies how the differences should be shown. ``brief`` only prints
-		whether objects are different (or which ones exist in only one of the
-		databases); ``udiff`` outputs the differences in "unified diff" format and
-		``full``	outputs the object from the second schema if they differ (i.e. it
-		outputs the script that must be executed to copy the differences from
-		schema 2 to schema 1).
+	Oracle connectstring for the second database schema.
 
-	``--format`` : ``sql`` or ``pysql``
-		If ``--mode`` is ``full``, this determines the output format: Plain
-		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+.. option:: -v <flag>, --verbose <flag>
 
-	``-n``, ``--context`` : integer
-		The number of context lines in unified diff mode (i.e. the number of
-		unchanged lines above and below each block of changes; the default is 2)
+	Produces output (on stderr) while the database is read.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true (the default), database objects that have ``$`` or
-		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
-		objects will be included in the output).
+.. option:: -c <mode>, --color <mode>
 
-	``-b``, ``--blank`` : ``literal``, ``trail``, ``lead``, ``both`` or ``collapse``
-		The ``-b`` option specifies how whitespace in the database objects should
-		be compared. With ``literal`` all whitespace is significant, with ``trail``
-		trailing whitespace will be ignore, with ``lead`` leading whitespace will
-		be ignored, with ``both`` trailing and leading whitespace will be ignored
-		and with ``collapse`` trailing and leading whitespace will be ignored and
-		stretches of whitespace will be treated as a single space.
+	Should the output (when the :option:`-v` option is used) be colored?
+	If ``auto`` is specified (the default) then the output is colored if stderr
+	is a terminal. Valid modes are ``yes``, ``no`` or ``auto``.
+
+.. option:: -m <mode>, --mode <mode>
+
+	Specifies how the differences should be shown. ``brief`` only prints
+	whether objects are different (or which ones exist in only one of the
+	databases); ``udiff`` outputs the differences in "unified diff" format and
+	``full`` outputs the object from the second schema if they differ (i.e. it
+	outputs the script that must be executed to copy the differences from
+	schema 2 to schema 1).
+
+.. option:: --format <format>
+
+	If :option:`--mode` is ``full``, this determines the output format: Plain
+	SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped into
+	:mod:`ll.pysql`.
+
+.. option:: -n <context>, --context <context>
+
+	The number of context lines in unified diff mode (i.e. the number of
+	unchanged lines above and below each block of changes; the default is 2)
+
+.. option:: -k <flag>, --keepjunk <flag>
+
+	If false (the default), database objects that have ``$`` or
+	``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+	objects will be included in the output).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -b <mode>, --blank <mode>
+
+	The :option:`-b` option specifies how whitespace in the database objects
+	should be compared. With ``literal`` all whitespace is significant, with
+	``trail`` trailing whitespace will be ignore, with ``lead`` leading
+	whitespace will be ignored, with ``both`` trailing and leading whitespace
+	will be ignored and with ``collapse`` trailing and leading whitespace will
+	be ignored and stretches of whitespace will be treated as a single space.
+
 
 Example
--------
+=======
 
 Compare the schemas ``user@db`` and ``user2@db2``, collapsing whitespace and
-using unified diff mode with 5 context lines::
+using unified diff mode with 5 context lines:
+
+.. sourcecode:: bash
 
 	$ oradiff user/pwd@db user2/pwd2@db2 -bcollapse -mudiff -n5 -v >db.diff
 """

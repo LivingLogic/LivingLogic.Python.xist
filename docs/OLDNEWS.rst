@@ -1,20 +1,23 @@
+Changes in old packages
+=======================
+
 The following list of changes is for modules and packages that where merged
 into XIST (starting with XIST 3.2) or into the former core package (starting
 with XIST 2.12).
 
 
 Changes in the new core package
-###############################
+-------------------------------
 
 Changes in 1.11.1 (released 01/11/2008)
-=======================================
+"""""""""""""""""""""""""""""""""""""""
 
 *	Added missing source file ``_xml_codec_include.c`` to the source
 	distributions.
 
 
 Changes in 1.11 (released 01/07/2008)
-=====================================
+"""""""""""""""""""""""""""""""""""""
 
 *	``root:`` URLs are now treated as local files for purposes of file i/o.
 
@@ -53,33 +56,34 @@ Changes in 1.11 (released 01/07/2008)
 
 
 Changes in 1.10.1 (released 07/20/2007)
-=======================================
+"""""""""""""""""""""""""""""""""""""""
 
 *	Fix option handling in :mod:`ll.daemon` (values from the optionparser where
 	never used).
 
 
 Changes in 1.10 (released 06/21/2007)
-=====================================
+"""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.daemon` now uses :mod:`optparse` to parse the command line options.
 	Start options ``restart`` and ``run`` have been added.
 
 
 Changes in 1.9.1 (released 04/03/2007)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :class:`ll.url.SshConnection`, which was missing a call to
 	:func:`urllib.url2pathname`.
 
 
 Changes in 1.9 (released 03/30/2007)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.url.Context` no longer relies on automatic cleanup for closing
-	connections. Instead when a :class:`Context` object is used in a ``with``
-	block, all connections will be closed at the end of the block. This should
-	finally fix the problem with hanging threads at the end of the program.
+	connections. Instead when a :class:`Context` object is used in a
+	:keyword:`with` block, all connections will be closed at the end of the
+	block. This should finally fix the problem with hanging threads at the end
+	of the program.
 
 *	A script ``ucp.py`` has been added that can be used to copy stuff around::
 
@@ -87,7 +91,7 @@ Changes in 1.9 (released 03/30/2007)
 
 
 Changes in 1.8 (released 03/12/2007)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	In calls to :class:`ll.url.URL` methods that get forwarded to a connection
 	it's now possible to pass keyword arguments for the connection constructor
@@ -99,14 +103,14 @@ Changes in 1.8 (released 03/12/2007)
 
 
 Changes in 1.7.5 (released 03/09/2007)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.url.Resource` now has a method :meth:`encoding` that returns
 	:const:`None` (for "encoding unknown").
 
 
 Changes in 1.7.4 (released 03/08/2007)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.url.SshConnection` objects now supports the :obj:`identity`
 	parameter. This can be used to specify the filename to be used as the
@@ -114,7 +118,7 @@ Changes in 1.7.4 (released 03/08/2007)
 
 
 Changes in 1.7.3 (released 02/22/2007)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.url.SshConnection` now has a new method :meth:`close` which can
 	be used to shut down the communication channel. As a :class:`SshConnection`
@@ -124,13 +128,13 @@ Changes in 1.7.3 (released 02/22/2007)
 
 
 Changes in 1.7.2 (released 02/02/2007)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :func:`ll.url._import`.
 
 
 Changes in 1.7.1 (released 01/24/2007)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.astyle` has been updated to the current trunk version of
 	IPython__.
@@ -141,7 +145,7 @@ Changes in 1.7.1 (released 01/24/2007)
 
 
 Changes in 1.7 (released 11/23/2006)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in the user switching in :class:`ll.daemon.Daemon`.
 
@@ -150,7 +154,7 @@ Changes in 1.7 (released 11/23/2006)
 
 
 Changes in 1.6.1 (released 11/22/2006)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.make.ModuleAction` now puts a real filename into the modules
 	``__file__`` attribute, so that source code can be displayed in stacktraces.
@@ -162,7 +166,7 @@ Changes in 1.6.1 (released 11/22/2006)
 
 
 Changes in 1.6 (released 11/08/2006)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.url` now supports ssh URLs which are files on remote hosts.
 	This requires `py.execnet`_. Most of the file data and metadata handling
@@ -186,7 +190,7 @@ Changes in 1.6 (released 11/08/2006)
 
 
 Changes in 1.5 (released 09/24/2006)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.make.XISTTextAction` is compatible to XIST 2.15 now.
 
@@ -199,21 +203,21 @@ Changes in 1.5 (released 09/24/2006)
 
 
 Changes in 1.4 (released 08/23/2006)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	A new module has been added: :mod:`ll.daemon` can be used on UNIX to fork a
 	daemon running.
 
 
 Changes in 1.3.2 (released 07/25/2006)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.make.ModuleAction` now normalizes line feeds, so that this
 	action can now be used directly on Windows too.
 
 
 Changes in 1.3.1 (released 07/06/2006)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	An option ``showinfoonly`` has been added to :class:`ll.make.Project`
 	(defaulting to ``False``). This option determines whether actions that run
@@ -221,7 +225,7 @@ Changes in 1.3.1 (released 07/06/2006)
 
 
 Changes in 1.3 (released 06/28/2006)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.make` has been rewritten. Now there's no longer a distinction
 	between :class:`Target`\s and :class:`Action`\s. Actions can be chained more
@@ -245,7 +249,7 @@ Changes in 1.3 (released 06/28/2006)
 
 
 Changes in 1.2 (released 12/13/2005)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	:const:`None` is now allowed as a proper data object in :mod:`ll.make` actions.
 
@@ -255,13 +259,13 @@ Changes in 1.2 (released 12/13/2005)
 
 
 Changes in 1.1.1 (released 11/15/2005)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`ll.make.Project.buildwithargs`.
 
 
 Changes in 1.1 (released 10/31/2005)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.make.TOXICAction` no longer takes an :obj:`encoding` argument in
 	the constructor, but works on unicode strings directly.
@@ -271,20 +275,20 @@ Changes in 1.1 (released 10/31/2005)
 
 
 Changes in 1.0.2 (released 10/24/2005)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`ll.make.Project.destroy` that broke the
 	:meth:`recreate` method.
 
 
 Changes in 1.0.1 (released 10/18/2005)
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`ll.make.Project.__contains__.`
 
 
 Changes in 1.0 (released 10/13/2005)
-====================================
+""""""""""""""""""""""""""""""""""""
 
 *	This package now contains the following modules, that have been distributed
 	as separate packages previously: :mod:`ansistyle`, :mod:`color`,
@@ -300,10 +304,10 @@ Changes in 1.0 (released 10/13/2005)
 
 
 Changes in the old core package
-###############################
+-------------------------------
 
 Changes in ll-core 0.3 (released 05/24/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Functions will now no longer be turned into :func:`staticmethod` objects
 	automatically when used in a :class:`Namespace`.
@@ -319,13 +323,13 @@ Changes in ll-core 0.3 (released 05/24/2005)
 
 
 Changes in ll-core 0.2.1 (released 01/21/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`__getitem__` now raises a KeyError if the attribute doesn't exist.
 
 
 Changes in ll-core 0.2 (released 01/11/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Namespace` now has a :meth:`__getitem__` method, so a
 	:class:`Namespace` class can be used in a call to the :func:`eval` function.
@@ -337,10 +341,10 @@ Changes in ll-core 0.1 (released 01/03/2005)
 
 
 Changes in ll-ansistyle
-#######################
+-----------------------
 
 Changes in ll-ansistyle 1.1 (released 06/28/2005)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The methods :meth:`pushcolor` and :meth:`popcolor` have been resurrected.
 	Without them switching to a new color and back would have to be done in a
@@ -348,7 +352,7 @@ Changes in ll-ansistyle 1.1 (released 06/28/2005)
 
 
 Changes in ll-ansistyle 1.0 (released 06/08/2005)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.ansistyle` has been completely reimplemented to use an iterator
 	interface instead of a stream interface.
@@ -361,19 +365,19 @@ Changes in ll-ansistyle 1.0 (released 06/08/2005)
 
 
 Changes in ll-ansistyle 0.6.1 (released 03/22/2005)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-ansistyle 0.6 (released 01/03/2005)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ansistyle` requires the core module and Python 2.4 now.
 
 
 Changes in ll-ansistyle 0.5 (released 05/21/2004)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Text` has been derived from :class:`list` directly, so it inherits
 	all list methods.
@@ -383,7 +387,7 @@ Changes in ll-ansistyle 0.5 (released 05/21/2004)
 
 
 Changes in ll-ansistyle 0.4 (released 07/31/2003)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The names of the methods :meth:`pushColor`, :meth:`popColor`,
 	:meth:`getColor` and :meth:`escapeChar` have been changed to lowercase.
@@ -392,32 +396,32 @@ Changes in ll-ansistyle 0.4 (released 07/31/2003)
 
 
 Changes in ll-ansistyle 0.3.1 (released 11/14/2002)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added source code encodings to all Python files.
 
 
 Changes in ll-ansistyle 0.3 (released 08/27/2002)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ansistyle` has been moved to the :mod:`ll` package.
 
 
 Changes in ll-ansistyle 0.2.2 (released 02/12/2002)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`Text.insert`.
 
 
 Changes in ll-ansistyle 0.2.1 (released 04/11/2001)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	ansistyle now compiles under Windows with Visual C++. A binary distribution
 	archive is available from the FTP directory.
 
 
 Changes in ll-ansistyle 0.2 (released 04/02/2001)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	ansistyle now supports background colors. You can specify the background
 	color via the bits 4-7 of the color, i.e. for the background color
@@ -426,35 +430,35 @@ Changes in ll-ansistyle 0.2 (released 04/02/2001)
 
 
 Changes in ll-ansistyle 0.1.1 (released 03/21/2001)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a minor bug in :meth:`ansistyle.Text.__repr__`
 
 
 Changes in ll-ansistyle 0.1 (released 02/18/2001)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial release
 
 
 Changes in ll-color
-###################
+-------------------
 
 Changes in ll-color 0.3.1 (released 03/22/2005)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-color 0.3 (released 01/21/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Two new methods (:meth:`abslum` and :meth:`rellum`) have been added that
 	return a color with modified luminosity.
 
 
 Changes in ll-color 0.2 (released 01/03/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`color` requires the core module and Python 2.4 now.
 
@@ -462,28 +466,28 @@ Changes in ll-color 0.2 (released 01/03/2005)
 
 
 Changes in ll-color 0.1.1 (released 05/07/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
-*	Fixed a bug in the :prop:`css` property.
+*	Fixed a bug in the :attr:`css` property.
 
 
 Changes in ll-color 0.1 (released 05/07/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial release.
 
 
 Changes in ll-make
-##################
+------------------
 
 Changes in ll-make 1.1.2 (released 10/04/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in the handling of color environment variables.
 
 
 Changes in ll-make 1.1.1 (released 09/02/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Specifying colors via environment variables now works.
 
@@ -494,7 +498,7 @@ Changes in ll-make 1.1.1 (released 09/02/2005)
 
 
 Changes in ll-make 1.1 (released 09/01/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	New action classes have been added: :class:`PickleAction`,
 	:class:`UnpickleAction`, :class:`NullAction` and :class:`CacheAction`.
@@ -504,7 +508,7 @@ Changes in ll-make 1.1 (released 09/01/2005)
 
 
 Changes in ll-make 1.0 (released 08/29/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Target` objects may now cache the objects that they create, so it can
 	be reused for different outputs.
@@ -535,7 +539,7 @@ Changes in ll-make 1.0 (released 08/29/2005)
 
 
 Changes in ll-make 0.26 (released 05/29/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Uses :mod:`ansistyle` 1.1 now.
 
@@ -547,26 +551,26 @@ Changes in ll-make 0.26 (released 05/29/2005)
 
 
 Changes in ll-make 0.25 (released 05/20/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`make` is compatible with XIST 2.10 now.
 
 
 Changes in ll-make 0.24 (released 04/11/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`XPITAction` now works if there is no namespace available. In this
 	case only the global namespace will be passed to the expressions.
 
 
 Changes in ll-make 0.23.1 (released 03/22/2005)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-make 0.23 (released 02/14/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Actions can now be displayed during the make process in two ways: a short
 	name (this uses the method :meth:`desc`) and a longer description (using the
@@ -576,14 +580,14 @@ Changes in ll-make 0.23 (released 02/14/2005)
 
 
 Changes in ll-make 0.22 (released 01/21/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`XPITAction` will now pass the project, target and action to the
 	embedded Python expression as global variables.
 
 
 Changes in ll-make 0.21 (released 01/19/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	An action class :class:`XPITAction` has been added for use with
 	:mod:`ll.xpit`.
@@ -593,26 +597,26 @@ Changes in ll-make 0.21 (released 01/19/2005)
 
 
 Changes in ll-make 0.20 (released 01/03/2005)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`make` requires the core module and Python 2.4 now.
 
 
 Changes in ll-make 0.19.1 (released 11/26/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed print of tracebacks when :attr:`ignoreerrors` is true.
 
 
 Changes in ll-make 0.19 (released 10/29/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.make` is compatible with XIST 2.6 now (and incompatible with
 	XIST 2.5).
 
 
 Changes in ll-make 0.18.2 (released 10/12/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Retry with absolute and real URLs in :meth:`__candidates` even if the
 	argument is already an :class:`ll.url.URL` object. This works around an
@@ -620,20 +624,20 @@ Changes in ll-make 0.18.2 (released 10/12/2004)
 
 
 Changes in ll-make 0.18.1 (released 08/27/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	``Target.actions`` is now a list instead of a tuple.
 
 
 Changes in ll-make 0.18 (released 07/06/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a new action class :class:`TOXICPrettifyAction` that uses the new
 	:func:`prettify` function introduced in :mod:`ll.toxic` version 0.3.
 
 
 Changes in ll-make 0.17 (released 06/02/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Renamed :class:`OracleTarget` to :class:`DBTarget`.
 
@@ -642,7 +646,7 @@ Changes in ll-make 0.17 (released 06/02/2004)
 
 
 Changes in ll-make 0.16 (released 05/31/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	The method :meth:`buildWithArgs` has been dropped. Use :meth:`buildwithargs`
 	now.
@@ -663,13 +667,13 @@ Changes in ll-make 0.16 (released 05/31/2004)
 
 
 Changes in ll-make 0.15.1 (released 05/25/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed formatting bugs in :class:`OracleReadResource`.
 
 
 Changes in ll-make 0.15 (released 05/25/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	There's a new option :option:`-vl` that reports the recursion level as an
 	indentation during the build process. This makes it easier to see, what
@@ -681,7 +685,7 @@ Changes in ll-make 0.15 (released 05/25/2004)
 
 
 Changes in ll-make 0.14.2 (released 05/25/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	If a target has prerequisites, the time to rebuild those will be reported
 	in the progress report too (if time reporting is on (via the option
@@ -691,7 +695,7 @@ Changes in ll-make 0.14.2 (released 05/25/2004)
 
 
 Changes in ll-make 0.14.1 (released 05/21/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The default color for output has been removed.
 
@@ -702,7 +706,7 @@ Changes in ll-make 0.14.1 (released 05/21/2004)
 
 
 Changes in ll-make 0.14 (released 05/20/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Actions have been made much more atomic and flexible. For each target a
 	chain of actions will be executed. The first action loads the file. The next
@@ -738,13 +742,13 @@ Changes in ll-make 0.14 (released 05/20/2004)
 
 
 Changes in ll-make 0.13.1 (released 05/05/2004)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 * Fixed a small bug in :meth:`Project.__contains__`.
 
 
 Changes in ll-make 0.13 (released 01/12/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Now after the build the import cache ``ll.url.importcache`` will be restored
 	to the state before the call. This fixes a bug, where a module that was
@@ -753,7 +757,7 @@ Changes in ll-make 0.13 (released 01/12/2004)
 
 
 Changes in ll-make 0.12 (released 01/02/2004)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Adapted to XIST 2.4. :class:`XISTTarget` now has two attributes ``parser``
 	and ``publisher`` which will be used by :class:`XISTAction` for parsing and
@@ -773,13 +777,13 @@ Changes in ll-make 0.12 (released 01/02/2004)
 
 
 Changes in ll-make 0.11.7 (released 12/15/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	When building a target fails, the file will now only be removed if it exists.
 
 
 Changes in ll-make 0.11.6 (released 12/08/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Remove the module from the import cache in :meth:`PythonTarget.clear`, so
 	that the module will be reloaded when :meth:`Project.recreate` is used.
@@ -788,7 +792,7 @@ Changes in ll-make 0.11.6 (released 12/08/2003)
 
 
 Changes in ll-make 0.11.5 (released 12/06/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Now when a project is rebuilt, all loaded Python modules will be removed
 	from the import cache before rebuilding commences. This should fix
@@ -796,7 +800,7 @@ Changes in ll-make 0.11.5 (released 12/06/2003)
 
 
 Changes in ll-make 0.11.4 (released 12/06/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added methods :meth:`itersources`, :meth:`itertargets`,
 	:meth:`itersourcedeps` and :meth:`itertargetdeps` to the :class:`Target`
@@ -804,7 +808,7 @@ Changes in ll-make 0.11.4 (released 12/06/2003)
 
 
 Changes in ll-make 0.11.3 (released 11/22/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`__getitem__` and :meth:`__contains__` of the :class:`Project` class
 	now first try with an absolute filename and then with the real filename
@@ -812,7 +816,7 @@ Changes in ll-make 0.11.3 (released 11/22/2003)
 
 
 Changes in ll-make 0.11.2 (released 08/06/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	A few of the :class:`Project` attributes have been renamed to avoid name
 	clashes when a class was derived from :class:`Project` and
@@ -820,7 +824,7 @@ Changes in ll-make 0.11.2 (released 08/06/2003)
 
 
 Changes in ll-make 0.11.1 (released 08/01/2003)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`Project.build`: Timestamps were not cleared on the
 	second call to :meth:`build` when the first one had failed.
@@ -831,7 +835,7 @@ Changes in ll-make 0.11.1 (released 08/01/2003)
 
 
 Changes in ll-make 0.11 (released 07/31/2003)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Calling the XIST conversion in :class:`XISTAction` has been moved from
 	:meth:`execute` to a new method :meth:`convert` to be easier to customize.
@@ -840,20 +844,20 @@ Changes in ll-make 0.11 (released 07/31/2003)
 
 
 Changes in ll-make 0.10 (released 07/02/2003)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Targets will now be removed when building them fails.
 
 
 Changes in ll-make 0.9.5 (released 05/02/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`Project.__getitem__` now retries with a canonical filename
 	(i.e. the result of the :meth:`real`) before giving up.
 
 
 Changes in ll-make 0.9.4 (released 04/24/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	All primary actions now make sure that the output file is removed when an
 	error happens. The next call to a make script will again try to generate
@@ -862,7 +866,7 @@ Changes in ll-make 0.9.4 (released 04/24/2003)
 
 
 Changes in ll-make 0.9.3 (released 04/23/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Use the enhanced :meth:`import_` method from :mod:`ll.url` 0.7.
 
@@ -871,19 +875,19 @@ Changes in ll-make 0.9.3 (released 04/23/2003)
 
 
 Changes in ll-make 0.9.2 (released 04/15/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a small bug in the deprecated :meth:`Project.has`.
 
 
 Changes in ll-make 0.9.1 (released 03/11/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a small bug in :meth:`Target.lastmodified`.
 
 
 Changes in ll-make 0.9 (released 03/10/2003)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Generating a :class:`Publisher` in an :class:`XISTAction` has been moved to
 	a separate method :meth:`publisher`.
@@ -898,7 +902,7 @@ Changes in ll-make 0.9 (released 03/10/2003)
 
 
 Changes in ll-make 0.8 (released 03/03/2003)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	The project method :meth:`has` has been deprecated. Use :meth:`has_key` or
 	the new :meth:`__contains__` for that. This means that all dictionary access
@@ -911,7 +915,7 @@ Changes in ll-make 0.8 (released 03/03/2003)
 
 
 Changes in ll-make 0.7 (released 02/26/2003)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Made compatible with XIST 1.5 again: ``prefixes`` is only passed to the
 	parser, when it is not :const:`None`.
@@ -927,7 +931,7 @@ Changes in ll-make 0.7 (released 02/26/2003)
 
 
 Changes in ll-make 0.6.1 (released 02/14/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`XISTTarget` has new attributes :attr:`parser`, :attr:`handler` and
 	:attr:`prefixes` that can be specified in the constructor and will be used
@@ -935,7 +939,7 @@ Changes in ll-make 0.6.1 (released 02/14/2003)
 
 
 Changes in ll-make 0.6 (released 11/20/2002)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`Project.__getitem__` now raises an :class:`UndefinedTargetError`
 	exception with the original key if retrying with an :class:`URL` object
@@ -950,7 +954,7 @@ Changes in ll-make 0.6 (released 11/20/2002)
 
 
 Changes in ll-make 0.5 (released 11/13/2002)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Project` is derived from :class:`dict` now.
 
@@ -959,7 +963,7 @@ Changes in ll-make 0.5 (released 11/13/2002)
 
 
 Changes in ll-make 0.4.2 (released 11/11/2002)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a new target class :class:`JavaPropAction`, for Java property files.
 
@@ -967,7 +971,7 @@ Changes in ll-make 0.4.2 (released 11/11/2002)
 
 
 Changes in ll-make 0.4.1 (released 10/25/2002)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a new action class :class:`SplatAction`, that can be used for
 	replacing strings in files.
@@ -976,13 +980,13 @@ Changes in ll-make 0.4.1 (released 10/25/2002)
 
 
 Changes in ll-make 0.4 (released 08/27/2002)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Adapted to XIST 2.0.
 
 
 Changes in ll-make 0.3.2 (released 06/16/2002)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Work around a problem with unicode objects in ``sys.path``. This workaround
 	will disappear as soon as Python 2.3 is released.
@@ -992,7 +996,7 @@ Changes in ll-make 0.3.2 (released 06/16/2002)
 
 
 Changes in ll-make 0.3.1 (released 03/28/2002)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a warning when the id of a new target already exists in the project,
 	i.e. when the target is redefined.
@@ -1001,14 +1005,14 @@ Changes in ll-make 0.3.1 (released 03/28/2002)
 
 
 Changes in ll-make 0.3 (released 03/18/2002)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Now :class:`url.URL` is used everywhere instead of
 	:class:`fileutils.Filename`
 
 
 Changes in ll-make 0.2.3 (released 02/22/2002)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a new class :class:`DBID` that can be used as an id for database
 	content.
@@ -1017,7 +1021,7 @@ Changes in ll-make 0.2.3 (released 02/22/2002)
 
 
 Changes in ll-make 0.2.2 (released 01/25/2001)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Verbosity can now be specified via several :class:`Project` constructor
 	arguments.
@@ -1027,14 +1031,14 @@ Changes in ll-make 0.2.2 (released 01/25/2001)
 
 
 Changes in ll-make 0.2.1 (released 10/03/2001)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Support for the :obj:`root` paramenter for the :meth:`convert` method in
 	:class:`XISTAction`.
 
 
 Changes in ll-make 0.2 (released 10/02/2001)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Dependencies now have a type (a subclass of :class:`Dep`). This allows to
 	mark certain dependencies as "special".
@@ -1044,35 +1048,35 @@ Changes in ll-make 0.2 (released 10/02/2001)
 
 
 Changes in ll-make 0.1 (released 07/27/2001)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial release.
 
 
 Changes in ll-sisyphus
-######################
+----------------------
 
 
 Changes in ll-sisyphus 0.10.1 (released 03/22/2005)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-sisyphus 0.10 (released 01/03/2005)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`sisyphus` requires the core module and Python 2.4 now.
 
 
 Changes in ll-sisyphus 0.9.1 (released 04/28/2004)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug related to logging empty strings.
 
 
 Changes in ll-sisyphus 0.9 (released 11/13/2003)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Lowercased the constructor arguments :obj:`maxRuntime`, :obj:`raiseErrors`
 	and :obj:`printKills`.
@@ -1088,7 +1092,7 @@ Changes in ll-sisyphus 0.9 (released 11/13/2003)
 
 
 Changes in ll-sisyphus 0.8 (released 07/31/2003)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`sisyphus` now uses and requires Python 2.3.
 
@@ -1105,20 +1109,20 @@ Changes in ll-sisyphus 0.8 (released 07/31/2003)
 
 
 Changes in ll-sisyphus 0.7 (released 03/11/2003)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`sisyphus` now uses the :mod:`ll.url` module, :mod:`ll.fileutils`
 	is no longer required.
 
 
 Changes in ll-sisyphus 0.6.2 (released 12/03/2002)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	error reports are now logged to the process log too.
 
 
 Changes in ll-sisyphus 0.6.1 (released 09/10/2002)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The :class:`Job` constructor has a new argument :obj:`printKills` which
 	specifies whether killing a previous job should be printed (i.e. mailed
@@ -1126,33 +1130,33 @@ Changes in ll-sisyphus 0.6.1 (released 09/10/2002)
 
 
 Changes in ll-sisyphus 0.6 (released 08/27/2002)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`sisyphus` has been moved to the :mod:`ll` package.
 
 
 Changes in ll-sisyphus 0.5.3 (released 05/07/2002)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Derive :class:`Job` from :class:`object` to be able to use new style classes
 	in mixins in subclasses.
 
 
 Changes in ll-sisyphus 0.5.2 (released 07/19/2001)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Made compatible with fileutils 0.2.
 
 
 Changes in ll-sisyphus 0.5.1 (released 04/12/2001)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a severe bug (missing call to :func:`os.path.expanduser`), that
 	prevented :class:`Job` from working.
 
 
 Changes in ll-sisyphus 0.5 (released 03/29/2001)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The :class:`Job` constructor has a new parameter :obj:`raiseErrors`. When
 	set to true exceptions will not only be written to the logfile but raised,
@@ -1160,35 +1164,35 @@ Changes in ll-sisyphus 0.5 (released 03/29/2001)
 
 
 Changes in ll-sisyphus 0.4 (released 03/26/2001)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The class :class:`LogFile` has been moved to a seperate module named
 	:mod:`fileutils`.
 
 
 Changes in ll-sisyphus 0.3 (released 02/16/2001)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial public release
 
 
 Changes in ll-url
-#################
+-----------------
 
 
 Changes in ll-url 0.15.1 (released 03/22/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-url 0.15 (released 02/24/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
-*	The :prop:`mimetype` property of :class:`ReadResource` is no longer a tuple,
+*	The :attr:`mimetype` property of :class:`ReadResource` is no longer a tuple,
 	but a plain string.
 
-*	:class:`ReadResource` has a new property :prop:`encoding`, which is the
+*	:class:`ReadResource` has a new property :attr:`encoding`, which is the
 	character encoding of the resource.
 
 *	A bug in the ``lastmodified`` property of :class:`WriteResource` has been
@@ -1196,14 +1200,14 @@ Changes in ll-url 0.15 (released 02/24/2005)
 
 
 Changes in ll-url 0.14.2 (released 02/22/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	``url.URL("file:foo/").local()`` will now always end in a directory
 	separator. This didn't work on Windows before.
 
 
 Changes in ll-url 0.14.1 (released 01/13/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	On Windows ``url.File("c:\\foo").abs()`` generated ``URL('file:///C|/foo')``.
 	Now the result will always be ``URL('file:/C|/foo')``. The same fix has been
@@ -1211,13 +1215,13 @@ Changes in ll-url 0.14.1 (released 01/13/2005)
 
 
 Changes in ll-url 0.14 (released 01/03/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`url` requires the core module and Python 2.4 now.
 
 
 Changes in ll-url 0.13 (released 11/25/2004)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	The helper function :func:`_unescape` will now interpret ``%u`` escapes
 	(produced by Microsoft software). The patch has been contributed by
@@ -1225,7 +1229,7 @@ Changes in ll-url 0.13 (released 11/25/2004)
 
 
 Changes in ll-url 0.12.1 (released 11/03/2004)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in the C helper function :func:`_unescape` (forget to clear
 	the exception).
@@ -1235,7 +1239,7 @@ Changes in ll-url 0.12.1 (released 11/03/2004)
 
 
 Changes in ll-url 0.12 (released 01/12/2004)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:func:`removefromimportcache` has been dropped, now you can assign the
 	import cache directly (as the module level attribute :attr:`importcache`.
@@ -1244,33 +1248,33 @@ Changes in ll-url 0.12 (released 01/12/2004)
 
 
 Changes in ll-url 0.11.7 (released 12/23/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`Path.real` that only surfaced on Windows.
 
 
 Changes in ll-url 0.11.6 (released 12/06/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a function :func:`removefromimportcache`.
 
 
 Changes in ll-url 0.11.5 (released 11/22/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug with the :obj:`scheme` argument of the methods :meth:`real`
 	and :meth:`abs`.
 
 
 Changes in ll-url 0.11.4 (released 11/19/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:attr:`realurl` has been renamed to :attr:`finalurl` and now works for
 	local URLs too (it will be the same as the original URL).
 
 
 Changes in ll-url 0.11.3 (released 11/17/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added an attribute :attr:`realurl` to :class:`ReadResource` which contains
 	the real URL (which might be different from the URL passed to the
@@ -1278,14 +1282,14 @@ Changes in ll-url 0.11.3 (released 11/17/2003)
 
 
 Changes in ll-url 0.11.2 (released 11/17/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	URLs that have an authority part but a relative path will be properly
 	formatted, i.e. the leading ``/`` will be included.
 
 
 Changes in ll-url 0.11.1 (released 08/13/2003)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The :class:`URL` method :meth:`rename` has been fixed.
 
@@ -1294,7 +1298,7 @@ Changes in ll-url 0.11.1 (released 08/13/2003)
 
 
 Changes in ll-url 0.11 (released 08/04/2003)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	A method :meth:`withoutfrag` has been added. :meth:`withFragment` has been
 	renamed to :meth:`withfrag` and the property :attr:`fragment` has been
@@ -1302,7 +1306,7 @@ Changes in ll-url 0.11 (released 08/04/2003)
 
 
 Changes in ll-url 0.10 (released 07/31/2003)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`url` requires Python 2.3 now.
 
@@ -1310,7 +1314,7 @@ Changes in ll-url 0.10 (released 07/31/2003)
 
 
 Changes in ll-url 0.9.1 (released 07/17/2003)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug that drops the filename in :meth:`relative` when both URLs have
 	the same filenames but a different query.
@@ -1319,7 +1323,7 @@ Changes in ll-url 0.9.1 (released 07/17/2003)
 
 
 Changes in ll-url 0.9 (released 07/09/2003)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`withExt` and friends have been lowercased.
 
@@ -1340,7 +1344,7 @@ Changes in ll-url 0.9 (released 07/09/2003)
 
 
 Changes in ll-url 0.8 (released 06/04/2003)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	Added methods :meth:`abs` and :meth:`__rdiv__` to :class:`URL`.
 
@@ -1354,13 +1358,13 @@ Changes in ll-url 0.8 (released 06/04/2003)
 
 
 Changes in ll-url 0.7.1 (released 05/01/2003)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Made :meth:`clearimportcache` a class method.
 
 
 Changes in ll-url 0.7 (released 04/23/2003)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	Introduced :meth:`local` as a synonym for :meth:`asFilename`, :func:`Dir`
 	as a synonym for :func:`Dirname` and :func:`File` as a synonym for
@@ -1375,7 +1379,7 @@ Changes in ll-url 0.7 (released 04/23/2003)
 
 
 Changes in ll-url 0.6.2 (released 03/07/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	The method :meth:`real` checked whether the referenced file really is a
 	directory. This has the problem that the directory/file must exist. Now
@@ -1383,7 +1387,7 @@ Changes in ll-url 0.6.2 (released 03/07/2002)
 
 
 Changes in ll-url 0.6.1 (released 03/06/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`chown`: Attributes are not available for
 	:func:`pwd.getpwnam()` and :func:`grp.getgrnam()` results under Python 2.2.
@@ -1393,7 +1397,7 @@ Changes in ll-url 0.6.1 (released 03/06/2002)
 
 
 Changes in ll-url 0.6 (released 03/05/2002)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	Now all arguments for :meth:`walk` default to :const:`False`.
 
@@ -1416,13 +1420,13 @@ Changes in ll-url 0.6 (released 03/05/2002)
 
 
 Changes in ll-url 0.5.1 (released 01/07/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a :file:`LICENSE` file.
 
 
 Changes in ll-url 0.5 (released 11/14/2002)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`WriteResource` has been largely rewritten to elminate the overhead
 	of calls the :meth:`write`. Access to properties might be a little slower
@@ -1433,19 +1437,19 @@ Changes in ll-url 0.5 (released 11/14/2002)
 
 
 Changes in ll-url 0.4.3 (released 11/11/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a refcounting leak in the new version of :func:`_normalizepath`.
 
 
 Changes in ll-url 0.4.2 (released 11/08/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:func:`_normalizepath` has been reimplemented in C for performance reasons.
 
 
 Changes in ll-url 0.4.1 (released 10/29/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ReadResource` and :class:`WriteResource` now have a method
 	:meth:`import_`, that imports the file as a Python module (ignoring the
@@ -1453,18 +1457,18 @@ Changes in ll-url 0.4.1 (released 10/29/2002)
 
 
 Changes in ll-url 0.4 (released 10/18/2002)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a :file:`HOWTO` file.
 
 *	Made the docstrings compatible with XIST 2.0.
 
-*	The :prop:`imagesize` property now raises an :class:`IOError` if the PIL
+*	The :attr:`imagesize` property now raises an :class:`IOError` if the PIL
 	is not available.
 
 
 Changes in ll-url 0.3.1 (released 09/09/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`WriteResource` will now generate an empty file, even if
 	:meth:`write` is never called. This is checked in :meth:`close`.
@@ -1473,13 +1477,13 @@ Changes in ll-url 0.3.1 (released 09/09/2002)
 
 
 Changes in ll-url 0.3 (released 08/27/2002)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`url` has been moved to the :mod:`ll` package.
 
 
 Changes in ll-url 0.2 (released 06/18/2002)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	:func:`_escape` now always uses unicode strings. 8bit strings will be
 	converted to unicode before the UTF-8 version will be encoded.
@@ -1493,34 +1497,34 @@ Changes in ll-url 0.2 (released 06/18/2002)
 
 
 Changes in ll-url 0.1.8 (released 05/07/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Illegal ``%`` escapes now only issue a warning and will be used literally
 	when the warning framework doesn't raise an exception.
 
 
 Changes in ll-url 0.1.7 (released 04/30/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Removed the illegal scheme handling change from 0.1.6 again. Now this has
 	to be done before constructing an :class:`URL`.
 
 
 Changes in ll-url 0.1.6 (released 04/26/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Now when the parser discovers an illegal scheme, you get another chance:
 	Beginning whitespace will be stripped and it will be retried.
 
 
 Changes in ll-url 0.1.5 (released 04/25/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`__div__`: Now ``URL("http://foo/bar")/"/baz"`` works.
 
 
 Changes in ll-url 0.1.4 (released 04/15/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	When assigning to the :attr:`url` property, the scheme will now only be set
 	when it consists of legal characters. This means that parsing
@@ -1529,7 +1533,7 @@ Changes in ll-url 0.1.4 (released 04/15/2002)
 
 
 Changes in ll-url 0.1.3 (released 04/09/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Make :attr:`ext` and :attr:`file` work with opaque :class:`URL`\s.
 
@@ -1556,37 +1560,37 @@ Changes in ll-url 0.1.3 (released 04/09/2002)
 
 
 Changes in ll-url 0.1.2 (released 03/26/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`URL.__eq__` and :meth:`URL.__hash__`: ``query`` and
 	``fragment`` were not used. This has been fixed.
 
 
 Changes in ll-url 0.1.1 (released 03/20/2002)
-=============================================
+"""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :attr:`ReadResource.contentlength`, which tried to convert
 	the :func:`stat` result to a :class:`DateTime` object.
 
 
 Changes in ll-url 0.1 (released 03/18/2002)
-===========================================
+"""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial release
 
 
 Changes in ll-xpit
-##################
+------------------
 
 
 Changes in ll-xpit 0.2.1 (released 03/22/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-xpit 0.2 (released 01/21/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	:func:`convert` now takes both a global and a local namespace and will
 	raise an exception when an unknown processing instruction target is
@@ -1594,16 +1598,16 @@ Changes in ll-xpit 0.2 (released 01/21/2005)
 
 
 Changes in ll-xpit 0.1 (released 01/19/2005)
-============================================
+""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial release.
 
 
 Changes to ll-orasql
-####################
+--------------------
 
 Changes in ll-orasql 1.27.1 (released 03/31/2009)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in the dependency checking for :meth:`Connnection.itertables`.
 
@@ -1612,7 +1616,7 @@ Changes in ll-orasql 1.27.1 (released 03/31/2009)
 
 
 Changes in ll-orasql 1.27 (released 03/31/2009)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a new script ``oradelete`` that can be used to delete all records from
 	all tables and to reset all sequences.
@@ -1624,7 +1628,7 @@ Changes in ll-orasql 1.27 (released 03/31/2009)
 
 
 Changes in ll-orasql 1.26 (released 03/27/2009)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.orasql` now requires cx_Oracle 5.0 compiled in Unicode mode
 	(i.e. with ``WITH_UNICODE=1``). Lots of unicode handling stuff has been
@@ -1640,27 +1644,27 @@ Changes in ll-orasql 1.26 (released 03/27/2009)
 
 
 Changes in ll-orasql 1.25.4 (released 01/21/2009)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Procedures and functions with timestamp arguments can now be called.
 
 
 Changes in ll-orasql 1.25.3 (released 11/07/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Procedures and functions now should handle arguments of type ``BLOB``
 	correctly.
 
 
 Changes in ll-orasql 1.25.2 (released 08/29/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Record` has a new method :meth:`get` which works like the dictionary
 	method :meth:`get`.
 
 
 Changes in ll-orasql 1.25.1 (released 07/21/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	``orafind.py`` now has an additional options :option:`readlobs` (defaulting
 	to false). If this option is set, the value of LOBs in the records found,
@@ -1668,20 +1672,20 @@ Changes in ll-orasql 1.25.1 (released 07/21/2008)
 
 
 Changes in ll-orasql 1.25 (released 06/17/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	A new script has been added: ``orafind.py`` will search for a specified
 	string in all columns of all tables in a schema.
 
 
 Changes in ll-orasql 1.24.1 (released 05/30/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed two bugs in :meth:`Callable._calcargs` and :meth:`Connection.getobject`.
 
 
 Changes in ll-orasql 1.24 (released 05/20/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`Connection.getobject`, :class:`Procedure` and :class:`Function` now
 	support functions and procedures in packages.
@@ -1690,21 +1694,21 @@ Changes in ll-orasql 1.24 (released 05/20/2008)
 
 
 Changes in ll-orasql 1.23.4 (released 04/04/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	All database scripts now have an additional option :option:`encoding` that
 	specifies the encoding for the output script.
 
 
 Changes in ll-orasql 1.23.3 (released 04/03/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a regression in the scripts ``oracreate.py``, ``oradrop.py`` and
 	``oragrant.py``.
 
 
 Changes in ll-orasql 1.23.2 (released 04/01/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	When calling functions/procedures, arguments are now wrapped in variable
 	objects for their real type instead of ones for the type the function or
@@ -1712,14 +1716,14 @@ Changes in ll-orasql 1.23.2 (released 04/01/2008)
 
 
 Changes in ll-orasql 1.23.1 (released 03/25/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a :meth:`__contains__` to :class:`Record` for checking the existence
 	of a field.
 
 
 Changes in ll-orasql 1.23 (released 03/25/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Calling procedures and functions has been rewritten: :mod:`ll.orasql` will
 	only pass those parameters to the procedure/function that are passed to the
@@ -1738,7 +1742,7 @@ Changes in ll-orasql 1.23 (released 03/25/2008)
 
 
 Changes in ll-orasql 1.22 (released 03/19/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a new method :meth:`_getobject` to :class:`Connection` that does
 	what :meth:`getobject` does, but is case sensitive (This is used internally
@@ -1754,13 +1758,13 @@ Changes in ll-orasql 1.22 (released 03/19/2008)
 
 
 Changes in ll-orasql 1.21.1 (released 03/17/2008)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Updated the scripts to work with the new execute methods.
 
 
 Changes in ll-orasql 1.21 (released 03/13/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Connection` has a new method :meth:`getobject`, which returns the
 	schema object with a specified name.
@@ -1774,7 +1778,7 @@ Changes in ll-orasql 1.21 (released 03/13/2008)
 
 
 Changes in ll-orasql 1.20 (released 02/07/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The fancy fetch methods have been renamed to :meth:`xfetchone`,
 	:meth:`xfetchmany`, :meth:`xfetchall` and :meth:`xfetch`. :meth:`__iter__`
@@ -1784,13 +1788,13 @@ Changes in ll-orasql 1.20 (released 02/07/2008)
 
 
 Changes in ll-orasql 1.19 (released 02/01/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	All docstrings use ReST now.
 
 
 Changes in ll-orasql 1.18 (released 01/07/2008)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Updated the docstrings to XIST 3.0.
 
@@ -1798,42 +1802,42 @@ Changes in ll-orasql 1.18 (released 01/07/2008)
 
 
 Changes in ll-orasql 1.17.5 (released 08/09/2007)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in the error handling of wrong arguments when calling
 	functions or procedures.
 
 
 Changes in ll-orasql 1.17.4 (released 04/30/2007)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The threshold for string length for procedure and function arguments has
 	been reduced to 4000.
 
 
 Changes in ll-orasql 1.17.3 (released 03/08/2007)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	``BLOB`` arguments for procedures and functions are always passed as
 	variables now.
 
 
 Changes in ll-orasql 1.17.2 (released 03/07/2007)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Arguments for procedures and functions that are longer that 32000 characters
 	are passed as variables now (the threshold was 32768 before and didn't work).
 
 
 Changes in ll-orasql 1.17.1 (released 03/02/2007)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fix an inverted logic bug in :meth:`Record.fromdata` that surfaced in unicode
 	mode: ``BLOB``\s were treated as string and ``CLOB``\s as binary data.
 
 
 Changes in ll-orasql 1.17 (released 02/23/2007)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The :obj:`readlobs` and :obj:`unicode` parameters are now honored when
 	calling procedures and functions via :class:`Procedure` and
@@ -1841,7 +1845,7 @@ Changes in ll-orasql 1.17 (released 02/23/2007)
 
 
 Changes in ll-orasql 1.16 (released 02/21/2007)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	A parameter :obj:`unicode` has been added to various constructors and methods.
 	This parameter can be used to get strings (i.e. ``VARCHAR2`` and ``CLOB``\s)
@@ -1849,7 +1853,7 @@ Changes in ll-orasql 1.16 (released 02/21/2007)
 
 
 Changes in ll-orasql 1.15 (released 02/17/2007)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed an output bug in ``oradiff.py`` when running in full output mode.
 
@@ -1859,7 +1863,7 @@ Changes in ll-orasql 1.15 (released 02/17/2007)
 
 
 Changes in ll-orasql 1.14 (released 02/01/2007)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	A new method :meth:`iterprivileges` has been added to :class:`Connection`.
 
@@ -1867,7 +1871,7 @@ Changes in ll-orasql 1.14 (released 02/01/2007)
 
 
 Changes in ll-orasql 1.13 (released 11/06/2006)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Two new methods (:meth:`itertables` and :meth:`iterfks`) have been added to
 	:class:`Connection`. They yield all table definitions or all foreign keys
@@ -1882,33 +1886,33 @@ Changes in ll-orasql 1.13 (released 11/06/2006)
 
 
 Changes in ll-orasql 1.12.2 (released 10/18/2006)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug that showed up when an index and a foreign key of the same name
 	existed.
 
 
 Changes in ll-orasql 1.12.1 (released 09/19/2006)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`Index.__xattrs__`.
 
 
 Changes in ll-orasql 1.12 (released 09/06/2006)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`Function` objects are now callable too. They return the return value
 	and a :class:`Record` containing the modified input parameters.
 
 
 Changes in ll-orasql 1.11.1 (released 08/29/2006)
-=================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`Column.modifyddl`.
 
 
 Changes in ll-orasql 1.11 (released 08/22/2006)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The class :class:`Column` has gained a few new methods: :meth:`datatype`,
 	:meth:`default`, :meth:`nullable` and :meth:`comment`.
@@ -1918,7 +1922,7 @@ Changes in ll-orasql 1.11 (released 08/22/2006)
 
 
 Changes in ll-orasql 1.10 (released 08/11/2006)
-===============================================
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The classes :class:`Proc` and :class:`LLProc` have been removed. The
 	functionality of :class:`Proc` has been merged into
@@ -1937,31 +1941,31 @@ Changes in ll-orasql 1.10 (released 08/11/2006)
 
 
 Changes in ll-orasql 1.9.4 (released 08/09/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in ``oradiff.py``.
 
 
 Changes in ll-orasql 1.9.3 (released 08/08/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in ``oramerge.py``.
 
 
 Changes in ll-orasql 1.9.2 (released 08/04/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`TableDefinition.iterdefinitions`.
 
 
 Changes in ll-orasql 1.9.1 (released 08/02/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in ``oracreate.py``.
 
 
 Changes in ll-orasql 1.9 (released 07/24/2006)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Dependencies involving :class:`MaterializedViewDefinition` and
 	:class:`IndexDefinition` objects generated by constraints work properly now,
@@ -1984,13 +1988,13 @@ Changes in ll-orasql 1.9 (released 07/24/2006)
 
 
 Changes in ll-orasql 1.8.1 (released 07/17/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.orasql` can now handle objects name that are not in uppercase.
 
 
 Changes in ll-orasql 1.8 (released 07/14/2006)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`Connection.iterobjects` has been renamed to :meth:`iterdefinitions`.
 
@@ -2021,7 +2025,7 @@ Changes in ll-orasql 1.8 (released 07/14/2006)
 
 
 Changes in ll-orasql 1.7.2 (released 07/05/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	``RAW`` fields in tables are now output properly in
 	:meth:`TableDefinition.createddl`.
@@ -2031,7 +2035,7 @@ Changes in ll-orasql 1.7.2 (released 07/05/2006)
 
 
 Changes in ll-orasql 1.7.1 (released 07/04/2006)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Duplicate code in the scripts has been removed.
 
@@ -2040,7 +2044,7 @@ Changes in ll-orasql 1.7.1 (released 07/04/2006)
 
 
 Changes in ll-orasql 1.7 (released 06/29/2006)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The method :meth:`iterobjects` has been moved from :class:`Cursor` to
 	:class:`Connection`.
@@ -2062,7 +2066,7 @@ Changes in ll-orasql 1.7 (released 06/29/2006)
 
 
 Changes in ll-orasql 1.6 (released 04/26/2006)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a :class:`SessionPool` (a subclass of :class:`SessionPool` in
 	:mod:`cx_Oracle`) whose :meth:`acquire` method returns
@@ -2070,14 +2074,14 @@ Changes in ll-orasql 1.6 (released 04/26/2006)
 
 
 Changes in ll-orasql 1.5 (released 04/05/2006)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a class :class:`IndexDefinition` for indexes. ``oracreate.py`` will
 	now issue create statements for indexes.
 
 
 Changes in ll-orasql 1.4.3 (released 12/07/2005)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug with empty lines in procedure sources.
 
@@ -2085,7 +2089,7 @@ Changes in ll-orasql 1.4.3 (released 12/07/2005)
 
 
 Changes in ll-orasql 1.4.2 (released 12/07/2005)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug that the DDL output of Java source.
 
@@ -2093,13 +2097,13 @@ Changes in ll-orasql 1.4.2 (released 12/07/2005)
 
 
 Changes in ll-orasql 1.4.1 (released 12/06/2005)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug that resulted in omitted field lengths.
 
 
 Changes in ll-orasql 1.4 (released 12/05/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The option :option:`-m`/:option:`--mode` has been dropped from the script
 	``oramerge.py``.
@@ -2113,7 +2117,7 @@ Changes in ll-orasql 1.4 (released 12/05/2005)
 
 
 Changes in ll-orasql 1.3 (released 11/24/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added an option :option:`-i` to ``oracreate.py`` and ``oradrop.py`` to
 	ignore errors.
@@ -2129,7 +2133,7 @@ Changes in ll-orasql 1.3 (released 11/24/2005)
 
 
 Changes in ll-orasql 1.2 (released 10/24/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a argument to :meth:`createddl` and :meth:`dropddl` to specify if
 	terminated or unterminated DDL is wanted (i.e. add ``;`` or ``/`` or not).
@@ -2153,7 +2157,7 @@ Changes in ll-orasql 1.2 (released 10/24/2005)
 
 
 Changes in ll-orasql 1.1 (released 10/20/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	A script ``oradiff.py`` has been added which can be used for diffing Oracle
 	schemas.
@@ -2177,7 +2181,7 @@ Changes in ll-orasql 1.1 (released 10/20/2005)
 
 
 Changes in ll-orasql 1.0 (released 10/13/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.orasql` requires version 1.0 of the core package now.
 
@@ -2193,14 +2197,14 @@ Changes in ll-orasql 1.0 (released 10/13/2005)
 
 
 Changes in ll-orasql 0.7 (released 08/09/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	The commands generated by :func:`iterdrop` no longer have a terminating ``;``,
 	as this seems to confuse Oracle/cx_Oracle.
 
 
 Changes in ll-orasql 0.6 (released 06/20/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Two new functions have been added: :func:`iterdrop` is a generator that
 	yields information about how to clear the schema (i.e. drop all table,
@@ -2209,19 +2213,19 @@ Changes in ll-orasql 0.6 (released 06/20/2005)
 
 
 Changes in ll-orasql 0.5 (released 06/07/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Date values are now supported as ``OUT`` parameters.
 
 
 Changes in ll-orasql 0.4.1 (released 03/22/2005)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added a note about the package init file to the installation documentation.
 
 
 Changes in ll-orasql 0.4 (released 01/03/2005)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.orasql` now requires ll-core.
 
@@ -2235,20 +2239,20 @@ Changes in ll-orasql 0.4 (released 01/03/2005)
 
 
 Changes in ll-orasql 0.3 (released 12/09/2004)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:mod:`ll.orasql` requires cx_Oracle 4.1 now.
 
 
 Changes in ll-orasql 0.2.1 (released 09/09/2004)
-================================================
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a regression bug in :meth:`Proc._calcrealargs` as cursors will now
 	always return :class:`Record` objects.
 
 
 Changes in ll-orasql 0.2 (released 09/08/2004)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Now generating :class:`Record` object is done automatically in a subclass of
 	:class:`cx_Oracle.Cursor`. So now it's possible to use :mod:`ll.orasql` as an
@@ -2256,37 +2260,37 @@ Changes in ll-orasql 0.2 (released 09/08/2004)
 
 
 Changes in ll-orasql 0.1 (released 07/15/2004)
-==============================================
+""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial release.
 
 
 Changes to ll-nightshade
-########################
+------------------------
 
 Changes in ll-nightshade 0.14.1 (released 03/09/2009)
-=====================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.nightshade.Call` now commits any changes that might have been done
 	by the function or procedure.
 
 
 Changes in ll-nightshade 0.14 (released 01/14/2009)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`ll.nightshade.Connection` has new methods :meth:`commit`,
 	:meth:`rollback`, :meth:`close` and  :meth:`cancel`.
 
 
 Changes in ll-nightshade 0.13.1 (released 08/29/2008)
-=====================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:meth:`Connect.cursor` now passes keyword arguments through to
 	:meth:`ll.orasql.Connection.cursor`.
 
 
 Changes in ll-nightshade 0.13 (released 02/15/2008)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	CherryPy 3.0 is required now.
 
@@ -2298,13 +2302,13 @@ Changes in ll-nightshade 0.13 (released 02/15/2008)
 
 
 Changes in ll-nightshade 0.12 (released 02/01/2008)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	All docstrings use ReST now.
 
 
 Changes in ll-nightshade 0.11 (released 01/07/2008)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Updated the docstrings to XIST 3.0.
 
@@ -2312,7 +2316,7 @@ Changes in ll-nightshade 0.11 (released 01/07/2008)
 
 
 Changes in ll-nightshade 0.10 (released 09/04/2007)
-===================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	When a :class:`Connect` object is used as a decorator the database connection
 	is no longer passed to the decorated function. This means that there will no
@@ -2326,20 +2330,20 @@ Changes in ll-nightshade 0.10 (released 09/04/2007)
 
 
 Changes in ll-nightshade 0.9 (released 07/18/2007)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Added support for the ``Cache-Control`` header.
 
 
 Changes in ll-nightshade 0.8.1 (released 06/26/2007)
-====================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug in :meth:`Call.__call__` (calling the procedure wasn't retried
 	after the connection got lost).
 
 
 Changes in ll-nightshade 0.8 (released 06/21/2007)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	:class:`withconnection` has been renamed to :class:`Connect` and the
 	implementation of :meth:`__call__` has been fixed.
@@ -2350,19 +2354,19 @@ Changes in ll-nightshade 0.8 (released 06/21/2007)
 
 
 Changes in ll-nightshade 0.7.1 (released 05/12/2007)
-====================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Fixed a bug that surfaced after the connection to the database was lost.
 
 
 Changes in ll-nightshade 0.7 (released 03/16/2007)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	A new decorator :class:`withconnection` has been added. This can be use to
 	retry database operations in case of stale connections.
 
 
 Changes in ll-nightshade 0.6 (released 03/12/2007)
-==================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 *	Initial public release.

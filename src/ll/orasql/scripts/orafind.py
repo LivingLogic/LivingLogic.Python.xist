@@ -12,46 +12,61 @@
 
 """
 Purpose
--------
+=======
 
-``orafind`` can be used to search all tables in an Oracle database schema for
+:program:`orafind` can be used to search all tables in an Oracle database schema for
 a string.
 
 
 Options
--------
+=======
 
-``orafind`` supports the following options:
+:program:`orafind` supports the following options:
 
-	``connectstring``
-		An Oracle connectstring.
+.. program:: orafind
 
-	``searchstring``
-		The text to be searched for.
+.. option:: connectstring
 
-	``tables``
-		Zero or more tables names. If any table name is specified the search will
-		be limited to those tables. Otherwise all tables will be searched.
+	An Oracle connectstring.
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read or written.
+.. option:: searchstring
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+	The text to be searched for.
 
-	``-i``, ``--ignore-case`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, the search will be case insensitve.
+.. option:: tables
 
-	``-r``, ``--read-lobs`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If given, ``CLOB``\s will be read when printing search results.
+	Zero or more tables names. If any table names are specified the search will
+	be limited to those tables. Otherwise all tables will be searched.
+
+.. option:: -v <flag>, --verbose <flag>
+
+	Produces output (on stderr) while the database is read or written.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -c <mode>, --color <mode>
+
+	Should the output (when the :option:`-v` option is used) be colored? If
+	``auto`` is specified (the default) then the output is colored if stderr is
+	a terminal. Valid modes are ``yes``, ``no`` or ``auto``.
+
+.. option:: -i <flag>, --ignore-case <flag>
+
+	If true, the search will be case insensitve.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -r <flag>, --read-lobs <flag>
+
+	If true, ``CLOB``\s will be read when printing search results.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
 
 Example
--------
+=======
 
 Search for ``spam`` in all tables in the schema ``user@db``. The search is case
-insensitive and ``CLOB``\s will be printed::
+insensitive and ``CLOB``\s will be printed:
+
+.. sourcecode:: bash
 
 	$ orafind user/pwd@db spam -i -r
 """

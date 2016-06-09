@@ -12,67 +12,86 @@
 
 """
 Purpose
--------
+=======
 
-``oragrant`` prints all existing grants in an Oracle database schema.
+:program:`oragrant` prints all existing grants in an Oracle database schema.
 It can also be used to execute these grant statements directly.
 
 
 Options
--------
+=======
 
-``oragrant`` supports the following options:
+:program:`oragrant` supports the following options:
 
-	``connectstring``
-		An Oracle connectstring.
+.. program:: oragrant
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Produces output (on stderr) while the database is read or written.
 
-	``-c``, ``--color`` : ``yes``, ``no`` or ``auto``
-		Should the output (when the ``-v`` option is used) be colored? If ``auto``
-		is specified (the default) then the output is colored if stderr is a
-		terminal.
+.. option:: connectstring
 
-	``-x``, ``--execute`` : connectstring
-		When the ``-x`` argument is given the SQL script isn't printed on stdout,
-		but executed in the database specfied as the ``-x`` argument.
+	An Oracle connectstring.
 
-	``-k``, ``--keepjunk`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true (the default), database objects that have ``$`` or
-		``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
-		objects will be included in the output).
+.. option:: -v <flag>, --verbose <flag>
 
-	``-i``, ``--ignore`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		If true, any exception that occurs while the database is read or written
-		will be ignored.
+	Produces output (on stderr) while the database is read or written.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-m``, ``--mapgrantee`` : Python expression: ``list`` or ``dict``
-		A Python ``dict`` or ``list`` literal which will be evaluated. If the
-		grantee is not in this list (or dictionary) no grant statement will be
-		returned. If it's a dictionary and the grantee exists as a key, the
-		privilege will be granted to the user specified as the value instead of
-		the original one. The default is to grant all privileges to the original
-		grantee.
+.. option:: -c <mode>, --color <mode>
 
-	``--format`` : ``sql`` or ``pysql``
-		If ``--execute`` is not given, this determines the output format: Plain
-		SQL, or PySQL which can be piped into :mod:`ll.pysql`.
+	Should the output (when the :option:`-v` option is used) be colored?
+	If ``auto`` is specified (the default) then the output is colored if stderr
+	is a terminal. Valid modes are ``yes``, ``no`` or ``auto``.
 
-	``--include`` : regexp
-		Only include objects in the output if their name contains the regular
-		expression.
+.. option:: -x <connectstring>, --execute <connectstring>
 
-	``--exclude`` : regexp
-		Exclude objects from the output if their name contains the regular
-		expression.
+	When the :option:`-x` argument is given the SQL script isn't printed on
+	stdout, but executed in the database specfied as the :option:`-x` argument.
+
+.. option:: -k <flag>, --keepjunk <flag>
+
+	If false (the default), database objects that have ``$`` or
+	``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
+	objects will be included in the output).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <flag>, --ignore <flag>
+
+	If true, any exception that occurs while the database is read or written
+	will be ignored.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -m <expr>, --mapgrantee <expr>
+
+	A Python ``dict`` or ``list`` literal which will be evaluated. If the
+	grantee is not in this list (or dictionary) no grant statement will be
+	returned. If it's a dictionary and the grantee exists as a key, the
+	privilege will be granted to the user specified as the value instead of
+	the original one. The default is to grant all privileges to the original
+	grantee.
+
+.. option:: --format <format>
+
+	If :option:`--execute` is not given, this determines the output format:
+	Plain SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped
+	into :mod:`ll.pysql`.
+
+.. option:: --include <regexp>
+
+	Only include objects in the output if their name contains the regular
+	expression.
+
+.. option:: --exclude <regexp>
+
+	Exclude objects from the output if their name contains the regular
+	expression.
 
 
 Example
--------
+=======
 
 Grant all privileges that ``alice`` has in the schema ``user@db`` to ``bob`` in
-``user2@db2``::
+``user2@db2``:
+
+.. sourcecode:: bash
 
 	$ oragrant user/pwd@db -x user2/pwd2@db2 -m '{"alice": "bob"}' -v
 """

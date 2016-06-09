@@ -6,103 +6,124 @@
 Purpose
 =======
 
-``rul4`` is a script that can be used for rendering UL4 templates. Templates
-have access to Oracle, MySQL, SQLite and Redis databases and can execute system
-commands.
+:program:`rul4` is a script that can be used for rendering UL4 templates.
+Templates have access to Oracle, MySQL, SQLite and Redis databases and can
+execute system commands.
 
 
 Options
 =======
 
-``rul4`` supports the following options:
+:program:`rul4` supports the following options:
 
-	``templates``
-		One or more template files. A file named ``-`` will be treated as
-		standard input. The first file in the list is the main template, i.e. the
-		one that gets rendered. All templates will be available in the main
-		template as the ``templates`` dictionary. The keys are the base names
-		of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
-		``templates.stdin``).
+.. program:: rul4
 
-	``--oracle`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the object ``oracle`` to the template or not (see below)?
+.. option:: templates
 
-	``--sqlite`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the object ``sqlite`` to the template or not (see below)?
+	One or more template files. A file named ``-`` will be treated as
+	standard input. The first file in the list is the main template, i.e. the
+	one that gets rendered. All templates will be available in the main
+	template as the ``templates`` dictionary. The keys are the base names
+	of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
+	``templates.stdin``).
 
-	``--mysql`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the object ``mysql`` to the template or not (see below)?
+.. option:: --oracle <flag>
 
-	``--redis`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the object ``redis`` to the template or not (see below)?
+	Provide the object ``oracle`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--system`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the object ``system`` to the template or not (see below)?
+.. option:: --sqlite <flag>
 
-	``--load`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the function ``load`` to the template or not (see below)?
+	Provide the object ``sqlite`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--compile`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Provide the function ``compile`` to the template or not (see below)?
+.. option:: --mysql <flag>
 
-	``-e``, ``--encoding``
-		The encoding of the templates files (default ``utf-8``)
+	Provide the object ``mysql`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``-w``, ``--whitespace`` : ``keep``, ``strip``, or ``smart``
-		Specifies how to handle whitespace in the template
+.. option:: --redis <flag>
 
-	``-D``, ``--define``
-		Defines an additional value that will be available inside the template.
-		``-D`` can be specified multiple times. The following formats are supported:
+	Provide the object ``redis`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-			``var``
-				Defines ``var`` as an empty string;
+.. option:: --system <flag>
 
-			``var=value``
-				Defines ``var`` as the string ``value``;
+	Provide the object ``system`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-			``var:type``
-				Defines ``var`` as an empty variable of the type ``type``;
+.. option:: --load <flag>
 
-			``var:type=value``
-				Defines ``var`` as a variable of the type ``type`` with the value
-				``value``.
+	Provide the function ``load`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-		``type`` can be any of the following:
+.. option:: --compile <flag>
 
-			``int``
-				``value`` is an integer value.
+	Provide the function ``compile`` to the template or not (see below)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-			``float``
-				``value`` is a float value.
+.. option::  -e <encoding> , --encoding <encoding>
 
-			``bool``
-				``value`` is a boolean value. ``0``, ``no``, ``false``, ``False`` or
-				the empty string will be recognized as false and ``1``, ``yes``,
-				``true`` or ``True`` will be recognized as true.
+	The encoding of the templates files (default ``utf-8``)
 
-			``str``
-				``value`` is a string.
+.. option::  -w <value>, --whitespace <value>
 
-			``oracle``
-				``value`` will be a connection to an Oracle database, e.g.::
+	Specifies how to handle whitespace in the template (Allowed values are
+	``keep``, ``strip``, or ``smart``)
 
-					-Ddb:oracle=user/pwd@database
+.. option:: -D, --define
 
-			``sqlite``
-				``value`` is a connection to an SQLite database.
+	Defines an additional value that will be available inside the template.
+	``-D`` can be specified multiple times. The following formats are supported:
 
-			``mysql``
-				``value`` is a connection to a MySQL database.
+	``var``
+		Defines ``var`` as an empty string;
 
-			``redis``
-				``value`` will be a connection to an Redis database, e.g.::
+	``var=value``
+		Defines ``var`` as the string ``value``;
 
-					-Ddb:redis=192.168.123.1:6379/42
+	``var:type``
+		Defines ``var`` as an empty variable of the type ``type``;
 
-				The port (i.e. the ``6379`` in the above value) is optional and
-				defaults to 6379. The database number (i.e. the ``42`` in the above
-				value) is also optional and defaults to 0.
+	``var:type=value``
+		Defines ``var`` as a variable of the type ``type`` with the value
+		``value``.
+
+	``type`` can be any of the following:
+
+	``int``
+		``value`` is an integer value.
+
+	``float``
+		``value`` is a float value.
+
+	``bool``
+		``value`` is a boolean value. ``0``, ``no``, ``false``, ``False`` or
+		the empty string will be recognized as false and ``1``, ``yes``,
+		``true`` or ``True`` will be recognized as true.
+
+	``str``
+		``value`` is a string.
+
+	``oracle``
+		``value`` will be a connection to an Oracle database, e.g.::
+
+			-Ddb:oracle=user/pwd@database
+
+	``sqlite``
+		``value`` is a connection to an SQLite database.
+
+	``mysql``
+		``value`` is a connection to a MySQL database.
+
+	``redis``
+		``value`` will be a connection to an Redis database, e.g.::
+
+			-Ddb:redis=192.168.123.1:6379/42
+
+		The port (i.e. the ``6379`` in the above value) is optional and
+		defaults to 6379. The database number (i.e. the ``42`` in the above
+		value) is also optional and defaults to 0.
 
 
 Template variables
@@ -111,95 +132,107 @@ Template variables
 Inside the template the following variables are available (if enabled via
 the matching options):
 
-	``templates``
-		A dictionary containing all the templates specified on the command line.
+``templates``
+	A dictionary containing all the templates specified on the command line.
 
-	``encoding``
-		The output encoding.
+``encoding``
+	The output encoding.
 
-	``system``
-		An object with an ``execute`` method that executes system commands and
-		returns their output, e.g. the template::
+``system``
+	An object with an ``execute`` method that executes system commands and
+	returns their output, e.g. the template:
 
-			<?print system.execute("whoami")?>
+	.. sourcecode:: xml
 
-		will output the user name.
+		<?print system.execute("whoami")?>
 
-	``oracle``
-		An object with a ``connect`` method that returns a connection to an oracle
-		database.
+	will output the user name.
 
-	``mysql``
-		An object with a ``connect`` method that return a MySQL connection for
-		the MySQL connect strings passed in. A MySQL connect string is a string
-		of the form ``user/pwd@host/db``.
+``oracle``
+	An object with a ``connect`` method that returns a connection to an oracle
+	database.
 
-	``sqlite``
-		An object with a ``connect`` method that return a SQLite connection for
-		the connect strings passed in. The connect string will be passed directly
-		to :func:`sqlite3.connect`.
+``mysql``
+	An object with a ``connect`` method that return a MySQL connection for
+	the MySQL connect strings passed in. A MySQL connect string is a string
+	of the form ``user/pwd@host/db``.
 
-	``redis``
-		An object with a ``connect`` method that return a Redis connection for
-		the connect strings passed in. The connectstring is of the form
-		``hostname:port/db``. ``port`` and ``db`` are optional.
+``sqlite``
+	An object with a ``connect`` method that return a SQLite connection for
+	the connect strings passed in. The connect string will be passed directly
+	to :func:`sqlite3.connect`.
 
-	``load``
-		``load`` is a function that reads a file from disk and returns the
-		content. Its first parameter is the filename and its second parameter is
-		the encoding of the file. The encoding parameter is optional and defaults
-		to ``"utf-8"``::
+``redis``
+	An object with a ``connect`` method that return a Redis connection for
+	the connect strings passed in. The connectstring is of the form
+	``hostname:port/db``. ``port`` and ``db`` are optional.
 
-			<?code data = load("/home/user/data.txt", "iso-8859-1")?>
+``load``
+	``load`` is a function that reads a file from disk and returns the
+	content. Its first parameter is the filename and its second parameter is
+	the encoding of the file. The encoding parameter is optional and defaults
+	to ``"utf-8"``:
 
-	``compile``
-		``compile`` is a function that compiles a string into an UL4 template.
-		The signature is::
+	.. sourcecode:: xml
 
-			compile(source, name=None, whitespace="keep",
-			        signature=None, startdelim="<?", enddelim="?>")
+		<?code data = load("/home/user/data.txt", "iso-8859-1")?>
 
-	``error``
-		``error`` is a function that can be called to output an error message and
-		abort template execution. The signature is::
+``compile``
+	``compile`` is a function that compiles a string into an UL4 template.
+	The signature is:
 
-			error(message, ast=None)
+	.. sourcecode:: python
 
-		``message`` is the error message and ``ast`` can be an AST node from an
-		UL4 template syntax tree to print an error message that originates from
-		that node.
+		compile(source, name=None, whitespace="keep",
+		        signature=None, startdelim="<?", enddelim="?>")
+
+``error``
+	``error`` is a function that can be called to output an error message and
+	abort template execution. The signature is:
+
+	.. sourcecode:: python
+
+		error(message, ast=None)
+
+	``message`` is the error message and ``ast`` can be an AST node from an
+	UL4 template syntax tree to print an error message that originates from
+	that node.
 
 All variables defined via the :option:`-D`/:option:`--define` option will also
 be available. (Note that you can't overwrite any of the predefined variables).
 
 
 Database connections
---------------------
+====================
 
-All connection objects (except ``redis``) have a ``query`` method that executes
-the query passed in and returns an iterator over the resulting records. This
-``query`` method requires at least one positional argument. Arguments alternate
-between fragments of the SQL query and parameters that will be embedded in the
-query. For example::
+All connection objects (except ``redis``) have a :meth:`query` method that
+executes the query passed in and returns an iterator over the resulting records.
+This :meth:`query` method requires at least one positional argument. Arguments
+alternate between fragments of the SQL query and parameters that will be
+embedded in the query. For example:
+
+.. sourcecode:: xml
 
 	<?code db = oracle.connect("user/pwd@db")?>
 	<?code name = "Bob"?>
 	<?for p in db.query("select * from person where firstname=", name, " or lastname=", name)?>
 		...
 
-The records returned from ``query`` are dict-like objects mapping field names to
-field values.
+The records returned from :meth:`query` are dict-like objects mapping field
+names to field values.
 
-Connection objects also have an ``execute`` method that supports the same
-parameters as ``query`` but doesn't return an iterable result. This can be used
-to call functions or procedures.
+Connection objects also have an :meth:`execute` method that supports the same
+parameters as :meth:`query` but doesn't return an iterable result. This can be
+used to call functions or procedures.
 
 Calling functions or procedures with out parameters can be done with variable
 objects that can be created with the methods :meth:`int`, :meth:`number`,
 :meth:`str`, :meth:`clob` and :meth:`date`. The resulting value of the out
-parameter is available from the ``value`` attribute of the variable object.
+parameter is available from the :attr:`value` attribute of the variable object.
 The following example creates a function, calls it to get at the result and
-drops it again::
+drops it again:
+
+.. sourcecode:: xml
 
 	<?code db = oracle.connect('user/pwd@database')?>
 	<?code db.execute('''
@@ -215,7 +248,9 @@ drops it again::
 	<?print vout.value?>
 	<?code db.execute('drop function ul4test')?>
 
-Redis connections have a ``get`` and a ``put`` method::
+Redis connections have a :meth:`get` and a :meth:`put` method:
+
+.. sourcecode:: xml
 
 	<?code db = redis.connect("192.168.123.42/1")?>
 	<?code value = db.get("key")?>
@@ -224,8 +259,8 @@ Redis connections have a ``get`` and a ``put`` method::
 		<?code db.put("key", value, timedelta(seconds=10*60))?>
 	<?end if?>
 
-The timeout value in the ``put`` method is optional. Without it the value will
-be stored indefinitely.
+The timeout value in the :meth:`put` method is optional. Without it the value
+will be stored indefinitely.
 
 
 Example
@@ -234,7 +269,9 @@ Example
 This example shows how to connect to an Oracle database and output the content
 of a ``person`` table into an XML file.
 
-Suppose we have a database table that looks like this::
+Suppose we have a database table that looks like this:
+
+.. sourcecode:: sql
 
 	create table person
 	(
@@ -243,7 +280,9 @@ Suppose we have a database table that looks like this::
 		lastname varchar2(200)
 	);
 
-Then we can use the following template to output the table into an XML file::
+Then we can use the following template to output the table into an XML file:
+
+.. sourcecode:: xml
 
 	<?xml version='1.0' encoding='utf-8'?>
 	<?code db = oracle.connect("user/pwd@database')?>
@@ -256,18 +295,22 @@ Then we can use the following template to output the table into an XML file::
 		<?end for?>
 	</persons>
 
-If we put the template into the file ``person.ul4`` we can call ``rul4`` like
-this::
+If we put the template into the file :file:`person.ul4` we can call
+:program:`rul4` like this:
+
+.. sourcecode:: bash
 
 	rul4 person.ul4 >person.xml
 
-We could also pass the connection to our database via the ``-D`` option and
-disallow the script to make any database connections itself or execute any
-system commands::
+We could also pass the connection to our database via the :option:`-D` option
+and disallow the script to make any database connections itself or execute any
+system commands:
+
+.. sourcecode:: bash
 
 	rul4 person.ul4 -Ddb:oracle=user/pwd@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
 
-Then the template could use the Oracle connection object ``db`` directly.
+Then the template can use the Oracle connection object :obj:`db` directly.
 """
 
 

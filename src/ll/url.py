@@ -16,23 +16,23 @@ reading and writing resource data.
 
 These three levels of functionality are implemented in three classes:
 
-	:class:`URL`
-		:class:`URL` objects are the names of resources and can be used and
-		modified, regardless of the fact whether these resources actually exits.
-		:class:`URL` objects never hits the hard drive or the net.
+:class:`URL`
+	:class:`URL` objects are the names of resources and can be used and
+	modified, regardless of the fact whether these resources actually exits.
+	:class:`URL` objects never hits the hard drive or the net.
 
-	:class:`Connection`
-		:class:`Connection` objects contain functionality that accesses and
-		changes file metadata (like last modified date, permission bits,
-		directory structure etc.). A connection object can be created by calling
-		the :meth:`connect` method on a :class:`URL` object.
+:class:`Connection`
+	:class:`Connection` objects contain functionality that accesses and
+	changes file metadata (like last modified date, permission bits,
+	directory structure etc.). A connection object can be created by calling
+	the :meth:`connect` method on a :class:`URL` object.
 
-	:class:`Resource`
-		:class:`Resource` objects are file like objects that work with the actual
-		bytes that make up the file data. This functionality lives in the
-		:class:`Resource` class and its subclasses. Creating a resource is done
-		by calling the :meth:`open` method on a :class:`Connection` or a
-		:class:`URL`.
+:class:`Resource`
+	:class:`Resource` objects are file like objects that work with the actual
+	bytes that make up the file data. This functionality lives in the
+	:class:`Resource` class and its subclasses. Creating a resource is done
+	by calling the :meth:`open` method on a :class:`Connection` or a
+	:class:`URL`.
 """
 
 
@@ -178,8 +178,8 @@ class Context(object):
 
 	A :class:`Context` object can also be used as a context manager. This context
 	object will be used for all :meth:`open` and :meth:`connect` calls inside the
-	``with`` block. (Note that after the end of the ``with`` block all
-	connections will be closed.)
+	:keyword:`with` block. (Note that after the end of the :keyword:`with` block
+	all connections will be closed.)
 	"""
 	def __init__(self):
 		self.schemes = {}
@@ -1343,8 +1343,6 @@ class Resource(object):
 	A :class:`Resource` is a base class that provides a file-like interface
 	to local and remote files, URLs and other resources.
 
-	Attributes
-	----------
 	Each resource object has the following attributes:
 
 		:attr:`url`
@@ -1358,8 +1356,6 @@ class Resource(object):
 			A :class:`bool` specifying whether the resource has been closed
 			(i.e. whether the :meth:`close` method has been called).
 
-	Methods
-	-------
 	In addition to file methods (like :meth:`read`, :meth:`readlines`,
 	:meth:`write` and :meth:`close`) a resource object might provide the
 	following methods:
@@ -1657,7 +1653,7 @@ class SchemeDefinition(object):
 			from the BNF in :rfc:`2396` is used);
 
 		*	:obj:`useserver`: Specifies whether this scheme uses an Internet-based
-			server :prop:`authority` component or a registry of naming authorities
+			server :attr:`authority` component or a registry of naming authorities
 			(only for hierarchical URLs);
 
 		*	:obj:`usefrag`: Specifies whether this scheme uses fragments
@@ -1946,7 +1942,7 @@ class Path(object):
 	class file(misc.propclass):
 		"""
 		The filename without the path, i.e. the name part of the last component
-		of :prop:`path`. The ``baz.html`` part of
+		of :attr:`path`. The ``baz.html`` part of
 		``http://user@www.example.com/bar/baz.html;xyzzy?spam=eggs#frag``.
 		"""
 		def __get__(self):
@@ -2035,7 +2031,7 @@ class Path(object):
 	def withfile(self, file):
 		"""
 		Return a new :class:`Path` where the filename (i.e. the name of the last
-		component of :prop:`segments`) has been replaced with :obj:`file`.
+		component of :attr:`segments`) has been replaced with :obj:`file`.
 		"""
 		path = self.clone()
 		path.file = file
@@ -2044,7 +2040,7 @@ class Path(object):
 	def withoutfile(self):
 		"""
 		Return a new :class:`Path` where the filename (i.e. the name of the last
-		component of :prop:`segments`) has been removed.
+		component of :attr:`segments`) has been removed.
 		"""
 		if "/" not in self._path:
 			return Path("./")
@@ -2357,9 +2353,9 @@ class URL(object):
 				return None
 		def __set__(self, server):
 			"""
-			Setting the server always works even if the current :prop:`scheme`
-			does use :prop:`opaque_part` or :prop:`reg_name` but will be ignored
-			when reassembling the URL for the :prop:`url` property.
+			Setting the server always works even if the current :attr:`scheme`
+			does use :attr:`opaque_part` or :attr:`reg_name` but will be ignored
+			when reassembling the URL for the :attr:`url` property.
 			"""
 			if server is None:
 				del self.server
@@ -2379,7 +2375,7 @@ class URL(object):
 	class reg_name(misc.propclass):
 		"""
 		The reg_name part of the :class:`URL` for hierarchical schemes that use
-		a name based :prop:`authority` instead of :prop:`server`.
+		a name based :attr:`authority` instead of :attr:`server`.
 		"""
 		def __get__(self):
 			return self._reg_name
@@ -2394,8 +2390,8 @@ class URL(object):
 	class authority(misc.propclass):
 		"""
 		The authority part of the :class:`URL` for hierarchical schemes.
-		Depending on the scheme, this is either :prop:`server` or
-		:prop:`reg_name`.
+		Depending on the scheme, this is either :attr:`server` or
+		:attr:`reg_name`.
 		"""
 		def __get__(self):
 			if self.reg.useserver:
@@ -2417,7 +2413,7 @@ class URL(object):
 		"""
 		Specifies whether the path of a hierarchical :class:`URL` is absolute,
 		(i.e. it has a leading ``"/"``). Note that the path will always be
-		absolute if an :prop:`authority` is specified.
+		absolute if an :attr:`authority` is specified.
 		"""
 		def __get__(self):
 			return (self.authority is not None) or self.path.isabs
@@ -2438,7 +2434,7 @@ class URL(object):
 	class file(misc.propclass):
 		"""
 		The filename without the path, i.e. the name part of the last component
-		of :prop:`path`. The ``baz.html`` part of
+		of :attr:`path`. The ``baz.html`` part of
 		``http://user@www.example.com/bar/baz.html;xyzzy?spam=eggs#frag``.
 		"""
 		def __get__(self):
@@ -2548,7 +2544,7 @@ class URL(object):
 		"""
 		def __get__(self):
 			"""
-			Getting :prop:`url` reassembles the URL from the components.
+			Getting :attr:`url` reassembles the URL from the components.
 			"""
 			result = ""
 			if self.scheme is not None:
@@ -2569,7 +2565,7 @@ class URL(object):
 
 		def __set__(self, url):
 			"""
-			Setting :prop:`url` parses :obj:`url` into the components. :obj:`url`
+			Setting :attr:`url` parses :obj:`url` into the components. :obj:`url`
 			may also be an :class:`URL` instance, in which case the URL will be
 			copied.
 			"""
@@ -2652,7 +2648,7 @@ class URL(object):
 	def withfile(self, file):
 		"""
 		Return a new :class:`URL` where the filename (i.e. the name of last
-		component of :prop:`path_segments`) has been replaced with
+		component of :attr:`path_segments`) has been replaced with
 		:obj:`file`.
 		"""
 		url = URL(self)
@@ -2755,8 +2751,8 @@ class URL(object):
 		``baseurl/rel == self``, i.e. this is the inverse operation of
 		:meth:`__div__`.
 
-		If :obj:`self` is relative, has a different :prop:`scheme` or
-		:prop:`authority` than :obj:`baseurl` or a non-hierarchical scheme, an
+		If :obj:`self` is relative, has a different :attr:`scheme` or
+		:attr:`authority` than :obj:`baseurl` or a non-hierarchical scheme, an
 		identical copy of :obj:`self` will be returned.
 
 		If :obj:`allowschemerel` is true, scheme relative URLs are allowed, i.e.

@@ -3632,7 +3632,7 @@ def astext(
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
 
-	:obj:`width` is the maximum line length. If :obj:`width` is ``None`` line
+	:obj:`width` is the maximum line length. If :obj:`width` is :const`None` line
 	length is unlimited (i.e. no line wrapping will be done).
 
 	The rest of the parameters specify the formatting styles for HTML elements.
@@ -3680,7 +3680,7 @@ def astext(
 		three spaces.
 
 	``right``
-		The right margin for the block. This supports the same semantic regarding
+		The right margin for the block. This supports the same semantics regarding
 		levels and multiple lines as the ``left`` argument.
 
 	``whitespace``

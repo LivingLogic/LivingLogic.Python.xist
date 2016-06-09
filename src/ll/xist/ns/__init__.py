@@ -15,14 +15,14 @@ For example the definition of HTML can be found in the module
 :mod:`ll.xist.ns.html`.
 
 Some of these namespaces can be considered target namespaces (e.g.
-:mod:`ll.xist.ns.html`, :mod:`ll.xist.ns.ihtml`,:mod:`ll.xist.ns.wml` and
+:mod:`ll.xist.ns.html`, :mod:`ll.xist.ns.ihtml`, :mod:`ll.xist.ns.wml` and
 :mod:`ll.xist.ns.docbook`). The element and entity classes in these namespaces
 don't implement a convert method, i.e. they inherit the :meth:`convert` method
 from :class:`ll.xist.xsc.Element.convert`.
 
 Other namespace modules provide additional functionality through new element
 classes. Calling :meth:`ll.xist.xsc.Node.convert` on these elements might
-convert them to one of these target namespaces (depending on the :attr:`target`
+convert them to one of these target namespaces (depending on the :obj:`target`
 attribute of the :class:`ll.xist.xsc.Converter` object passed around.) Some of
 these namespace modules completely ignore the target and convert to one
 fixed target namespace (:mod:`ll.xist.ns.html` in most cases).

@@ -1,8 +1,16 @@
+Old migration info
+==================
+
+The following is migration info for modules and packages that where merged
+into XIST (starting with XIST 3.2) or into the former core package (starting
+with XIST 2.12).
+
+
 Migration info for ll-core
-##########################
+--------------------------
 
 Migrating to ll-core 1.6
-========================
+""""""""""""""""""""""""
 
 Handling of file data and file metadata in :mod:`ll.url` has been largely
 rewritten. The most significant visible change is that the :class:`ReadResource`
@@ -15,7 +23,7 @@ has been renamed to :meth:`size` and :attr:`stats` has been renamed to
 
 
 Migrating to ll-core 1.5
-========================
+""""""""""""""""""""""""
 
 The functions :func:`ll.url.Dirname` and :func:`ll.url.Filename` have been
 removed (use :func:`ll.url.Dir` and :func:`ll.url.File` instead).
@@ -26,7 +34,7 @@ instead).
 
 
 Migrating to ll-core 1.3
-========================
+""""""""""""""""""""""""
 
 :mod:`ll.make` has been largely rewritten, so you have to adapt
 your make scripts. For examples demonstrating how to do this, take a look at
@@ -37,7 +45,7 @@ website`_.
 
 
 Migrating to ll-core 1.2
-========================
+""""""""""""""""""""""""
 
 Processing instruction targets in :mod:`ll.xpit` now require whitespace after
 the target name. This means that you have to replace ``<?=foo?>`` with
@@ -45,7 +53,7 @@ the target name. This means that you have to replace ``<?=foo?>`` with
 
 
 Migrating to ll-core 1.1
-========================
+""""""""""""""""""""""""
 
 If you've been using :class:`TOXICAction` from :mod:`ll.make`, you have to use a
 :class:`DecodeAction` before the :class:`TOXICAction` to decode the :class:`str`
@@ -55,27 +63,27 @@ to encode it again as the constructor of :class:`TOXICAction` no longer takes an
 
 
 Migrating to ll-core 1.0
-========================
+""""""""""""""""""""""""
 
 The content of the :mod:`ll` module has been move to :mod:`ll.misc`, so you have
 to replace e.g. :func:`ll.notimplemented` with :func:`misc.notimplemented` etc.
 
 
 Migrating to ll-core 0.3
-========================
+""""""""""""""""""""""""
 
 Changes to namespaces
----------------------
+'''''''''''''''''''''
 
 Functions will no longer will turned into :class:`staticmethod` objects
 automatically, so you have to decorate them yourself.
 
 
 Migration info for ll-make
-##########################
+--------------------------
 
 Migrating to ll-make 1.0
-========================
+""""""""""""""""""""""""
 
 :class:`Target`\s now have four action chains instead of one, so you
 have to rewrite your :class:`Target` constructors. How the new call looks
@@ -113,7 +121,7 @@ you need to use the correct action chains for your target::
 
 
 Migrating to ll-make 0.26
-=========================
+"""""""""""""""""""""""""
 All :class:`Target` constructors expect to be passed *one* :class:`Action`
 instance only now, so instead of::
 
@@ -128,25 +136,25 @@ from the added actions.
 
 
 Migrating to ll-make 0.23
-=========================
+"""""""""""""""""""""""""
 A class variable ``name`` in an action class will be ignored now. You have to
 implement a method :meth:`desc` (and might implement :meth:`fulldesc` to give a
 longer description).
 
 
 Migrating to ll-make 0.17
-=========================
+"""""""""""""""""""""""""
 :class:`OracleTarget` has been renamed to :class:`DBTarget`.
 
 
 Migrating to ll-make 0.15
-=========================
+"""""""""""""""""""""""""
 The environment variable ``MAKE_REPRANSI`` has been renamed to
 ``LL_MAKE_REPRANSI``.
 
 
 Migrating to ll-make 0.14
-=========================
+"""""""""""""""""""""""""
 The way actions are handled has changed completely. Instead of a single action
 that loads the input, does something and saves to output, each of these steps is
 done by a separate action.
@@ -184,7 +192,7 @@ off. For more info simply invoke the build script with the option ``--help``.
 
 
 Migrating to ll-make 0.12
-=========================
+"""""""""""""""""""""""""
 
 :mod:`make` has been updated for XIST 2.4: Parsing and publishing XIST files
 is now no longer the job of the :class:`XISTAction` class itself, but is done
@@ -194,7 +202,7 @@ respectively.
 
 
 Migrating to ll-make 0.8
-========================
+""""""""""""""""""""""""
 
 All dictionary access method now try the literal id first, and if it's a string,
 they will retry with an &url; and an absolute &url;. So now you can no longer
@@ -203,7 +211,7 @@ problem anyway, because a file target should include the full path).
 
 
 Migrating to ll-make 0.6
-========================
+""""""""""""""""""""""""
 
 The :class:`Target` methods :meth:`sources` and :meth:`targets` have been
 changed, so that they return the source and target :class:`Target` objects
@@ -221,17 +229,17 @@ dependencies accordingly.
 
 
 Migration info for ll-nightshade
-################################
+--------------------------------
 
 Migrating to ll-nightshade version 0.13
-=======================================
+"""""""""""""""""""""""""""""""""""""""
 
 The decorators :func:`cache` and :func:`conditional` no longer exist. Use
 CherryPy's tools ``tools.etag`` and ``tools.caching`` instead.
 
 
 Migrating to ll-nightshade version 0.10
-=======================================
+"""""""""""""""""""""""""""""""""""""""
 
 When a :class:`Connect` object is used as a decorator the database connection is
 no longer passed to the decorated function. You have to store the
@@ -240,7 +248,7 @@ explicitly.
 
 
 Migrating to ll-nightshade version 0.8
-======================================
+""""""""""""""""""""""""""""""""""""""
 
 The class :class:`withconnection` has been renamed to :class:`Connect`.
 

@@ -1,3 +1,12 @@
+:mod:`ll.url` -- RFC 2396 compliant URLs
+########################################
+
+.. automodule:: ll.url
+
+
+Special features of :mod:`ll.url`
+=================================
+
 The class :class:`ll.url.URL` supports many common schemes and one additional
 special scheme named ``root`` that deserves an explanation.
 

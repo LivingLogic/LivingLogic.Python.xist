@@ -142,7 +142,7 @@ class addattr:
 def add(*args, **kwargs):
 	"""
 	:func:`add` appends items in :obj:`args` and sets attributes in
-	:obj:`kwargs` in the currenly active node in the ``with`` stack.
+	:obj:`kwargs` in the currenly active node in the :keyword:`with` stack.
 	"""
 	threadlocalnodehandler.handler.add(*args, **kwargs)
 
@@ -3210,9 +3210,9 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __enter__(self):
 		"""
-		:class:`Element` nodes can be used in ``with`` blocks to build XIST trees.
-		Inside a ``with`` block ``+`` and :func:`add` can be used to append node
-		to the currently active element in the ``with`` block::
+		:class:`Element` nodes can be used in :keyword:`with` blocks to build XIST trees.
+		Inside a :keyword:`with` block ``+`` and :func:`add` can be used to append node
+		to the currently active element in the :keyword:`with` block::
 
 			with xsc.build():
 				with html.ul() as node:

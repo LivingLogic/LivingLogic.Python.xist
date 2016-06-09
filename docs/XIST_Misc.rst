@@ -1,5 +1,8 @@
+Miscellaneous features
+======================
+
 URLs
-====
+----
 
 For URL handling XIST uses the module :mod:`ll.url`. Refer to its documentation
 for the basic functionality (especially regarding the methods
@@ -50,7 +53,7 @@ This means:
 
 	the following will happen: The URL ``#top`` will be parsed as
 	``root:spam.htmlxsc#top``. After conversion this will be written to
-	:filename:`spam.html` relative to the URL ``root:spam.html``, which results
+	:file:`spam.html` relative to the URL ``root:spam.html``, which results
 	in ``spam.html#top``, which works, but is not what you want.
 
 	When you use ``root:spam.html`` both for parsing and publishing, ``#top``
@@ -58,7 +61,7 @@ This means:
 
 
 Pretty printing XML
-===================
+-------------------
 
 The method :meth:`pretty` can be used for pretty printing XML. It returns a
 new version of the node, with additional white space between the elements:
@@ -101,7 +104,7 @@ Element content will only be modified if it doesn't contain
 
 
 Automatic generation of image size attributes
-=============================================
+---------------------------------------------
 
 The module :mod:`ll.xist.ns.htmlspecials` contains an element
 :class:`~ll.xist.ns.htmlspecials.autoimg` that extends
@@ -112,7 +115,7 @@ attributes are not set already).
 
 
 Embedding Python code
-=====================
+---------------------
 
 It's possible to embed Python code into XIST XML files. For this XIST supports
 two new processing instructions: :class:`~ll.xist.ns.code.pyexec` and

@@ -1,9 +1,12 @@
+Transforming XIST trees
+=======================
+
 Apart from the :meth:`~ll.xist.xsc.Node.convert` method, XIST provides several
 tools for manipulating an XML tree.
 
 
 The :meth:`withsep` method
-==========================
+--------------------------
 
 The method :meth:`~ll.xist.xscFrag.withsep` can be used to put a separator node
 between the child nodes of an :class:`~ll.xist.xsc.Element` or
@@ -19,7 +22,7 @@ or a :class:`~ll.xist.xsc.Frag`:
 
 
 The :meth:`shuffled` method
-===========================
+---------------------------
 
 The method :meth:`~ll.xist.xsc.Frag.shuffled` returns a shuffled version of the
 :class:`~ll.xist.xsc.Element` or :class:`~ll.xist.xsc.Frag`:
@@ -34,7 +37,7 @@ The method :meth:`~ll.xist.xsc.Frag.shuffled` returns a shuffled version of the
 
 
 The :meth:`reversed` method
-===========================
+---------------------------
 
 The method :meth:`~ll.xist.xsc.Frag.reversed` returns a reversed version of an
 element or fragment:
@@ -49,7 +52,7 @@ element or fragment:
 
 
 The :meth:`mapped` method
-=========================
+-------------------------
 
 The method :meth:`~ll.xist.xsc.Node.mapped` recursively walks the tree and
 generates a new tree, where all the nodes are mapped through a function.

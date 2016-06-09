@@ -224,7 +224,7 @@ class propclass(property, metaclass=_propclass_Meta):
 
 def format_class(obj):
 	"""
-	Format the name of the class of obj:`obj`::
+	Format the name of the class of :obj:`obj`::
 
 		>>> misc.format_class(42)
 		'int'
@@ -543,6 +543,11 @@ def module(source, filename="unnamed.py", name=None):
 def javaexpr(obj):
 	"""
 	Return a Java expression for the object :obj:`obj`.
+
+	Example::
+
+		>>> print(misc.javaexpr([1, 2, 3]))
+		java.util.Arrays.asList(1, 2, 3)
 	"""
 
 	if obj is None:

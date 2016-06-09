@@ -12,55 +12,72 @@
 
 """
 Purpose
--------
+=======
 
-``ucat`` is a script for printing files. It is an URL-enabled version of the
-``cat`` system command. Via :mod:`ll.url` and :mod:`ll.orasql` ``ucat`` supports
-``ssh`` and ``oracle`` URLs.
+:program:`ucat` is a script for printing files. It is an URL-enabled version of
+the :command:`cat` system command. Via :mod:`ll.url` and :mod:`ll.orasql`
+:program:`ucat` supports ``ssh`` and ``oracle`` URLs.
 
 
 Options
--------
+=======
 
-``ucat`` supports the following options:
+:program:`ucat` supports the following options:
 
-	``urls``
-		One or more URLs to be printed.
+.. program:: ucat
 
-	``-r``, ``--recursive`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Prints directory content recursively.
+.. option:: urls
 
-	``-x``, ``--ignoreerrors`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Ignores file i/o errors occuring during the output process (otherwise
-		the script will be aborted).
+	One or more URLs to be printed.
 
-	``-i``, ``--include`` : pattern(s)
-		Only print files whose name matches one of the specified patterns.
+.. option:: -r <flag>, --recursive <flag>
 
-	``-e``, ``--exclude`` : pattern(s)
-		Don't print files whose name matches one of the specified patterns.
+	Prints directory content recursively.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
-	``--enterdir`` : pattern(s)
-		Only enter directories whose name matches one of the specified patterns.
+.. option:: -x <flag>, --ignoreerrors <flag>
 
-	``--skipdir`` : pattern(s)
-		Don't enter directories whose name matches one of the specified patterns.
+	Ignores file i/o errors occuring during the output process (otherwise
+	the script will be aborted).
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -i <pattern(s)>, --include <pattern(s)>
+
+	Only print files whose name matches one of the specified patterns.
+
+.. option:: -e <pattern(s)>, --exclude <pattern(s)>
+
+	Don't print files whose name matches one of the specified patterns.
+
+.. option:: --enterdir <pattern(s)>
+
+	Only enter directories whose name matches one of the specified patterns.
+
+.. option:: --skipdir <pattern(s)>
+
+	Don't enter directories whose name matches one of the specified patterns.
 
 
 Examples
---------
-Print a file::
+========
+
+Print a file:
+
+.. sourcecode:: bash
 
 	$ ucat foo.txt
 
-Print a remote file::
+Print a remote file:
+
+.. sourcecode:: bash
 
 	$ ucat ssh://user@www.example.org/~/foo.txt
 
-Print the SQL source code of the procedure ``FOO`` in an Oracle database::
+Print the SQL source code of the procedure ``FOO`` in an Oracle database:
+
+.. sourcecode:: bash
 
 	$ ucat oracle://user:pwd@oracle.example.org/procedure/FOO
-
 """
 
 

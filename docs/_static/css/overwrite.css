@@ -1,0 +1,76 @@
+@import url("theme.css");
+
+.caption-text
+{
+	font-size: 90%;
+	color: #999;
+}
+
+.headerlink
+{
+	padding-left: 0.5em;
+	font-size: 80%;
+}
+
+code, .rst-content tt, .rst-content code
+{
+	background-color: transparent;
+	border: 0px;
+	font-size: 90%;
+	padding: 0;
+}
+
+.rst-content tt.xref, a .rst-content tt, .rst-content tt.xref, .rst-content code.xref, a .rst-content tt, a .rst-content code
+{
+	color: inherit;
+}
+
+.rst-content tt.literal, .rst-content tt.literal, .rst-content code.literal
+{
+	color: inherit;
+}
+
+dt, dd
+{
+	line-height: 24px;
+}
+
+.wy-plain-list-disc li, .rst-content .section ul li, .rst-content .toctree-wrapper ul li, article ul li
+{
+	margin-bottom: 12px;
+}
+
+.rst-content .viewcode-link, .rst-content .viewcode-back
+{
+	color: inherit;
+}
+
+.wy-menu-vertical
+{
+	width: 400px;
+}
+
+.wy-side-nav-search
+{
+	width: 400px;
+}
+
+.wy-side-scroll
+{
+	width: 420px;
+}
+
+.wy-nav-side
+{
+	width: 400px;
+}
+
+.wy-body-for-nav
+{
+	background-size: 400px 1px;
+}
+
+.wy-nav-content-wrap
+{
+	margin-left: 400px;
+}

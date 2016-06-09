@@ -11,34 +11,38 @@
 """
 This package contains the following scripts:
 
-	``rul4``
-		``rul4`` renders an UL4 template. The available template variables
-		allow system commands and database access. Supported databases are Oracle,
-		SQLite and MySQL.
+:program:`rul4`
+	:program:`rul4` renders an UL4 template. The available template variables
+	allow system commands and database access. Supported databases are Oracle,
+	SQLite, MySQL and Redis.
 
-	``uls``
-		``uls`` is an URL-enabled version of the ``ls`` command for listing
-		directory content. It uses :mod:`ll.url` and supports ``ssh`` and
-		``oracle`` URLs (via :mod:`ll.orasql`).
+:program:`uls`
+	:program:`uls` is an URL-enabled version of the :command:`ls` command for
+	listing directory content. It uses :mod:`ll.url` and supports ``ssh`` and
+	``oracle`` URLs (via :mod:`ll.orasql`).
 
-	``ucp``
-		``ucp`` is an URL-enabled version of the ``cp`` command for copying files
-		(and file-like objects). It supports ``ssh`` and ``oracle`` URLs for both
-		source and target files.
+:program:`ucp`
+	:program:`ucp` is an URL-enabled version of the :command:`cp` command for
+	copying files (and file-like objects). It supports ``ssh`` and ``oracle``
+	URLs for both source and target files.
 
-	``ucat``
-		``ucat`` is an URL-enabled version of the ``cat`` command for printing
-		files (and file-like objects).
+:program:`ucat`
+	:program:`ucat` is an URL-enabled version of the :command:`cat` command for
+	printing files (and file-like objects).
 
-	``udiff``
-		``udiff`` is an URL-enabled version of the ``diff`` command for showing
-		differences between two files or directories.
+:program:`udiff`
+	:program:`udiff` is an URL-enabled version of the :command:`diff` command
+	for showing differences between two files or directories.
 
-These scripts can either be called via Pythons :option:`-m` option::
+These scripts can either be called via Pythons :option:`-m` option:
+
+.. sourcecode:: bash
 
 	python -mll.scripts.rul4 --help
 
-or as a simple script installed in the search path::
+or as a simple script installed in the search path:
+
+.. sourcecode:: bash
 
 	rul4 --help
 """

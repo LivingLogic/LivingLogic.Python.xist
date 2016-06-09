@@ -14,52 +14,61 @@
 Purpose
 -------
 
-``dtd2xsc`` is a script that helps create XIST namespace modules from DTDs.
+:program:`dtd2xsc` is a script that helps create XIST namespace modules from DTDs.
 It reads one or more DTDs and outputs a skeleton namespace module.
 
 
 Options
 -------
 
-``dtd2xsc`` supports the following options:
+:program:`dtd2xsc` supports the following options:
 
-	``urls``
-		Zero or more URLs (or filenames) of DTDs to be parsed. If no URL is
-		given stdin will be read.
+.. program:: dtd2xsc
 
-	``-x``, ``--xmlns``
-		The default namespace name. All elements that don't belong to any
-		namespace will be assigned to this namespace.
+.. option:: urls
 
-	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
-		Should attributes be shared among the elements? ``none`` means that each
-		element will have its own standalone :class:`Attrs` class directly derived
-		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
-		used by more than one element will be moved into its own :class:`Attrs`
-		class. For ``all`` this will be done for all attributes.
+	Zero or more URLs (or filenames) of DTDs to be parsed. If no URL is
+	given stdin will be read.
 
-	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
-		Add model information to the namespace. ``no`` doesn't add any model
-		information. ``simple`` only adds ``model = False`` or ``model = True``
-		(i.e. only the information whether the element must be empty or not).
-		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
-		``fullonce`` adds full model information to, but reuses model objects for
-		elements which have the same model.
+.. option:: -x <name>, --xmlns <name>
 
-	``-d``, ``--defaults`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Should default values for attributes specified in the DTD be added to the
-		XIST namespace (as the ``default`` specification in the attribute class)?
+	The default namespace name. All elements that don't belong to any
+	namespace will be assigned to this namespace.
 
-	``--duplicates`` : ``reject``, ``allow``, ``merge``
-		If more that one DTD is specified on the command line, some elements
-		might be specified in more than one DTD. ``--duplicates`` specifies how
-		to handle this case: ``reject`` doesn't allow multiple element
-		specifications. ``allow`` allows them, but only if both specifications
-		are identical (i.e. have the same attributes). ``merge`` allows them and
-		adds the attribute specification of all element specifications to the
-		resulting XIST namespace.
+.. option:: -s <value>, --shareattrs <value>
 
-Note that ``dtd2xsc`` requires lxml_ to work.
+	Should attributes be shared among the elements? ``none`` means that each
+	element will have its own standalone :class:`Attrs` class directly derived
+	from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
+	used by more than one element will be moved into its own :class:`Attrs`
+	class. For ``all`` this will be done for all attributes.
+
+.. option:: -m <value>, --model <value>
+
+	Add model information to the namespace. ``no`` doesn't add any model
+	information. ``simple`` only adds ``model = False`` or ``model = True``
+	(i.e. only the information whether the element must be empty or not).
+	``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+	``fullonce`` adds full model information to, but reuses model objects for
+	elements which have the same model.
+
+.. option:: -d <flag>, --defaults <flag>
+
+	Should default values for attributes specified in the DTD be added to the
+	XIST namespace (as the ``default`` specification in the attribute class)?
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --duplicates <value>
+
+	If more that one DTD is specified on the command line, some elements
+	might be specified in more than one DTD. :option:`--duplicates` specifies how
+	to handle this case: ``reject`` doesn't allow multiple element
+	specifications. ``allow`` allows them, but only if both specifications
+	are identical (i.e. have the same attributes). ``merge`` allows them and
+	adds the attribute specification of all element specifications to the
+	resulting XIST namespace.
+
+Note that :program:`dtd2xsc` requires lxml_ to work.
 
 	.. _lxml: http://lxml.de/
 
@@ -67,7 +76,9 @@ Note that ``dtd2xsc`` requires lxml_ to work.
 Example
 -------
 
-Suppose we have the following DTD file (named ``foo.dtd``)::
+Suppose we have the following DTD file (named ``foo.dtd``):
+
+.. sourcecode:: dtd
 
 	<?xml version="1.0" encoding="ISO-8859-1"?>
 	<!ELEMENT persons (person*)>
@@ -76,35 +87,32 @@ Suppose we have the following DTD file (named ``foo.dtd``)::
 	<!ELEMENT firstname (#PCDATA)>
 	<!ELEMENT lastname (#PCDATA)>
 
-Then we can generate a skeleton XIST namespace from it with the following command::
+Then we can generate a skeleton XIST namespace from it with the following command:
+
+.. sourcecode:: bash
 
 	dtd2xsc ~/gurk.dtd -xhttp://xmlns.example.org/ -mfullall
 
-The output will be::
+The output will be:
+
+.. sourcecode:: python
 
 	# -*- coding: ascii -*-
 
-
 	from ll.xist import xsc, sims
-
 
 	xmlns = 'http://xmlns.example.org/'
 
-
 	class firstname(xsc.Element): xmlns = xmlns
 
-
 	class lastname(xsc.Element): xmlns = xmlns
-
 
 	class person(xsc.Element):
 		xmlns = xmlns
 		class Attrs(xsc.Element.Attrs):
 			class id(xsc.TextAttr): required = True
 
-
 	class persons(xsc.Element): xmlns = xmlns
-
 
 	person.model = sims.Elements(lastname, firstname)
 	persons.model = sims.Elements(person)

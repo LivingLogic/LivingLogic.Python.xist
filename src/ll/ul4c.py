@@ -3661,8 +3661,10 @@ class Template(Block):
 
 	def renders(*args, **kwargs):
 		"""
-		Render the template as a string. :obj:`vars` contains the top level
-		variables available to the template code.
+		Render the template as a string. :obj:`args[1:]` and :obj:`kwargs` contain
+		the top level variables available to the template code. (:obj:`args[0]`
+		is the ``self`` parameter, but :meth:`renders` is defined in this way,
+		to allow a keyword argument named ``self``).
 		"""
 		context = Context()
 		return args[0].ul4renders(context, *args[1:], **kwargs)
@@ -3679,7 +3681,10 @@ class Template(Block):
 	def ul4call(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
-		:obj:`vars` contains the top level variables available to the template code.
+		:obj:`args[1:]` and :obj:`kwargs` contain the top level variables available
+		to the template code. (:obj:`args[0]` is the ``self`` parameter, but
+		:meth:`ul4call` is defined in this way, to allow a keyword argument named
+		``self``).
 		"""
 		self = args[0]
 		context = args[1]
@@ -3691,7 +3696,10 @@ class Template(Block):
 	def __call__(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
-		:obj:`vars` contains the top level variables available to the template code.
+		:obj:`args[1:]` and :obj:`kwargs` contain the top level variables available
+		to the template code. (:obj:`args[0]` is the ``self`` parameter, but
+		:meth:`__call__` is defined in this way, to allow a keyword argument named
+		``self``).
 		"""
 		context = Context()
 		return args[0].ul4call(context, *args[1:], **kwargs)

@@ -1,3 +1,6 @@
+UL4 -- A templating language
+############################
+
 :mod:`ll.ul4c` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
@@ -54,9 +57,10 @@ like this::
 	print(template.renders(data=["Python", "Java", "Javascript", "PHP"]))
 
 The variables that should be available to the template code can be passed to the
-method :meth:`Template.renders` as keyword arguments. :meth:`renders` returns
-the final rendered output as a string. Alternatively the method :meth:`render`
-can be used, which is a generator and returns the output piecewise.
+method :meth:`~ll.ul4c.Template.renders` as keyword arguments.
+:meth:`~ll.ul4c.Template.renders` returns the final rendered output as a string.
+Alternatively the method :meth:`~ll.ul4c.Template.render` can be used, which is
+a generator and returns the output piecewise.
 
 
 Builtin types
@@ -2055,3 +2059,13 @@ anywhere in the template source will switch on smart whitespace handling.
 
 A ``<?whitespace?>`` tag overwrites the ``whitespace`` parameter specified
 in the constructor.
+
+API
+===
+
+.. automodule:: ll.ul4c
+
+:mod:`rul4`
+===========
+
+.. automodule:: ll.scripts.rul4

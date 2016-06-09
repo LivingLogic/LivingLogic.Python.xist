@@ -14,37 +14,51 @@
 Purpose
 -------
 
-``uhpp`` is a script for pretty printing HTML files. It is URL-enabled, so you
-can specify local file names and URLs (and remote files via ``ssh`` URLs).
+:program:`uhpp` is a script for pretty printing HTML files. It is URL-enabled,
+so you can specify local file names and URLs (and remote files via ``ssh``
+URLs).
 
 
 Options
 -------
 
-``uhpp`` supports the following options:
+:program:`uhpp` supports the following options:
 
-	``urls``
-		Zero or more URLs to be printed. If no URL is given, stdin is read.
+.. program:: uhpp
 
-	``-v``, ``--verbose`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Output parse warnings?
+.. option:: urls
 
-	``-c``, ``--compact`` : ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``
-		Compact HTML before printing (i.e. remove whitespace nodes)?
+	Zero or more URLs to be printed. If no URL is given, stdin is read.
+
+.. option -v <flag>, --verbose <flag>
+
+	Output parse warnings?
+	(Allowed valued are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: -c <flag>, --compact <flag>
+
+	Compact HTML before printing (i.e. remove whitespace nodes)?
+	(Allowed valued are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
 
 Examples
 --------
 
-Pretty print stdin::
+Pretty print stdin:
+
+.. sourcecode:: bash
 
 	$ cat foo.html | uhpp
 
-Pretty print a local HTML file::
+Pretty print a local HTML file:
+
+.. sourcecode:: bash
 
 	$ uhpp foo.html
 
-Pretty print a remote HTML file::
+Pretty print a remote HTML file:
+
+.. sourcecode:: bash
 
 	$ uhpp ssh://user@www.example.org/~/foo.html
 """

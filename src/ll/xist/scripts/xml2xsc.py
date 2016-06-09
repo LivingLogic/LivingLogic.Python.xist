@@ -14,70 +14,80 @@
 Purpose
 -------
 
-``xml2xsc`` is a script that generates an XIST namespace module from one or more
-XML files. ``xml2xsc`` will output an XIST element class for each element it
-encounters in any of the XML files. The attributes and model information
-``xml2xsc`` assigns to an element will be collected from each occurence of the
-element in the XML files, so the XML files should cover as many different cases
-as possible.
+:program:`xml2xsc` is a script that generates an XIST namespace module from one
+or more XML files. :program:`xml2xsc` will output an XIST element class for each
+element it encounters in any of the XML files. The attributes and model
+information :program:`xml2xsc` assigns to an element will be collected from each
+occurence of the element in the XML files, so the XML files should cover as many
+different cases as possible.
 
 
 Options
 -------
 
-``xml2xsc`` supports the following options:
+:program:`xml2xsc` supports the following options:
 
-	``urls``
-		Zero or more URLs (or filenames) of XML files to be parsed. If no URL is
-		given stdin will be read.
+.. program:: xml2xsc
 
-	``-p``, ``--parser`` : ``etree`` or ``lxml``
-		Which XML parser should be used from parsing the XML files? (``etree`` is
-		the default, ``lxml`` requires that lxml_ is installed)
+.. option:: urls
 
-	``-s``, ``--shareattrs`` : ``none``, ``dupes``, ``all``
-		Should attributes be shared among the elements? ``none`` means that each
-		element will have its own standalone :class:`Attrs` class directly derived
-		from :class:`ll.xist.Elements.Attrs`. For ``dupes`` each attribute that is
-		used by more than one element will be moved into its own :class:`Attrs`
-		class. For ``all`` this will be done for all attributes.
+	Zero or more URLs (or filenames) of XML files to be parsed. If no URL is
+	given stdin will be read.
 
-	``-m``, ``--model`` : ``no``, ``simple``, ``fullall``, ``fullonce``
-		Add model information to the namespace. ``no`` doesn't add any model
-		information. ``simple`` only adds ``model = False`` or ``model = True``
-		(i.e. only the information whether the element must be empty or not).
-		``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
-		``fullonce`` adds full model information to, but reuses model objects for
-		elements which have the same model.
+.. option:: -p <parser>, --parser <parser>
 
-	``-x``, ``--defaultxmlns``
-		The default namespace name. All elements that don't belong to any
-		namespace will be assigned to this namespace.
+	Which XML parser should be used from parsing the XML files? (``etree`` is
+	the default, ``lxml`` requires that lxml_ is installed)
 
-	.. _lxml: http://lxml.de/
+.. option:: -s <mode>, --shareattrs <mode>
+
+	Should attributes be shared among the elements? ``none`` means that each
+	element will have its own standalone :class:`Attrs` class directly derived
+	from :class:`ll.xist.xsc.Elements.Attrs`. For ``dupes`` each attribute that
+	is used by more than one element will be moved into its own :class:`Attrs`
+	class. For ``all`` this will be done for all attributes.
+
+.. option:: -m <mode>, --model <mode>
+
+	Add model information to the namespace. ``no`` doesn't add any model
+	information. ``simple`` only adds ``model = False`` or ``model = True``
+	(i.e. only the information whether the element must be empty or not).
+	``fullall`` adds a :mod:`ll.xist.sims` model object to each element class.
+	``fullonce`` adds full model information to, but reuses model objects for
+	elements which have the same model.
+
+.. option:: -x <name>, --defaultxmlns <name>
+
+	The default namespace name. All elements that don't belong to any
+	namespace will be assigned to this namespace.
+
+.. _lxml: http://lxml.de/
 
 
 Example
 -------
 
-Suppose we have the following XML file (named ``foo.xml``)::
+Suppose we have the following XML file (named :file:`foo.xml`):
+
+.. sourcecode:: xml
 
 	<x a="0"><x b="1"/><y/></x>
 
-Then we can generate a skeleton XIST namespace from it with the following command::
+Then we can generate a skeleton XIST namespace from it with the following command:
+
+.. sourcecode:: bash
 
 	xml2xsc foo.xml -xhttp://xmlns.example.org/ -mfullonce
 
-The output will be::
+The output will be:
+
+.. sourcecode:: python
 
 	# -*- coding: ascii -*-
 
-
 	from ll.xist import xsc, sims
 
-
 	xmlns = 'http://xmlns.example.org/'
-
 
 	class x(xsc.Element):
 		xmlns = xmlns
@@ -85,9 +95,7 @@ The output will be::
 			class a(xsc.TextAttr): pass
 			class b(xsc.TextAttr): pass
 
-
 	class y(xsc.Element): xmlns = xmlns
-
 
 	x.model = sims.Elements(y, x)
 	y.model = sims.Empty()
