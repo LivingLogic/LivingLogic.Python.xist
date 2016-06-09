@@ -1388,7 +1388,7 @@ class loadbytes:
 		self.filename = filename
 
 	def __repr__(self):
-		return "{}({!r}".format(self.__class__.__qualname__, self.filename)
+		return "{}({!r})".format(self.__class__.__qualname__, self.filename)
 
 	def execute(self, basefilename):
 		"""
