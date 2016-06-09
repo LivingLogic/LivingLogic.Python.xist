@@ -632,7 +632,7 @@ class _SQLCommand(Command):
 	"""
 	@staticmethod
 	def _createvar(cursor, type, value):
-		var = context.cursor.var(type)
+		var = cursor.var(type)
 		var.setvalue(0, value)
 		return var
 
