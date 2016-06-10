@@ -685,11 +685,11 @@ class ProcedureCommand(_SQLCommand):
 	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
-		``name`` : string (required)
+		``"name"`` : string (required)
 			The name of the procedure to be called (This may include ``.`` for
 			calling a procedure in a package or one owned by a different user).
 
-		``args`` : dictionary (optional)
+		``"args"`` : dictionary (optional)
 			A dictionary with the names of the parameters as keys and the parameter
 			values as values. PySQL supports all types as values that
 			:mod:`cx_Oracle` supports. In addition to those, three special classes
@@ -775,12 +775,12 @@ class SQLCommand(_SQLCommand):
 	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
-		``sql`` : string (required)
+		``"sql"`` : string (required)
 			The SQL to be executed. This may contain parameters in the form of
 			``:paramname``. The values for those parameters will be taken from
 			``args``.
 
-		``args`` : dictionary (optional)
+		``"args"`` : dictionary (optional)
 			A dictionary with the names of the parameters as keys and the parameter
 			values as values. Similar to procedure calls :class:`var` and
 			:class:`load` objects are supported. However :class:`sql` objects
@@ -838,10 +838,10 @@ class SetVarCommand(Command):
 	``"type"`` and ``"raiseexceptions"`` the following keys are supported in the
 	command dictionary:
 
-		``name``: string (required)
+		``"name"``: string (required)
 			The name of the variable to set.
 
-		``value``: (required)
+		``"value"``: (required)
 			The value of the variable.
 	"""
 	type = "setvar"
@@ -875,7 +875,7 @@ class SetVarCommand(Command):
 class UnsetVarCommand(Command):
 	"""
 	The ``"unsetvar"`` command deletes a variable. In addition to ``"type"`` and
-	``"raiseexceptions"`` the key ``name`` is supported and must contain the
+	``"raiseexceptions"`` the key ``"name"`` is supported and must contain the
 	name of the variable.
 	"""
 	type = "unsetvar"
@@ -1024,14 +1024,14 @@ class SCPCommand(Command):
 	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
-		``name`` : string (required)
+		``"name"`` : string (required)
 			The name of the file to be created. It may contain ``format()`` style
 			specifications containing any key that appeared in a ``"procedure"``
 			or ``"sql"`` command. These specifiers will be replaced by the correct
 			key values. As these files will be copied via the ``scp`` command,
 			ssh file names can be used.
 
-		``content``: bytes (required)
+		``"content"``: bytes (required)
 			The content of the file to be created. This can also be a
 			:class:`load` object, to load the content from an external file.
 	"""
@@ -1079,24 +1079,24 @@ class FileCommand(Command):
 	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
 	supported in the command dictionary:
 
-		``name`` : string (required)
+		``"name"`` : string (required)
 			The name of the file to be created. It may contain ``format()`` style
 			specifications containing any key that appeared in a ``"procedure"`` or
 			``"sql"`` command. These specifiers will be replaced by the correct
 			key values.
 
-		``content``: bytes (required)
+		``"content"``: bytes (required)
 			The content of the file to be created. This can also be a
 			:class:`load` object, to load the content from an external file.
 
-		``mode``: integer (optional)
+		``"mode"``: integer (optional)
 			The file mode for the new file. If the mode is specified :func:`os.chmod`
 			will be called on the file.
 
-		``owner``: integer or string (optional)
+		``"owner"``: integer or string (optional)
 			The owner of the file (as a user name or a uid).
 
-		``group``: integer or string (optional)
+		``"group"``: integer or string (optional)
 			The owning group of the file (as a group name or a gid).
 			If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
 			the file.
@@ -1178,22 +1178,22 @@ class ResetSequenceCommand(Command):
 	``"raiseexceptions"`` the following keys are supported in the command
 	dictionary:
 
-		``sequence``: string (required)
+		``"sequence"``: string (required)
 			The name of the sequence to reset.
 
-		``table``: string (required)
+		``"table"``: string (required)
 			The name of the table that contains the field.
 
-		``field``: string (required)
+		``"field"``: string (required)
 			The name of the field in the table ``table``. The sequence will be
 			reset to a value, so that fetching the next value from the sequence
 			will deliver a value that is larger than the maximum value of the field
 			``field`` in the table ``table``.
 
-		``minvalue``: integer (optional, default taken from sequence)
+		``"minvalue"``: integer (optional, default taken from sequence)
 			The minimum value for the sequence.
 
-		``increment``: integer (optional, default taken from sequence)
+		``"increment"``: integer (optional, default taken from sequence)
 			The increment (i.e. the stop size) for the sequence.
 	"""
 	type = "resetsequence"
