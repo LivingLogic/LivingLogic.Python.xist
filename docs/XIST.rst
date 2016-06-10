@@ -3,9 +3,6 @@ XIST -- An extensible HTML/XML generator
 
 .. automodule:: ll.xist
 
-Content
--------
-
 .. toctree::
    :maxdepth: 1
 
