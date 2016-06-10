@@ -18,6 +18,19 @@ import os
 
 import sphinx_rtd_theme
 
+from sphinx.writers import latex
+
+def visit_definition_list(self, node):
+	self.body.append('\\begin{description}[style=unboxed]\n')
+	if self.table:
+		self.table.has_problematic = True
+
+def  visit_definition(self, node):
+	self.body.append("\\hfill \\\\")
+
+latex.LaTeXTranslator.visit_definition_list = visit_definition_list
+latex.LaTeXTranslator.visit_definition = visit_definition
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
