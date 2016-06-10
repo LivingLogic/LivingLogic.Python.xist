@@ -54,12 +54,12 @@ Changes in 5.17 (released 05/04/2016)
 	handling (Text nodes and tags reference the template now instead of only
 	the template source).
 
-*	The ``rul4`` function ``import`` has been dropped. Instead two functions
+*	The :program:`rul4` function ``import`` has been dropped. Instead two functions
 	``load`` (for reading the content of a file) and ``compile`` (for compiling
 	a string into an UL4 template) have been added.
 
 *	A function ``error`` for outputting an error message and aborting template
-	rendering have been added to ``rul4``.
+	rendering have been added to :program:`rul4`.
 
 
 Changes in 5.16 (released 04/13/2016)
@@ -69,9 +69,10 @@ Changes in 5.16 (released 04/13/2016)
 
 *	:mod:`orasql` now handles inline primary key constraints properly.
 
-*	The scripts ``oracreate``, ``oradelete``, ``oradrop``, ``oragrant``,
-	``orareindex`` and ``oradiff`` have a new option :option:`--format`.
-	The option value ``pysql`` switches the output format to PySQL.
+*	The scripts :program:`oracreate`, :program:`oradelete`, :program:`oradrop`,
+	:program:`oragrant`, :program:`orareindex` and :program:`oradiff` have a
+	new option ``--format``. The option value ``pysql`` switches the output
+	format to PySQL.
 
 *	Procedure and function source code created by :mod:`ll.orasql` will now
 	no longer have a linefeed introduced before the parameter list.
@@ -202,15 +203,15 @@ Changes in 5.14 (released 12/02/2015)
 *	Stacktraces produced by UL4 templates now include less chained exceptions
 	and are much more informative.
 
-*	The ``rul4`` option :option:`--keepws` has been renamed to
-	:option:`--whitespace` and defaults to ``smart`` now.
+*	The :program:`rul4` option ``--keepws`` has been renamed to
+	``--whitespace`` and defaults to ``smart`` now.
 
-*	``rul4`` got a new option :option:`--stacktrace`: ``full`` displays the full
+*	:program:`rul4` got a new option ``--stacktrace``: ``full`` displays the full
 	Python stack trace, ``short`` (the new default) only displays the exception
 	chain without displaying any Python source.
 
-*	Templates used in ``rul4`` have access to a new function: ``import``, which
-	can be used to load templates from any file.
+*	Templates used in :program:`rul4` have access to a new function: ``import``,
+	which can be used to load templates from any file.
 
 *	UL4 got two new comparison operators: ``is`` and ``is not`` for checking
 	for object identity.
@@ -284,8 +285,8 @@ Changes in 5.13 (released 12/18/2014)
 	values for template variables and to call templates with positional
 	arguments.
 
-*	The option :option:`setproctitle` for sisyphus jobs has been renamed to
-	:option:`proctitle`. The new method :meth:`setproctitle` sets the process
+*	The option ``setproctitle`` for sisyphus jobs has been renamed to
+	``proctitle``. The new method :meth:`setproctitle` sets the process
 	title and can be used to customize setting the process title.
 
 *	Locally defined UL4 templates no longer see themselves among the variables
@@ -331,11 +332,11 @@ Changes in 5.11 (released 10/29/2014)
 		for (name, module) in self.tasks(items, "module", lambda kv: kv[0]):
 			self.log("module is {}".format(module))
 
-*	An option :option:`--maxemailerrors` has been added to sisyphus jobs:
+*	An option ``--maxemailerrors`` has been added to sisyphus jobs:
 	This options limits the number of exceptions and errors messages that
 	will get attached to the failure email.
 
-*	An option :option:`--setproctitle` has been added to sisyphus jobs:
+*	An option ``--setproctitle`` has been added to sisyphus jobs:
 	When this options is specified, the process title will be modified during
 	execution of the job, so that the ``ps`` command shows what the processes
 	are doing. (This requires :mod:`setproctitle` from the Cheeseshop.)
@@ -363,22 +364,22 @@ Changes in 5.9.1 (released 09/29/2014)
 Changes in 5.9 (released 09/22/2014)
 ------------------------------------
 
-*	A script ``udiff`` has been added for doing line by line comparisons of
-	two files or directories. ``udiff`` supports all URLs that :mod:`ll.url`
-	supports (e.g. ``ssh`` and ``oracle`` URLs).
+*	A script :program:`udiff` has been added for doing line by line comparisons
+	of two files or directories. :program:`udiff` supports all URLs that
+	:mod:`ll.url` supports (e.g. ``ssh`` and ``oracle`` URLs).
 
-*	The script ``db2ul4`` has been renamed to ``rul4``. The following new
-	features have been added: Additional variables can be passed to the UL4
-	template via the :option:`-D`/:option:`--define` option. Access to Oracle,
-	SQLite and MySQL databases can be disallowed with the options
-	:option:`--oracle`, :option:`--sqlite` and :option:`--mysql`. Executing
-	system commands can be disallowed with the option :option:`--system`.
+*	The script :program:`db2ul4` has been renamed to :program:`rul4`.
+	The following new features have been added: Additional variables can be
+	passed to the UL4 template via the ``-D``/``--define`` option. Access to
+	Oracle, SQLite and MySQL databases can be disallowed with the options
+	``--oracle``, ``--sqlite`` and ``--mysql``. Executing
+	system commands can be disallowed with the option ``--system``.
 	SQL code that doesn't return results can be executed with the new
 	:class:`Connection` method :meth:`execute`. "out" parameters can now be used
 	via variable objects that can be created with the :meth:`int`, :meth:`number`,
 	:meth:`str`, :meth:`clob` and :meth:`date` methods.
 
-*	A new script ``orareindex`` has been added that can be used to
+*	A new script :program:`orareindex` has been added that can be used to
 	rebuild/recreate all indexes and unique constraints in an Oracle database.
 
 *	All objects in :mod:`ll.orasql` that represent objects in the database now
@@ -485,10 +486,10 @@ Changes in 5.8 (released 05/05/2014)
 Changes in 5.7.1 (released 02/13/2014)
 --------------------------------------
 
-*	Fixed a bug in the script ``oradiff`` that resulting in the wrong order of
-	the output.
+*	Fixed a bug in the script :program:`oradiff` that resulting in the wrong
+	order of the output.
 
-*	The ``oradd`` command ``file`` will now create directories if they don't
+*	The :program:`oradd` command ``file`` will now create directories if they don't
 	exist.
 
 
@@ -518,19 +519,19 @@ Changes in 5.6 (released 01/28/2014)
 	a more direct way. However the old method (via ``"keys"`` and ``"sql"``) is
 	still supported, but will be removed in one of the next versions.
 
-*	The key ``"args"`` is now optional for the ``oradd`` commands ``procedure``
-	and ``sql``.
+*	The key ``"args"`` is now optional for the :program:`oradd` commands
+	``procedure`` and ``sql``.
 
 *	Support for oradd dumps in UL4ON format has been removed from :mod:`ll.oradd`.
 
-*	Lines in an ``oradd`` dump starting with ``#`` will now be ignored.
+*	Lines in an :program:`oradd` dump starting with ``#`` will now be ignored.
 
 
 Changes in 5.5.1 (released 01/27/2014)
 --------------------------------------
 
-*	:mod:`ll.orasql` now unterstands type bodies (so the script ``oracreate``
-	will output them).
+*	:mod:`ll.orasql` now unterstands type bodies (so the script
+	:program:`oracreate` will output them).
 
 
 Changes in 5.5 (released 01/23/2014)
@@ -544,10 +545,10 @@ Changes in 5.5 (released 01/23/2014)
 
 *	UL4ON now supports ``slice`` objects.
 
-*	The ``oradd`` script has a new option :option:`-d`/:option:`--directory`
+*	The :program:`oradd` script has a new option ``-d``/``--directory``
 	that is the base directory for file copy actions.
 
-*	``oradd`` now supports executing SQL directly.
+*	:program:`oradd` now supports executing SQL directly.
 
 *	The project repository is hosted on GitHub_ now.
 
@@ -667,12 +668,12 @@ Changes in 5.2 (released 10/01/2013)
 *	:mod:`ll.sispyhus` now creates a relative symbolic link for the current
 	logfile instead of an absolute one.
 
-*	``oradd`` now outputs the keys in its logging output.
+*	:program:`oradd` now outputs the keys in its logging output.
 
-*	``oradd`` can now be used to reset sequences.
+*	:program:`oradd` can now be used to reset sequences.
 
-*	Committing the transactions in ``oradd`` can now be done after each record
-	with the new option ``--commit``. ``--rollback`` has been removed.
+*	Committing the transactions in :program:`oradd` can now be done after each
+	record with the new option ``--commit``. ``--rollback`` has been removed.
 
 *	Renamed the attributes ``scriptname`` and ``shortscriptname`` of the
 	:obj:`misc.sysinfo` object to ``script_name`` and ``short_script_name``.
@@ -707,18 +708,18 @@ Changes in 5.1 (released 08/02/2013)
 *	The methods :meth:`abslum` and :meth:`rellum` of :class:`Color` objects are
 	now exposed to UL4 templates.
 
-*	The ``oradd`` script has a new option :option:`--dry-run` to rollback all
+*	The :program:`oradd` script has a new option ``--dry-`run`` to rollback all
 	database changes instead of committing them. This can be used to test whether
-	an ``oradd`` dump will work.
+	an :program:`oradd` dump will work.
 
-*	``oradd`` can now copy files via ``scp``. Parts of the file names used may
-	depend on key values.
+*	:program:`oradd` can now copy files via ``scp``. Parts of the file names used
+	may depend on key values.
 
-*	``oradd`` now supports other out types than integers.
+*	:program:`oradd` now supports other out types than integers.
 
-*	The ``query`` method for database connections in ``db2ul4`` scripts has
-	changed: Instead of a query and a parameter dictionary, you have to pass in
-	positional arguments that alternate between fragments of the SQL query and
+*	The ``query`` method for database connections in :program:`db2ul4` scripts
+	has changed: Instead of a query and a parameter dictionary, you have to pass
+	in positional arguments that alternate between fragments of the SQL query and
 	parameters. I.e.::
 
 		db.query("select * from table where x=:x and y=:y", x=23, y=42)
@@ -727,8 +728,8 @@ Changes in 5.1 (released 08/02/2013)
 
 		db.query("select * from table where x=", 23, " and y=", 42)
 
-	This makes ``db2ul4`` independent from the parameter format of the database
-	driver.
+	This makes :program:`db2ul4` independent from the parameter format of the
+	database driver.
 
 
 Changes in 5.0 (released 06/04/2013)
@@ -854,12 +855,12 @@ Changes in 5.0 (released 06/04/2013)
 	to plain text is now implemented in plain Python so it no longer requires
 	a text mode browser. The function also got more configurable.
 
-*	The objects available to ``db2ul4`` scripts have been changed: ``oracle``,
-	``sqlite`` and ``mysql`` are now objects with a ``connect`` method that
-	returns a connection object. A connection object now has a method ``query``
-	that executes the query and returns an iterator over the results. Furthermore
-	``query`` supports keyword arguments for parameterized queries, i.e. you
-	can now do::
+*	The objects available to :program:`db2ul4` scripts have been changed:
+	``oracle``, ``sqlite`` and ``mysql`` are now objects with a ``connect``
+	method that returns a connection object. A connection object now has a method
+	``query`` that executes the query and returns an iterator over the results.
+	Furthermore ``query`` supports keyword arguments for parameterized queries,
+	i.e. you can now do::
 
 		<?code db = oracle.connect("user/pwd@db")?>
 		<?for row in db.query("select * from foo where bar = :bar", bar=42)?>
@@ -920,7 +921,7 @@ Changes in 4.10 (released 03/04/2013)
 
 *	Dictionaries in UL4 now support the method ``update``.
 
-*	The ``db2ul4`` script now supports a ``-w``/``--keepws`` argument.
+*	The :program:`db2ul4` script now supports a ``-w``/``--keepws`` argument.
 
 *	The UL4 functions ``vars`` and ``get`` have been removed.
 
@@ -969,7 +970,7 @@ Changes in 4.7 (released 01/11/2013)
 	(However converting it to an ``InterpretedTemplate`` is of course still
 	supported).
 
-*	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername``
+*	If the view ``ctx_preferences`` doesn't exist :meth:`orasql.Preference.itername`
 	now will simply return an empty iterator instead of failing with an Oracle
 	exception ``ORA-00942: table or view does not exist``.
 
@@ -1154,8 +1155,8 @@ Changes in 4.1 (released 10/02/2012)
 *	:class:`ll.ul4on.Decoder` now raises an ``EOFError`` when reading from an
 	empty stream.
 
-*	A new script has been added: ``oradd.py`` can be used for importing data into
-	an Oracle database (via procedure calls).
+*	A new script has been added: :program:`oradd` can be used for importing data
+	into an Oracle database (via procedure calls).
 
 
 Changes in 4.0 (released 08/08/2012)
@@ -1271,25 +1272,26 @@ Changes in 4.0 (released 08/08/2012)
 
 	.. _links 2: http://links.twibright.com/
 
-*	The scripts ``oracreate``, ``oradrop``, ``oradelete``, ``oradiff``,
-	``oramerge``, ``oragrant``, ``orafind`` and ``uhpp`` no longer have an
-	:option:`-e`/:option:`--encoding` option. They always use Pythons output
+*	The scripts :program:`oracreate`, :program:`oradrop`, :program:`oradelete`,
+	:program:`oradiff`, :program:`oramerge`, :program:`oragrant`,
+	:program:`orafind` and :program:`uhpp` no longer have an
+	``-e``/``--encoding`` option. They always use Pythons output
 	encoding.
 
-*	The options :option:`-i`/:option:`--inputencoding` and
-	:option:`-o`/:option:`--outputencoding` of the script ``db2ul4`` have been
-	replaced with an option :option:`-e`/:option:`--encoding` for the encoding
+*	The options ``-i``/``--inputencoding`` and
+	``-o``/``--outputencoding`` of the script :program:`db2ul4` have been
+	replaced with an option ``-e``/``--encoding`` for the encoding
 	of the template files. For printing the result Pythons output encoding is
 	used.
 
-*	The options :option:`--inputencoding`/:option:`--inputerrors` and
-	:option:`--outputencoding`/:option:`--outputerrors` of
+*	The options ``--inputencoding``/``--inputerrors`` and
+	``--outputencoding``/``--outputerrors`` of
 	:class:`ll.sisyphus.Job` have been replaced with option
-	:option:`--encoding`/:option:`--errors` for the encoding of the log files.
+	``--encoding``/``--errors`` for the encoding of the log files.
 
-*	``oradiff`` now iterates through the object in correct order, so if you're
-	running ``oradiff`` with ``-mfull`` the output shouldn't produce any errors
-	when executed.
+*	:program:`oradiff` now iterates through the object in correct order, so if
+	you're running :program:`oradiff` with ``-mfull`` the output shouldn't
+	produce any errors when executed.
 
 *	:mod:`ll.orasql.Index` can now handle domain indexes.
 
@@ -1324,9 +1326,9 @@ Changes in 3.25 (released 08/12/2011)
 *	The :meth:`compact` method has been renamed to :meth:`compacted` to avoid
 	collisions with the ``compact`` attribute in HTML elements.
 
-*	A new script ``uhpp`` has been added, that can be used for pretty printing
-	HTML. As the attributes are output in alphabetical order it can also be used
-	as a tool for comparing HTML files.
+*	A new script :program:`uhpp` has been added, that can be used for pretty
+	printing HTML. As the attributes are output in alphabetical order it can
+	also be used as a tool for comparing HTML files.
 
 
 Changes in 3.24.1 (released 08/10/2011)
@@ -1373,16 +1375,16 @@ Changes in 3.23 (released 07/20/2011)
 	:func:`ll.ul4c.loads` have been removed. Instead of them the :class:`Template`
 	constructor and the class methods :meth:`load` and :meth:`loads` can be used.
 
-*	The script ``oradelete`` now supports the options :option:`--include`,
-	:option:`--exclude` and :option:`--keepjunk` too.
+*	The script :program:`oradelete` now supports the options ``--include``,
+	``--exclude`` and ``--keepjunk`` too.
 
 
 Changes in 3.22 (released 07/14/2011)
 -------------------------------------
 
-*	The scripts ``oracreate``, ``oradrop`` and ``oragrant`` have new options
-	:option:`--include` and :option:`--exclude` that can be used to filter the
-	objects that will be output.
+*	The scripts :program:`oracreate`, :program:`oradrop` and :program:`oragrant`
+	have new options ``--include`` and ``--exclude`` that can be used to filter
+	the objects that will be output.
 
 
 Changes in 3.21 (released 06/03/2011)
@@ -1482,36 +1484,37 @@ Changes in 3.18 (released 04/08/2011)
 
 *	Fixed a regression in :class:`ll.orasql.OracleConnection`.
 
-*	Fixed :exc:`ZeroDivisionError` in script ``uls`` for empty directories.
+*	Fixed :exc:`ZeroDivisionError` in script :program:`uls` for empty directories.
 
 *	Added a class method :meth:`ll.orasql.Contraint.iternames` and a class method
 	:meth:`ll.orasql.Index.iternames` that skips those indexes that are generated
-	by constraints. With this addition ``uls``/``ucp`` now list/copy constraints
-	and indexes properly. All ``iternames`` methods now skip objects whose name
-	starts with ``BIN$``.
+	by constraints. With this addition :program:`uls`/:program:`ucp` now
+	list/copy constraints and indexes properly. All ``iternames`` methods now
+	skip objects whose name starts with ``BIN$``.
 
-*	The scripts ``uls``, ``ucp`` and ``ucat`` have new options :option:`--include`
-	and :option:`--exclude` for including/excluding URLs that match a regular
-	expression. They also have an new option :option:`--all` to include/exclude
-	dot files (i.e. files/directories whose name starts with a dot)
+*	The scripts :program:`uls`, :program:`ucp` and :program:`ucat` have new
+	options ``--include`` and ``--exclude`` for including/excluding URLs that
+	match a regular expression. They also have an new option ``--all`` to
+	include/exclude dot files (i.e. files/directories whose name starts with a
+	dot).
 
-*	``ucp`` now supports to new options :option:`--padding` and
-	:option:`--separator` which are used for column output.
+*	:program:`ucp` now supports to new options ``--padding`` and
+	``--separator`` which are used for column output.
 
-*	Two unused options were removed: :option:`--verbose` from the script ``ucat``
-	and :option:`--defaults` from the script ``tld2xsc``.
+*	Two unused options were removed: ``--verbose`` from the script
+	:program:`ucat` and ``--defaults`` from the script :program:`tld2xsc`.
 
 *	``ucp -x`` now prints exception details.
 
-*	The variables available in UL4 templates used by ``db2ul4`` have changed.
-	Instead of a ``connect`` object, there are now three objects for each
-	supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``)
+*	The variables available in UL4 templates used by :program:`db2ul4` have
+	changed. Instead of a ``connect`` object, there are now three objects for
+	each supported database (i.e. ``oracle``, ``sqlite`` and ``mysql``)
 
-*	The script ``doc2txt`` now reads from ``stdin`` and writes to ``stdout``
-	instead of requiring file names on the command line.
+*	The script :program:`doc2txt` now reads from ``stdin`` and writes to
+	``stdout`` instead of requiring file names on the command line.
 
-*	If the scripts ``xml2xsc`` or ``dtd2xsc`` are called without arguments
-	``stdin`` is read.
+*	If the scripts :program:`xml2xsc` or :program:`dtd2xsc` are called without
+	arguments ``stdin`` is read.
 
 *	:mod:`ll.xist.ns.rest` now handles option lists.
 
@@ -1529,10 +1532,12 @@ Changes in 3.18 (released 04/08/2011)
 	:obj:`prettyindentbefore` and :obj:`prettyindentafter`. The values will be
 	added to the current indentation level before and after the node in question.
 
-*	All scripts that are part of XIST (``uls``, ``ucp``, ``ucat``, ``db2ul4``,
-	``dtd2xsc``, ``tld2xsc``, ``doc2txt``, ``xml2xsc``, ``oracreate``,
-	``oradrop``, ``oradelete``, ``oradiff``, ``oramerge``, ``oragrant`` and
-	``orafind``) are now properly documented on the webpages.
+*	All scripts that are part of XIST (:program:`uls`, :program:`ucp`,
+	:program:`ucat`, :program:`db2ul4`, :program:`dtd2xsc`, :program:`tld2xsc`,
+	:program:`doc2txt`, :program:`xml2xsc`, :program:`oracreate`,
+	:program:`oradrop`, :program:`oradelete`, :program:`oradiff`,
+	:program:`oramerge`, :program:`oragrant` and :program:`orafind`) are now
+	properly documented on the webpages.
 
 
 Changes in 3.17.3 (released 03/02/2011)
@@ -1541,7 +1546,7 @@ Changes in 3.17.3 (released 03/02/2011)
 *	Enhanced support for table and column names containing non-ASCII characters
 	in :mod:`ll.orasql`.
 
-*	Fixed a bug in the ``uls`` script: In long recursive mode files were
+*	Fixed a bug in the :program:`uls` script: In long recursive mode files were
 	printed twice.
 
 
@@ -1598,15 +1603,15 @@ Changes in 3.16 (released 01/21/2011)
 
 *	The :mod:`cssutils` version has been bumped to 0.9.7.
 
-*	``dtd2xsc.py`` can now combine the content of more than one DTD into a
+*	:program:`dtd2xsc` can now combine the content of more than one DTD into a
 	namespace. Handling of duplicate elements can be specified with a new
-	:option:`duplicates` option.
+	``duplicates`` option.
 
-*	``xml2xsc.py`` can now collect the XML info from multiple XML files.
+*	:program:`xml2xsc` can now collect the XML info from multiple XML files.
 
-*	Fixed a bug in the command line argument handling of ``dtd2xsc.py``.
+*	Fixed a bug in the command line argument handling of :program:`dtd2xsc`.
 
-*	``dtd2xsc.py`` can now handle undefined entities.
+*	:program:`dtd2xsc` can now handle undefined entities.
 
 *	The help message for all scripts in XIST now show the default for all options.
 
@@ -1618,7 +1623,7 @@ Changes in 3.16 (released 01/21/2011)
 	``yes``/``no`` value now toggle the default (using the new
 	:class:`misc.FlagAction`).
 
-*	The script ``xml2xsc.py`` has a new option :option:`--defaultxmlns` for
+*	The script :program:`xml2xsc` has a new option ``--defaultxmlns`` for
 	setting a namespace name for elements without a namespace.
 
 *	:mod:`ll.xist.xnd` and the related scripts have seen some refactoring.
@@ -1646,7 +1651,7 @@ Changes in 3.15.1 (released 11/24/2010)
 *	Fixed a bug in the error handling code of the UL4 compiler when an unknown
 	function or method was encountered.
 
-*	Fixed str/unicode problems with the search string in ``orafind.py``.
+*	Fixed str/unicode problems with the search string in :program:`orafind`.
 
 
 Changes in 3.15 (released 11/09/2010)
@@ -1688,13 +1693,13 @@ Changes in 3.13 (released 10/22/2010)
 	will be prepended to all log lines.
 
 *	:mod:`ll.sisyphus` job can now log to ``stdout`` and ``stderr`` with the new
-	options :option:`-o`/:option:`--log2stdout` and
-	:option:`-e`/:option:`--log2stderr`.
+	options ``-o``/``--log2stdout`` and
+	``-e``/``--log2stderr``.
 
 *	The tags that :mod:`ll.sisyphus` itself uses for logging have changed
 	slightly. For more info see the module documentation.
 
-*	The option :option:`-l` for sisyphus jobs has been renamed to :option:`-f`.
+*	The option ``-l`` for sisyphus jobs has been renamed to ``-f``.
 
 
 Changes in 3.12.1 (released 10/21/2010)
@@ -1731,7 +1736,7 @@ Changes in 3.12 (released 10/21/2010)
 *	:class:`ll.orasql.ForeignKey` has a new method :meth:`itercolumns` for
 	iterating over the columns the foreign key consists of.
 
-*	Fixed a bug in the ``uls`` script: For remote URLs uid and gid must be
+*	Fixed a bug in the :program:`uls` script: For remote URLs uid and gid must be
 	resolved on the remote host.
 
 
@@ -1803,9 +1808,9 @@ Changes in 3.9 (released 08/04/2010)
 *	The Java string literal formatting function in :mod:`ll.xist.ns.jsp` has been
 	exposed as :func:`javastring`.
 
-*	Fixed a bug in ``oracreate.py``: If the source of procedures and functions
-	didn't have whitespace between the name and the ``(`` the ``(`` was missing
-	from the output.
+*	Fixed a bug in :program:`oracreate`: If the source of procedures and
+	functions didn't have whitespace between the name and the ``(`` the ``(``
+	was missing from the output.
 
 
 Changes in 3.8.3 (released 07/29/2010)
@@ -2041,11 +2046,12 @@ Changes in 3.7 (released 09/10/2009)
 
 *	Two new UL4 functions have been added: ``float`` and ``iscolor``.
 
-*	Two new scripts have been added: ``uls`` can be used to list any directory
-	given as an URL. ``ucat`` can be used to output any file or directory.
+*	Two new scripts have been added: :program:`uls` can be used to list any
+	directory given as an URL. :program:`ucat` can be used to output any file or
+	directory.
 
-*	The script ``ucp`` now changes the user and group only if a user or group is
-	given.
+*	The script :program:`ucp` now changes the user and group only if a user or
+	group is given.
 
 *	A bug in the 64-bit support for :mod:`sgmlop` has been fixed.
 
@@ -2170,7 +2176,7 @@ Changes in 3.5 (released 12/05/2008)
 
 *	The UL4 function ``csvescape`` has been renamed to ``csv``.
 
-*	A new option :option:`--showregistration`/:option:`-r` has been added to
+*	A new option ``--showregistration``/``-r`` has been added to
 	make scripts.
 
 *	:mod:`ll.make` now supports Growl__ notifications on Mac OS X. To activate
@@ -3476,7 +3482,7 @@ Changes in 2.1 (released 12/09/2002)
 *	Added a new namespace module :mod:`ll.xist.ns.tld` that contains the
 	definition for Java Server Pages Tag Library descriptors and a script
 	:file:`tld2xsc.py` that uses this namespace to generate namespace modules
-	from ``tld`` files.
+	from :program:`tld` files.
 
 *	:class:`Attr` now supports the method :meth:`filtered`. This is used by
 	:meth:`without` now. The arguments for :meth:`without` have changed,
@@ -4091,14 +4097,14 @@ Changes in 1.0 (released 06/18/2001)
 	:file:`scripts` directory, it will be installed as a callable script with
 	``python setup.py install_scripts``.
 
-*	:file:`xscmake.py` has a new option :option:`--files`/:option:`-f`.
+*	:file:`xscmake.py` has a new option ``--files``/``-f``.
 	The argument is a file containing a list of filenames (one name per line)
 	that should be converted.
 
-*	:file:`xscmake.py` has a new option :option:`--parser`/:option:`-r` for
+*	:file:`xscmake.py` has a new option ``--parser``/``-r`` for
 	specifying which parser to use. Allowed values are ``sgmlop`` and ``expat``.
 
-*	:file:`xscmake.py` has a new option :option:`--namespace`/:option:`-n`
+*	:file:`xscmake.py` has a new option ``--namespace``/``-n``
 	that can be used for appending :class:`Namespace` objects to the
 	:class:`Namespaces` object used by :file:`xscmake.py`::
 
@@ -4193,7 +4199,7 @@ Changes in 0.4.7 (released 11/24/2000)
 *	Incorparated a new :file:`url.py` by Hartmut Goebel, that fixes many problem
 	(e.g. optimizing ``http://server/foo/bar/../../baz.gif`` now works.)
 
-*	:file:`make.py` includes a new option :option:`--path` for adding
+*	:file:`make.py` includes a new option ``--path`` for adding
 	directories to :data:`sys.path`.
 
 

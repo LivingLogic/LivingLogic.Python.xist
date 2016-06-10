@@ -87,9 +87,9 @@ Changes to UL4
 	for the old ``keepws=True`` and ``whitespace="strip"`` for the old
 	``keepws=False``.
 
-*	The ``rul4`` option :option:`--keepws` has been renamed to
-	:option:`--whitespace` and defaults to ``smart`` now. So instead of the old
-	``--keepws=1`` pass ``--whitespace=keep`` and for ``--keepws=0`` pass
+*	The ``rul4`` option ``--keepws`` has been renamed to ``--whitespace`` and
+	defaults to ``smart`` now. So instead of the old ``--keepws=1`` pass
+	``--whitespace=keep`` and for ``--keepws=0`` pass
 	``--whitespace=strip``.
 
 *	Rendering an UL4 template from inside a UL4 template is now again done via
@@ -128,8 +128,8 @@ Changes to UL4
 Changes to ``sisyphus``
 -----------------------
 
-*	The option :option:`setproctitle` for sisyphus jobs has been renamed to
-	:option:`proctitle`. 
+*	The option :attr:`setproctitle` for sisyphus jobs has been renamed to
+	:attr:`proctitle`. 
 
 *	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
 	changed from ``str`` to ``None``, i.e. it defaults to unnamed tasks now.
@@ -433,10 +433,10 @@ Changes to :mod:`ll.make`
 *	The support for Growl notifications in :mod:`ll.make` on the Mac has been
 	replaced by support for Mountain Lions Notification Center.
 
-	The option has been renamed from :option:`--growl` to :option:`--notify`.
+	The option has been renamed from ``--growl`` to ``--notify``.
 
 	For this to work you need to have terminal-notifier__ installed in its
-	standard location (``/Applications/terminal-notifier.app``).
+	standard location (:file:`/Applications/terminal-notifier.app`).
 
 	__ https://github.com/alloy/terminal-notifier
 
@@ -466,20 +466,17 @@ Changes to scripts
 
 *	The scripts ``oracreate``, ``oradrop``, ``oradelete``, ``oradiff``,
 	``oramerge``, ``oragrant``, ``orafind`` and ``uhpp`` no longer have an
-	:option:`-e`/:option:`--encoding` option. They always use Pythons output
-	encoding.
+	``-e``/``--encoding`` option. They always use Pythons output encoding.
 
-*	The options :option:`-i`/:option:`--inputencoding` and
-	:option:`-o`/:option:`--outputencoding` of the script ``db2ul4`` have been
-	replaced with an option :option:`-e`/:option:`--encoding` for the encoding
-	of the template files. For printing the result Pythons output encoding is
-	used.
+*	The options ``-i``/``--inputencoding`` and ``-o``/``--outputencoding`` of
+	the script ``db2ul4`` have been replaced with an option ``-e``/``--encoding``
+	for the encoding of the template files. For printing the result Pythons
+	output encoding is used.
 
-*	The options :option:`--inputencoding`,/:option:`--inputerrors` and
-	:option:`--outputencoding`/:option:`--outputerrors` of
-	:class:`ll.sisyphus.Job` have been replaced with option
-	:option:`--encoding`/:option:`--errors` for the encoding of the log files.
-
+*	The options ``--inputencoding``,/``--inputerrors`` and
+	``--outputencoding``/``--outputerrors`` of :class:`ll.sisyphus.Job` have been
+	replaced with option ``--encoding``/``--errors`` for the encoding of the log
+	files.
 
 
 Migrating to version 3.25
