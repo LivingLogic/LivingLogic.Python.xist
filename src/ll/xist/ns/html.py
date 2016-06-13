@@ -3645,8 +3645,8 @@ def astext(
 	following keys (if the key is missing a default value is used):
 
 	``display``
-		This is either ``block`` for a block level element or ``inline`` for an
-		inline element.
+		This is either ``"block"`` for a block level element or ``"inline"`` for
+		an inline element.
 
 	``prefix``
 		A string that should be output before any of the content of the block.
