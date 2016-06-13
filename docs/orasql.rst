@@ -3,8 +3,6 @@
 
 .. automodule:: ll.orasql
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 

@@ -5,6 +5,8 @@ XIST -- An extensible HTML/XML generator
 
 .. toctree::
    :maxdepth: 1
+   :caption: Content
+   :name: xist_content
 
    XIST_Examples
    XIST_Howto

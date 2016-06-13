@@ -5,6 +5,8 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: Package content
+   :name: oracle_scripts_content
 
    orasql_scripts_oracreate
    orasql_scripts_oradrop

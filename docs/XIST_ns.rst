@@ -5,6 +5,8 @@
 
 .. toctree::
    :maxdepth: 2
+   :caption: Package content
+   :name: xist_ns_content
 
    XIST_ns_html
    XIST_ns_xml

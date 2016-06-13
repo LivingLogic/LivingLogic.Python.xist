@@ -5,6 +5,8 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: Package content
+   :name: xist_scripts_content
 
    XIST_scripts_dtd2xsc
    XIST_scripts_xml2xsc
