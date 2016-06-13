@@ -1,4 +1,6 @@
-:mod:`oradiff` -- Diffing two schemas
-=====================================
+.. _oradiff:
+
+:program:`oradiff` -- Diffing two schemas
+=========================================
 
 .. automodule:: ll.orasql.scripts.oradiff

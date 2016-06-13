@@ -1,4 +1,6 @@
-:mod:`uhpp` -- Pretty printing HTML
-===================================
+.. _uhpp:
+
+:program:`uhpp` -- Pretty printing HTML
+=======================================
 
 .. automodule:: ll.xist.scripts.uhpp

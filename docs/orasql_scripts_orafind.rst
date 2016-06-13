@@ -1,4 +1,6 @@
-:mod:`orafind` -- Finding records in a schema
-=============================================
+.. _orafind:
+
+:program:`orafind` -- Finding records in a schema
+=================================================
 
 .. automodule:: ll.orasql.scripts.orafind

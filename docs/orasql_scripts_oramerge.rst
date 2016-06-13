@@ -1,4 +1,6 @@
-:mod:`oramerge` -- Three-way merging of schemas
-===============================================
+.. _oramerge:
+
+:program:`oramerge` -- Three-way merging of schemas
+===================================================
 
 .. automodule:: ll.orasql.scripts.oramerge

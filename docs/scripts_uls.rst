@@ -1,4 +1,6 @@
-:mod:`uls` -- Listing directories
-=================================
+.. _uls:
+
+:program:`uls` -- Listing directories
+=====================================
 
 .. automodule:: ll.scripts.uls

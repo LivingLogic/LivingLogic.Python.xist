@@ -1,4 +1,6 @@
-:mod:`ucat` -- Printing files
-=============================
+.. _ucat:
+
+:program:`ucat` -- Printing files
+=================================
 
 .. automodule:: ll.scripts.ucat

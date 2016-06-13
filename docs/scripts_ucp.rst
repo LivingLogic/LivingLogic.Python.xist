@@ -1,4 +1,6 @@
-:mod:`ucp` -- Copying files/directories
-=======================================
+.. _ucp:
+
+:program:`ucp` -- Copying files/directories
+===========================================
 
 .. automodule:: ll.scripts.ucp
