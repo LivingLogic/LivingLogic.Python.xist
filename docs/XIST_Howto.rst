@@ -1,5 +1,5 @@
-Basic concepts
-##############
+Basic XIST concepts
+###################
 
 This document explains parsing/generating XML files, XML transformations via
 XIST classes and other basic concepts.
