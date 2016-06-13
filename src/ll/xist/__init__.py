@@ -127,11 +127,8 @@ some features and ideas from it.
 
 __ https://github.com/mbethke/hsc
 
-It also borrows the basic ideas (XML/HTML elements as Python objects) from
-HTMLgen_ and HyperText_.
-
-.. _HTMLgen: http://www.linuxjournal.com/article/2986
-.. _HyperText: http://dustman.net/andy/python/HyperText
+It also borrows the basic idea (XML/HTML elements as Python objects) from the
+ancient Python modules :mod:`HTMLgen` and :mod:`HyperText`.
 """
 
 
