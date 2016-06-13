@@ -10,7 +10,7 @@ Welcome to the XIST documentation!
 .. include:: /../README.rst
 
 Content
-=======
+-------
 
 .. toctree::
    :maxdepth: 1
@@ -29,6 +29,7 @@ Content
    nightshade
    scripts
    INSTALL
+   DOWNLOAD
    NEWS
    MIGRATION
    Old
@@ -36,7 +37,7 @@ Content
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

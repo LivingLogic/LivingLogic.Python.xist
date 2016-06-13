@@ -45,14 +45,3 @@ with the following command:
 
 For some versions a Windows distribution is provided. To install it, double
 click it, and follow the instructions.
-
-
-Download
---------
-
-If you want to download an XIST distribution archive, the best way is via the
-Cheeseshop_. XIST is also available via FTP_ or HTTP_.
-
-.. _FTP: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
-.. _HTTP: http://ftp.livinglogic.de/xist/
-.. _Cheeseshop: http://cheeseshop.python.org/pypi/ll-xist

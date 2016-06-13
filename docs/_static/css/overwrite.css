@@ -2,7 +2,7 @@
 
 h1, h2, h3, h4, h5, h6
 {
-	margin: 1em 0 0.1em 0;
+	margin: 1em 0 0.2em 0;
 }
 
 p
@@ -88,4 +88,9 @@ dt, dd
 .wy-nav-content-wrap
 {
 	margin-left: 400px;
+}
+
+table.download td:last-child
+{
+	text-align: right;
 }

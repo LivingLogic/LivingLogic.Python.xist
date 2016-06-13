@@ -78,24 +78,16 @@ Documentation
 -------------
 
 For documentation read the files in the :file:`docs/` directory or the
-`web pages`__.
+`web pages`__ generated from those.
 
 __ http://www.livinglogic.de/Python/xist/
 
-For installation instructions read :file:`INSTALL.rst` or the
-`installation web page`__.
-
-__ http://www.livinglogic.de/Python/xist/Installation.html
+For installation instructions read :file:`docs/INSTALL.rst`.
 
 For a history of XIST and a list of new features in this version,
-read :file:`NEWS.rst` or the `history web page`__.
+read :file:`docs/NEWS.rst`.
 
-__ http://www.livinglogic.de/Python/xist/History.html
-
-For a list of old features and bugfixes read :file:`OLDNEWS` or the
-`old history web page`__.
-
-__ http://www.livinglogic.de/Python/xist/OldHistory.html
+For a list of old features and bugfixes read :file:`docs/OLDNEWS.rst`.
 
 For the license read :file:`xist/__init__.py`.
 
@@ -132,4 +124,4 @@ https://mail.livinglogic.de/mailman/listinfo/xist-announce
 Author
 ------
 
-* Walter Dörwald <walter@livinglogic.de>
+Walter Dörwald <walter@livinglogic.de>
