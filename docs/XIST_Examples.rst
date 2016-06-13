@@ -1,7 +1,7 @@
 .. _XIST_Examples:
 
-Examples
-========
+XIST examples
+=============
 
 
 Creating HTML
