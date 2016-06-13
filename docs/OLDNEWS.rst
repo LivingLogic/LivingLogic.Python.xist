@@ -575,7 +575,7 @@ Changes in ll-make 0.23 (released 02/14/2005)
 *	Actions can now be displayed during the make process in two ways: a short
 	name (this uses the method :meth:`desc`) and a longer description (using the
 	method :meth:`fulldesc`). You can activate the full description via the
-	command line option :option:`-vf` and deactivate it with :option:`-vF`.
+	command line option ``-vf`` and deactivate it with ``-vF``.
 	In interactive mode you can use the attribute :attr:`showactionsfull`.
 
 
@@ -675,7 +675,7 @@ Changes in ll-make 0.15.1 (released 05/25/2004)
 Changes in ll-make 0.15 (released 05/25/2004)
 """""""""""""""""""""""""""""""""""""""""""""
 
-*	There's a new option :option:`-vl` that reports the recursion level as an
+*	There's a new option ``-vl`` that reports the recursion level as an
 	indentation during the build process. This makes it easier to see, what
 	depends on what. The indentation per level can be specified with the
 	environment variable ``LL_MAKE_INDENT``.
@@ -689,7 +689,7 @@ Changes in ll-make 0.14.2 (released 05/25/2004)
 
 *	If a target has prerequisites, the time to rebuild those will be reported
 	in the progress report too (if time reporting is on (via the option
-	:option:`-vt`)).
+	``-vt``)).
 
 *	Fix a bug in :class:`XISTPublishAction`.
 
@@ -734,7 +734,7 @@ Changes in ll-make 0.14 (released 05/20/2004)
 	renamed too).
 
 *	The options for selecting the verbosity of the progress report have been
-	combined into one option :option:`-v`.
+	combined into one option ``-v``.
 
 *	The progress report tries to shorten URLs by displaying relative URLs
 	(relative to the current directory) if those are shorter (which they usually
@@ -1666,7 +1666,7 @@ Changes in ll-orasql 1.25.2 (released 08/29/2008)
 Changes in ll-orasql 1.25.1 (released 07/21/2008)
 """""""""""""""""""""""""""""""""""""""""""""""""
 
-*	``orafind.py`` now has an additional options :option:`readlobs` (defaulting
+*	``orafind.py`` now has an additional options ``readlobs`` (defaulting
 	to false). If this option is set, the value of LOBs in the records found,
 	will be printed.
 
@@ -1696,7 +1696,7 @@ Changes in ll-orasql 1.24 (released 05/20/2008)
 Changes in ll-orasql 1.23.4 (released 04/04/2008)
 """""""""""""""""""""""""""""""""""""""""""""""""
 
-*	All database scripts now have an additional option :option:`encoding` that
+*	All database scripts now have an additional option ``encoding`` that
 	specifies the encoding for the output script.
 
 
@@ -2060,7 +2060,7 @@ Changes in ll-orasql 1.7 (released 06/29/2006)
 
 *	:class:`SequenceDefinition` now has a new method :meth:`createddlcopy` that
 	returns code that copies the sequence value. ``oracreate.py`` has a new
-	option :option:`-s`/:option:`--seqcopy` that uses this feature.
+	option ``-s``/``--seqcopy`` that uses this feature.
 
 *	:mod:`setuptools` is now supported for installation.
 
@@ -2105,7 +2105,7 @@ Changes in ll-orasql 1.4.1 (released 12/06/2005)
 Changes in ll-orasql 1.4 (released 12/05/2005)
 """"""""""""""""""""""""""""""""""""""""""""""
 
-*	The option :option:`-m`/:option:`--mode` has been dropped from the script
+*	The option ``-m``/``--mode`` has been dropped from the script
 	``oramerge.py``.
 
 *	A new class :class:`ColumnDefinition` has been added to :mod:`ll.orasql`.
@@ -2119,7 +2119,7 @@ Changes in ll-orasql 1.4 (released 12/05/2005)
 Changes in ll-orasql 1.3 (released 11/24/2005)
 """"""""""""""""""""""""""""""""""""""""""""""
 
-*	Added an option :option:`-i` to ``oracreate.py`` and ``oradrop.py`` to
+*	Added an option ``-i`` to ``oracreate.py`` and ``oradrop.py`` to
 	ignore errors.
 
 *	The argument :obj:`all` of the cursor method :meth:`iterobjects` is now
@@ -2145,12 +2145,12 @@ Changes in ll-orasql 1.2 (released 10/24/2005)
 
 *	The scripts ``oracreate.py``, ``oradrop.py`` and ``oradiff.py`` now skip
 	objects with ``"$"`` in their name by default. This can be changed with the
-	:option:`-k` option (but this will lead to unexecutable scripts).
+	``-k`` option (but this will lead to unexecutable scripts).
 
-*	``oradiff.py`` has a new options :option:`-b`: This allows you to specify
+*	``oradiff.py`` has a new options ``-b``: This allows you to specify
 	how whitespace should be treated.
 
-*	Added an option :option:`-x` to ``oracreate.py`` to make it possible to
+*	Added an option ``-x`` to ``oracreate.py`` to make it possible to
 	directly execute the DDL in another database.
 
 *	Fixed a bug in :class:`SequenceDefinition` when the ``CACHE`` field was ``0``.
