@@ -327,6 +327,7 @@ def makedownloads():
 					version.output(out)
 				out()
 				out()
+				out(line)
 				inauto = False
 			else:
 				pass # Skip original content
