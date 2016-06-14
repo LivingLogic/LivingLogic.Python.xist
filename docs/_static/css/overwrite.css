@@ -32,7 +32,7 @@ code, .rst-content tt, .rst-content code
 	background-color: inherit;
 	color: inherit;
 	font-size: 90%;
-	background-color: #fff;
+	background-color: rgba(255, 255, 255, 0.66);
 	border: 1px solid rgba(0, 0, 0, 0.08);
 	padding: 1px 4px;
 	border-radius: 3px;
@@ -42,6 +42,20 @@ code, .rst-content tt, .rst-content code
 {
 	border: 1px solid rgba(0, 0, 0, 0.08);
 	border-radius: 3px;
+}
+
+.wy-menu-vertical li code, .wy-menu-vertical li .rst-content tt, .rst-content .wy-menu-vertical li tt
+{
+	background-color: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	padding: 1px 4px;
+	border-radius: 3px;
+}
+
+.wy-menu-vertical li.toctree-l2 code, .wy-menu-vertical li.toctree-l2 .rst-content tt, .rst-content .wy-menu-vertical li.toctree-l2 tt
+{
+	background-color: rgba(255, 255, 255, 0.22);
+	border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .rst-content tt.xref, a .rst-content tt, .rst-content tt.xref, .rst-content code.xref, a .rst-content tt, a .rst-content code
