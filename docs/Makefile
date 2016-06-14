@@ -22,7 +22,7 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 .PHONY: download help
 
 download:
-	LL_URL_SSH_PYTHON=python3 python makedownloads.py >DOWNLOAD.rst
+	LL_URL_SSH_PYTHON=python3 python makedownloads.py
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
