@@ -12,7 +12,7 @@
 
 """
 Purpose
--------
+=======
 
 :program:`uls` is a script that lists the content of directories. It is an
 URL-enabled version of the :command:`ls` system command. Via :mod:`ll.url`
@@ -20,7 +20,7 @@ and :mod:`ll.orasql` :program:`uls` supports ``ssh`` and ``oracle`` URLs.
 
 
 Options
--------
+=======
 
 :program:`uls` supports the following options:
 
@@ -92,7 +92,7 @@ Options
 
 
 Examples
---------
+========
 
 List the current directory:
 

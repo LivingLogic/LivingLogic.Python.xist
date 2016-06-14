@@ -94,7 +94,7 @@ Options
 
 
 Examples
---------
+========
 
 Compare two files:
 
