@@ -58,6 +58,11 @@ code, .rst-content tt, .rst-content code
 	border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.codeblock, pre.literal-block, .rst-content .literal-block, .rst-content pre.literal-block, div[class^='highlight']
+{
+	background-color: rgba(255, 255, 255, 0.66);
+}
+
 .rst-content tt.xref, a .rst-content tt, .rst-content tt.xref, .rst-content code.xref, a .rst-content tt, a .rst-content code
 {
 	color: inherit;
