@@ -31,9 +31,13 @@ code, .rst-content tt, .rst-content code
 {
 	background-color: inherit;
 	color: inherit;
-	border: 0px;
 	font-size: 90%;
-	padding: 0;
+	background-color: rgba(0, 0, 0, 0.04);
+	border-width: 0 0 1px 0;
+	border-style: solid;
+	border-color: rgba(0, 0, 0, 0.1);
+	padding: 1px 4px;
+	border-radius: 3px;
 }
 
 .rst-content tt.xref, a .rst-content tt, .rst-content tt.xref, .rst-content code.xref, a .rst-content tt, a .rst-content code
@@ -44,10 +48,6 @@ code, .rst-content tt, .rst-content code
 .rst-content tt.literal, .rst-content tt.literal, .rst-content code.literal
 {
 	color: inherit;
-	background-color: rgab(0, 0, 0, 0.04);
-	border-bottom: rgab(0, 0, 0, 0.1);
-	padding: 0 3px;
-	border-radius: 3px;
 }
 
 dt, dd
