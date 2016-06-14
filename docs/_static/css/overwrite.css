@@ -12,7 +12,7 @@ p
 
 .codeblock, pre.literal-block, .rst-content .literal-block, .rst-content pre.literal-block, div[class^='highlight']
 {
-	margin-bottom: 12px;
+	margin: 0 0 12px 24px;
 }
 
 .caption-text
@@ -29,7 +29,8 @@ p
 
 code, .rst-content tt, .rst-content code
 {
-	background-color: transparent;
+	background-color: inherit;
+	color: inherit;
 	border: 0px;
 	font-size: 90%;
 	padding: 0;
@@ -103,4 +104,86 @@ table.download td:last-child
 .wy-breadcrumbs li code, .wy-breadcrumbs li .rst-content tt, .rst-content .wy-breadcrumbs li tt
 {
 	padding: 0;
+}
+
+.rst-content dl,
+.rst-content dl:not(.docutils)
+{
+	padding: 0;
+	margin: 0 0 12px 0;
+}
+
+.rst-content dl:not(.docutils) dt,
+.rst-content dl:not(.docutils) dl dt
+{
+	background-color: inherit;
+	color: inherit;
+	border: 0;
+	border-top: 0;
+	margin: 0 0 12px 0;
+	padding: 0;
+	line-height: 24px;
+}
+
+.rst-content dl.class,
+.rst-content dl.function,
+.rst-content dl.method,
+.rst-content dl.exception,
+.rst-content dl.attribute
+{
+	border-left: 1px solid #e1e4e5;
+	border-bottom: 1px solid #e1e4e5;
+	margin: 0 0 12px 0;
+}
+
+.rst-content dl.class > dt,
+.rst-content dl.function > dt,
+.rst-content dl.method > dt,
+.rst-content dl.exception > dt,
+.rst-content dl.attribute > dt,
+.rst-content dl:not(.docutils) dl.class > dt,
+.rst-content dl:not(.docutils) dl.function > dt,
+.rst-content dl:not(.docutils) dl.method > dt,
+.rst-content dl:not(.docutils) dl.exception > dt,
+.rst-content dl:not(.docutils) dl.attribute > dt
+{
+	background-color: rgba(1, 1, 1, 0.05);
+	color: inherit;
+	display: block;
+	border: 0;
+	margin: 0;
+	padding: 6px 24px;
+}
+
+.rst-content dl.class > dd,
+.rst-content dl.function > dd,
+.rst-content dl.method > dd,
+.rst-content dl.exception > dd,
+.rst-content dl.attribute > dd,
+.rst-content dl:not(.docutils) dl.class > dd,
+.rst-content dl:not(.docutils) dl.function > dd,
+.rst-content dl:not(.docutils) dl.method > dd,
+.rst-content dl:not(.docutils) dl.exception > dd,
+.rst-content dl:not(.docutils) dl.attribute > dd
+{
+	margin: 12px 0 12px 24px;
+}
+
+.rst-content dl.class > dd > *:last-child,
+.rst-content dl.function > dd > *:last-child,
+.rst-content dl.method > dd > *:last-child,
+.rst-content dl.exception > dd > *:last-child,
+.rst-content dl.attribute > dd > *:last-child,
+.rst-content dl:not(.docutils) dl.class > dd > *:last-child,
+.rst-content dl:not(.docutils) dl.function > dd > *:last-child,
+.rst-content dl:not(.docutils) dl.method > dd > *:last-child,
+.rst-content dl:not(.docutils) dl.exception > dd > *:last-child,
+.rst-content dl:not(.docutils) dl.attribute > dd > *:last-child
+{
+	margin-bottom: 0 !important;
+}
+
+dt em
+{
+	font-style: normal;
 }
