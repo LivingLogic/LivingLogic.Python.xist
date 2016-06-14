@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.19 (released 06/??/2016)
+Changes in 5.19 (released 06/17/2016)
 -------------------------------------
 
 *	The documentation has been ported to Sphinx_.
