@@ -322,18 +322,17 @@ def makedownloads():
 	for line in download:
 		line = line.rstrip()
 		if inauto:
-			if line == ".. autogenerate start":
-				out(line)
-				inauto = True
-			else:
-				pass # Skip original content
-		else:
 			if line == ".. autogenerate end":
 				for version in versions:
 					version.output(out)
 				out()
 				out()
 				inauto = False
+			else:
+				pass # Skip original content
+		else:
+			if line == ".. autogenerate start":
+				inauto = True
 			out(line)
 
 	with open("DOWNLOAD.rst", "w", encoding="utf-8") as f:
