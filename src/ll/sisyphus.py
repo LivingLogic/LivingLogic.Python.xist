@@ -320,7 +320,7 @@ class Job:
 
 		The encoding to be used for the logfile. The default is ``"utf-8"``.
 
-	.. option:: --errors <erroehandlingname>
+	.. option:: --errors <errorhandlingname>
 
 		Encoding error handler name (goes with :option:`--encoding`). The default is
 		``"strict"``.
@@ -343,10 +343,9 @@ class Job:
 	Furthermore the following class attribute can be set to customize the
 	help message:
 
-	:attr:`argdescription``
+	:attr:`argdescription`
 
 		Description for help message of the command line argument parser.
-
 	"""
 
 	projectname = None
