@@ -96,6 +96,18 @@ dt, dd
 	margin-left: 400px;
 }
 
+@media screen and (max-width: 768px)
+{
+	left.wy-nav-side
+	{
+		left: -400px;
+	}
+	.wy-nav-content-wrap
+	{
+		margin-left: 0;
+	}
+}
+
 table.download td:last-child
 {
 	text-align: right;
