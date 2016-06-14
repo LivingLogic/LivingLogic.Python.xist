@@ -5,3 +5,4 @@ CVS
 *.pyc
 src/ll/xist/*.so
 src/*.egg-info
+docs/build
