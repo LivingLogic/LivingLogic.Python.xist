@@ -38,8 +38,8 @@ Content
 
 .. only:: html
 
-   Cheeseshop statistics
-   ---------------------
+   Cheeseshop info
+   ---------------
 
    |v| |pv| |f| |dm| |l|
 
