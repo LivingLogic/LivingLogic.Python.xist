@@ -1468,7 +1468,7 @@ example::
 
 	<?print rgb(1, 1, 1)?>
 
-prints ``#fff```.
+prints ``#fff``.
 
 
 ``random``

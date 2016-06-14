@@ -2097,7 +2097,7 @@ class Path(object):
 	def relative(self, basepath):
 		"""
 		Return an relative :class:`Path` :obj:`rel` such that
-		``basepath/rel == self```, i.e. this is the inverse operation of
+		``basepath/rel == self``, i.e. this is the inverse operation of
 		:meth:`__div__`.
 
 		If :obj:`self` is relative, an identical copy of :obj:`self` will be
