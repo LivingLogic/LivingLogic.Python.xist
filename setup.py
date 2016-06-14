@@ -244,7 +244,7 @@ else:
 	description = "{}\n\n\n{}".format(DESCRIPTION.strip(), news)
 
 # Get rid of text roles PyPI doesn't know about
-description = re.subn(":[a-z]+:`([-a-zA-Z0-9_./]+)`", "``\\1``", description)[0]
+description = re.subn(":[a-z]+:`~?([-a-zA-Z0-9_./]+)`", "``\\1``", description)[0]
 
 # Expand tabs (so they won't show up as 8 spaces in the Windows installer)
 description = description.expandtabs(2)
