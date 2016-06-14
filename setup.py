@@ -233,7 +233,7 @@ PL/SQL
 """
 
 try:
-	news = list(open("NEWS.rst", "r", encoding="utf-8"))
+	news = list(open("docs/NEWS.rst", "r", encoding="utf-8"))
 except IOError:
 	description = DESCRIPTION.strip()
 else:
