@@ -2064,8 +2064,3 @@ API
 ===
 
 .. automodule:: ll.ul4c
-
-:mod:`rul4`
-===========
-
-.. automodule:: ll.scripts.rul4
