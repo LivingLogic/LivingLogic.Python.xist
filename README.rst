@@ -35,11 +35,11 @@ XIST also includes the following modules and packages:
 	-	Query results will be put into :class:`~ll.orasql.Record` objects,
 		where database fields are accessible as object attributes.
 
-	-	The :class:`~ll.orasql.Connection`` class provides methods for iterating
+	-	The :class:`~ll.orasql.Connection` class provides methods for iterating
 		through the database metadata.
 
 	-	Importing the modules adds support for URLs with the scheme ``oracle`` to
-		:mod:`ll.url``.
+		:mod:`ll.url`.
 
 	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
 
