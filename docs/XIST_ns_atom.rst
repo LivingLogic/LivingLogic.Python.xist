@@ -1,4 +1,4 @@
-:mod:`~ll.xist.ns.atom` -- Atom 1.0
-===================================
+:mod:`atom` -- Atom 1.0
+=======================
 
 .. automodule:: ll.xist.ns.atom

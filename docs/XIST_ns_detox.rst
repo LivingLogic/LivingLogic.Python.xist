@@ -1,4 +1,4 @@
-:mod:`~ll.xist.ns.detox` -- Detox templates
-===========================================
+:mod:`detox` -- Detox templates
+===============================
 
 .. automodule:: ll.xist.ns.detox
