@@ -68,6 +68,11 @@ dt, dd
 .wy-side-nav-search
 {
 	width: 400px;
+	background-color: #0063a8;
+	background-image: url('../NautilusBlue.jpg');
+	background-attachment: fixed;
+	background-position: top left;
+	background-repeat: no-repeat;
 }
 
 .wy-side-scroll
@@ -93,4 +98,9 @@ dt, dd
 table.download td:last-child
 {
 	text-align: right;
+}
+
+.wy-breadcrumbs li code, .wy-breadcrumbs li .rst-content tt, .rst-content .wy-breadcrumbs li tt
+{
+	padding: 0;
 }
