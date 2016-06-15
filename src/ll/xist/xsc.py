@@ -4186,10 +4186,10 @@ def entity(xmlname):
 
 def procinst(xmlname, *content):
 	"""
-	Create a plain processing instruction object the target :obj:`xmlname`.
-	This object will be an instance of :class:`ProcInsst` (not an instance of a
-	subclass). :obj:`content` and :obj:`attrs` will be used to initialize the
-	content of the processing instruction.
+	Create a plain processing instruction object with the target name
+	:obj:`xmlname`. This object will be an instance of :class:`ProcInst`
+	(not an instance of a subclass). :obj:`content` will be used to initialize
+	the content of the processing instruction.
 	"""
 	procinst = ProcInst(*content)
 	procinst.xmlname = xmlname
