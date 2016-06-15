@@ -141,6 +141,10 @@ dt, dd
 	{
 		margin-left: 0;
 	}
+	img[src^='https://img.shields.io']
+	{
+		width: auto;
+	}
 }
 
 table.download td:last-child
