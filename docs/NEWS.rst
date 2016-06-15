@@ -23,19 +23,20 @@ Changes in 5.19 (released 06/14/2016)
 Changes in 5.18 (released 05/17/2016)
 -------------------------------------
 
-*	Added a function :func:`isexception` to UL4 that returns true if the
-	argument is an exception object.
+*	Added a function :func:`isexception` to UL4 that returns :const:`True` if
+	the argument is an exception object.
 
 *	The UL4 exception :class:`ll.ul4c.Error` has been renamed to
 	:class:`LocationError`.
 
-*	The ``__cause__`` or ``__context`` attribute of exception objects now gets
-	exposed to UL4 templates as the ``cause`` attribute. In addition to that
-	for the UL4 exception :class:`ll.ul4c.LocationError` the following attributes
-	get exposed: ``location`` (which is the AST node or tag where the error
-	occured), ``template`` (the innermost template where the exception occurred),
-	``outerpos`` (the position of the tag where the error occurred) and
-	``innerpos`` (the position of the AST node where the error occurred).
+*	The :attr:`__cause__` or :attr:`__context__` attribute of exception objects
+	now gets exposed to UL4 templates as the ``cause`` attribute. In addition
+	to that for the UL4 exception :class:`ll.ul4c.LocationError` the following
+	attributes get exposed: ``location`` (which is the AST node or tag where
+	the error occured), ``template`` (the innermost template where the
+	exception occurred), ``outerpos`` (the position of the tag where the
+	error occurred) and ``innerpos`` (the position of the AST node where the
+	error occurred).
 
 *	The UL4 function ``type`` now returns the Python class name for date, color,
 	template exception objects.
