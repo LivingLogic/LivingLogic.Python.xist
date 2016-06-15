@@ -41,13 +41,13 @@ Content
    Cheeseshop info
    ---------------
 
-   |v| |pv| |f| |dm| |l|
+   |version| |pythonversion| |format| |downloads| |license|
 
-   .. |v|   image:: http://img.shields.io/pypi/v/ll-xist.svg
-   .. |f|   image:: http://img.shields.io/pypi/format/ll-xist.svg
-   .. |pv|  image:: http://img.shields.io/pypi/pyversions/ll-xist.svg
-   .. |dm|  image:: http://img.shields.io/pypi/dm/ll-xist.svg
-   .. |l|   image:: http://img.shields.io/pypi/l/ll-xist.svg
+   .. |version|        image:: http://img.shields.io/pypi/v/ll-xist.svg
+   .. |pythonversion|  image:: http://img.shields.io/pypi/pyversions/ll-xist.svg
+   .. |format|         image:: http://img.shields.io/pypi/format/ll-xist.svg
+   .. |downloads|      image:: http://img.shields.io/pypi/dm/ll-xist.svg
+   .. |license|        image:: http://img.shields.io/pypi/l/ll-xist.svg
 
 
 Indices and tables
