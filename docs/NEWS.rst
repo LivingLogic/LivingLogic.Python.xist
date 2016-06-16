@@ -982,23 +982,24 @@ Changes in 4.7 (released 01/11/2013)
 Changes in 4.6 (released 12/18/2012)
 ------------------------------------
 
-*	The :meth:`walk` method in XIST has been changed: The return value is a
-	cursor object that provides information about the path and can be used to
-	skip subtrees in the traversal. Filters (which are called selectors now)
-	can no longer influence which parts of the trees are traversed, only whether
-	a node is returned by the iterator or not.
+*	The :meth:`~ll.xist.xsc.Node.walk` method in XIST has been changed: The
+	return value is a cursor object that provides information about the path and
+	can be used to skip subtrees in the traversal. Filters (which are called
+	selectors now) can no longer influence which parts of the trees are traversed,
+	only whether a node is returned by the iterator or not.
 
-*	:func:`ll.xist.parse.itertree` now supports the same interface is the
-	:meth:`walk` method.
+*	:func:`~ll.xist.parse.itertree` now supports the same interface is the
+	:meth:`~ll.xist.xsc.Node.walk` method.
 
-*	A new function :func:`xfind.filter` has been added that filters the output
-	of :meth:`walk` or :func:`itertree` against a :class:`Selector` object.
+*	A new function :func:`~ll.xist.xfind.filter` has been added that filters the
+	output of :meth:`walk` or :func:`~ll.xist.parse.itertree` against a
+	:class:`~ll.xist.xfind.Selector` object.
 
 *	The XIST parse events have been renamed: The ``"start*"`` events to
 	``"enter*"`` and the ``"end*"`` events to ``"leave*"``.
 
 *	Slicing XIST elements now returns a sliced element, instead of a slice from
-	the content :class:`Frag`::
+	the content :class:`~ll.xist.xsc.Frag`::
 
 		>>> from ll.xist.ns import html
 		>>> html.ul(html.li(i) for i in range(5))[1:3].string()
@@ -1007,7 +1008,7 @@ Changes in 4.6 (released 12/18/2012)
 *	Functions with keyword only arguments are now supported in
 	:func:`ll.xist.ns.doc.explain`.
 
-*	:class:`ll.misc.monthdelta` now supports the :func:`abs` function (i.e.
+*	:class:`~ll.misc.monthdelta` now supports the :func:`abs` function (i.e.
 	``abs(monthdelta(-1))`` returns ``monthdelta(1)``.)
 
 
