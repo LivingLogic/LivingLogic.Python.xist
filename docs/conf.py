@@ -154,7 +154,7 @@ html_style = 'css/overwrite.css'
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-#html_title = 'XIST v5.18'
+#html_title = 'XIST v?.?'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
