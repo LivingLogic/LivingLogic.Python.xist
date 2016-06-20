@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.19.1 (released 06/20/2016)
+---------------------------------------
+
+*	The field ``USER_TAB_COLUMNS.DATA_DEFAULT`` is different in Oracle 11 and
+	Oracle 12 installations. :mod:`ll.orasql` has been updated to handle the
+	difference.
+
+
 Changes in 5.19 (released 06/14/2016)
 -------------------------------------
 

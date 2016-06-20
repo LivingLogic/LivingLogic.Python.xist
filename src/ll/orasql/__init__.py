@@ -1303,8 +1303,8 @@ def _columntype(rec, data_precision=None, data_scale=None, char_length=None):
 
 
 def _columndefault(rec):
-	if rec.data_default is not None and rec.data_default != "null\n":
-		return rec.data_default.rstrip("\n")
+	if rec.data_default is not None and rec.data_default.strip() != "null":
+		return rec.data_default.strip()
 	return "null"
 
 
