@@ -1859,7 +1859,7 @@ class Constraint(Object):
 					owner,
 					constraint_name
 			"""
-			cursor.execute(query.format(ddprefixcursor.ddprefix()), type=cls.constraint_type, owner=owner)
+			cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=cls.constraint_type, owner=owner)
 		return ((rec.constraint_name, rec.owner) for rec in cursor)
 
 	def fixname(self, code):

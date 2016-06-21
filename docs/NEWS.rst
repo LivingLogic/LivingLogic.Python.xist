@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.19.2 (released 06/21/2016)
+---------------------------------------
+
+*	Fixed a bug in :meth:`ll.orasql.Constraint.names`.
+
+
 Changes in 5.19.1 (released 06/20/2016)
 ---------------------------------------
 
