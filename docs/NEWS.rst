@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.19.3 (released 06/29/2016)
+---------------------------------------
+
+*	Added a new method :meth:`ll.orasql.Record.replace`.
+
+
 Changes in 5.19.2 (released 06/21/2016)
 ---------------------------------------
 

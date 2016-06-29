@@ -293,6 +293,15 @@ class Record(tuple, collections.Mapping):
 		"""
 		return ((key, tuple.__getitem__(self, index)) for (index, key) in enumerate(self._index2name))
 
+	def replace(self, **kwargs):
+		"""
+		Return a new :class:`Record` where fields have been replaced with the values in :obj:`kwargs`.
+		"""
+		values = list(self)
+		for (key, value) in kwargs.items():
+			values[self._name2index[key.lower()]] = value
+		return self.__class__(self._index2name, self._name2index, values)
+
 	def __repr__(self):
 		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, ", ".join("{}={!r}".format(*item) for item in self.items()), id(self))
 
