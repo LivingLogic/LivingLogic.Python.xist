@@ -295,7 +295,9 @@ class Record(tuple, collections.Mapping):
 
 	def replace(self, **kwargs):
 		"""
-		Return a new :class:`Record` where fields have been replaced with the values in :obj:`kwargs`.
+		Return a new :class:`Record` with the same fields as :obj:`self`, except
+		for those fields given new values by whichever keyword arguments are
+		specified.
 		"""
 		values = list(self)
 		for (key, value) in kwargs.items():
