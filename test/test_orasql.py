@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, datetime, collections
+import sys, os, datetime, collections, decimal
 
 import pytest
 
@@ -413,3 +413,22 @@ def test_exists():
 
 		assert orasql.Procedure("ORASQL_TESTPROCEDURE").exists(db)
 		assert not orasql.Procedure("ORASQL_NOTTESTPROCEDURE").exists(db)
+
+
+@pytest.mark.db
+def test_decimal():
+	if dbname:
+		db = orasql.connect(dbname, decimal=True)
+		c = db.cursor()
+
+		c.execute("select 42 from dual")
+		r = c.fetchone()
+		assert type(r[0]) is decimal.Decimal
+
+		c.execute("select 42.5 from dual")
+		r = c.fetchone()
+		assert type(r[0]) is decimal.Decimal
+
+		c.execute("select cast(42 as integer) from dual")
+		r = c.fetchone()
+		assert type(r[0]) is int
