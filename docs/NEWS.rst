@@ -13,7 +13,11 @@ Changes in 5.19.4 (released 06/30/2016)
 
 *	:mod:`ll.orasql` now honors the logging mode of a table or index when
 	creating SQL for it. A new method :meth:`ll.orasql.Table.logging` has been
-	added to table objects.
+	added to table objects, that return whether loggging is enabled for this table..
+
+*	:class:`ll.orasql.Connection`/:func:`ll.orasql.connect` now support a new
+	argument ``decimal``. If this argument is true, ``NUMBER``\s will be returned
+	as :class:`decimal.Decimal` objects (otherwise as :class:`float`\s).
 
 
 Changes in 5.19.3 (released 06/29/2016)

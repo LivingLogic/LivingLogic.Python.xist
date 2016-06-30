@@ -33,7 +33,7 @@ __ http://cx-oracle.sourceforge.net/
 """
 
 
-import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, collections
+import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, collections, decimal
 
 from cx_Oracle import *
 
@@ -334,16 +334,20 @@ class Connection(Connection):
 		Create a new connection. In addition to the parameters supported by
 		:func:`cx_Oracle.connect` the following keyword argument is supported.
 
-		:obj:`readlobs` : bool or integer
-			If :obj:`readlobs` is :const:`False` all cursor fetches return
-			:class:`LOBStream` objects for LOB object. If :obj:`readlobs` is an
-			:class:`int` LOBs with a maximum size of :obj:`readlobs` will be
-			returned as :class:`bytes`/:class:`str` objects. If :obj:`readlobs`
+		``readlobs`` : bool or integer
+			If ``readlobs`` is :const:`False` all cursor fetches return
+			:class:`LOBStream` objects for LOB object. If ``readlobs`` is an
+			:class:`int` LOBs with a maximum size of ``readlobs`` will be
+			returned as :class:`bytes`/:class:`str` objects. If ``readlobs``
 			is :const:`True` all LOB values will be returned as
 			:class:`bytes`/:class:`str` objects.
 
+		``decimal`` : bool
+			If ``decimal`` is :const:`True` numbers will be returned as
+			:class:`decimal.Decimal` objects, else :class:`float` will be used.
+
 		Furthermore the ``clientinfo`` will be automatically set to the name
-		of the currently running script (except if the :obj:`clientinfo` keyword
+		of the currently running script (except if the ``clientinfo`` keyword
 		argument is given and :const:`None`).
 		"""
 		if "readlobs" in kwargs:
@@ -351,6 +355,9 @@ class Connection(Connection):
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
+		self.decimal = kwargs.pop("decimal", False)
+		if self.decimal:
+			self.outputtypehandler = self._numbersasdecimal
 		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
 		super().__init__(*args, **kwargs)
 		if clientinfo is not None:
@@ -359,6 +366,10 @@ class Connection(Connection):
 		self.mode = kwargs.get("mode")
 		self._ddprefix = None # Do we have access to the ``DBA_*`` views?
 		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?
+
+	def _numbersasdecimal(self, cursor, name, defaultType, length, precision, scale):
+		if defaultType is NUMBER and scale:
+			return cursor.var(str, 100, cursor.arraysize, outconverter=decimal.Decimal)
 
 	def connectstring(self):
 		return "{}@{}".format(self.username, self.tnsentry)
