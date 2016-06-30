@@ -1350,7 +1350,7 @@ class Table(MixinNormalDates, Object):
 		cursor.execute(query.format(ddprefix=ddprefix), owner=self.owner, name=self.name)
 		_inlinepkfields = {rec.column_name for rec in cursor}
 
-		organization = self.organization(connection)
+		(organization, logging) = self._info(connection)
 
 		query = """
 			select
@@ -1377,10 +1377,12 @@ class Table(MixinNormalDates, Object):
 				code.append(" not null")
 			if rec.column_name in _inlinepkfields:
 				code.append(" primary key")
+		code.append("\n)")
+		if not logging:
+			code.append(" nologging")
 		if term:
-			code.append("\n);\n")
-		else:
-			code.append("\n)\n")
+			code.append(";")
+		code.append("\n")
 		return "".join(code)
 
 	def exists(self, connection=None):
@@ -1442,14 +1444,11 @@ class Table(MixinNormalDates, Object):
 		"""
 		return self.mview(connection) is not None
 
-	def organization(self, connection=None):
-		"""
-		Return the organization of this table: either ``"heap"`` (for "normal"
-		tables) or ``"index"`` (for index organized tables).
-		"""
+	def _info(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		query = """
 			select
+				logging,
 				iot_type
 			from
 				{ddprefix}_tables
@@ -1461,7 +1460,20 @@ class Table(MixinNormalDates, Object):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		return "heap" if rec.iot_type is None else "index"
+		return ("heap" if rec.iot_type is None else "index", rec.logging == "YES")
+
+	def organization(self, connection=None):
+		"""
+		Return the organization of this table: either ``"heap"`` (for "normal"
+		tables) or ``"index"`` (for index organized tables).
+		"""
+		return self._info(connection)[0]
+
+	def logging(self, connection=None):
+		"""
+		Return whether to table is in logging mode or not.
+		"""
+		return self._info(connection)[1]
 
 	@classmethod
 	def names(cls, connection, owner=ALL):
@@ -2290,6 +2302,7 @@ class Index(MixinNormalDates, Object):
 				table_name,
 				uniqueness,
 				index_type,
+				logging,
 				ityp_owner,
 				ityp_name,
 				parameters
@@ -2305,10 +2318,8 @@ class Index(MixinNormalDates, Object):
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec.table_name, self.owner)
 		indexname = self.getfullname()
-		if rec.uniqueness == "UNIQUE":
-			unique = " unique"
-		else:
-			unique = ""
+		unique = " unique" if rec.uniqueness == "UNIQUE" else ""
+		logging = " nologging" if rec.logging=="NO" else ""
 		query = """
 			select
 				aie.column_expression,
@@ -2326,7 +2337,7 @@ class Index(MixinNormalDates, Object):
 				aic.column_position
 		"""
 		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
-		code = "create{} index {} on {} ({})".format(unique, indexname, tablename, ", ".join(r.column_expression or r.column_name for r in cursor))
+		code = "create{} index {} on {} ({}){}".format(unique, indexname, tablename, ", ".join(r.column_expression or r.column_name for r in cursor), logging)
 		if rec.index_type == "DOMAIN":
 			if rec.parameters:
 				parameters = " parameters ('{}')".format(rec.parameters.replace("'", "''"))

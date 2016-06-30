@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.19.4 (released 06/30/2016)
+---------------------------------------
+
+*	:mod:`ll.orasql` now honors the logging mode of a table or index when
+	creating SQL for it. A new method :meth:`ll.orasql.Table.logging` has been
+	added to table objects.
+
+
 Changes in 5.19.3 (released 06/29/2016)
 ---------------------------------------
 
