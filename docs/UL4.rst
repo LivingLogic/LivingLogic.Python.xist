@@ -260,9 +260,9 @@ Sets can be created like this:
 
 *	``{"foo", "bar"}``
 
-The empty set also be created with the function ``set``::
+The empty set can also be created with the function ``set``::
 
-	``set()``.
+	set()
 
 ``*`` expressions are also supported::
 
