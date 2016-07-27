@@ -245,7 +245,7 @@ def main(args=None):
 					for line in lines2[j1:j2]:
 						stdout.writeln(s4addedline("+", line.originalline))
 
-	p = argparse.ArgumentParser(description="Compare files line by line", epilog="For more info see http://www.livinglogic.de/Python/scripts/udiff.html")
+	p = argparse.ArgumentParser(description="Compare files line by line", epilog="For more info see http://www.livinglogic.de/Python/scripts_udiff.html")
 	p.add_argument("url1", metavar="url1", help="first URL (directories require a trailing /)", type=url.URL)
 	p.add_argument("url2", metavar="url2", help="second URL (directories require a trailing /)", type=url.URL)
 	p.add_argument(      "--encoding", dest="encoding", help="Encoding to use for reading text files (default: %(default)s)", default="utf-8")

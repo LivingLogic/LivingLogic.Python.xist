@@ -298,7 +298,7 @@ def main(args=None):
 		else:
 			printone(url)
 
-	p = argparse.ArgumentParser(description="List the content of one or more URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts/uls.html")
+	p = argparse.ArgumentParser(description="List the content of one or more URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts_uls.html")
 	p.add_argument("urls", metavar="url", help="URLs to be listed (default: current dir)", nargs="*", default=[url_.Dir("./", scheme=None)], type=url_.URL)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-1", "--one", dest="one", help="One entry per line? (default: %(default)s)", action=misc.FlagAction, default=False)

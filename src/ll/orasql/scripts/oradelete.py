@@ -107,7 +107,7 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Print (or execute) SQL for deleting all records from all tables in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oradelete.html")
+	p = argparse.ArgumentParser(description="Print (or execute) SQL for deleting all records from all tables in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql_scripts_oradelete.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))

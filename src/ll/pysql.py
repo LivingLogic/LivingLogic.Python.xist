@@ -1559,7 +1559,7 @@ def define(arg):
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/pysql/index.html")
+	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/pysql.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))

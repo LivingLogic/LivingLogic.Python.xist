@@ -248,7 +248,7 @@ def urls2xnd(urls, shareattrs=None, **kwargs):
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Convert DTDs to XIST namespace (on stdout)", epilog="For more info see http://www.livinglogic.de/Python/xist/scripts/dtd2xsc.html")
+	p = argparse.ArgumentParser(description="Convert DTDs to XIST namespace (on stdout)", epilog="For more info see http://www.livinglogic.de/Python/XIST_scripts_dtd2xsc.html")
 	p.add_argument("urls", metavar="urls", type=url.URL, help="Zero of more URLs of DTDs to be parsed (default stdin)", nargs="*")
 	p.add_argument("-x", "--xmlns", dest="defaultxmlns", metavar="NAME", help="the namespace name for this module")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")

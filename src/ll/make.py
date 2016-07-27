@@ -1457,7 +1457,7 @@ class Project(dict):
 				return "all"
 
 		actions = ("all", "file", "phony", "filephony", "none")
-		p = argparse.ArgumentParser(description="build one or more targets", epilog="For more info see http://www.livinglogic.de/Python/make/")
+		p = argparse.ArgumentParser(description="build one or more targets", epilog="For more info see http://www.livinglogic.de/Python/make.html")
 		p.add_argument("targets", metavar="target", help="Target to be built", nargs="*")
 		p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=self.ignoreerrors)
 		p.add_argument("-c", "--color", dest="color", help="Use colored output? (default: %(default)s)", action=misc.FlagAction, default=self.color)

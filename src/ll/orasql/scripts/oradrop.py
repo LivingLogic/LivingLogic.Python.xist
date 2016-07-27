@@ -103,7 +103,7 @@ s4object = astyle.Style.fromenv("LL_ORASQL_REPRANSI_OBJECT", "green:black")
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Print (or execute) drop statements for all objects in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql/scripts/oradrop.html")
+	p = argparse.ArgumentParser(description="Print (or execute) drop statements for all objects in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql_scripts_oradrop.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
