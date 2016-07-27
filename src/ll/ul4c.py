@@ -2131,6 +2131,8 @@ class Attr(Code):
 			def add(*items):
 				obj.update(items)
 			result = add
+		elif attrname == "clear":
+			result = obj.clear
 		else:
 			result = UndefinedKey(attrname)
 		return result
@@ -2162,6 +2164,8 @@ class Attr(Code):
 			def get(key, default=None):
 				return obj.get(key, default)
 			result = get
+		elif attrname == "clear":
+			result = obj.clear
 		else:
 			try:
 				result = obj[attrname]

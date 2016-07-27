@@ -3978,6 +3978,12 @@ def test_method_update(T):
 
 
 @pytest.mark.ul4
+def test_method_clear(T):
+	assert '0' == T('<?code d = {"foo": 17, "bar": 23}?><?code d.clear()?><?print len(d)?>').renders()
+	assert '0' == T('<?code d = {"foo", "bar"}?><?code d.clear()?><?print len(d)?>').renders()
+
+
+@pytest.mark.ul4
 def test_def(T):
 	assert 'foo' == T('<?def lower?><?print x.lower()?><?end def?><?print lower.renders(x="FOO")?>').renders()
 

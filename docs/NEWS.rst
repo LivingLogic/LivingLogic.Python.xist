@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.20 (released ??/??/2016)
+-------------------------------------
+
+*	Dictionaries and sets in UL4 now support the :meth:`clear` method.
+
+
 Changes in 5.19.4 (released 06/30/2016)
 ---------------------------------------
 

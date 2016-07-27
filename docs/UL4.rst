@@ -1795,6 +1795,12 @@ copied to the target dictionary. After each positional argument is copied over
 in a last step the keyword arguments will be copied to the target dictionary.
 
 
+``clear``
+"""""""""
+
+``clear`` is a dictionary and method. It makes the dictionary/set empty.
+
+
 Templates as functions
 ======================
 
