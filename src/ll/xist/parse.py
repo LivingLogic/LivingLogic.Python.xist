@@ -1559,7 +1559,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 
 	The rest of the arguments can be used to control when :func:`itertree`
 	returns to the calling code. For an explanation of their meaning see the
-	class :class:`xsc.Cursor`.
+	class :class:`ll.xist.xsc.Cursor`.
 
 	Example::
 
