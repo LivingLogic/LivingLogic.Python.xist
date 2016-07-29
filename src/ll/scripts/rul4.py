@@ -6,9 +6,17 @@
 Purpose
 =======
 
-:program:`rul4` is a script that can be used for rendering UL4 templates.
-Templates have access to Oracle, MySQL, SQLite and Redis databases and can
-execute system commands.
+:program:`rul4` is a script that can be used to render an UL4 template.
+
+
+The ``globals`` object
+======================
+
+Inside the template the object ``globals`` (an instance of the class
+:class:`Globals`) will be available to make database connections, load and save
+files, compile templates, access environment variables and parameters etc.
+However access to those features can be switched off via command line
+options.
 
 
 Options
@@ -23,44 +31,73 @@ Options
 	One or more template files. A file named ``-`` will be treated as
 	standard input. The first file in the list is the main template, i.e. the
 	one that gets rendered. All templates will be available in the main
-	template as the ``templates`` dictionary. The keys are the base names
-	of the files (i.e. ``foo.ul4`` will be ``templates.foo``; stdin will be
-	``templates.stdin``).
+	template as the ``globals.templates`` dictionary. The keys are the base names
+	of the files (i.e. ``foo.ul4`` will be ``globals.templates.foo``; stdin will
+	be ``globals.templates.stdin``).
 
 .. option:: --oracle <flag>
 
-	Provide the object ``oracle`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.oracle` (as ``globals.oracle``) to the
+	template? If switched off ``globals.oracle`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option:: --sqlite <flag>
 
-	Provide the object ``sqlite`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.sqlite` (as ``globals.sqlite``) to the
+	template? If switched off ``globals.sqlite`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option:: --mysql <flag>
 
-	Provide the object ``mysql`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.mysql` (as ``globals.mysql``) to the
+	template? If switched off ``globals.mysql`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option:: --redis <flag>
 
-	Provide the object ``redis`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.redis` (as ``globals.redis``) to the
+	template? If switched off ``globals.redis`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option:: --system <flag>
 
-	Provide the object ``system`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.system` (as ``globals.system``) to the
+	template? If switched off ``globals.system`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option:: --load <flag>
 
-	Provide the function ``load`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.load` (as ``globals.load``) to the
+	template? If switched off ``globals.load`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
+
+.. option:: --save <flag>
+
+	Provide the method :meth:`Globals.save` (as ``globals.save``) to the
+	template? If switched off ``globals.save`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option:: --compile <flag>
 
-	Provide the function ``compile`` to the template or not (see below)?
-	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+	Provide the method :meth:`Globals.compile` (as ``globals.compile``) to the
+	template? If switched off ``globals.compile`` will be :const:`None`.
+
+	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
+	the default is ``true``)
 
 .. option::  -e <encoding> , --encoding <encoding>
 
@@ -69,11 +106,13 @@ Options
 .. option::  -w <value>, --whitespace <value>
 
 	Specifies how to handle whitespace in the template (Allowed values are
-	``keep``, ``strip``, or ``smart``)
+	``keep``, ``strip``, or ``smart``). This can of course be overwritten with
+	the template tag ``<?whitespace ...?>`` in the template files.
 
 .. option:: -D, --define
 
-	Defines an additional value that will be available inside the template.
+	Defines an additional variable that will be available inside the template
+	(e.g. the variable ``foo`` will be available as ``globals.vars.foo``).
 	``-D`` can be specified multiple times. The following formats are supported:
 
 	``var``
@@ -108,7 +147,7 @@ Options
 	``oracle``
 		``value`` will be a connection to an Oracle database, e.g.::
 
-			-Ddb:oracle=user/pwd@database
+			-Ddb:oracle=user/password@database
 
 	``sqlite``
 		``value`` is a connection to an SQLite database.
@@ -124,143 +163,6 @@ Options
 		The port (i.e. the ``6379`` in the above value) is optional and
 		defaults to 6379. The database number (i.e. the ``42`` in the above
 		value) is also optional and defaults to 0.
-
-
-Template variables
-==================
-
-Inside the template the following variables are available (if enabled via
-the matching options):
-
-``templates``
-	A dictionary containing all the templates specified on the command line.
-
-``encoding``
-	The output encoding.
-
-``system``
-	An object with an ``execute`` method that executes system commands and
-	returns their output, e.g. the template:
-
-	.. sourcecode:: xml
-
-		<?print system.execute("whoami")?>
-
-	will output the user name.
-
-``oracle``
-	An object with a ``connect`` method that returns a connection to an oracle
-	database.
-
-``mysql``
-	An object with a ``connect`` method that return a MySQL connection for
-	the MySQL connect strings passed in. A MySQL connect string is a string
-	of the form ``user/pwd@host/db``.
-
-``sqlite``
-	An object with a ``connect`` method that return a SQLite connection for
-	the connect strings passed in. The connect string will be passed directly
-	to :func:`sqlite3.connect`.
-
-``redis``
-	An object with a ``connect`` method that return a Redis connection for
-	the connect strings passed in. The connectstring is of the form
-	``hostname:port/db``. ``port`` and ``db`` are optional.
-
-``load``
-	``load`` is a function that reads a file from disk and returns the
-	content. Its first parameter is the filename and its second parameter is
-	the encoding of the file. The encoding parameter is optional and defaults
-	to ``"utf-8"``:
-
-	.. sourcecode:: xml
-
-		<?code data = load("/home/user/data.txt", "iso-8859-1")?>
-
-``compile``
-	``compile`` is a function that compiles a string into an UL4 template.
-	The signature is:
-
-	.. sourcecode:: python
-
-		compile(source, name=None, whitespace="keep",
-		        signature=None, startdelim="<?", enddelim="?>")
-
-``error``
-	``error`` is a function that can be called to output an error message and
-	abort template execution. The signature is:
-
-	.. sourcecode:: python
-
-		error(message, ast=None)
-
-	``message`` is the error message and ``ast`` can be an AST node from an
-	UL4 template syntax tree to print an error message that originates from
-	that node.
-
-All variables defined via the :option:`-D`/:option:`--define` option will also
-be available. (Note that you can't overwrite any of the predefined variables).
-
-
-Database connections
-====================
-
-All connection objects (except ``redis``) have a :meth:`query` method that
-executes the query passed in and returns an iterator over the resulting records.
-This :meth:`query` method requires at least one positional argument. Arguments
-alternate between fragments of the SQL query and parameters that will be
-embedded in the query. For example:
-
-.. sourcecode:: xml
-
-	<?code db = oracle.connect("user/pwd@db")?>
-	<?code name = "Bob"?>
-	<?for p in db.query("select * from person where firstname=", name, " or lastname=", name)?>
-		...
-
-The records returned from :meth:`query` are dict-like objects mapping field
-names to field values.
-
-Connection objects also have an :meth:`execute` method that supports the same
-parameters as :meth:`query` but doesn't return an iterable result. This can be
-used to call functions or procedures.
-
-Calling functions or procedures with out parameters can be done with variable
-objects that can be created with the methods :meth:`int`, :meth:`number`,
-:meth:`str`, :meth:`clob` and :meth:`date`. The resulting value of the out
-parameter is available from the :attr:`value` attribute of the variable object.
-The following example creates a function, calls it to get at the result and
-drops it again:
-
-.. sourcecode:: xml
-
-	<?code db = oracle.connect('user/pwd@database')?>
-	<?code db.execute('''
-		create or replace function ul4test(p_arg integer)
-		return integer
-		as
-		begin
-			return 2*p_arg;
-		end;
-	''')?>
-	<?code vout = db.int()?>
-	<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
-	<?print vout.value?>
-	<?code db.execute('drop function ul4test')?>
-
-Redis connections have a :meth:`get` and a :meth:`put` method:
-
-.. sourcecode:: xml
-
-	<?code db = redis.connect("192.168.123.42/1")?>
-	<?code value = db.get("key")?>
-	<?if isnone(value)?>
-		<?code value = "foobar"?>
-		<?code db.put("key", value, timedelta(seconds=10*60))?>
-	<?end if?>
-
-The timeout value in the :meth:`put` method is optional. Without it the value
-will be stored indefinitely.
 
 
 Example
@@ -285,7 +187,7 @@ Then we can use the following template to output the table into an XML file:
 .. sourcecode:: xml
 
 	<?xml version='1.0' encoding='utf-8'?>
-	<?code db = oracle.connect("user/pwd@database')?>
+	<?code db = globals.oracle("user/password@database')?>
 	<persons>
 		<?for p in db.query("select id, firstname, lastname from person order by 2, 1")?>
 			<person id="<?printx p.id?>">
@@ -308,9 +210,13 @@ system commands:
 
 .. sourcecode:: bash
 
-	rul4 person.ul4 -Ddb:oracle=user/pwd@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
+	rul4 person.ul4 -Ddb:oracle=user/password@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
 
 Then the template can use the Oracle connection object :obj:`db` directly.
+
+
+API
+===
 """
 
 
@@ -329,23 +235,6 @@ class System:
 		return os.popen(cmd).read()
 
 
-def load(filename, encoding="utf-8"):
-	with open(filename, "r", encoding=encoding) as f:
-		return f.read()
-
-
-def compile(source, name=None, whitespace="keep", signature=None, startdelim="<?", enddelim="?>"):
-	return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature, startdelim=startdelim, enddelim=enddelim)
-
-
-def error(message, ast=None):
-	exc = Exception(message)
-	if ast is not None:
-		raise ul4c.Error(ast) from exc
-	else:
-		raise exc
-
-
 class Var:
 	ul4attrs = {"value"}
 
@@ -362,7 +251,40 @@ class Var:
 
 
 class Connection:
-	ul4attrs = {"query", "execute", "int", "number", "str", "clob", "date"}
+	"""
+	A :class:`Connection` object provides a database connection to an UL4
+	template.
+
+	To execute SQL the two methods :meth:`query` and :meth:`execute` are provided.
+
+	Calling functions or procedures with out parameters can be done with variable
+	objects that can be created with the methods :meth:`int`, :meth:`number`,
+	:meth:`str`, :meth:`clob` and :meth:`date`. The resulting value of the out
+	parameter is available from the :attr:`value` attribute of the variable
+	object. The following example creates a function, calls it to get at the
+	result and drops it again:
+
+	.. sourcecode:: xml
+
+		<?code db = oracle.connect('user/password@database')?>
+		<?code db.execute('''
+			create or replace function ul4test(p_arg integer)
+			return integer
+			as
+			begin
+				return 2*p_arg;
+			end;
+		''')?>
+		<?code vout = db.int()?>
+		<?code db.execute('begin ', vout, ' := ul4test(42); end;')?>
+		<?print vout.value?>
+		<?code db.execute('drop function ul4test')?>
+
+	A :class:`Connection` object can be created with the methods
+	:meth:`Globals.mysql` or :meth:`Globals.sqlite`.
+	"""
+
+	ul4attrs = {"query", "queryone", "execute", "int", "number", "str", "clob", "date"}
 
 	def __init__(self, connection):
 		self.connection = connection
@@ -387,36 +309,92 @@ class Connection:
 			var.value = params[name].getvalue(0)
 
 	def query(self, *queryparts):
+		"""
+		Execute the query passed in and return an iterator over the resulting
+		records.
+
+		At least one positional argument is required. Arguments alternate between
+		fragments of the SQL query and parameters that will be embedded in the
+		query. For example:
+
+		.. sourcecode:: xml
+
+			<?code db = globals.oracle("user/pwd@db")?>
+			<?code name = "Bob"?>
+			<ul>
+				<?for p in db.query("select * from person where firstname=", name, " or lastname=", name)?>
+					<li><?print p.firstname?> <?print p.lastname?></li>
+				<?end for?>
+			</ul>
+
+		The records returned from :meth:`query` are dict-like objects mapping
+		field names to field values.
+		"""
+
 		cursor = self.connection.cursor()
 		self._execute(cursor, queryparts)
 		return cursor
 
+	def queryone(self, *queryparts):
+		"""
+		Execute the query passed in and return the first result record (or
+		:const:`None` if the query didn't output any record). ``queryparts``
+		is handled the same way as :meth:`query` does.
+		"""
+
+		cursor = self.connection.cursor()
+		self._execute(cursor, queryparts)
+		return cursor.fetchone()
+
 	def execute(self, *queryparts):
+		"""
+		Similar to :meth:`query` and :meth:`queryone`, but doesn't doesn't return
+		a result. This can be used to call functions or procedures.
+		"""
 		cursor = self.connection.cursor()
 		self._execute(cursor, queryparts)
 
 	@misc.notimplemented
 	def str(self, value=None):
-		pass
+		"""
+		Create a variable that can be used for OUT parameters of type ``varchar``.
+		"""
 
 	@misc.notimplemented
 	def clob(self, value=None):
-		pass
+		"""
+		Create a variable that can be used for OUT parameters of type ``clob``.
+		"""
 
 	@misc.notimplemented
 	def int(self, value=None):
-		pass
+		"""
+		Create a variable that can be used for OUT parameters of type ``integer``.
+		"""
 
 	@misc.notimplemented
 	def number(self, value=None):
-		pass
+		"""
+		Create a variable that can be used for OUT parameters of type ``number``.
+		"""
 
 	@misc.notimplemented
 	def date(self, value=None):
-		pass
+		"""
+		Create a variable that can be used for OUT parameters of type ``date``.
+		"""
 
 
 class OracleConnection(Connection):
+	"""
+	:class:`OracleConnection` is a subclass of :class:`Connection` that
+	implements functionality that is specific to Oracle databases (e.g.
+	support for variables). The inferface is the same as :class:`Connection`\s.
+
+	An :class:`OracleConnection` object can be created with the method
+	:meth:`Globals.oracle`.
+	"""
+
 	class IntVar(Var):
 		def makevar(self, c):
 			var = c.var(int)
@@ -468,42 +446,22 @@ class OracleConnection(Connection):
 		return self.DateVar(value)
 
 
-class Oracle:
-	ul4attrs = {"connect"}
-
-	def connect(self, connectstring):
-		from ll import orasql
-		return OracleConnection(orasql.connect(connectstring, readlobs=True))
-
-
-class SQLite:
-	ul4attrs = {"connect"}
-
-	def connect(self, connectstring):
-		import sqlite3
-		connection = sqlite3.connect(connectstring)
-		class Row(sqlite3.Row):
-			def __getitem__(self, key):
-				if isinstance(key, str):
-					key = key.encode("ascii")
-				return sqlite3.Row.__getitem__(self, key)
-		connection.row_factory = Row
-		return Connection(connection)
-
-
-class MySQL:
-	ul4attrs = {"connect"}
-
-	def connect(self, connectstring):
-		import MySQLdb
-		from MySQLdb import cursors
-		(user, host) = connectstring.split("@")
-		(user, passwd) = user.split("/")
-		(host, db) = host.split("/")
-		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
-
-
 class RedisConnection:
+	"""
+	A connection to a Redis database. A :class:`RedisConnection` object provides
+	the methods :meth:`get` to read data from the database and :meth:`set` to
+	write data to the database.
+
+	Example::
+
+		<?code db = redis.connect("192.168.123.42/1")?>
+		<?code value = db.get("key")?>
+		<?if isnone(value)?>
+			<?code value = "foobar"?>
+			<?code db.put("key", value, timedelta(seconds=10*60))?>
+		<?end if?>
+	"""
+
 	ul4attrs = {"get", "put"}
 
 	def __init__(self, host, port, db):
@@ -511,34 +469,23 @@ class RedisConnection:
 		self.connection = redis.StrictRedis(host=host, port=port, db=db, decode_responses=True)
 
 	def get(self, key):
+		"""
+		Return the value for the key ``key`` or ``None`` if the key doesn't exist.
+		"""
 		return self.connection.get(key)
 
 	def set(self, key, data, timeout=None):
+		"""
+		Store the string value ``data`` under the key ``key``.
+
+		If ``timeout`` is :const:`None` the value will be stored indefinitely.
+		Otherwise it specifies when the value will expire. ``timeout`` can be
+		an integer (the number of seconds) or a :class:`timedelta` object.
+		"""
 		if timeout is None:
 			self.connection.set(key, data)
 		else:
 			self.connection.setex(key, timeout, data)
-
-
-class Redis:
-	ul4attrs = {"connect"}
-
-	def connect(self, connectstring):
-		(hostport, _, db) = connectstring.partition("/")
-		if not db:
-			db = 0
-		(host, _, port) = hostport.partition(":")
-		if not port:
-			port = 6379
-		return RedisConnection(host=host, port=port, db=db)
-
-
-# Instantiate all "handlers"
-system = System()
-oracle = Oracle()
-sqlite = SQLite()
-mysql = MySQL()
-redis = Redis()
 
 
 def fixname(name):
@@ -594,6 +541,192 @@ def print_exception_chain(exc):
 		print(misc.format_exception(exc), file=sys.stderr)
 
 
+class Globals:
+	"""
+	An instance of the :class:`Globals` class will be passed to the main template
+	as the ``globals`` variable. The following attributes will be accessible to
+	UL4 templates:
+
+	``templates`` : dictionary
+		A dictionary containing the templates specified on the command line. This
+		will include the main template.
+
+	``vars`` : dictionary
+		A dictionary containing the variables that have been specified via the
+		:option:`-D`/:option:`--define` option.
+
+	``encoding`` : string
+		The encoding that will be used for output (this is the same as
+		``sys.stdout.encoding``, so it can be set with the environment variable
+		:envvar:`PYTHONIOENCODING`).
+
+	``env``: dictionary
+		A reference to :obj:`os.environ`.
+
+	Furthermore the following methods can be called from UL4 templates:
+	:meth:`error`, :meth:`log`, :meth:`oracle`, :meth:`mysql`, :meth:`sqlite`,
+	:meth:`redis`, :meth:`system`, :meth:`load`, :meth:`save` and :meth:`compile`.
+	"""
+
+	ul4attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
+	def __init__(self, templates=None, vars=None, encoding=None, oracle=True, mysql=True, sqlite=True, redis=True, system=True, load=True, save=True, compile=True):
+		self.templates = templates
+		self.encoding = encoding
+		self.vars = vars if vars is not None else {}
+		self.env = os.environ
+		# Deactivate features if requested by overwriting the method with an instance attribute.
+		if not oracle:
+			self.oracle = None
+		if not mysql:
+			self.mysql = None
+		if not sqlite:
+			self.sqlite = None
+		if not redis:
+			self.redis = None
+		if not system:
+			self.system = None
+		if not load:
+			self.load = None
+		if not save:
+			self.save = None
+		if not compile:
+			self.compile = None
+
+	def error(self, message, ast=None):
+		"""
+		Can be called to output an error message and abort template execution.
+		The signature is:
+
+		.. sourcecode:: python
+
+			globals.error(message, ast=None)
+
+		``message`` is the error message and ``ast`` can be an AST node from an
+		UL4 template syntax tree to print an error message that originates from
+		that node.
+		"""
+		exc = Exception(message)
+		if ast is not None:
+			raise ul4c.Error(ast) from exc
+		else:
+			raise exc
+
+	def log(self, *args):
+		"""
+		Logs ``args`` to ``sys.stderr``.
+		"""
+		print(*args, file=sys.stderr)
+
+	def oracle(self, connectstring):
+		"""
+		Return an :class:`OracleConnection` object for the Oracle connect string
+		passed in::
+
+			<?code db = globals.oracle("user/password@database")?>
+			<?for row in db.query("select sysdate as sd from dual")?>
+				<?print row.sd?>
+			<?end for?>
+		"""
+		from ll import orasql
+		return OracleConnection(orasql.connect(connectstring, readlobs=True))
+
+	def mysql(self, connectstring):
+		"""
+		Return an :class:`Connection` object to a MySQL database for the
+		connectstring passed in. The format of the connect string is::
+
+			user/password@host/database
+		"""
+		import MySQLdb
+		from MySQLdb import cursors
+		(user, host) = connectstring.split("@")
+		(user, passwd) = user.split("/")
+		(host, db) = host.split("/")
+		return Connection(MySQLdb.connect(user=user, passwd=passwd, host=host, db=db, use_unicode=True, cursorclass=cursors.DictCursor))
+
+	def sqlite(self, connectstring):
+		"""
+		Return an :class:`Connection` object to an SQLite database for the
+		connectstring passed in. The connectstring will be passed directly
+		to :func:`sqlite3.connect`.
+		"""
+		import sqlite3
+		connection = sqlite3.connect(connectstring)
+		class Row(sqlite3.Row):
+			def __getitem__(self, key):
+				if isinstance(key, str):
+					key = key.encode("ascii")
+				return sqlite3.Row.__getitem__(self, key)
+		connection.row_factory = Row
+		return Connection(connection)
+
+	def redis(self, connectstring):
+		"""
+		Return a :class:`RedisConnection` object, which provides a connection to a
+		Redis database. The connectstring has the format::
+
+			host:port/db
+
+		``port`` is optional and defaults to 6379. ``db`` is optional too and
+		defaults to 0.
+		"""
+		(hostport, _, db) = connectstring.partition("/")
+		if not db:
+			db = 0
+		(host, _, port) = hostport.partition(":")
+		if not port:
+			port = 6379
+		return RedisConnection(host=host, port=port, db=db)
+
+	def system(self, cmd):
+		"""
+		Execute the system command :obj:`cmd` and returns its output, e.g.
+		the template:
+
+		.. sourcecode:: xml
+
+			<?print globals.system("whoami")?>
+
+		will output the user name.
+		"""
+		return os.popen(cmd).read()
+
+	def load(self, filename, encoding="utf-8"):
+		"""
+		Read a file from disk and returns the content. :obj:`filename` is the
+		filename and :obj:`encoding` is the encoding of the file. The encoding
+		parameter is optional and defaults to ``"utf-8"``:
+
+		.. sourcecode:: xml
+
+			<?code data = globals.load("/home/user/data.txt", "iso-8859-1")?>
+		"""
+		with open(filename, "r", encoding=encoding) as f:
+			return f.read()
+
+	def save(self, filename, data, encoding="utf-8"):
+		r"""
+		Save the string :obj:`data` to a file on disk. :obj:`filename` is the
+		filename and :obj:`encoding` is the encoding of the file. The encoding
+		parameter is optional and defaults to ``"utf-8"``:
+
+		.. sourcecode:: xml
+
+			<?code globals.save("/home/user/data.txt", "foo\nbar\n", "iso-8859-1")?>
+		"""
+		with open(filename, "w", encoding=encoding) as f:
+			f.write(data)
+
+	def compile(self, source, name=None, whitespace="keep", signature=None, startdelim="<?", enddelim="?>"):
+		"""
+		Compile the UL4 source ``source`` into a :class:`~ll.ul4c.Template` object
+		and return it. All other parameters are passed to the
+		:class:`~ll.ul4c.Template` constructor too.
+		"""
+		return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature, startdelim=startdelim, enddelim=enddelim)
+
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL, SQLite or Redis databases", epilog="For more info see http://www.livinglogic.de/Python/scripts_rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used (first template gets rendered)", nargs="+")
@@ -606,8 +739,9 @@ def main(args=None):
 	p.add_argument(      "--redis", dest="redis", help="Allow the templates to connect to Redis databases? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--system", dest="system", help="Allow the templates to execute system commands? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--load", dest="load", help="Allow the templates to load data from arbitrary paths? (default %(default)s)", action=misc.FlagAction, default=True)
+	p.add_argument(      "--save", dest="save", help="Allow the templates to save data to arbitrary paths? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--compile", dest="compile", help="Allow the templates access to the compile function? (default %(default)s)", action=misc.FlagAction, default=True)
-	p.add_argument("-D", "--define", dest="defines", metavar="var=value", help="Pass additional parameters to the template (can be specified multiple times).", action="append", type=define)
+	p.add_argument("-D", "--define", dest="vars", metavar="var=value", help="Pass additional parameters to the template (can be specified multiple times).", action="append", type=define)
 
 	args = p.parse_args(args)
 
@@ -615,14 +749,14 @@ def main(args=None):
 	maintemplate = None
 	for templatename in args.templates:
 		if templatename == "-":
-			templatestream = sys.stdin
+			templatesource = sys.stdin.read()
 			templatename = "stdin"
 		else:
-			templatestream = open(templatename, "r", encoding=args.encoding)
+			with open(templatename, "r", encoding=args.encoding) as f:
+				templatesource = f.read()
 			templatename = os.path.basename(templatename)
 			if os.path.extsep in templatename:
 				templatename = templatename.rpartition(os.extsep)[0]
-		templatesource = templatestream.read()
 		templatename = fixname(templatename)
 		if args.stacktrace == "short":
 			try:
@@ -637,32 +771,29 @@ def main(args=None):
 			maintemplate = template
 		templates[template.name] = template
 
-	vars = dict(templates=templates, encoding=sys.stdout.encoding, error=error)
-	if args.defines:
-		vars.update(args.defines)
-	if args.oracle:
-		vars["oracle"] = oracle
-	if args.mysql:
-		vars["mysql"] = mysql
-	if args.sqlite:
-		vars["sqlite"] = sqlite
-	if args.redis:
-		vars["redis"] = redis
-	if args.system:
-		vars["system"] = system
-	if args.load:
-		vars["load"] = load
-	if args.compile:
-		vars["compile"] = compile
+	globals = Globals(
+		templates=templates,
+		vars=args.vars,
+		encoding=sys.stdout.encoding,
+		oracle=args.oracle,
+		mysql=args.mysql,
+		sqlite=args.sqlite,
+		redis=args.redis,
+		system=args.system,
+		load=args.load,
+		save=args.save,
+		compile=args.compile,
+	)
+
 	if args.stacktrace == "short":
 		try:
-			for part in maintemplate.render(**vars):
+			for part in maintemplate.render(globals=globals):
 				sys.stdout.write(part)
 		except Exception as exc:
 			print_exception_chain(exc)
 			return 1
 	else:
-		for part in maintemplate.render(**vars):
+		for part in maintemplate.render(globals=globals):
 			sys.stdout.write(part)
 
 

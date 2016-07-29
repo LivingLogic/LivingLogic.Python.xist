@@ -19,18 +19,19 @@ import pytest
 
 
 @pytest.fixture(scope="module")
-def db(request):
+def globals(request):
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
-		return rul4.oracle.connect(connectstring)
+		return rul4.Globals(vars={"connectstring": connectstring})
 	else:
 		return None
 
 
 @pytest.mark.db
-def test_oracle_query(db):
-	if db:
+def test_oracle_query(globals):
+	if globals:
 		template = ul4c.Template("""
+			<?code db = globals.oracle(globals.vars.connectstring)?>
 			<?code db.execute('''
 				create table ul4test(
 					ul4_int integer,
@@ -50,13 +51,14 @@ def test_oracle_query(db):
 			""",
 			whitespace="strip"
 		)
-		assert template.renders(db=db) == "1|first|{}|2|second|{}|".format(10000*"first", 10000*"second")
+		assert template.renders(globals=globals) == "1|first|{}|2|second|{}|".format(10000*"first", 10000*"second")
 
 
 @pytest.mark.db
-def test_oracle_execute_function(db):
-	if db:
+def test_oracle_execute_function(globals):
+	if globals:
 		template = ul4c.Template("""
+			<?code db = globals.oracle(globals.vars.connectstring)?>
 			<?code db.execute('''
 				create or replace function ul4test(p_arg integer)
 				return integer
@@ -73,13 +75,14 @@ def test_oracle_execute_function(db):
 			""",
 			whitespace="strip"
 		)
-		assert template.renders(db=db) == "84"
+		assert template.renders(globals=globals) == "84"
 
 
 @pytest.mark.db
-def test_oracle_execute_procedure_out(db):
-	if db:
+def test_oracle_execute_procedure_out(globals):
+	if globals:
 		template = ul4c.Template("""
+			<?code db = globals.oracle(globals.vars.connectstring)?>
 			<?code db.execute('''
 				create or replace procedure ul4test(p_intarg out integer, p_numberarg out number, p_strarg out varchar2, p_clobarg out clob, p_datearg out timestamp)
 				as
@@ -105,4 +108,4 @@ def test_oracle_execute_procedure_out(db):
 			""",
 			whitespace="strip"
 		)
-		assert template.renders(db=db) == "42|42.5|foo|{}|2014-10-05 16:17:18".format(100000*"foo")
+		assert template.renders(globals=globals) == "42|42.5|foo|{}|2014-10-05 16:17:18".format(100000*"foo")

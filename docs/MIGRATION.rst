@@ -21,6 +21,32 @@ Changes to ``ul4``
 	template exception objects.
 
 
+Migrating to version 5.20
+=========================
+
+Changes to ``ul4``
+------------------
+
+*	The variables passed to UL4 templates in :program:`rul4` have been moved
+	into a ``globals`` objects. The following changes have to be made to the
+	template source:
+
+	-	change ``oracle.connect(...)`` to ``globals.oracle(...)``;
+
+	-	change ``mysql.connect(...)`` to ``globals.mysql(...)``;
+
+	-	change ``sqlite.connect(...)`` to ``globals.sqlite(...)``;
+
+	-	change ``system.execute(...)`` to ``globals.system(...)``;
+
+	-	change ``load(...)`` to ``globals.load(...)``;
+
+	-	change ``error(...)`` to ``globals.error(...)``;
+
+	-	change ``foo`` to ``globals.vars.foo`` for a variable ``foo`` defined
+		via :option:`rul4 -D`.
+
+
 Migrating to version 5.17
 =========================
 
