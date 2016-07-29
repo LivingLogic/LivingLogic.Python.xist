@@ -18,14 +18,18 @@ or choose one of the following archives:
 
 .. rst-class:: download
 
-====================================================================================================================================================== ====================== ====
-File                                                                                                                                                   Type                   Size
-====================================================================================================================================================== ====================== ====
-`ll-xist-5.20.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.20.tar.bz2>`_                                                     Source                 539K
-`ll-xist-5.20.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.20.tar.gz>`_                                                       Source                 649K
-`ll-xist-5.20.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.20.zip>`_                                                             Source                 765K
-`ll_xist-5.20-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.20-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5) 513K
-====================================================================================================================================================== ====================== ====
+====================================================================================================================================================== ========================== ====
+File                                                                                                                                                   Type                       Size
+====================================================================================================================================================== ========================== ====
+`ll-xist-5.20.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.20.tar.bz2>`_                                                     Source                     539K
+`ll-xist-5.20.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.20.tar.gz>`_                                                       Source                     649K
+`ll-xist-5.20.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.20.zip>`_                                                             Source                     765K
+`ll_xist-5.20-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.20-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4) 526K
+`ll_xist-5.20-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.20-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4) 526K
+`ll_xist-5.20-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.20-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)     513K
+`ll_xist-5.20-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.20-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5) 525K
+`ll_xist-5.20-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.20-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5) 528K
+====================================================================================================================================================== ========================== ====
 
 
 5.19.4 (released 06/30/2016)
@@ -3808,7 +3812,7 @@ Older versions of some modules were distributed seperately before XIST 3.2
 (when the :mod:`ll.core` package was merged into XIST) and XIST 3.7 (when
 :mod:`ll.orasql` and :mod:`ll.nightshade` were merged into XIST). To
 download those packages you have to hunt around in the
-`HTTP download directory` or the `FTP download directory`.
+`HTTP download directory`_ or the `FTP download directory`_.
 
 .. _FTP download directory: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
 .. _HTTP download directory: http://ftp.livinglogic.de/xist/
