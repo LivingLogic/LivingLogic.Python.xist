@@ -8,19 +8,6 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
-Migrating to version 5.18
-=========================
-
-Changes to ``ul4``
-------------------
-
-*	The UL4 exception :class:`ll.ul4c.Error` has been renamed to
-	:class:`LocationError`.
-
-*	The UL4 function ``type`` now returns the Python class name for date, color,
-	template exception objects.
-
-
 Migrating to version 5.20
 =========================
 
@@ -45,6 +32,19 @@ Changes to ``ul4``
 
 	-	change ``foo`` to ``globals.vars.foo`` for a variable ``foo`` defined
 		via :option:`rul4 -D`.
+
+
+Migrating to version 5.18
+=========================
+
+Changes to ``ul4``
+------------------
+
+*	The UL4 exception :class:`ll.ul4c.Error` has been renamed to
+	:class:`LocationError`.
+
+*	The UL4 function ``type`` now returns the Python class name for date, color,
+	template exception objects.
 
 
 Migrating to version 5.17
