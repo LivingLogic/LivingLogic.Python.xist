@@ -804,8 +804,6 @@ def main(args=None):
 
 	maintemplate = globals.from_args(args)
 
-	print(globals.vars)
-
 	if args.stacktrace == "short":
 		try:
 			for part in maintemplate.render(globals=globals):
