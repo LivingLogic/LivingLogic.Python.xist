@@ -11,6 +11,12 @@ or choose one of the following archives:
 .. autogenerate start
 
 
+5.20.1 (released 08/04/2016)
+----------------------------
+
+(no files for this version)
+
+
 5.20 (released 07/29/2016)
 --------------------------
 
