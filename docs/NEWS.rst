@@ -14,7 +14,7 @@ Changes in 5.20 (released 07/29/2016)
 *	Dictionaries and sets in UL4 now support the :meth:`clear` method.
 
 *	:program:`rul4` now supports saving files to disk, making log calls
-	that print message to ``stderr`` and accessing environment variables.
+	that print messages to ``stderr`` and accessing environment variables.
 	All variables passed to the templates have been moved into an object named
 	``globals``.
 
