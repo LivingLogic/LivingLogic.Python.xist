@@ -648,7 +648,7 @@ class Globals:
 
 	def mysql(self, connectstring):
 		"""
-		Return an :class:`Connection` object to a MySQL database for the
+		Return a :class:`Connection` object to a MySQL database for the
 		connectstring passed in. The format of the connect string is::
 
 			user/password@host/database
@@ -662,7 +662,7 @@ class Globals:
 
 	def sqlite(self, connectstring):
 		"""
-		Return an :class:`Connection` object to an SQLite database for the
+		Return a :class:`Connection` object to an SQLite database for the
 		connectstring passed in. The connectstring will be passed directly
 		to :func:`sqlite3.connect`.
 		"""
