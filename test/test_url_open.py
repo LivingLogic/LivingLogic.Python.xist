@@ -209,7 +209,7 @@ def test_iter():
 
 	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n"
-	yield check, "http://www.livinglogic.de/Python/", b'<?xml version="1.0" encoding="utf-8"?>\n'
+	yield check, "http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n'
 
 
 def test_autocreate_dir():
@@ -451,7 +451,7 @@ def test_resdata():
 			realdata = u.open("rb").resdata()
 			assert realdata.splitlines(True)[0] == firstline
 
-	yield check, "http://www.livinglogic.de/Python/", b'<?xml version="1.0" encoding="utf-8"?>\n'
+	yield check, "http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n'
 
 
 def test_mkdir_rmdir():
