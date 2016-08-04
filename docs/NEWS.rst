@@ -12,7 +12,7 @@ Changes in 5.20.1 (released 08/04/2016)
 ---------------------------------------
 
 *	Fixed a bug in :program:`rul4` when database connections are specified on
-	the command line..
+	the command line.
 
 
 Changes in 5.20 (released 07/29/2016)
