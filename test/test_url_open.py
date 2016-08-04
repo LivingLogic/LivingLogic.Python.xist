@@ -195,7 +195,7 @@ def test_readline():
 
 	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n"
-	yield check, "http://www.livinglogic.de/Python/", b'<?xml version="1.0" encoding="utf-8"?>\n'
+	yield check, "http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n'
 
 
 def test_iter():
