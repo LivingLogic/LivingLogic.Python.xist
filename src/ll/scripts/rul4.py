@@ -495,45 +495,6 @@ def fixname(name):
 	return newname
 
 
-def define(arg):
-	(name, _, value) = arg.partition("=")
-	(name, _, type) = name.partition(":")
-	if any(c != "_" and not (c.isalnum() if i else c.isalpha()) for (i, c) in enumerate(name)):
-		raise argparse.ArgumentTypeError("{!r} is not a legal variable name".format(name))
-
-	if type == "int":
-		if not value:
-			return (name, 0)
-		try:
-			return (name,  int(value))
-		except ValueError:
-			raise argparse.ArgumentTypeError("{!r} is not a legal integer value".format(value))
-	elif type == "float":
-		if not value:
-			return (name, 0.)
-		try:
-			return (name, float(value))
-		except ValueError:
-			raise argparse.ArgumentTypeError("{!r} is not a legal float value".format(value))
-	elif type == "bool":
-		if value in ("", "0", "no", "false", "False"):
-			return (name, False)
-		if value in ("1", "yes", "true", "True"):
-			return (name, True)
-		raise argparse.ArgumentTypeError("{!r} is not a legal bool value".format(value))
-	elif type == "oracle":
-		return (name, oracle.connect(value))
-	elif type == "sqlite":
-		return (name, sqlite.connect(value))
-	elif type == "mysql":
-		return (name, mysql.connect(value))
-	elif type == "redis":
-		return (name, redis.connect(value))
-	elif type and type != "str":
-		raise argparse.ArgumentTypeError("{!r} is not a legal type".format(type))
-	return (name, value)
-
-
 def print_exception_chain(exc):
 	print("UL4 traceback (most recent call last):", file=sys.stderr)
 	for exc in misc.exception_chain(exc):
@@ -570,8 +531,8 @@ class Globals:
 
 	ul4attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
 	def __init__(self, templates=None, vars=None, encoding=None, oracle=True, mysql=True, sqlite=True, redis=True, system=True, load=True, save=True, compile=True):
-		self.templates = templates
-		self.encoding = encoding
+		self.templates = templates if templates is not None else {}
+		self.encoding = encoding if encoding is not None else sys.stdout.encoding
 		self.vars = vars if vars is not None else {}
 		self.env = os.environ
 		# Deactivate features if requested by overwriting the method with an instance attribute.
@@ -591,6 +552,61 @@ class Globals:
 			self.save = None
 		if not compile:
 			self.compile = None
+
+	def from_args(self, args):
+		"""
+		Sets the attributes of :obj:`self` from the object :obj:`args` (which
+		must be an instance of :class:`argparse.Namespace`).
+
+		Returns the main template.
+		"""
+		templates = {}
+		maintemplate = None
+		for templatename in args.templates:
+			if templatename == "-":
+				templatesource = sys.stdin.read()
+				templatename = "stdin"
+			else:
+				with open(templatename, "r", encoding=args.encoding) as f:
+					templatesource = f.read()
+				templatename = os.path.basename(templatename)
+				if os.path.extsep in templatename:
+					templatename = templatename.rpartition(os.extsep)[0]
+			templatename = fixname(templatename)
+			if args.stacktrace == "short":
+				try:
+					template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
+				except Exception as exc:
+					print_exception_chain(exc)
+					return 1
+			else:
+				template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
+			# The first template is the main template
+			if maintemplate is None:
+				maintemplate = template
+			templates[template.name] = template
+		self.templates = templates
+
+		self.vars = dict(args.vars)
+
+		def option(name):
+			if getattr(args, name):
+				if getattr(self, name) is None:
+					delattr(self, name)
+			else:
+				if getattr(self, name) is not None:
+					setattr(self, name, None)
+
+		option("oracle")
+		option("mysql")
+		option("sqlite")
+		option("redis")
+		option("system")
+		option("load")
+		option("save")
+		option("compile")
+
+		return maintemplate
 
 	def error(self, message, ast=None):
 		"""
@@ -725,9 +741,50 @@ class Globals:
 		"""
 		return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature, startdelim=startdelim, enddelim=enddelim)
 
+	def define(self, arg):
+		(name, _, value) = arg.partition("=")
+		(name, _, type) = name.partition(":")
+		if any(c != "_" and not (c.isalnum() if i else c.isalpha()) for (i, c) in enumerate(name)):
+			raise argparse.ArgumentTypeError("{!r} is not a legal variable name".format(name))
+
+		if type == "int":
+			if not value:
+				return (name, 0)
+			try:
+				return (name,  int(value))
+			except ValueError:
+				raise argparse.ArgumentTypeError("{!r} is not a legal integer value".format(value))
+		elif type == "float":
+			if not value:
+				return (name, 0.)
+			try:
+				return (name, float(value))
+			except ValueError:
+				raise argparse.ArgumentTypeError("{!r} is not a legal float value".format(value))
+		elif type == "bool":
+			if value in ("", "0", "no", "false", "False"):
+				return (name, False)
+			if value in ("1", "yes", "true", "True"):
+				return (name, True)
+			raise argparse.ArgumentTypeError("{!r} is not a legal bool value".format(value))
+		elif type == "oracle":
+			return (name, self.oracle(value))
+		elif type == "sqlite":
+			return (name, self.sqlite(value))
+		elif type == "mysql":
+			return (name, self.mysql(value))
+		elif type == "redis":
+			return (name, self.redis(value))
+		elif type and type != "str":
+			raise argparse.ArgumentTypeError("{!r} is not a legal type".format(type))
+		return (name, value)
 
 
 def main(args=None):
+	globals = Globals()
+
+	define = globals.define
+
 	p = argparse.ArgumentParser(description="render UL4 templates with access to Oracle, MySQL, SQLite or Redis databases", epilog="For more info see http://www.livinglogic.de/Python/scripts_rul4.html")
 	p.add_argument("templates", metavar="template", help="templates to be used (first template gets rendered)", nargs="+")
 	p.add_argument("-e", "--encoding", dest="encoding", help="Encoding for template sources (default %(default)s)", default="utf-8", metavar="ENCODING")
@@ -745,45 +802,9 @@ def main(args=None):
 
 	args = p.parse_args(args)
 
-	templates = {}
-	maintemplate = None
-	for templatename in args.templates:
-		if templatename == "-":
-			templatesource = sys.stdin.read()
-			templatename = "stdin"
-		else:
-			with open(templatename, "r", encoding=args.encoding) as f:
-				templatesource = f.read()
-			templatename = os.path.basename(templatename)
-			if os.path.extsep in templatename:
-				templatename = templatename.rpartition(os.extsep)[0]
-		templatename = fixname(templatename)
-		if args.stacktrace == "short":
-			try:
-				template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
-			except Exception as exc:
-				print_exception_chain(exc)
-				return 1
-		else:
-			template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
-		# The first template is the main template
-		if maintemplate is None:
-			maintemplate = template
-		templates[template.name] = template
+	maintemplate = globals.from_args(args)
 
-	globals = Globals(
-		templates=templates,
-		vars=args.vars,
-		encoding=sys.stdout.encoding,
-		oracle=args.oracle,
-		mysql=args.mysql,
-		sqlite=args.sqlite,
-		redis=args.redis,
-		system=args.system,
-		load=args.load,
-		save=args.save,
-		compile=args.compile,
-	)
+	print(globals.vars)
 
 	if args.stacktrace == "short":
 		try:
