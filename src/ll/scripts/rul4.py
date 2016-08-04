@@ -587,7 +587,7 @@ class Globals:
 			templates[template.name] = template
 		self.templates = templates
 
-		self.vars = dict(args.vars)
+		self.vars = dict(args.vars) if args.vars is not None else {}
 
 		def option(name):
 			if getattr(args, name):
