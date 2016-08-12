@@ -1085,6 +1085,8 @@ def test_sub(T):
 	if T is not TemplatePHP:
 		assert "2012-10-16 23:59:59.500000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
 		assert "2012-10-16 23:59:59.999000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 1000))
+		assert "2 days, 0:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.datetime(2012, 10, 15))
+		assert "730 days, 0:00:00" == t.renders(x=datetime.datetime(1999, 1, 1), y=datetime.datetime(1997, 1, 1))
 	assert "0:00:00" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
 	assert "1 day, 0:00:00" == t.renders(x=datetime.timedelta(2), y=datetime.timedelta(1))
 	assert "23:59:59" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
