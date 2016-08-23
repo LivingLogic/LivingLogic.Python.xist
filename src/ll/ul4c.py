@@ -4667,6 +4667,12 @@ def function_hsv(h, s, v, a=1.0):
 
 
 @Context.makefunction
+def function_md5(string):
+	import hashlib
+	return hashlib.md5(string.encode("utf-8")).hexdigest()
+
+
+@Context.makefunction
 def function_round(x, digits=0):
 	result = round(x, digits)
 	if digits <= 0:

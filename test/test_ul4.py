@@ -3454,6 +3454,16 @@ def test_function_hsv(T):
 
 
 @pytest.mark.ul4
+def test_function_md5(T):
+	result = "acbd18db4cc2f85cedef654fccc4a4d8"
+	import hashlib
+	assert result == T("<?print md5('foo')?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert result == T("<?print md5(string='foo')?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_round(T):
 	with raises(argumentmismatchmessage):
 		T("<?print round()?>").renders()

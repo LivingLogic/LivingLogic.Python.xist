@@ -1471,6 +1471,12 @@ example::
 prints ``#fff``.
 
 
+``md5``
+"""""""
+
+``md5(str)`` returns the MD5 hash of the string ``str``.
+
+
 ``random``
 """"""""""
 
