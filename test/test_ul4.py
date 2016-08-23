@@ -351,7 +351,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return self.runcode("d8 {dir}/ul4.js {fn}", source)
+		return self.runcode("d8 {dir}/ul4.min.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -373,7 +373,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return self.runcode("d8 {dir}/ul4.js {fn}", source)
+		return self.runcode("d8 {dir}/ul4.min.js {fn}", source)
 
 
 class TemplateJavascriptSpidermonkey(TemplateJavascript):
@@ -394,7 +394,7 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			}}
 		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
 
-		return self.runcode("js -f {dir}/ul4.js -f {fn}", source)
+		return self.runcode("js -f {dir}/ul4.min.js -f {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
