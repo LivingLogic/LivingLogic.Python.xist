@@ -12,9 +12,13 @@ Changes in 5.21 (released 09/??/2016)
 -------------------------------------
 
 *	Added a function ``md5`` to UL4.
+
 *	If constant folding doesn't work for unary or binary operators in UL4,
 	compiling the template no longer fails. Instead the original AST will be
 	used unchanged.
+
+*	The method :meth:`ll.color.Color.__add__` has been removed, i.e. color can
+	no longer be added.
 
 
 Changes in 5.20.1 (released 08/04/2016)

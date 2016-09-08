@@ -8,6 +8,17 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.21
+=========================
+
+Changes to ``ll.color``
+-----------------------
+
+*	Colors can no longer be added. This was done with the formula::
+
+		0.5*(c1.r+c2.r), 0.5*(c1.g+c2.g), 0.5*(c1.b+c2.b), 255-(255-c1.a)*(255-c2.a)/255.)
+
+
 Migrating to version 5.20
 =========================
 

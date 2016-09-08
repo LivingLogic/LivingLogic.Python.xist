@@ -262,7 +262,7 @@ class Color(tuple):
 		return self.fromhls(h, l, s, a)
 
 	def __add__(self, other):
-		return self.__class__(0.5*(self[0]+other[0]), 0.5*(self[1]+other[1]), 0.5*(self[2]+other[2]), 255-(255-self[3])*(255-other[3])/255.)
+		raise NotImplementedError
 
 	def __mul__(self, factor):
 		return self.__class__(factor*self[0], factor*self[1], factor*self[2], self[3])
