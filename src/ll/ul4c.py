@@ -2394,9 +2394,12 @@ class Unary(Code):
 	@classmethod
 	def make(cls, tag, pos, obj):
 		if isinstance(obj, Const):
-			result = cls.evalfold(obj.value)
-			if not isinstance(result, Undefined):
-				return Const(tag, pos, result)
+			try:
+				result = cls.evalfold(obj.value)
+				if not isinstance(result, Undefined):
+					return Const(tag, pos, result)
+			except Exception:
+				pass # If constant folding doesn't work, return the original AST
 		return cls(tag, pos, obj)
 
 
@@ -2524,9 +2527,12 @@ class Binary(Code):
 	@classmethod
 	def make(cls, tag, pos, obj1, obj2):
 		if isinstance(obj1, Const) and isinstance(obj2, Const):
-			result = cls.evalfold(obj1.value, obj2.value)
-			if not isinstance(result, Undefined):
-				return Const(tag, pos, result)
+			try:
+				result = cls.evalfold(obj1.value, obj2.value)
+				if not isinstance(result, Undefined):
+					return Const(tag, pos, result)
+			except Exception:
+				pass # If constant folding doesn't work, return the original AST
 		return cls(tag, pos, obj1, obj2)
 
 

@@ -8,10 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.21 (released 08/??/2016)
----------------------------------------
+Changes in 5.21 (released 09/??/2016)
+-------------------------------------
 
 *	Added a function ``md5`` to UL4.
+*	If constant folding doesn't work for unary or binary operators in UL4,
+	compiling the template no longer fails. Instead the original AST will be
+	used unchanged.
 
 
 Changes in 5.20.1 (released 08/04/2016)
