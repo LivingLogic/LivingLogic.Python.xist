@@ -359,14 +359,15 @@ def test_clob_fromprocedure():
 	if dbname:
 		db = orasql.connect(dbname)
 		proc = db.getobject("orasql_testprocedure")
-		@pytest.mark.db
+
 		def check(sizearg):
 			result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 			assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
 			assert result.p_inout.read() == ""
-		yield check, 8192
-		yield check, 0
-		yield check, None
+
+		check(8192)
+		check(0)
+		check(None)
 
 
 @pytest.mark.db

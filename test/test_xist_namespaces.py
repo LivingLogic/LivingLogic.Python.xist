@@ -35,20 +35,20 @@ def test_variousnamespaces():
 				node = obj()
 				node.conv().bytes(prefixdefault=True)
 
-	yield check, html
-	yield check, ihtml
-	yield check, wml
-	yield check, specials, specials.include, specials.filetime, specials.filesize
-	yield check, form
-	yield check, meta
-	yield check, htmlspecials, htmlspecials.autoimg, htmlspecials.autopixel
-	yield check, svg
-	yield check, fo
-	yield check, docbook
-	yield check, jsp
-	yield check, struts_html, struts_html.taglib # taglib requires a custom prefix mapping for publishing
-	yield check, struts_config
-	yield check, tld
+	check(html)
+	check(ihtml)
+	check(wml)
+	check(specials, specials.include, specials.filetime, specials.filesize)
+	check(form)
+	check(meta)
+	check(htmlspecials, htmlspecials.autoimg, htmlspecials.autopixel)
+	check(svg)
+	check(fo)
+	check(docbook)
+	check(jsp)
+	check(struts_html, struts_html.taglib) # taglib requires a custom prefix mapping for publishing
+	check(struts_config)
+	check(tld)
 
 
 def test_attributeexamples():

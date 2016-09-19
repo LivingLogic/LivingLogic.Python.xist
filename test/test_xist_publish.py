@@ -149,7 +149,7 @@ def test_encoding():
 		assert node == node2
 
 	for encoding in ("utf-8", "utf-16", "utf-16-be", "utf-16-le", "latin-1", "ascii"):
-		yield check, encoding
+		check(encoding)
 
 
 def test_xmlheader():

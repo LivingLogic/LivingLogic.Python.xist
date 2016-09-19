@@ -22,7 +22,7 @@ def test_noswitch():
 			for bold in (0000, 0o100):
 				for foreground in (0000, 0o070):
 					for background in (0000, 0o007):
-						yield check, blink|underline|bold|foreground|background
+						check(blink|underline|bold|foreground|background)
 
 
 def test_blink():
@@ -86,4 +86,3 @@ def test_pushpop():
 	assert "".join(c.feed("hinz")) == "\033[36mhinz"
 	c.popcolor()
 	assert "".join(c.feed("kunz")) == "\033[0mkunz"
-

@@ -59,10 +59,10 @@ def test_withfile():
 		res = org.withfile(file)
 		assert exp == res
 
-	yield check, "", "gurk", "gurk"
-	yield check, "/", "gurk", "/gurk"
-	yield check, "/hurz", "gurk", "/gurk"
-	yield check, "/hurz.gif", "gurk.gif", "/gurk.gif"
+	check("", "gurk", "gurk")
+	check("/", "gurk", "/gurk")
+	check("/hurz", "gurk", "/gurk")
+	check("/hurz.gif", "gurk.gif", "/gurk.gif")
 
 
 def test_withoutfile():
@@ -72,12 +72,12 @@ def test_withoutfile():
 		res = org.withoutfile()
 		assert exp == res
 
-	yield check, "", "./"
-	yield check, "/", "/"
-	yield check, "/hurz", "/"
-	yield check, "hurz", "./"
-	yield check, "/gurk/hurz/hinz/", "/gurk/hurz/hinz/"
-	yield check, "/gurk/hurz/hinz/kunz", "/gurk/hurz/hinz/"
+	check("", "./")
+	check("/", "/")
+	check("/hurz", "/")
+	check("hurz", "./")
+	check("/gurk/hurz/hinz/", "/gurk/hurz/hinz/")
+	check("/gurk/hurz/hinz/kunz", "/gurk/hurz/hinz/")
 
 
 def test_withext():
@@ -87,13 +87,13 @@ def test_withext():
 		res = org.withext(ext)
 		assert exp == res
 
-	yield check, "", "py", ".py"
-	yield check, "/", "py", "/.py"
-	yield check, "/hurz", "py", "/hurz.py"
-	yield check, "/hurz.", "py", "/hurz.py"
-	yield check, "/hurz.gif", "py", "/hurz.py"
-	yield check, "/hurz.gif.png", "py", "/hurz.gif.py"
-	yield check, "/hurz.gif.png", "pyc.py", "/hurz.gif.pyc.py"
+	check("", "py", ".py")
+	check("/", "py", "/.py")
+	check("/hurz", "py", "/hurz.py")
+	check("/hurz.", "py", "/hurz.py")
+	check("/hurz.gif", "py", "/hurz.py")
+	check("/hurz.gif.png", "py", "/hurz.gif.py")
+	check("/hurz.gif.png", "pyc.py", "/hurz.gif.pyc.py")
 
 
 def test_withoutext():
@@ -103,12 +103,12 @@ def test_withoutext():
 		res = org.withoutext()
 		assert exp == res
 
-	yield check, "", ""
-	yield check, "/", "/"
-	yield check, "/gurk.1/hurz", "/gurk.1/hurz"
-	yield check, "/gurk.2/hurz.gif", "/gurk.2/hurz"
-	yield check, "/gurk.3/hurz.gif.png", "/gurk.3/hurz.gif"
-	yield check, "/gurk.4/hurz.", "/gurk.4/hurz"
+	check("", "")
+	check("/", "/")
+	check("/gurk.1/hurz", "/gurk.1/hurz")
+	check("/gurk.2/hurz.gif", "/gurk.2/hurz")
+	check("/gurk.3/hurz.gif.png", "/gurk.3/hurz.gif")
+	check("/gurk.4/hurz.", "/gurk.4/hurz")
 
 
 def test_parse():
@@ -149,50 +149,50 @@ def test_join_rfc2396():
 		assert str(baseurl)/relurl == resurl, "{!r}/{!r} is {!r}, but should be {!r}".format(baseurl, relurl, str(baseurl)/relurl, resurl)
 
 	# RFC2396 Section C.1: Normal Examples
-	yield check, "g:h",           "g:h"
-	yield check, "g",             "http://a/b/c/g"
-	yield check, "./g",           "http://a/b/c/g"
-	yield check, "g/",            "http://a/b/c/g/"
-	yield check, "/g",            "http://a/g"
-	yield check, "//g",           "http://g"
-	yield check, "?y",            "http://a/b/c/?y"
-	yield check, "g?y",           "http://a/b/c/g?y"
-	yield check, "#s",            "http://a/b/c/d;p?q#s"
-	yield check, "g#s",           "http://a/b/c/g#s"
-	yield check, "g?y#s",         "http://a/b/c/g?y#s"
-	yield check, ";x",            "http://a/b/c/;x"
-	yield check, "g;x",           "http://a/b/c/g;x"
-	yield check, "g;x?y#s",       "http://a/b/c/g;x?y#s"
-	yield check, ".",             "http://a/b/c/"
-	yield check, "./",            "http://a/b/c/"
-	yield check, "..",            "http://a/b/"
-	yield check, "../",           "http://a/b/"
-	yield check, "../g",          "http://a/b/g"
-	yield check, "../..",         "http://a/"
-	yield check, "../../",        "http://a/"
-	yield check, "../../g",       "http://a/g"
+	check("g:h",           "g:h")
+	check("g",             "http://a/b/c/g")
+	check("./g",           "http://a/b/c/g")
+	check("g/",            "http://a/b/c/g/")
+	check("/g",            "http://a/g")
+	check("//g",           "http://g")
+	check("?y",            "http://a/b/c/?y")
+	check("g?y",           "http://a/b/c/g?y")
+	check("#s",            "http://a/b/c/d;p?q#s")
+	check("g#s",           "http://a/b/c/g#s")
+	check("g?y#s",         "http://a/b/c/g?y#s")
+	check(";x",            "http://a/b/c/;x")
+	check("g;x",           "http://a/b/c/g;x")
+	check("g;x?y#s",       "http://a/b/c/g;x?y#s")
+	check(".",             "http://a/b/c/")
+	check("./",            "http://a/b/c/")
+	check("..",            "http://a/b/")
+	check("../",           "http://a/b/")
+	check("../g",          "http://a/b/g")
+	check("../..",         "http://a/")
+	check("../../",        "http://a/")
+	check("../../g",       "http://a/g")
 
 	# RFC2396 Section C.2: Abnormal Examples
-	yield check, "",              "http://a/b/c/d;p?q"
-	yield check, "../../../g",    "http://a/../g"
-	yield check, "../../../../g", "http://a/../../g"
-	yield check, "/./g",          "http://a/./g"
-	yield check, "/../g",         "http://a/../g"
-	yield check, "g.",            "http://a/b/c/g."
-	yield check, ".g",            "http://a/b/c/.g"
-	yield check, "g..",           "http://a/b/c/g.."
-	yield check, "..g",           "http://a/b/c/..g"
-	yield check, "./../g",        "http://a/b/g"
-	yield check, "./g/.",         "http://a/b/c/g/"
-	yield check, "g/./h",         "http://a/b/c/g/h"
-	yield check, "g/../h",        "http://a/b/c/h"
-	yield check, "g;x=1/./y",     "http://a/b/c/g;x=1/y"
-	yield check, "g;x=1/../y",    "http://a/b/c/y"
-	yield check, "g?y/./x",       "http://a/b/c/g?y/./x"
-	yield check, "g?y/../x",      "http://a/b/c/g?y/../x"
-	yield check, "g#s/./x",       "http://a/b/c/g#s/./x"
-	yield check, "g#s/../x",      "http://a/b/c/g#s/../x"
-	yield check, "http:g",        "http:g" # use the validating version here
+	check("",              "http://a/b/c/d;p?q")
+	check("../../../g",    "http://a/../g")
+	check("../../../../g", "http://a/../../g")
+	check("/./g",          "http://a/./g")
+	check("/../g",         "http://a/../g")
+	check("g.",            "http://a/b/c/g.")
+	check(".g",            "http://a/b/c/.g")
+	check("g..",           "http://a/b/c/g..")
+	check("..g",           "http://a/b/c/..g")
+	check("./../g",        "http://a/b/g")
+	check("./g/.",         "http://a/b/c/g/")
+	check("g/./h",         "http://a/b/c/g/h")
+	check("g/../h",        "http://a/b/c/h")
+	check("g;x=1/./y",     "http://a/b/c/g;x=1/y")
+	check("g;x=1/../y",    "http://a/b/c/y")
+	check("g?y/./x",       "http://a/b/c/g?y/./x")
+	check("g?y/../x",      "http://a/b/c/g?y/../x")
+	check("g#s/./x",       "http://a/b/c/g#s/./x")
+	check("g#s/../x",      "http://a/b/c/g#s/../x")
+	check("http:g",        "http:g") # use the validating version here
 
 
 def test_join():
@@ -204,23 +204,23 @@ def test_join():
 		# This checks rdiv
 		assert str(baseurl)/relurl == resurl, "{!r}/{!r} is {!r}, but should be {!r}".format(baseurl, relurl, str(baseurl)/relurl, resurl)
 
-	yield check, "http://test.com/index.html", "impress.html", "http://test.com/impress.html"
-	yield check, "http://test.com/index.html", "", "http://test.com/index.html"
-	yield check, "/bb/cc/", "http:", "http:"
-	yield check, "mailto:x@y.z", "index.html", "index.html"
-	yield check, "mailto:x@y.z", "", "mailto:x@y.z"
-	yield check, "javascript:return ':/:/:';", "index.html", "index.html"
-	yield check, "javascript:document.write('http://foo@bar.com:81/foo;bar/bar;foo?x=y#frag');", "index.html", "index.html"
-	yield check, "mailto:x@y", "", "mailto:x@y"
-	yield check, "http://test.com/gurk/hurz.gif", "/index.html", "http://test.com/index.html"
-	yield check, "http://test.com/gurk/hurz.gif", "../", "http://test.com/"
-	yield check, "http://test.com/gurk/hurz.gif", "../gurk.gif?foo=bar#nix", "http://test.com/gurk.gif?foo=bar#nix"
-	yield check, "http://test.com/gurk/hurz.gif", "../../gurk.gif?foo=bar#nix", "http://test.com/../gurk.gif?foo=bar#nix"
-	yield check, "http://test.com/gurk/hurz.gif", "root:gurk.gif", "root:gurk.gif"
-	yield check, "root:gurk.gif", "http://test.com/gurk/hurz.gif", "http://test.com/gurk/hurz.gif"
-	yield check, "root:gurk/hurz/hinz.gif", "hinz/kunz.gif", "root:gurk/hurz/hinz/kunz.gif"
-	yield check, "root:gurk/hurz/hinz.gif", "root:hinz/kunz.gif", "root:hinz/kunz.gif"
-	yield check, "http://test.com", "gurk", "http://test.com/gurk"
+	check("http://test.com/index.html", "impress.html", "http://test.com/impress.html")
+	check("http://test.com/index.html", "", "http://test.com/index.html")
+	check("/bb/cc/", "http:", "http:")
+	check("mailto:x@y.z", "index.html", "index.html")
+	check("mailto:x@y.z", "", "mailto:x@y.z")
+	check("javascript:return ':/:/:';", "index.html", "index.html")
+	check("javascript:document.write('http://foo@bar.com:81/foo;bar/bar;foo?x=y#frag');", "index.html", "index.html")
+	check("mailto:x@y", "", "mailto:x@y")
+	check("http://test.com/gurk/hurz.gif", "/index.html", "http://test.com/index.html")
+	check("http://test.com/gurk/hurz.gif", "../", "http://test.com/")
+	check("http://test.com/gurk/hurz.gif", "../gurk.gif?foo=bar#nix", "http://test.com/gurk.gif?foo=bar#nix")
+	check("http://test.com/gurk/hurz.gif", "../../gurk.gif?foo=bar#nix", "http://test.com/../gurk.gif?foo=bar#nix")
+	check("http://test.com/gurk/hurz.gif", "root:gurk.gif", "root:gurk.gif")
+	check("root:gurk.gif", "http://test.com/gurk/hurz.gif", "http://test.com/gurk/hurz.gif")
+	check("root:gurk/hurz/hinz.gif", "hinz/kunz.gif", "root:gurk/hurz/hinz/kunz.gif")
+	check("root:gurk/hurz/hinz.gif", "root:hinz/kunz.gif", "root:hinz/kunz.gif")
+	check("http://test.com", "gurk", "http://test.com/gurk")
 
 
 def test_normalize():
@@ -231,27 +231,27 @@ def test_normalize():
 		u2 = url.URL(u2)
 		assert u1 == u2, "{!r} normalized is {!r}, but should be {!r}".format(u, u1, u2)
 
-	yield check, "", ""
-	yield check, "./", ""
-	yield check, "/./", "/"
-	yield check, "xx", "xx"
-	yield check, "xx/yy", "xx/yy"
-	yield check, "xx/..", ""
-	yield check, "xx/../.", ""
-	yield check, "./xx/..", ""
-	yield check, "./xx/../.", ""
-	yield check, "xx/./..", ""
-	yield check, "xx/yy/..", "xx/"
-	yield check, "xx//yy/../..", ""
-	yield check, "xx//yy/./..", "xx/"
-	yield check, "xx//yy//../", "xx/"
-	yield check, "xx/../..//", "../"
-	yield check, "xx/.././..", ".." # ".." parts above the root loose their "directoryness", otherwise this would be "../"
-	yield check, "xx/.", "xx/"
-	yield check, "./xx", "xx"
-	yield check, "/xx", "/xx"
-	yield check, "/./xx", "/xx"
-	yield check, "xx/../xx/../xx", "xx"
+	check("", "")
+	check("./", "")
+	check("/./", "/")
+	check("xx", "xx")
+	check("xx/yy", "xx/yy")
+	check("xx/..", "")
+	check("xx/../.", "")
+	check("./xx/..", "")
+	check("./xx/../.", "")
+	check("xx/./..", "")
+	check("xx/yy/..", "xx/")
+	check("xx//yy/../..", "")
+	check("xx//yy/./..", "xx/")
+	check("xx//yy//../", "xx/")
+	check("xx/../..//", "../")
+	check("xx/.././..", "..") # ".." parts above the root loose their "directoryness", otherwise this would be "../"
+	check("xx/.", "xx/")
+	check("./xx", "xx")
+	check("/xx", "/xx")
+	check("/./xx", "/xx")
+	check("xx/../xx/../xx", "xx")
 
 
 def test_str():
@@ -268,23 +268,23 @@ def test_relative():
 		resurl = url.URL(res)
 		assert relurl.relative(baseurl) == resurl, "{!r}.relative({!r}) is {!r}, but should be {!r}".format(relurl, baseurl, relurl.relative(baseurl), resurl)
 
-	yield check, "./", "./", "./"
-	yield check, "cc.html", "./", "./"
-	yield check, "./cc.html", "./", "./"
-	yield check, "file:./cc.html", "file:./", "./"
-	yield check, "root:./cc.html", "file:./", "file:./"
-	yield check, "root:xist/Documentation.html", "http://server/", "http://server/"
-	yield check, "root:cc.html", "root:", "./"
-	yield check, "root:cc.html", "./", "./"
-	yield check, "cc.html", "#mark", "#mark"
-	yield check, "root:cc.html", "root:#mark", "./#mark"
-	yield check, "root:cc.html", "#mark", "#mark"
-	yield check, "root:cc.html", "root:cc.html#mark", "#mark"
-	yield check, "root:cc.html", "root:dd.html#mark", "dd.html#mark"
-	yield check, "root:aa/bb/cc.html", "root:", "../../"
-	yield check, "", "", ""
-	yield check, "http://server/aa/bb.html", "http://server/aa/cc.html", "cc.html"
-	yield check, "/aa/bb.html", "/xx.html", "/xx.html" # we don't handle URLs without scheme
+	check("./", "./", "./")
+	check("cc.html", "./", "./")
+	check("./cc.html", "./", "./")
+	check("file:./cc.html", "file:./", "./")
+	check("root:./cc.html", "file:./", "file:./")
+	check("root:xist/Documentation.html", "http://server/", "http://server/")
+	check("root:cc.html", "root:", "./")
+	check("root:cc.html", "./", "./")
+	check("cc.html", "#mark", "#mark")
+	check("root:cc.html", "root:#mark", "./#mark")
+	check("root:cc.html", "#mark", "#mark")
+	check("root:cc.html", "root:cc.html#mark", "#mark")
+	check("root:cc.html", "root:dd.html#mark", "dd.html#mark")
+	check("root:aa/bb/cc.html", "root:", "../../")
+	check("", "", "")
+	check("http://server/aa/bb.html", "http://server/aa/cc.html", "cc.html")
+	check("/aa/bb.html", "/xx.html", "/xx.html") # we don't handle URLs without scheme
 
 
 def test_query():

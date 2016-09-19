@@ -52,11 +52,11 @@ def test_parsingmethods():
 	prefixes = {None: a.xmlns}
 	pool = xsc.Pool(a)
 
-	yield check, b, parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
-	yield check, s, parse.Encoder(encoding="utf-8"), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
-	yield check, parse.Iter(b), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool) # parse byte by byte
-	yield check, parse.Stream(io.BytesIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)
-	yield check, parse.ETree(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Node(pool)
+	check(b, parse.Expat(), parse.NS(a.xmlns), parse.Node(pool))
+	check(s, parse.Encoder(encoding="utf-8"), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool))
+	check(parse.Iter(b), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool)) # parse byte by byte
+	check(parse.Stream(io.BytesIO(b), bufsize=1), parse.Expat(), parse.NS(a.xmlns), parse.Node(pool))
+	check(parse.ETree(cElementTree.fromstring(b), defaultxmlns=a.xmlns), parse.Node(pool))
 
 
 def test_parselocationsgmlop():
@@ -161,8 +161,8 @@ def test_multipleparsecalls():
 				assert parse.tree(b"<a>gurk</a>", parser, parse.NS(html), parse.Node()).string() == "<a>gurk</a>"
 
 	# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
-	for parser in (parse.SGMLOP, parse.Expat):
-		yield check, parser()
+	check(parse.SGMLOP())
+	check(parse.Expat())
 
 
 def test_parseentities_sgmlop():
@@ -172,21 +172,21 @@ def test_parseentities_sgmlop():
 		assert str(node) == output
 		assert str(node.attrs.title) == output
 
-	yield check, "a", "a"
-	yield check, ";a;", ";a;"
-	yield check, "&lt;", "<"
-	yield check, "&lt;&gt;", "<>"
-	yield check, "&gt;", ">"
-	yield check, "&apos;", "'"
-	yield check, "&quot;", '"'
-	yield check, "&amp;", "&"
-	yield check, "&amp;", "&"
-	yield check, "a&amp;b", "a&b"
-	yield check, "&foo;", "FOO"
-	yield check, "&bar;", "\x42"
-	yield check, "&#32;", " "
-	yield check, "&#x20;", " "
-	yield check, "&#x3042;", "\u3042"
+	check("a", "a")
+	check(";a;", ";a;")
+	check("&lt;", "<")
+	check("&lt;&gt;", "<>")
+	check("&gt;", ">")
+	check("&apos;", "'")
+	check("&quot;", '"')
+	check("&amp;", "&")
+	check("&amp;", "&")
+	check("a&amp;b", "a&b")
+	check("&foo;", "FOO")
+	check("&bar;", "\x42")
+	check("&#32;", " ")
+	check("&#x20;", " ")
+	check("&#x3042;", "\u3042")
 
 
 def test_parseattr_sgmlop():
@@ -195,13 +195,13 @@ def test_parseattr_sgmlop():
 		node = node.walknodes(a)[0]
 		assert str(node.attrs.title) == output
 
-	yield check, b"""<a title=x></a>""", "x"
-	yield check, b"""<a title=x/>""", "x"
-	yield check, b"""<a title=x id=42/>""", "x"
-	yield check, b"""<a title="x" id=42/>""", "x"
-	yield check, b"""<a title='x' id=42/>""", "x"
-	yield check, b"""<a title='x"y' id=42/>""", 'x"y'
-	yield check, b"""<a title="x'y" id=42/>""", "x'y"
+	check(b"""<a title=x></a>""", "x")
+	check(b"""<a title=x/>""", "x")
+	check(b"""<a title=x id=42/>""", "x")
+	check(b"""<a title="x" id=42/>""", "x")
+	check(b"""<a title='x' id=42/>""", "x")
+	check(b"""<a title='x"y' id=42/>""", 'x"y')
+	check(b"""<a title="x'y" id=42/>""", "x'y")
 
 
 def test_parsestringurl():

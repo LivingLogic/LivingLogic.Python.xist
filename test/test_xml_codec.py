@@ -169,14 +169,14 @@ def test_decoder():
 	assert id.decode(b"<?xml version='1.0' encoding='utf-16'?>") == "<?xml version='1.0' encoding='ascii'?>"
 
 	# Autodetectable encodings
-	yield checkauto, "utf-8-sig"
-	yield checkauto, "utf-16"
-	yield checkauto, "utf-16-le"
-	yield checkauto, "utf-16-be"
+	checkauto("utf-8-sig")
+	checkauto("utf-16")
+	checkauto("utf-16-le")
+	checkauto("utf-16-be")
 	if haveutf32:
-		yield checkauto, "utf-32"
-		yield checkauto, "utf-32-le"
-		yield checkauto, "utf-32-be"
+		checkauto("utf-32")
+		checkauto("utf-32-le")
+		checkauto("utf-32-be")
 
 	def checkdecl(encoding, input="<?xml version='1.0' encoding={encoding!r}?><gürk>\u20ac</gürk>"):
 		# Check stateless decoder with encoding autodetection
@@ -196,10 +196,10 @@ def test_decoder():
 		assert "".join(id.iterdecode(bytes([c]) for c in input.encode(encoding))) == input
 
 	# Use correct declaration
-	yield checkdecl, "utf-8"
-	yield checkdecl, "iso-8859-1", "<?xml version='1.0' encoding={encoding!r}?><gürk/>"
-	yield checkdecl, "iso-8859-15"
-	yield checkdecl, "cp1252"
+	checkdecl("utf-8")
+	checkdecl("iso-8859-1", "<?xml version='1.0' encoding={encoding!r}?><gürk/>")
+	checkdecl("iso-8859-15")
+	checkdecl("cp1252")
 
 	# No recursion
 	with pytest.raises(ValueError):
@@ -225,18 +225,18 @@ def test_encoder():
 		assert b"".join(ie.iterencode(input)).decode(encoding) == inputdecl
 
 	# Autodetectable encodings
-	yield check, "utf-8-sig"
-	yield check, "utf-16"
-	yield check, "utf-16-le"
-	yield check, "utf-16-be"
+	check("utf-8-sig")
+	check("utf-16")
+	check("utf-16-le")
+	check("utf-16-be")
 	if haveutf32:
-		yield check, "utf-32"
-		yield check, "utf-32-le"
-		yield check, "utf-32-be"
-	yield check, "utf-8"
-	yield check, "iso-8859-1", "<?xml version='1.0' encoding='x'?><gürk/>"
-	yield check, "iso-8859-15"
-	yield check, "cp1252"
+		check("utf-32")
+		check("utf-32-le")
+		check("utf-32-be")
+	check("utf-8")
+	check("iso-8859-1", "<?xml version='1.0' encoding='x'?><gürk/>")
+	check("iso-8859-15")
+	check("cp1252")
 
 	# No recursion
 	with pytest.raises(ValueError):

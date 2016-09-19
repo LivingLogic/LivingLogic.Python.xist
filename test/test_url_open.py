@@ -17,8 +17,8 @@ from ll import url
 import pytest
 
 
+@pytest.mark.net
 def test_remove():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -32,13 +32,13 @@ def test_remove():
 				u2.remove()
 			assert not u2.exists()
 
-	yield check, __file__.rstrip("c")
-	yield check, url.URL(__file__.rstrip("c"))
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/"
+	check(__file__.rstrip("c"))
+	check(url.URL(__file__.rstrip("c")))
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
+@pytest.mark.net
 def test_link():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -52,12 +52,12 @@ def test_link():
 				u2.remove()
 			assert not u2.exists()
 
-	yield check, __file__.rstrip("c")
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py"
+	check(__file__.rstrip("c"))
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py")
 
 
+@pytest.mark.net
 def test_symlink():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -70,12 +70,12 @@ def test_symlink():
 				u2.remove()
 			assert not u2.exists()
 
-	yield check, __file__.rstrip("c")
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py"
+	check(__file__.rstrip("c"))
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py")
 
 
+@pytest.mark.net
 def test_chmod():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -90,12 +90,12 @@ def test_chmod():
 			finally:
 				u.remove()
 
-	yield check, "~/foo"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/foo"
+	check("~/foo")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/foo")
 
 
+@pytest.mark.net
 def test_chown():
-	@pytest.mark.net
 	def check(u1, u2, owner, group):
 		with url.Context():
 			u1 = url.URL(u1)
@@ -127,47 +127,47 @@ def test_chown():
 			finally:
 				u1.remove()
 
-	yield check, "ssh://livpython@www.livinglogic.de/~/foo", "ssh://livpython@www.livinglogic.de/~/bar", "livpython", "livpython"
+	check("ssh://livpython@www.livinglogic.de/~/foo", "ssh://livpython@www.livinglogic.de/~/bar", "livpython", "livpython")
 
 
+@pytest.mark.net
 def test_size():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
 			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 601
 
-	yield check, "~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
-	yield check, "http://www.livinglogic.de/Python/static/favicon.gif"
+	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("http://www.livinglogic.de/Python/static/favicon.gif")
 
 
+@pytest.mark.net
 def test_imagesize():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
 			assert u.imagesize() == (16, 16)
 
-	yield check, "~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
-	yield check, "http://www.livinglogic.de/Python/static/favicon.gif"
+	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("http://www.livinglogic.de/Python/static/favicon.gif")
 
 
+@pytest.mark.net
 def test_mimetype():
-	@pytest.mark.net
 	def check(u, mt):
 		with url.Context():
 			u = url.URL(u)
 			assert u.mimetype() == u.open().mimetype() == mt
 
-	yield check, __file__.rstrip("c"), "text/x-python"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python"
-	yield check, "http://www.livinglogic.de/Python/xist/", "text/html"
+	check(__file__.rstrip("c"), "text/x-python")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python")
+	check("http://www.livinglogic.de/Python/xist/", "text/html")
 
 
+@pytest.mark.net
 def test_readline():
-	@pytest.mark.net
 	def check(u, firstline):
 		with url.Context():
 			u = url.URL(u)
@@ -193,13 +193,13 @@ def test_readline():
 				r = u.open("rb") # reopen
 			assert r.read().startswith(firstline)
 
-	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n"
-	yield check, "http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n'
+	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
+@pytest.mark.net
 def test_iter():
-	@pytest.mark.net
 	def check(u, firstline):
 		with url.Context():
 			u = url.URL(u)
@@ -207,13 +207,13 @@ def test_iter():
 			assert next(iter(r)) == firstline
 			list(r)
 
-	yield check, __file__.rstrip("c"), b"#!/usr/bin/env python\n"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n"
-	yield check, "http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n'
+	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
+@pytest.mark.net
 def test_autocreate_dir():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			try:
@@ -224,12 +224,12 @@ def test_autocreate_dir():
 				u.remove()
 				u.withoutfile().rmdir()
 
-	yield check, "gurk/hurz.txt"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt"
+	check("gurk/hurz.txt")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt")
 
 
+@pytest.mark.net
 def test_seek_tell():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -248,12 +248,12 @@ def test_seek_tell():
 			assert r.tell() == 601
 			assert r.read() == b""
 
-	yield check, "~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif"
+	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
 
 
+@pytest.mark.net
 def test_truncate():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)/"foo"
@@ -267,25 +267,25 @@ def test_truncate():
 			finally:
 				u.remove()
 
-	yield check, __file__
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/"
+	check(__file__)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
+@pytest.mark.net
 def test_owner():
-	@pytest.mark.net
 	def check(u, owner):
 		with url.Context():
 			u = url.URL(u)
 			assert u.owner() == owner
 			assert u.stat().st_uid == u.uid()
 
-	yield check, __file__, "walter"
-	yield check, "/", "root"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython"
+	check(__file__, "walter")
+	check("/", "root")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython")
 
 
+@pytest.mark.net
 def test_stat():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
@@ -293,144 +293,144 @@ def test_stat():
 			assert stat.st_size > 1000
 			assert stat.st_mode & 0o600 == 0o600
 
-	yield check, url.File(__file__)/"../README.rst"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst"
+	check(url.File(__file__)/"../README.rst")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst")
 
 
+@pytest.mark.net
 def test_group():
-	@pytest.mark.net
 	def check(u, *groups):
 		with url.Context():
 			u = url.URL(u)
 			assert u.group() in groups
 			assert u.stat().st_gid == u.gid()
 
-	yield check, __file__, "users", "staff", "walter"
-	yield check, "/", "root", "admin", "wheel"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython"
+	check(__file__, "users", "staff", "walter")
+	check("/", "root", "admin", "wheel")
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython")
 
 
+@pytest.mark.net
 def test_cdate():
-	@pytest.mark.net
 	def check(u, *args):
 		with url.Context():
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
 
-	yield check, __file__.rstrip("c"), 2006, 10, 24
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29
+	check(__file__.rstrip("c"), 2006, 10, 24)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
 
 
+@pytest.mark.net
 def test_mdate():
-	@pytest.mark.net
 	def check(u, *args):
 		with url.Context():
 			u = url.URL(u)
 			assert u.mdate() == u.open().mdate() >= datetime.datetime(*args)
 
-	yield check, __file__.rstrip("c"), 2006, 10, 24
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29
-	yield check, "http://www.livinglogic.de/Python/xist", 2006, 10, 3
+	check(__file__.rstrip("c"), 2006, 10, 24)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check("http://www.livinglogic.de/Python/xist", 2006, 10, 3)
 
 
+@pytest.mark.net
 def test_adate():
-	@pytest.mark.net
 	def check(u, *args):
 		with url.Context():
 			assert url.URL(u).adate() >= datetime.datetime(*args)
 
-	yield check, __file__.rstrip("c"), 2006, 10, 24
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29
+	check(__file__.rstrip("c"), 2006, 10, 24)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
 
 
+@pytest.mark.net
 def test_exists():
-	@pytest.mark.net
 	def check(u, exists):
 		with url.Context():
 			u = url.URL(u)
 			assert u.exists() == exists
 
-	yield check, __file__, True
-	yield check, __file__ + "no", False
-	yield check, "/", True
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", False
+	check(__file__, True)
+	check(__file__ + "no", False)
+	check("/", True)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", False)
 
 
+@pytest.mark.net
 def test_isfile():
-	@pytest.mark.net
 	def check(u, isfile):
 		with url.Context():
 			u = url.URL(u)
 			assert u.isfile() == isfile
 
-	yield check, __file__, True
-	yield check, __file__ + "no", False
-	yield check, "/", False
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False
-	yield check, "ssh://root@www.livinglogic.de/~livpython", False
-	yield check, "ssh://root@www.livinglogic.de/", False
+	check(__file__, True)
+	check(__file__ + "no", False)
+	check("/", False)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
+	check("ssh://root@www.livinglogic.de/~livpython", False)
+	check("ssh://root@www.livinglogic.de/", False)
 
 
+@pytest.mark.net
 def test_isdir():
-	@pytest.mark.net
 	def check(u, isdir):
 		with url.Context():
 			u = url.URL(u)
 			assert u.isdir() == isdir
 
-	yield check, __file__, False
-	yield check, __file__ + "no", False
-	yield check, "/", True
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True
-	yield check, "ssh://root@www.livinglogic.de/~livpython", True
-	yield check, "ssh://root@www.livinglogic.de/", True
+	check(__file__, False)
+	check(__file__ + "no", False)
+	check("/", True)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
+	check("ssh://root@www.livinglogic.de/~livpython", True)
+	check("ssh://root@www.livinglogic.de/", True)
 
 
+@pytest.mark.net
 def test_islink():
-	@pytest.mark.net
 	def check(u, islink):
 		with url.Context():
 			u = url.URL(u)
 			assert u.islink() == islink
 
-	yield check, __file__, False
-	yield check, "/", False
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False
+	check(__file__, False)
+	check("/", False)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
 
 
+@pytest.mark.net
 def test_ismount():
-	@pytest.mark.net
 	def check(u, ismount):
 		with url.Context():
 			u = url.URL(u)
 			assert u.ismount() == ismount
 
-	yield check, __file__, False
-	yield check, "/", True
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False
-	yield check, "ssh://root@www.livinglogic.de/~livpython", False
-	yield check, "ssh://root@www.livinglogic.de/", True
+	check(__file__, False)
+	check("/", True)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
+	check("ssh://root@www.livinglogic.de/~livpython", False)
+	check("ssh://root@www.livinglogic.de/", True)
 
 
+@pytest.mark.net
 def test_access():
-	@pytest.mark.net
 	def check(u, mode, result):
 		with url.Context():
 			u = url.URL(u)
 			assert u.access(mode) == result
 
-	yield check, __file__, os.F_OK, True
-	yield check, __file__ + "no", os.F_OK, False
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", os.F_OK, True
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", os.F_OK, False
+	check(__file__, os.F_OK, True)
+	check(__file__ + "no", os.F_OK, False)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", os.F_OK, True)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", os.F_OK, False)
 
 
+@pytest.mark.net
 def test_resheaders():
-	@pytest.mark.net
 	def check(u, headers):
 		with url.Context():
 			u = url.URL(u)
@@ -438,24 +438,24 @@ def test_resheaders():
 			for (k, v) in headers.items():
 				assert realheaders[k] == v
 
-	yield check, url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"}
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"}
-	yield check, "http://www.livinglogic.de/Python/xist/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"}
+	check(url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"})
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
+	check("http://www.livinglogic.de/Python/xist/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"})
 
 
+@pytest.mark.net
 def test_resdata():
-	@pytest.mark.net
 	def check(u, firstline):
 		with url.Context():
 			u = url.URL(u)
 			realdata = u.open("rb").resdata()
 			assert realdata.splitlines(True)[0] == firstline
 
-	yield check, "http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n'
+	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
+@pytest.mark.net
 def test_mkdir_rmdir():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)/"foo/"
@@ -466,12 +466,12 @@ def test_mkdir_rmdir():
 			finally:
 				u.rmdir()
 
-	yield check, __file__
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/"
+	check(__file__)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
+@pytest.mark.net
 def test_makedirs():
-	@pytest.mark.net
 	def check(u):
 		with url.Context():
 			u = url.URL(u)/"foo/bar/"
@@ -483,12 +483,12 @@ def test_makedirs():
 				u.rmdir()
 				(u/"../").rmdir()
 
-	yield check, __file__
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/"
+	check(__file__)
+	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
+@pytest.mark.net
 def test_dir():
-	@pytest.mark.net
 	def check(u, pu, isfile, include=None, exclude=None):
 		with url.Context():
 			u = url.URL(u)
@@ -501,16 +501,16 @@ def test_dir():
 				assert u not in pu.files(include=include, exclude=exclude)
 				assert u in pu.dirs(include=include, exclude=exclude)
 
-	yield check, os.path.basename(__file__), os.path.dirname(__file__), True
-	yield check, "lib/", "/usr/", False
-	yield check, "README.rst", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True
-	yield check, "LivingLogic/", "ssh://livpython@www.livinglogic.de/~/", False
-	yield check, "lib/", "/usr/", False, "lib"
-	yield check, "lib/", "/usr/", False, None, "nolib"
+	check(os.path.basename(__file__), os.path.dirname(__file__), True)
+	check("lib/", "/usr/", False)
+	check("README.rst", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
+	check("LivingLogic/", "ssh://livpython@www.livinglogic.de/~/", False)
+	check("lib/", "/usr/", False, "lib")
+	check("lib/", "/usr/", False, None, "nolib")
 
 
+@pytest.mark.net
 def test_walk():
-	@pytest.mark.net
 	def check(u, pu, isfile, include=None, exclude=None):
 		with url.Context():
 			u = url.URL(u)
@@ -523,10 +523,10 @@ def test_walk():
 				assert all(u!=wu for wu in pu.walkfiles(include=include, exclude=exclude))
 				assert any(u==wu for wu in pu.walkdirs(include=include, exclude=exclude))
 
-	yield check, os.path.basename(__file__), os.path.dirname(__file__), True
-	yield check, "src/ll/xist/", url.Dir("~/checkouts/LivingLogic.Python.xist/"), False
-	yield check, "ll/xist/ns/html.py", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", True
-	yield check, "ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False
+	check(os.path.basename(__file__), os.path.dirname(__file__), True)
+	check("src/ll/xist/", url.Dir("~/checkouts/LivingLogic.Python.xist/"), False)
+	check("ll/xist/ns/html.py", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", True)
+	check("ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False)
 
 
 @pytest.mark.net

@@ -62,7 +62,7 @@ def test_levels():
 		(ds[0]/html.div/html.div/html.div, ""),
 	]
 	for (got, exp) in tests:
-		yield check, ds[0], got, exp
+		check(ds[0], got, exp)
 
 
 def test_isinstance():
@@ -77,37 +77,37 @@ def test_isinstance():
 		assert res[1] is node[1][0]
 		assert res[2] is node[1][2][0]
 
-	yield check, list(node.walknodes(xfind.IsInstanceSelector(html.h1, html.h2)))
-	yield check, list(node.walknodes(xfind.IsInstanceSelector(html.h1) | html.h2))
-	yield check, list(node.walknodes(html.h1 | xfind.IsInstanceSelector(html.h2)))
-	yield check, list(node.walknodes(html.h1 | html.h2))
-	yield check, list(node.walknodes(html.h1, html.h2))
-	yield check, list(node.walknodes(html.h1, html.h2, ~xfind.any))
-	yield check, list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img)))
+	check(list(node.walknodes(xfind.IsInstanceSelector(html.h1, html.h2))))
+	check(list(node.walknodes(xfind.IsInstanceSelector(html.h1) | html.h2)))
+	check(list(node.walknodes(html.h1 | xfind.IsInstanceSelector(html.h2))))
+	check(list(node.walknodes(html.h1 | html.h2)))
+	check(list(node.walknodes(html.h1, html.h2)))
+	check(list(node.walknodes(html.h1, html.h2, ~xfind.any)))
+	check(list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img))))
 
 
 def test_element():
 	def check(expr, res):
 		assert [str(e) for e in node.walknodes(expr)] == res
 	result = ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
-	yield check, xfind.element(None, "gurk"), []
-	yield check, xfind.element("nix", "gurk"), []
-	yield check, xfind.element(html, "em"), result
-	yield check, xfind.element(html.xmlns, "em"), result
+	check(xfind.element(None, "gurk"), [])
+	check(xfind.element("nix", "gurk"), [])
+	check(xfind.element(html, "em"), result)
+	check(xfind.element(html.xmlns, "em"), result)
 
 
 def test_procinst():
 	def check(expr, res):
 		assert [e for e in node.walknodes(expr)] == res
-	yield check, xfind.procinst("foo"), []
-	yield check, xfind.procinst("php"), [node[-2]]
+	check(xfind.procinst("foo"), [])
+	check(xfind.procinst("php"), [node[-2]])
 
 
 def test_entity():
 	def check(expr, res):
 		assert [e for e in node.walknodes(expr)] == res
-	yield check, xfind.entity("foo"), []
-	yield check, xfind.entity("xist"), [node[-1]]
+	check(xfind.entity("foo"), [])
+	check(xfind.entity("xist"), [node[-1]])
 
 
 def test_is():
@@ -181,12 +181,12 @@ def test_attrhasvalue():
 		for (gotnode, expectednode) in zip(got, expected):
 			assert gotnode is expectednode
 
-	yield check, [node[0]], "align", "left"
-	yield check, [node[0]], html.div.Attrs.align, "left"
-	yield check, [node[0]], "align", "right", "center", "left"
-	yield check, [], "align", "right", "center"
-	yield check, [], "align", "right"
-	yield check, [], "gurk", "hurz"
+	check([node[0]], "align", "left")
+	check([node[0]], html.div.Attrs.align, "left")
+	check([node[0]], "align", "right", "center", "left")
+	check([], "align", "right", "center")
+	check([], "align", "right")
+	check([], "gurk", "hurz")
 
 
 def test_attrcontains():
@@ -196,12 +196,12 @@ def test_attrcontains():
 		for (gotnode, expectednode) in zip(got, expected):
 			assert gotnode is expectednode
 
-	yield check, [node[0]], "align", "ef"
-	yield check, [node[0]], html.div.Attrs.align, "ef"
-	yield check, [node[0]], "align", "ri", "ef"
-	yield check, [], "align", "ri", "en"
-	yield check, [], "align", "x"
-	yield check, [], "gurk", "nix",
+	check([node[0]], "align", "ef")
+	check([node[0]], html.div.Attrs.align, "ef")
+	check([node[0]], "align", "ri", "ef")
+	check([], "align", "ri", "en")
+	check([], "align", "x")
+	check([], "gurk", "nix")
 
 
 def test_attrstartswith():
@@ -211,13 +211,13 @@ def test_attrstartswith():
 		for (gotnode, expectednode) in zip(got, expected):
 			assert gotnode is expectednode
 
-	yield check, [node[0]], "align", "le"
-	yield check, [node[0]], html.div.Attrs.align, "le"
-	yield check, [node[0]], "align", "ri", "ce", "le"
-	yield check, [], "align", "ri", "ce"
-	yield check, [], "align", "eft"
-	yield check, [], "gurk", "nix"
-	yield check, [node[1][0][1]], "src", "root:"
+	check([node[0]], "align", "le")
+	check([node[0]], html.div.Attrs.align, "le")
+	check([node[0]], "align", "ri", "ce", "le")
+	check([], "align", "ri", "ce")
+	check([], "align", "eft")
+	check([], "gurk", "nix")
+	check([node[1][0][1]], "src", "root:")
 
 
 def test_attrendswith():
@@ -227,13 +227,13 @@ def test_attrendswith():
 		for (gotnode, expectednode) in zip(got, expected):
 			assert gotnode is expectednode
 
-	yield check, [node[0]], "align", "ft"
-	yield check, [node[0]], html.div.Attrs.align, "ft"
-	yield check, [node[0]], "align", "ht", "er", "ft"
-	yield check, [], "align", "ht", "er"
-	yield check, [], "align", "lef"
-	yield check, [], "gurk", "nix"
-	yield check, [node[1][0][1]], "src", ".gif"
+	check([node[0]], "align", "ft")
+	check([node[0]], html.div.Attrs.align, "ft")
+	check([node[0]], "align", "ht", "er", "ft")
+	check([], "align", "ht", "er")
+	check([], "align", "lef")
+	check([], "gurk", "nix")
+	check([node[1][0][1]], "src", ".gif")
 
 
 def test_hasid():
@@ -297,7 +297,7 @@ def test_itemsslices():
 		(ds[0]//html.div, "145256367"),
 	]
 	for (got, exp) in tests:
-		yield check, ds[0], got, exp
+		check(ds[0], got, exp)
 
 
 def test_item():

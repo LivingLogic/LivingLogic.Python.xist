@@ -15,11 +15,8 @@ from ll.xist.ns import html, php, ul4
 
 
 def test_pretty():
-	def check(node, result):
-		assert node.pretty().bytes() == result
-
 	tests = [
-		(html.p("apple", "tree"), b"<p>appletree</p>"),
+		(html.p("apple", "tree"),  b"<p>appletree</p>"),
 		(html.p("apple", html.br(), "tree"), b"<p>apple<br />tree</p>"),
 		(html.p(php.php("apple")), b"<p>\n\t<?php apple?>\n</p>"),
 		(html.p(php.php("apple"), "tree"), b"<p><?php apple?>tree</p>"),
@@ -71,4 +68,4 @@ def test_pretty():
 		),
 	]
 	for (got, exp) in tests:
-		yield check, got, exp
+		got.pretty().bytes() == exp

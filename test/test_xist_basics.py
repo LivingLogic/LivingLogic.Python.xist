@@ -348,13 +348,13 @@ def test_attributekeysvaluesitems():
 			class attr_(xsc.TextAttr):
 				xmlname = "attr"
 
-	yield check, Test1(), Test1.Attrs.attr_, "42"
-	yield check, Test1(attr_=17), Test1.Attrs.attr_, "17"
-	yield check, Test1(attr_=None), Test1.Attrs.attr_, None
+	check(Test1(), Test1.Attrs.attr_, "42")
+	check(Test1(attr_=17), Test1.Attrs.attr_, "17")
+	check(Test1(attr_=None), Test1.Attrs.attr_, None)
 
-	yield check, Test2(), Test2.Attrs.attr_, None
-	yield check, Test2(attr_=17), Test2.Attrs.attr_, "17"
-	yield check, Test2(attr_=None), Test2.Attrs.attr_, None
+	check(Test2(), Test2.Attrs.attr_, None)
+	check(Test2(attr_=17), Test2.Attrs.attr_, "17")
+	check(Test2(attr_=None), Test2.Attrs.attr_, None)
 
 
 def test_attributeswithoutnames():

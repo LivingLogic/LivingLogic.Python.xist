@@ -22,18 +22,18 @@ def test_basics_element():
 
 	# empty pool
 	pool = xsc.Pool()
-	yield check, pool, html, "a", xsc.Element
+	check(pool, html, "a", xsc.Element)
 
 	# register one element
 	pool = xsc.Pool(html.a)
-	yield check, pool, html, "a", html.a
-	yield check, pool, html, "b", xsc.Element
+	check(pool, html, "a", html.a)
+	check(pool, html, "b", xsc.Element)
 
 	# register a module
 	pool = xsc.Pool(html)
-	yield check, pool, html, "a", html.a
-	yield check, pool, html, "b", html.b
-	yield check, pool, html, "c", xsc.Element
+	check(pool, html, "a", html.a)
+	check(pool, html, "b", html.b)
+	check(pool, html, "c", xsc.Element)
 
 
 def test_basics_procinst():
@@ -44,8 +44,8 @@ def test_basics_procinst():
 		assert procinst.content == content
 
 	pool = xsc.Pool(php.php)
-	yield check, pool, "php", "foo", php.php
-	yield check, pool, "nophp", "foo", xsc.ProcInst
+	check(pool, "php", "foo", php.php)
+	check(pool, "nophp", "foo", xsc.ProcInst)
 
 
 def test_basics_entity():
@@ -54,8 +54,8 @@ def test_basics_entity():
 		assert pool.entity(xmlname).xmlname == xmlname
 
 	pool = xsc.Pool(abbr)
-	yield check, pool, "xist", abbr.xist
-	yield check, pool, "dontxist", xsc.Entity
+	check(pool, "xist", abbr.xist)
+	check(pool, "dontxist", xsc.Entity)
 
 
 def test_textcomment():
@@ -236,16 +236,12 @@ def test_mixedattrnames():
 		if isinstance(name, str):
 			assert str(getattr(node.attrs, name)).swapcase() == value
 
-	tests = [
-		("A", "a"),
-		("a", "A"),
-		(Test.Attrs.a, "a"),
-		(Test.Attrs.A, "A"),
-		(Attrs.a, "a2"),
-		(Attrs.A, "A2")
-	]
-	for (name, value) in tests:
-		yield check, name, value
+	check("A", "a")
+	check("a", "A")
+	check(Test.Attrs.a, "a")
+	check(Test.Attrs.A, "A")
+	check(Attrs.a, "a2")
+	check(Attrs.A, "A2")
 
 
 def test_xmlns():
