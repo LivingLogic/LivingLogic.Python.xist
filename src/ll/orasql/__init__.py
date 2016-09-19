@@ -2098,27 +2098,35 @@ class ForeignKey(Constraint):
 
 	def references(self, connection=None):
 		yield self.table(connection)
-		yield self.pk(connection)
+		yield self.refconstraint(connection)
 
-	def pk(self, connection=None):
+	def refconstraint(self, connection=None):
 		"""
-		Return the primary key referenced by :obj:`self`.
+		Return the constraint referenced by :obj:`self`.
+
+		In most cases this is a :class:`PrimaryKey`, but it also might be a
+		:class:`UniqueConstraint`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		query = """
 			select
-				decode(r_owner, user, null, r_owner) as r_owner,
-				r_constraint_name
+				c2.constraint_type,
+				decode(c1.r_owner, user, null, c1.r_owner) as r_owner,
+				c1.r_constraint_name
 			from
-				{ddprefix}_constraints
+				{ddprefix}_constraints c1,
+				{ddprefix}_constraints c2
 			where
-				constraint_type = 'R' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
+				c1.constraint_type = 'R' and
+				c1.owner = nvl(:owner, user) and
+				c1.constraint_name = :name and
+				c1.owner = c2.owner and
+				c1.r_constraint_name = c2.constraint_name
 		"""
 		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
-		return PrimaryKey(rec.r_constraint_name, rec.r_owner, connection)
+		types = {"P": PrimaryKey, "U": UniqueConstraint}
+		return types[rec.constraint_type](rec.r_constraint_name, rec.r_owner, connection)
 
 	def columns(self, connection=None):
 		"""

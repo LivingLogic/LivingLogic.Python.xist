@@ -15,10 +15,14 @@ Changes in 5.21 (released 09/??/2016)
 
 *	If constant folding doesn't work for unary or binary operators in UL4,
 	compiling the template no longer fails. Instead the original AST will be
-	used unchanged.
+	used unchanged (and executing the template will then fail).
 
 *	The method :meth:`ll.color.Color.__add__` has been removed, i.e. color can
 	no longer be added.
+
+*	The method :meth:`ll.orasql.ForeignKey.pk` has been renamed to
+	:meth:`refconstraint` and supports foreign keys that reference a unique
+	constraint now.
 
 
 Changes in 5.20.1 (released 08/04/2016)

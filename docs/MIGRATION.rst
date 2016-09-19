@@ -18,6 +18,9 @@ Changes to ``ll.color``
 
 		0.5*(c1.r+c2.r), 0.5*(c1.g+c2.g), 0.5*(c1.b+c2.b), 255-(255-c1.a)*(255-c2.a)/255.)
 
+*	The method :meth:`ll.orasql.ForeignKey.pk` has been renamed to
+	:meth:`refconstraint`.
+
 
 Migrating to version 5.20
 =========================
