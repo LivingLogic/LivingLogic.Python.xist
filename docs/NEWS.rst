@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.21 (released 09/??/2016)
+Changes in 5.21 (released 09/19/2016)
 -------------------------------------
 
 *	Added a function ``md5`` to UL4.
