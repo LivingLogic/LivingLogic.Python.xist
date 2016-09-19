@@ -222,7 +222,7 @@ def test_constraints(db_data):
 		if isinstance(obj, orasql.Constraint):
 			obj.table()
 			if isinstance(obj, orasql.ForeignKey):
-				obj.pk()
+				obj.refconstraint()
 				list(obj.columns())
 
 
