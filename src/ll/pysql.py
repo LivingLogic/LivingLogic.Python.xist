@@ -233,7 +233,8 @@ import two records, one by calling ``person_insert`` and one by calling
 
 Furthermore it will create one file (named something like ``portrait_42.png``)
 and reset the sequence ``person_seq`` to the maximum value of the field
-``per_id`` in the table ``person``.
+``per_id`` in the table ``person``. Finally it will recompile all schema objects
+and then make sure that no errors exist in the schema.
 
 
 Variables
