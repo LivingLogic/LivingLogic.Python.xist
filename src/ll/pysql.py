@@ -171,9 +171,10 @@ procedure and will call the procedure to insert data into the table::
 		'type': 'procedure',
 		'name': 'person_insert',
 		'args': {
-			'per_id': var('per_id_max'),
-			'per_firstname': 'Max',
-			'per_lastname': 'Mustermann',
+			'c_user': 'import',
+			'p_per_id': var('per_id_max'),
+			'p_per_firstname': 'Max',
+			'p_per_lastname': 'Mustermann',
 		}
 	}
 
@@ -181,10 +182,11 @@ procedure and will call the procedure to insert data into the table::
 		'type': 'procedure',
 		'name': 'contact_insert',
 		'args': {
-			'per_id': var('per_id_max'),
-			'con_id': var('con_id_max'),
-			'con_type': 'email',
-			'con_value': 'max@example.org',
+			'c_user': 'import',
+			'p_per_id': var('per_id_max'),
+			'p_con_id': var('con_id_max'),
+			'p_con_type': 'email',
+			'p_con_value': 'max@example.org',
 		}
 	}
 
