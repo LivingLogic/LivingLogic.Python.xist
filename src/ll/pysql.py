@@ -80,8 +80,8 @@ procedure and will call the procedure to insert data into the table::
 	create table person
 	(
 		per_id integer not null,
-		per_firstnane varchar2(200),
-		per_lastnane varchar2(200)
+		per_firstname varchar2(200),
+		per_lastname varchar2(200)
 	);
 
 	-- @@@ person: primary key
@@ -108,8 +108,8 @@ procedure and will call the procedure to insert data into the table::
 	(
 		c_user in varchar2,
 		p_per_id in out integer,
-		p_per_firstnane in varchar2 := null,
-		p_per_lastnane in varchar2 := null
+		p_per_firstname in varchar2 := null,
+		p_per_lastname in varchar2 := null
 	)
 	as
 	begin
@@ -120,14 +120,14 @@ procedure and will call the procedure to insert data into the table::
 		insert into person
 		(
 			per_id,
-			per_firstnane,
-			per_lastnane
+			per_firstname,
+			per_lastname
 		)
 		values
 		(
 			p_per_id,
-			p_per_firstnane,
-			p_per_lastnane
+			p_per_firstname,
+			p_per_lastname
 		);
 	end;
 	/
