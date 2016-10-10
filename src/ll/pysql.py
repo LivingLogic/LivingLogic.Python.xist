@@ -312,8 +312,9 @@ it supports the following command line options:
 
 	``-c``, ``--commit``
 		Specifies when to commit database transactions. ``record`` commits after
-		every command. ``once`` (the default) at the end of the script and
-		``never`` rolls back the transaction after all commands.
+		every command. ``once`` (the default) at the end of the script (or when
+		a connection is popped) and ``never`` rolls back the transaction after all
+		commands.
 
 	``-s``, ``--scpdirectory``
 		The base directory for ``scp`` file copy commands. As files are copied
@@ -384,13 +385,12 @@ class Context:
 	"""
 	def __init__(self, db=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", raiseexceptions=True, verbose=0, summary=False, vars=None):
 		self.keys = {v.key: v for v in vars} if vars else {}
-		self.db = db
-		self.cursor = db.cursor() if db is not None else None
+		self.cursors = {None: [db.cursor()]} if db is not None else {}
 		self.scpdirectory = scpdirectory
 		self.filedirectory = filedirectory
 		self.commit = commit
 		self.terminator = terminator
-		self.raiseexceptions = raiseexceptions
+		self.raiseexceptions = [raiseexceptions]
 		self.verbose = verbose
 		self.summary = summary
 		self.count = 0
@@ -398,6 +398,27 @@ class Context:
 		self.procedurecounts = collections.Counter()
 		self.errorcount = 0
 		self._location = None
+
+	def cursor(self, connectname):
+		if connectname not in self.cursors:
+			raise ValueError("no connection named {!r}".format(connectname))
+		return self.cursors[connectname][-1]
+
+	def pushcursor(self, connectname, cursor):
+		if connectname not in self.cursors:
+			self.cursors[connectname] = []
+		self.cursors[connectname].append(cursor)
+		return cursor
+
+	def popcursor(self, connectname):
+		if connectname not in self.cursors:
+			raise ValueError("no connection named {!r}".format(connectname))
+		if not self.cursors[connectname]:
+			raise ValueError("connection stack for name {!r} empty".format(connectname))
+		cursor = self.cursors[connectname].pop()
+		if self.commit == "once":
+			cursor.connection.commit()
+		return cursor
 
 	def var(self, key, type=int):
 		if key in self.keys:
@@ -459,7 +480,7 @@ class Context:
 
 						type = args.pop("type")
 						if "raiseexceptions" not in args:
-							args["raiseexceptions"] = self.raiseexceptions
+							args["raiseexceptions"] = self.raiseexceptions[-1]
 						command = Command.fromdict(type, self._location, args)
 						if isinstance(command, IncludeCommand):
 							if not command.name:
@@ -515,6 +536,8 @@ class Context:
 					if command.raiseexceptions:
 						if self.verbose == 2:
 							print("(error)", flush=True)
+						elif self.verbose:
+							print()
 						raise Error(command) from exc
 					else:
 						self.errorcount += 1
@@ -531,9 +554,13 @@ class Context:
 					self.commandcounts[command.type] += 1
 				self.count += 1
 			if self.commit == "once":
-				self.db.commit()
+				for cursors in self.cursors.values():
+					for cursor in cursors:
+						cursor.connection.commit()
 			elif self.commit == "never":
-				self.db.rollback()
+				for cursors in self.cursors.values():
+					for cursor in cursors:
+						cursor.connection.rollback()
 		finally:
 			if self.verbose in (1, 2):
 				print()
@@ -583,6 +610,7 @@ class Command:
 			``"compileall"`` or ``"checkerrors"`` and specifies the type of the
 			PySQL command.
 
+		``connection``: string (optional)
 		``raiseexceptions`` : bool (optional)
 			Specifies whether exceptions that happen during the execution of the
 			command should be reported and terminate the script (``True``,
@@ -602,6 +630,32 @@ class Command:
 
 	def __str__(self):
 		return "{} command {}".format(self.type, self.location)
+
+	def startmessage(self, context, *messages):
+		if context.verbose == 1:
+			print(".", end="", flush=True)
+		elif context.verbose == 2:
+			print(" " + self.type, end="", flush=True)
+		elif context.verbose == 3:
+			messages = ("pysql #{:,}".format(context.count+1), str(self.location)) + messages
+			output = []
+			for (i, message) in enumerate(messages):
+				if i == len(messages)-1 and i:
+					output.append(">>")
+				elif i:
+					output.append("::")
+				output.append(message)
+			print(" ".join(output), end="", flush=True)
+
+	def endmessage(self, context, message="done"):
+		if context.verbose == 3:
+			print(" -> {}".format(message), flush=True)
+
+	def formatconnection(self):
+		if self.connectname is None:
+			return "default connection"
+		else:
+			return "connection {!r}".format(self.connectname)
 
 
 def register(cls):
@@ -629,6 +683,63 @@ class IncludeCommand(Command):
 		return "incluce command {}".format(self.location)
 
 
+@register
+class PushConnectionCommand(Command):
+	"""
+	The ``"pushconnection"`` command connects to the database given in the
+	connectstring in the key ``"connectstring"`` and pushes the connection under
+	the name from the key ``"connectname"``.
+	"""
+	type = "pushconnection"
+
+	def __init__(self, location, raiseexceptions, connectstring, connectname=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.connectstring = connectstring
+		self.connectname = connectname
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} connectname={0.connectname!r} connectstring={0.connectstring!r} {0.location} at {1:#x}>".format(self, id(self))
+
+	def __str__(self):
+		return "pushconnection command {}".format(self.location)
+
+	def execute(self, context):
+		self.startmessage(context, "push {!r} as {}".format(self.connectstring, self.formatconnection()))
+
+		cursor = context.pushcursor(self.connectname, cx_Oracle.connect(self.connectstring).cursor())
+
+		self.endmessage(context)
+
+
+@register
+class PopConnectionCommand(Command):
+	"""
+	The ``"popconnection"`` command disconnects from the database connection with
+	the name in the key ``"connectname"`` and reverts to the previous connection
+	registered for that name. (If ``connectname`` is ``None`` the main connection will be
+	used). If the commit mode is ``"once"`` the transaction will be committed
+	before closing the connection.
+	"""
+	type = "popconnection"
+
+	def __init__(self, location, raiseexceptions, connectname):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.connectname = connectname
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} connectname={0.connectname!r} {0.location} at {1:#x}>".format(self, id(self))
+
+	def __str__(self):
+		return "popconnection command {}".format(self.location)
+
+	def execute(self, context):
+		self.startmessage(context, "pop {}".format(self.formatconnection()))
+
+		cursor = context.popcursor(self.connectname)
+
+		self.endmessage(context)
+
+
 class _SQLCommand(Command):
 	"""
 	Common base class of :class:`ProcedureCommand` and :class:`SQLCommand`.
@@ -639,7 +750,8 @@ class _SQLCommand(Command):
 		var.setvalue(0, value)
 		return var
 
-	def _executesql(self, context, query):
+	def _executesql(self, context, query, name):
+		cursor = context.cursor(name)
 		queryargvars = {}
 		for (argname, argvalue) in self.args.items():
 			if isinstance(argvalue, sql):
@@ -648,14 +760,14 @@ class _SQLCommand(Command):
 				if argvalue.key is not None and argvalue.key in context.keys:
 					argvalue = context.keys[argvalue.key]
 				else:
-					argvalue = context.cursor.var(argvalue.type)
+					argvalue = cursor.var(argvalue.type)
 			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-				argvalue = self._createvar(context.cursor, cx_Oracle.CLOB, argvalue)
+				argvalue = self._createvar(cursor, cx_Oracle.CLOB, argvalue)
 			elif isinstance(argvalue, bytes) and len(argvalue) >= 4000:
-				argvalue = self._createvar(context.cursor, cx_Oracle.BLOB, argvalue)
+				argvalue = self._createvar(cursor, cx_Oracle.BLOB, argvalue)
 			queryargvars[argname] = argvalue
 
-		context.cursor.execute(query, queryargvars)
+		cursor.execute(query, queryargvars)
 
 		newkeys = {}
 		for (argname, argvalue) in self.args.items():
@@ -723,9 +835,10 @@ class ProcedureCommand(_SQLCommand):
 
 	type = "procedure"
 
-	def __init__(self, location, raiseexceptions, name, args=None):
+	def __init__(self, location, raiseexceptions, name, connectname=None, args=None):
 		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.name = name
+		self.connectname = connectname
 		self.args = args or {}
 
 	def __repr__(self):
@@ -742,12 +855,7 @@ class ProcedureCommand(_SQLCommand):
 		return "{}({})".format(self.name, self._formatargs(context))
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: procedure {}".format(context.count+1, self.location, self._formatprocedurecall(context)), end="", flush=True)
+		self.startmessage(context, self.formatconnection(), "procedure {}".format(self._formatprocedurecall(context)))
 
 		queryargvalues = {}
 		for (argname, argvalue) in self.args.items():
@@ -758,16 +866,17 @@ class ProcedureCommand(_SQLCommand):
 			queryargvalues[argname] = argvalue
 
 		query = "begin {}({}); end;".format(self.name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-		result = self._executesql(context, query)
+		result = self._executesql(context, query, self.connectname)
 
 		if context.commit == "record":
-			context.db.commit()
+			context.cursor(self.connectname).commit()
 
-		if context.verbose == 3:
-			if result:
-				print(" -> {}".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())), flush=True)
-			else:
-				print(flush=True)
+		if result:
+			message = ", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())
+		else:
+			message = None
+		self.endmessage(context, message)
+
 		return result
 
 
@@ -791,9 +900,10 @@ class SQLCommand(_SQLCommand):
 	"""
 	type = "sql"
 
-	def __init__(self, location, raiseexceptions, sql, args=None):
+	def __init__(self, location, raiseexceptions, sql, connectname=None, args=None):
 		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.sql = sql
+		self.connectname = connectname
 		self.args = args or {}
 
 	def __repr__(self):
@@ -813,23 +923,18 @@ class SQLCommand(_SQLCommand):
 			return repr(self.sql)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: sql {}".format(context.count+1, self.location, self._formatsql(context)), end="", flush=True)
+		self.startmessage(context, self.formatconnection(), "sql {}".format(self._formatsql(context)))
 
-		result = self._executesql(context, self.sql)
+		result = self._executesql(context, self.sql, self.connectname)
 
 		if context.commit == "record":
-			context.db.commit()
+			context.cursor(self.connectname).commit()
 
-		if context.verbose == 3:
-			if result:
-				print(" -> {}".format(", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())), flush=True)
-			else:
-				print(" -> done", flush=True)
+		if result:
+			message = ", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())
+		else:
+			message = None
+		self.endmessage(context, message)
 
 		return result
 
@@ -861,17 +966,11 @@ class SetVarCommand(Command):
 		return "setvar command {}".format(self.location)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: set var {!r} to {!r}".format(context.count+1, self.location, self.name, self.value), end="", flush=True)
+		self.startmessage(context, "set var {!r} to {!r}".format(self.name, self.value))
 
 		context.keys[self.name] = self.value
 
-		if context.verbose == 3:
-			print(" -> done", flush=True)
+		self.endmessage(context)
 
 
 @register
@@ -894,17 +993,11 @@ class UnsetVarCommand(Command):
 		return "unsetvar command {}".format(self.location)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: unset var {!r}".format(context.count+1, self.location, self.name), end="", flush=True)
+		self.startmessage(context, "unset var {!r}".format(self.name))
 
 		context.keys.pop(self.name, None)
 
-		if context.verbose == 3:
-			print(" -> done", flush=True)
+		self.endmessage(context)
 
 
 @register
@@ -939,17 +1032,79 @@ class RaiseExceptionsCommand(Command):
 		return "raiseexceptions command {}".format(self.location)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: raiseexceptions={!r}".format(context.count+1, self.location, self.value), end="", flush=True)
+		self.startmessage(context, "raiseexceptions {!r}".format(self.value))
 
-		context.raiseexceptions = self.value
+		context.raiseexceptions[-1] = self.value
 
-		if context.verbose == 3:
-			print(" -> done", flush=True)
+		self.endmessage(context)
+
+
+@register
+class PushRaiseExceptionsCommand(Command):
+	"""
+	The ``"pushraiseexceptions"`` command changes the global error reporting mode
+	for all subsequent commands, but remembers the previous exception handling
+	mode. After::
+
+		{"type": "pushraiseexceptions", "value": False}
+
+	for all subsequent commands any exception will be reported and command
+	execution will continue with the next command. It is possible to switch back
+	to the previous exception handling mode via::
+	::
+
+		{"type": "popraiseexceptions"}
+
+	Note that this global configuration will only be relavant for commands that
+	don't specify the ``"raiseexceptions"`` key themselves.
+	"""
+	type = "pushraiseexceptions"
+
+	def __init__(self, location, raiseexceptions, value):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.value = bool(value)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
+
+	def __str__(self):
+		return "pushraiseexceptions command {}".format(self.location)
+
+	def execute(self, context):
+		self.startmessage(context, "pushraiseexceptions {!r}".format(self.value))
+
+		context.raiseexceptions.append(self.value)
+
+		self.endmessage(context)
+
+
+@register
+class PopRaiseExceptionsCommand(Command):
+	"""
+	The ``"popraiseexceptions"`` command restores the preivously active exception
+	handling mode (i.e. the one active before the class ``"pushraiseexceptions"``
+	command.
+	"""
+	type = "popraiseexceptions"
+
+	def __init__(self, location, raiseexceptions):
+		super().__init__(location=location, raiseexceptions=raiseexceptions)
+
+	def __repr__(self):
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
+
+	def __str__(self):
+		return "popraiseexceptions command {}".format(self.location)
+
+	def execute(self, context):
+		self.startmessage(context, "popraiseexceptions")
+
+		if len(context.raiseexceptions) <= 1:
+			raise ValueError("raiseexception stack empty")
+
+		context.raiseexceptions.pop()
+
+		self.endmessage(context, "reverting to {!r}".format(context.raiseexceptions[-1]))
 
 
 @register
@@ -961,8 +1116,9 @@ class CheckErrorsCommand(Command):
 	"""
 	type = "checkerrors"
 
-	def __init__(self, location, raiseexceptions):
+	def __init__(self, location, raiseexceptions, connectname=None):
 		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.connectname = connectname
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -971,23 +1127,16 @@ class CheckErrorsCommand(Command):
 		return "checkerrors command {}".format(self.location)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: check errors".format(context.count+1, self.location), end="", flush=True)
+		self.startmessage(context, self.formatconnection(), "check errors")
 
-		context.cursor.execute("select lower(type), name from user_errors group by lower(type), name")
-		invalid_objects = [tuple(r) for r in context.cursor]
+		cursor = context.cursor(self.connectname)
+		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+		invalid_objects = [tuple(r) for r in cursor]
 
 		if invalid_objects:
-			if context.verbose:
-				print()
 			raise CompilationError(invalid_objects)
 
-		if context.verbose == 3:
-			print(" -> done", flush=True)
+		self.endmessage(context)
 
 
 @register
@@ -997,8 +1146,9 @@ class CompileAllCommand(Command):
 	"""
 	type = "compileall"
 
-	def __init__(self, location, raiseexceptions):
+	def __init__(self, location, raiseexceptions, connectname=None):
 		super().__init__(location=location, raiseexceptions=raiseexceptions)
+		self.connectname = connectname
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -1007,17 +1157,11 @@ class CompileAllCommand(Command):
 		return "compileall command {}".format(self.location)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: compile all".format(context.count+1, self.location), end="", flush=True)
+		self.startmessage(context, self.formatconnection(), "compile all")
 
-		context.cursor.execute("begin dbms_utility.compile_schema(user); end;")
+		context.cursor(self.connectname).execute("begin dbms_utility.compile_schema(user); end;")
 
-		if context.verbose == 3:
-			print(" -> done", flush=True)
+		self.endmessage(context)
 
 
 @register
@@ -1054,12 +1198,7 @@ class SCPCommand(Command):
 	def execute(self, context):
 		filename = context.scpdirectory + self.name.format(**context.keys)
 
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: scp {}".format(context.count+1, self.location, filename), end="", flush=True)
+		self.startmessage(context, "scp {}".format(filename))
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(self.content)
@@ -1071,8 +1210,7 @@ class SCPCommand(Command):
 		finally:
 			os.remove(tempname)
 
-		if context.verbose == 3:
-			print(" -> {} written".format(_reprbytes(self.content)), flush=True)
+		self.endmessage(context, "{} written".format(_reprbytes(self.content)))
 
 
 @register
@@ -1123,12 +1261,7 @@ class FileCommand(Command):
 	def execute(self, context):
 		filename = context.filedirectory + self.name.format(**context.keys)
 
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: file {}".format(context.count+1, self.location, filename), end="", flush=True)
+		self.startmessage(context, "file {}".format(filename))
 
 		try:
 			with open(filename, "wb") as f:
@@ -1159,18 +1292,17 @@ class FileCommand(Command):
 				gid = -1
 			os.chown(filename, uid, gid)
 
-		if context.verbose == 3:
-			msg = " -> {} written".format(_reprbytes(self.content))
-			optionmsg = []
-			if self.mode:
-				optionmsg.append("mode {:#o}".format(self.mode))
-			if self.owner:
-				optionmsg.append("owner {!r}".format(self.owner))
-			if self.group:
-				optionmsg.append("group {!r}".format(self.group))
-			if optionmsg:
-				msg = "{} ({})".format(msg, ", ".join(optionmsg))
-			print(msg, flush=True)
+		message = "{} written".format(_reprbytes(self.content))
+		messageoptions = []
+		if self.mode:
+			messageoptions.append("mode {:#o}".format(self.mode))
+		if self.owner:
+			messageoptions.append("owner {!r}".format(self.owner))
+		if self.group:
+			messageoptions.append("group {!r}".format(self.group))
+		if messageoptions:
+			message = "{} ({})".format(message, ", ".join(messageoptions))
+		self.endmessage(context, message)
 
 
 @register
@@ -1201,13 +1333,14 @@ class ResetSequenceCommand(Command):
 	"""
 	type = "resetsequence"
 
-	def __init__(self, location, raiseexceptions, sequence, table, field, minvalue=None, increment=None):
+	def __init__(self, location, raiseexceptions, sequence, table, field, minvalue=None, increment=None, connectname=None):
 		super().__init__(location=location, raiseexceptions=raiseexceptions)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
 		self.minvalue = minvalue
 		self.increment = increment
+		self.connectname = connectname
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} sequence={0.sequence!r} {0.location} at {1:#x}>".format(self, id(self))
@@ -1216,16 +1349,13 @@ class ResetSequenceCommand(Command):
 		return "resetsequence command {}".format(self.location)
 
 	def execute(self, context):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			print("#{:,} {}: resetting sequence {} to maximum value from {}.{}".format(context.count+1, self.location, self.sequence, self.table, self.field), end="", flush=True)
+		self.startmessage(context, self.formatconnection(), "resetting sequence {} to maximum value from {}.{}".format(self.sequence, self.table, self.field))
+
+		cursor = context.cursor(self.connectname)
 
 		# Fetch information about the sequence
-		context.cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
-		oldvalues = context.cursor.fetchone()
+		cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
+		oldvalues = cursor.fetchone()
 		if oldvalues is None:
 			raise ValueError("sequence {!r} unknown".format(self.sequence))
 		increment = self.increment
@@ -1234,19 +1364,19 @@ class ResetSequenceCommand(Command):
 		minvalue = self.minvalue
 		if minvalue is None:
 			minvalue = oldvalues[0]
-		context.cursor.execute("select {}.nextval from dual".format(self.sequence))
-		seqvalue = context.cursor.fetchone()[0]
+		cursor.execute("select {}.nextval from dual".format(self.sequence))
+		seqvalue = cursor.fetchone()[0]
 
 		# Fetch information about the table values
-		context.cursor.execute("select nvl(max({}), 0) from {}".format(self.field, self.table))
-		tabvalue = context.cursor.fetchone()[0]
+		cursor.execute("select nvl(max({}), 0) from {}".format(self.field, self.table))
+		tabvalue = cursor.fetchone()[0]
 
 		step = max(tabvalue, minvalue) - seqvalue
 		if step:
-			context.cursor.execute("alter sequence {} increment by {}".format(self.sequence, step))
-			context.cursor.execute("select {}.nextval from dual".format(self.sequence))
-			seqvalue = context.cursor.fetchone()[0]
-			context.cursor.execute("alter sequence {} increment by {}".format(self.sequence, increment))
+			cursor.execute("alter sequence {} increment by {}".format(self.sequence, step))
+			cursor.execute("select {}.nextval from dual".format(self.sequence))
+			seqvalue = cursor.fetchone()[0]
+			cursor.execute("alter sequence {} increment by {}".format(self.sequence, increment))
 			if context.verbose == 3:
 				print(" -> reset to {}".format(seqvalue), flush=True)
 			return seqvalue
@@ -1297,7 +1427,7 @@ class var:
 		return False
 
 
-reprthreshold = 250
+reprthreshold = 100
 
 
 def _reprbytes(value):
@@ -1524,11 +1654,11 @@ class Location:
 
 	def __str__(self):
 		if self.startline is None and self.endline is None:
-			return "in {!r}".format(self.filename)
+			return "{!r}".format(self.filename)
 		elif self.startline == self.endline:
-			return "in {!r} at line {:,}".format(self.filename, self.startline)
+			return "{!r} at line {:,}".format(self.filename, self.startline)
 		else:
-			return "in {!r} at lines {:,}-{:,}".format(self.filename, self.startline, self.endline)
+			return "{!r} at lines {:,}-{:,}".format(self.filename, self.startline, self.endline)
 
 
 def define(arg):
