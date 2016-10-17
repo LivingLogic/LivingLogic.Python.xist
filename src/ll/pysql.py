@@ -239,6 +239,39 @@ and reset the sequence ``person_seq`` to the maximum value of the field
 and then make sure that no errors exist in the schema.
 
 
+Multiple database connections
+=============================
+
+PySQL can handle multiple database connections. New database connections can be
+opened with the ``pushconnnection`` command. This command opens a new database
+connection and stores it under a name. Subsequent commands can refer to that
+name to specify the database connection to use. The ``popconnection`` command
+disconnects from the database and reverts to the previous connection for that
+name (which might not exist). An example looks like this::
+
+	{
+		"type": "pushconnection",
+		"connectstring": "user/pwd@db",
+		"connectname": "db",
+	}
+
+	{
+		"type": "procedure",
+		"name": "test",
+		"connectname": "db",
+	}
+
+	{
+		"type": "popconnection",
+		"connectname": "db",
+	}
+
+The connection with the name ``None`` is the "default connection". This
+connection will be used for all normal SQL commands and all PySQL commands that
+don't have a ``"connectname"`` key (or where the ``"connectname"`` key is
+``None``).
+
+
 Variables
 =========
 
@@ -303,9 +336,9 @@ it supports the following command line options:
 
 	``-v``, ``--verbose``
 		Gives different levels of output while data is being imported to the
-		database. Possible levels are: ``0`` (no output), ``1`` (one dot for
-		each command), ``2`` (each command name) or ``3`` (detailed output for
-		each command/procedure call)
+		database. The default is no output (unless an exception occurs). Possible
+		modes are: ``dot`` (one dot for each command), ``type`` (each command type)
+		or ``full`` (detailed output for each command/procedure call)
 
 	``-z``, ``--summary``
 		Give a summary of the number of commands executed and procedures called.
@@ -366,7 +399,6 @@ except ImportError:
 
 import cx_Oracle
 
-
 __docformat__ = "reStructuredText"
 
 
@@ -378,47 +410,74 @@ def format_class(obj):
 	return fmt.format(obj)
 
 
+class Connection:
+	def __init__(self, connectstring, commit):
+		self.connection = cx_Oracle.connect(connectstring)
+		self.cursor = self.connection.cursor()
+		self.commit = commit
+
+	def connectstring(self):
+		return "{}@{}".format(self.connection.username, self.connection.tnsentry)
+
+	def close(self):
+		if self.connection is not None:
+			if self.commit == "once":
+				self.connection.commit()
+			elif self.commit == "never":
+				self.connection.rollback()
+			self.cursor.close()
+			self.cursor = None
+			self.connection.close()
+			self.connection = None
+
+	def __str__(self):
+		return "connection {}".format(self.connectstring())
+
+	def __repr__(self):
+		return "<Connection to {}>".format(self.connectstring())
+
+
 class Context:
 	"""
 	A :class:`Context` objects contains the configuration and run time information
 	required for importing a PySQL file.
 	"""
-	def __init__(self, db=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", raiseexceptions=True, verbose=0, summary=False, vars=None):
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", raiseexceptions=True, verbose=0, summary=False, vars=None):
 		self.keys = {v.key: v for v in vars} if vars else {}
-		self.cursors = {None: [db.cursor()]} if db is not None else {}
+		self.connections = {}
+		self.commit = commit
 		self.scpdirectory = scpdirectory
 		self.filedirectory = filedirectory
-		self.commit = commit
 		self.terminator = terminator
 		self.raiseexceptions = [raiseexceptions]
 		self.verbose = verbose
 		self.summary = summary
-		self.count = 0
 		self.commandcounts = collections.Counter()
-		self.procedurecounts = collections.Counter()
 		self.errorcount = 0
+		self.totalcount = 0
 		self._location = None
+		if connectstring is not None:
+			self.pushconnection(None, self.connect(connectstring, commit))
 
-	def cursor(self, connectname):
-		if connectname not in self.cursors:
+	def connect(self, connectstring, commit="once"):
+		return Connection(connectstring, commit)
+
+	def connection(self, connectname=None):
+		if connectname not in self.connections:
 			raise ValueError("no connection named {!r}".format(connectname))
-		return self.cursors[connectname][-1]
+		return self.connections[connectname][-1]
 
-	def pushcursor(self, connectname, cursor):
-		if connectname not in self.cursors:
-			self.cursors[connectname] = []
-		self.cursors[connectname].append(cursor)
-		return cursor
+	def pushconnection(self, connectname, connection):
+		if connectname not in self.connections:
+			self.connections[connectname] = []
+		self.connections[connectname].append(connection)
 
-	def popcursor(self, connectname):
-		if connectname not in self.cursors:
+	def popconnection(self, connectname):
+		if connectname not in self.connections:
 			raise ValueError("no connection named {!r}".format(connectname))
-		if not self.cursors[connectname]:
+		if not self.connections[connectname]:
 			raise ValueError("connection stack for name {!r} empty".format(connectname))
-		cursor = self.cursors[connectname].pop()
-		if self.commit == "once":
-			cursor.connection.commit()
-		return cursor
+		return self.connections[connectname].pop()
 
 	def var(self, key, type=int):
 		if key in self.keys:
@@ -434,6 +493,32 @@ class Context:
 
 	def loadstr(self, filename, encoding=None, errors="strict"):
 		return loadstr(filename, encoding, errors).execute(self._location.filename)
+
+	def commandintro(self, command):
+		if self.verbose == "dot":
+			print(".", end="", flush=True)
+		elif self.verbose == "type":
+			print(" " + command.type, end="", flush=True)
+		elif self.verbose == "full":
+			print("pysql #{:,} :: {}".format(self.totalcount+1, command.location), end="", flush=True)
+
+	def commandstart(self, *messages):
+		if self.verbose == "full":
+			output = []
+			for (i, message) in enumerate(messages):
+				if i == len(messages)-1 and i:
+					output.append(" >> ")
+				else:
+					output.append(" :: ")
+				output.append(message)
+			print("".join(output), end="", flush=True)
+
+	def commandend(self, message=None):
+		if self.verbose == "full":
+			if message is not None:
+				print(" -> {}".format(message), flush=True)
+			else:
+				print(flush=True)
 
 	def _load(self, stream):
 		"""
@@ -527,42 +612,36 @@ class Context:
 		over lines that contain the PySQL commands.
 		"""
 		try:
-			if self.verbose == 2:
+			if self.verbose == "type":
 				print("commands:", end="", flush=True)
 			for command in self._load(stream):
 				try:
+					self.commandintro(command)
 					command.execute(self)
 				except Exception as exc:
 					if command.raiseexceptions:
-						if self.verbose == 2:
+						if self.verbose == "type":
 							print("(error)", flush=True)
 						elif self.verbose:
 							print()
 						raise Error(command) from exc
 					else:
 						self.errorcount += 1
-						if self.verbose == 1:
+						if self.verbose == "dot":
 							print("!", end="", flush=True)
-						elif self.verbose == 2:
+						elif self.verbose == "type":
 							print("(error)", end="", flush=True)
-						elif self.verbose == 3:
+						elif self.verbose == "full":
 							exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
 							print(" -> ignored {}.{}: {}".format(exc.__class__.__module__, exc.__class__.__qualname__, exctext))
-				else:
-					if isinstance(command, ProcedureCommand):
-						self.procedurecounts[command.name] += 1
-					self.commandcounts[command.type] += 1
-				self.count += 1
-			if self.commit == "once":
-				for cursors in self.cursors.values():
-					for cursor in cursors:
-						cursor.connection.commit()
-			elif self.commit == "never":
-				for cursors in self.cursors.values():
-					for cursor in cursors:
-						cursor.connection.rollback()
+			for connections in self.connections.values():
+				for connection in connections:
+					if connection.commit == "once":
+						connection.connection.commit()
+					elif connection.commit == "never":
+						connection.connection.rollback()
 		finally:
-			if self.verbose in (1, 2):
+			if self.verbose in ("dot", "type"):
 				print()
 		self._printsummary()
 
@@ -570,28 +649,39 @@ class Context:
 		if self.summary:
 			if self.verbose:
 				print()
-			commandcountvalues = self.commandcounts.values()
-			l1 = len(str(max(commandcountvalues))) if commandcountvalues else 0
-			l1 = max(l1, len(str(self.errorcount)))
-			l2 = max(len("procedure ") + len(procname) for procname in self.procedurecounts) if self.procedurecounts else 0
-			print("Summary")
-			print("=======")
+			print("Command summary:")
 			anyoutput = False
-			if self.commandcounts["procedure"]:
+			totallen = len("{:,}".format(self.totalcount))
+			def sortkey(keyvalue):
+				(key, value) = keyvalue
+				if len(key) > 1: # db command
+					return (0, key[0], key[1] != "procedure", *key)
+				else:
+					return (1, *key)
+			lastconnection = None
+			for (key, count) in sorted(self.commandcounts.items(), key=sortkey):
+				connection = key[0] if len(key) > 1 else None
+				if not anyoutput or connection != lastconnection:
+					print()
+					if connection:
+						print("Connection {}:".format(connection))
+					else:
+						print("Other commands:")
+				lastconnection = connection
 				anyoutput = True
-				print("{:>{}} type".format("#", l1))
-				print("{} {}".format("-"*l1, "-"*l2))
-				for (procname, count) in sorted(self.procedurecounts.items(), key=operator.itemgetter(1)):
-					print("{:>{}} procedure {}".format(count, l1, procname))
-				print("{} {}".format("-"*l1, "-"*l2))
-			for cmdtype in ("procedure", "sql", "resetsequence", "setvar", "file", "scp", "compileall", "checkerrors"):
-				if self.commandcounts[cmdtype]:
-					anyoutput = True
-					print("{:>{}} {}".format(self.commandcounts[cmdtype], l1, cmdtype))
+				print("    {:>{},} {}".format(count, totallen, " ".join(key[1:]) if len(key) > 1 else key[0]))
 			if self.errorcount:
-				print("{:>{}} exception{} ignored".format(self.errorcount, l1, "s" if self.errorcount != 1 else ""))
+				print("")
+				print("Exceptions: {:,} exception{} ignored".format(self.errorcount, "s" if self.errorcount != 1 else ""))
+			if anyoutput:
+				print("")
+				print("Total: {:,} command{} executed".format(self.totalcount, "s" if self.totalcount != 1 else ""))
 			if not anyoutput:
-				print("no commands executed")
+				print("    no commands executed")
+
+	def count(self, *args):
+		self.commandcounts[args] += 1
+		self.totalcount += 1
 
 
 ###
@@ -602,23 +692,28 @@ class Command:
 	"""
 	The base class of all commands. A :class:`Command` object is created from
 	a command dictionary literal in a PySQL file. The keys in the command
-	dictorionary that are supported by all command types are the following:
+	dictionary that are supported by all command types are the following:
 
-		``type`` : string (optional)
-			This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
-			``"scp"``, ``"resetsequence"``, ``"setvar"``, ``"include"``,
-			``"compileall"`` or ``"checkerrors"`` and specifies the type of the
-			PySQL command.
+	``type`` : string (optional)
+		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
+		``"scp"``, ``"resetsequence"``, ``"setvar"``, ``"include"``,
+		``"compileall"`, ``"checkerrors"``, ``"pushconnection"``,
+		``"popconnection"``, ``"raiseexceptions"``, ``"pushraiseexceptions"``
+		or ``"popraiseexceptions"``  and specifies the type of the PySQL command.
 
-		``connection``: string (optional)
-		``raiseexceptions`` : bool (optional)
-			Specifies whether exceptions that happen during the execution of the
-			command should be reported and terminate the script (``True``,
-			the default), or should be ignored (``False``).
+	``raiseexceptions`` : bool (optional)
+		Specifies whether exceptions that happen during the execution of the
+		command should be reported and terminate the script (``True``), or
+		should be ignored (``False``). ``None`` uses the global configuration.
+
+	``comment`` : string (optional)
+		This key will be ignored completely, but can be used to add a comment
+		to a command.
 	"""
-	def __init__(self, location, raiseexceptions):
+	def __init__(self, location, *, raiseexceptions=None, comment=None):
 		self.location = location
 		self.raiseexceptions = raiseexceptions
+		self.comment = comment
 
 	commands = {}
 
@@ -630,32 +725,6 @@ class Command:
 
 	def __str__(self):
 		return "{} command {}".format(self.type, self.location)
-
-	def startmessage(self, context, *messages):
-		if context.verbose == 1:
-			print(".", end="", flush=True)
-		elif context.verbose == 2:
-			print(" " + self.type, end="", flush=True)
-		elif context.verbose == 3:
-			messages = ("pysql #{:,}".format(context.count+1), str(self.location)) + messages
-			output = []
-			for (i, message) in enumerate(messages):
-				if i == len(messages)-1 and i:
-					output.append(">>")
-				elif i:
-					output.append("::")
-				output.append(message)
-			print(" ".join(output), end="", flush=True)
-
-	def endmessage(self, context, message="done"):
-		if context.verbose == 3:
-			print(" -> {}".format(message), flush=True)
-
-	def formatconnection(self):
-		if self.connectname is None:
-			return "default connection"
-		else:
-			return "connection {!r}".format(self.connectname)
 
 
 def register(cls):
@@ -669,11 +738,14 @@ class IncludeCommand(Command):
 	The ``"include"`` command includes another PySQL file. The filename is read
 	from the key ``"name"``. This name is interpreted as being relative to the
 	directory with the file containing the ``include`` command.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "include"
 
-	def __init__(self, location, raiseexceptions, name):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, name, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 
 	def __repr__(self):
@@ -688,27 +760,35 @@ class PushConnectionCommand(Command):
 	"""
 	The ``"pushconnection"`` command connects to the database given in the
 	connectstring in the key ``"connectstring"`` and pushes the connection under
-	the name from the key ``"connectname"``.
+	the name from the key ``"connectname"``. (If ``"connectname"`` is not given
+	or is ``None``, the connection will be pushed as the default connection).
+	``"commit"`` can be given to specify the commit mode for this connection
+	(``"record"``, ``"once"`` or ``"never"``).
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "pushconnection"
 
-	def __init__(self, location, raiseexceptions, connectstring, connectname=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, connectstring, raiseexceptions=None, comment=None, connectname=None, commit=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.connectstring = connectstring
 		self.connectname = connectname
+		self.commit = commit
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} connectname={0.connectname!r} connectstring={0.connectstring!r} {0.location} at {1:#x}>".format(self, id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} connectname={0.connectname!r} connection={0.connection!r} {0.location} at {1:#x}>".format(self, id(self))
 
 	def __str__(self):
 		return "pushconnection command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "push {!r} as {}".format(self.connectstring, self.formatconnection()))
+		connectname = "default connection" if self.connectname is None else "connection {!r}".format(self.connectname)
+		context.commandstart("push {!r} as {}".format(self.connectstring, connectname))
 
-		cursor = context.pushcursor(self.connectname, cx_Oracle.connect(self.connectstring).cursor())
+		context.pushconnection(self.connectname, context.connect(self.connectstring, self.commit if self.commit is not None else context.commit))
 
-		self.endmessage(context)
+		context.commandend("done")
 
 
 @register
@@ -716,14 +796,17 @@ class PopConnectionCommand(Command):
 	"""
 	The ``"popconnection"`` command disconnects from the database connection with
 	the name in the key ``"connectname"`` and reverts to the previous connection
-	registered for that name. (If ``connectname`` is ``None`` the main connection will be
-	used). If the commit mode is ``"once"`` the transaction will be committed
-	before closing the connection.
+	registered for that name. (If ``"connectname"`` is ``None`` the default
+	connection will be used). If the commit mode for the connection is ``"once"``
+	the transaction will be committed before closing the connection.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "popconnection"
 
-	def __init__(self, location, raiseexceptions, connectname):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, connectname=None, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.connectname = connectname
 
 	def __repr__(self):
@@ -733,14 +816,59 @@ class PopConnectionCommand(Command):
 		return "popconnection command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "pop {}".format(self.formatconnection()))
+		connectname = "default connection" if self.connectname is None else "connection {!r}".format(self.connectname)
+		context.commandstart("pop {}".format(connectname))
 
-		cursor = context.popcursor(self.connectname)
+		connection = context.popconnection(self.connectname)
+		connectstring = connection.connectstring()
+		connection.close()
 
-		self.endmessage(context)
+		context.commandend("popped {}".format(connectstring))
 
 
-class _SQLCommand(Command):
+class _DatabaseCommand(Command):
+	"""
+	Base class of all commands that use a database connection.
+
+	All database commands support the following keys:
+
+	``"connectname"`` : string (optional)
+		The name of the connection to use for this command. (This connection must
+		have been pushed by a :class:`PushConnectionCommand` previously). Also
+		``None`` can be specified explicitely to use the default connection.
+
+	``"connectstring"`` : string (optional) 
+		If ``"connectstring"`` a new connection to this database will be created
+		just for this one command.
+
+	If neither of these keys is given, the default connection is used (and
+	giving both is an error.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
+	"""
+
+	def __init__(self, location, *, raiseexceptions=None, comment=None, connectstring=None, connectname=None):
+		if connectstring is not None and connectname is not None:
+			raise ValueError("connectstring and connectname can't be specified simultaneously")
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+		self.connectstring = connectstring
+		self.connectname = connectname
+
+	def beginconnection(self, context):
+		if self.connectstring is not None:
+			return context.connect(self.connectstring, context.commit)
+		else:
+			return context.connection(self.connectname)
+
+	def endconnection(self, context, connection):
+		if connection.commit == "record":
+			connection.connect.commit()
+		if self.connectstring is not None: # This was a connection just for this one command
+			self.connection.close()
+
+
+class _SQLCommand(_DatabaseCommand):
 	"""
 	Common base class of :class:`ProcedureCommand` and :class:`SQLCommand`.
 	"""
@@ -750,8 +878,8 @@ class _SQLCommand(Command):
 		var.setvalue(0, value)
 		return var
 
-	def _executesql(self, context, query, name):
-		cursor = context.cursor(name)
+	def _executesql(self, context, query, connection):
+		cursor = connection.cursor
 		queryargvars = {}
 		for (argname, argvalue) in self.args.items():
 			if isinstance(argvalue, sql):
@@ -797,48 +925,49 @@ class _SQLCommand(Command):
 class ProcedureCommand(_SQLCommand):
 	"""
 	A ``"procedure"`` command calls an Oracle procedure in the database.
-	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
-	supported in the command dictionary:
+	The following keys are supported in the command dictionary:
 
-		``"name"`` : string (required)
-			The name of the procedure to be called (This may include ``.`` for
-			calling a procedure in a package or one owned by a different user).
+	``"name"`` : string (required)
+		The name of the procedure to be called (This may include ``.`` for
+		calling a procedure in a package or one owned by a different user).
 
-		``"args"`` : dictionary (optional)
-			A dictionary with the names of the parameters as keys and the parameter
-			values as values. PySQL supports all types as values that
-			:mod:`cx_Oracle` supports. In addition to those, three special classes
-			are supported:
+	``"args"`` : dictionary (optional)
+		A dictionary with the names of the parameters as keys and the parameter
+		values as values. PySQL supports all types as values that
+		:mod:`cx_Oracle` supports. In addition to those, three special classes
+		are supported:
 
-			*	:class:`sql` objects can be used to specify that the paramater
-				should be literal SQL. So e.g. ``sql("sysdate")`` will be the date
-				when the PySQL script was executed.
+		*	:class:`sql` objects can be used to specify that the paramater
+			should be literal SQL. So e.g. ``sql("sysdate")`` will be the date
+			when the PySQL script was executed.
 
-			*	:class:`var` objects can be used to hold values that are ``OUT``
-				parameters of the procedure. For example on first use of
-				``var("foo_10")`` the value of the ``OUT`` parameter will be stored
-				under the key ``"foo_10"``. The next time ``var("foo_10")`` is
-				encountered the value stored under the key ``"foo_10"`` will be passed
-				to the procedure. The type of the variable defaults to ``int``.
-				If a different type is required it can be passed as the second
-				argument to :class:`var`, e.g. ``var("foo_10", str)``.
+		*	:class:`var` objects can be used to hold values that are ``OUT``
+			parameters of the procedure. For example on first use of
+			``var("foo_10")`` the value of the ``OUT`` parameter will be stored
+			under the key ``"foo_10"``. The next time ``var("foo_10")`` is
+			encountered the value stored under the key ``"foo_10"`` will be passed
+			to the procedure. The type of the variable defaults to ``int``.
+			If a different type is required it can be passed as the second
+			argument to :class:`var`, e.g. ``var("foo_10", str)``.
 
-			*	Finally :func:`loadbytes`  and :func:`loadstr` objects can be used
-				to load values from external files (as long as they are of type
-				:class:`bytes` or :class:`str`). ``loadbytes("foo/bar.txt")`` will
-				be replaced with the content of the external file ``foo/bar.txt``
-				(as a :class:`bytes` object). If a :class:`str` object is required,
-				:func:`loadstr` can be used. Encoding info can be passed like this::
+		*	Finally :func:`loadbytes`  and :func:`loadstr` objects can be used
+			to load values from external files (as long as they are of type
+			:class:`bytes` or :class:`str`). ``loadbytes("foo/bar.txt")`` will
+			be replaced with the content of the external file ``foo/bar.txt``
+			(as a :class:`bytes` object). If a :class:`str` object is required,
+			:func:`loadstr` can be used. Encoding info can be passed like this::
 
-					loadstr("foo/bar.txt", "utf-8", "replace")
+				loadstr("foo/bar.txt", "utf-8", "replace")
+
+	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
+	and ``"connectstring"`` from the base classes are supported.
 	"""
 
 	type = "procedure"
 
-	def __init__(self, location, raiseexceptions, name, connectname=None, args=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, name, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment, connectstring=connectstring, connectname=connectname)
 		self.name = name
-		self.connectname = connectname
 		self.args = args or {}
 
 	def __repr__(self):
@@ -855,7 +984,9 @@ class ProcedureCommand(_SQLCommand):
 		return "{}({})".format(self.name, self._formatargs(context))
 
 	def execute(self, context):
-		self.startmessage(context, self.formatconnection(), "procedure {}".format(self._formatprocedurecall(context)))
+		connection = self.beginconnection(context)
+
+		context.commandstart(str(connection), "procedure {}".format(self._formatprocedurecall(context)))
 
 		queryargvalues = {}
 		for (argname, argvalue) in self.args.items():
@@ -866,16 +997,18 @@ class ProcedureCommand(_SQLCommand):
 			queryargvalues[argname] = argvalue
 
 		query = "begin {}({}); end;".format(self.name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
-		result = self._executesql(context, query, self.connectname)
+		result = self._executesql(context, query, connection)
 
-		if context.commit == "record":
-			context.cursor(self.connectname).commit()
+		context.count(connection.connectstring(), self.type, self.name)
+
+		self.endconnection(context, connection)
 
 		if result:
 			message = ", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())
 		else:
-			message = None
-		self.endmessage(context, message)
+			message = "done"
+
+		context.commandend(message)
 
 		return result
 
@@ -884,26 +1017,27 @@ class ProcedureCommand(_SQLCommand):
 class SQLCommand(_SQLCommand):
 	"""
 	An ``"sql"`` command directly executes an SQL statement in the Oracle database.
-	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
-	supported in the command dictionary:
+	The following keys are supported in the command dictionary:
 
-		``"sql"`` : string (required)
-			The SQL to be executed. This may contain parameters in the form of
-			``:paramname``. The values for those parameters will be taken from
-			``args``.
+	``"sql"`` : string (required)
+		The SQL to be executed. This may contain parameters in the form of
+		``:paramname``. The values for those parameters will be taken from
+		``args``.
 
-		``"args"`` : dictionary (optional)
-			A dictionary with the names of the parameters as keys and the parameter
-			values as values. Similar to procedure calls :class:`var` and
-			:class:`load` objects are supported. However :class:`sql` objects
-			are not supported (they will be ignored).
+	``"args"`` : dictionary (optional)
+		A dictionary with the names of the parameters as keys and the parameter
+		values as values. Similar to procedure calls :class:`var` and
+		:class:`load` objects are supported. However :class:`sql` objects
+		are not supported (they will be ignored).
+
+	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
+	and ``"connectstring"`` from the base classes are supported.
 	"""
 	type = "sql"
 
-	def __init__(self, location, raiseexceptions, sql, connectname=None, args=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, sql, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment, connectstring=connectstring, connectname=connectname)
 		self.sql = sql
-		self.connectname = connectname
 		self.args = args or {}
 
 	def __repr__(self):
@@ -923,18 +1057,21 @@ class SQLCommand(_SQLCommand):
 			return repr(self.sql)
 
 	def execute(self, context):
-		self.startmessage(context, self.formatconnection(), "sql {}".format(self._formatsql(context)))
+		connection = self.beginconnection(context)
 
-		result = self._executesql(context, self.sql, self.connectname)
+		context.commandstart(str(connection), "sql {}".format(self._formatsql(context)))
 
-		if context.commit == "record":
-			context.cursor(self.connectname).commit()
+		result = self._executesql(context, self.sql, connection)
+
+		context.count(connection.connectstring(), self.type)
+
+		self.endconnection(context, connection)
 
 		if result:
 			message = ", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())
 		else:
-			message = None
-		self.endmessage(context, message)
+			message = "done"
+		context.commandend(message)
 
 		return result
 
@@ -942,20 +1079,22 @@ class SQLCommand(_SQLCommand):
 @register
 class SetVarCommand(Command):
 	"""
-	The ``"setvar"`` command sets a variable to a fixed value. In addition to
-	``"type"`` and ``"raiseexceptions"`` the following keys are supported in the
-	command dictionary:
+	The ``"setvar"`` command sets a variable to a fixed value. The following
+	keys are supported in the command dictionary:
 
-		``"name"``: string (required)
-			The name of the variable to set.
+	``"name"``: string (required)
+		The name of the variable to set.
 
-		``"value"``: (required)
-			The value of the variable.
+	``"value"``: object (required)
+		The value of the variable.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "setvar"
 
-	def __init__(self, location, raiseexceptions, name, value):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, name, value, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 		self.value = value
 
@@ -966,24 +1105,28 @@ class SetVarCommand(Command):
 		return "setvar command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "set var {!r} to {!r}".format(self.name, self.value))
+		context.commandstart("set var {!r} to {!r}".format(self.name, self.value))
 
 		context.keys[self.name] = self.value
 
-		self.endmessage(context)
+		context.count(self.type)
+
+		context.commandend("done")
 
 
 @register
 class UnsetVarCommand(Command):
 	"""
-	The ``"unsetvar"`` command deletes a variable. In addition to ``"type"`` and
-	``"raiseexceptions"`` the key ``"name"`` is supported and must contain the
-	name of the variable.
+	The ``"unsetvar"`` command deletes a variable. The key ``"name"`` must be
+	given and must contain the name of the variable.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "unsetvar"
 
-	def __init__(self, location, raiseexceptions, name):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, name, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 
 	def __repr__(self):
@@ -993,11 +1136,13 @@ class UnsetVarCommand(Command):
 		return "unsetvar command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "unset var {!r}".format(self.name))
+		context.commandstart("unset var {!r}".format(self.name))
 
 		context.keys.pop(self.name, None)
 
-		self.endmessage(context)
+		context.count(self.type)
+
+		context.commandend("done")
 
 
 @register
@@ -1016,13 +1161,16 @@ class RaiseExceptionsCommand(Command):
 	will switch back to aborting the execution of the PySQL script once an
 	exception is encountered.
 
-	Note that the global configuration will only be relavant for commands that
+	Note that the global configuration will only be relevant for commands that
 	don't specify the ``"raiseexceptions"`` key themselves.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "raiseexceptions"
 
-	def __init__(self, location, raiseexceptions, value):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, value, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.value = bool(value)
 
 	def __repr__(self):
@@ -1032,11 +1180,13 @@ class RaiseExceptionsCommand(Command):
 		return "raiseexceptions command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "raiseexceptions {!r}".format(self.value))
+		context.commandstart("raiseexceptions {!r}".format(self.value))
 
 		context.raiseexceptions[-1] = self.value
 
-		self.endmessage(context)
+		context.count(self.type)
+
+		context.commandend("done")
 
 
 @register
@@ -1048,20 +1198,22 @@ class PushRaiseExceptionsCommand(Command):
 
 		{"type": "pushraiseexceptions", "value": False}
 
-	for all subsequent commands any exception will be reported and command
+	for all subsequent commands any exception will be ignored and command
 	execution will continue with the next command. It is possible to switch back
 	to the previous exception handling mode via::
-	::
 
 		{"type": "popraiseexceptions"}
 
 	Note that this global configuration will only be relavant for commands that
 	don't specify the ``"raiseexceptions"`` key themselves.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "pushraiseexceptions"
 
-	def __init__(self, location, raiseexceptions, value):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, value, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.value = bool(value)
 
 	def __repr__(self):
@@ -1071,24 +1223,29 @@ class PushRaiseExceptionsCommand(Command):
 		return "pushraiseexceptions command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "pushraiseexceptions {!r}".format(self.value))
+		context.commandstart("pushraiseexceptions {!r}".format(self.value))
 
 		context.raiseexceptions.append(self.value)
 
-		self.endmessage(context)
+		context.count(self.type)
+
+		context.commandend("done")
 
 
 @register
 class PopRaiseExceptionsCommand(Command):
 	"""
-	The ``"popraiseexceptions"`` command restores the preivously active exception
-	handling mode (i.e. the one active before the class ``"pushraiseexceptions"``
-	command.
+	The ``"popraiseexceptions"`` command restores the previously active exception
+	handling mode (i.e. the one active before the last ``"pushraiseexceptions"``
+	command).
+
+	The keys ``"raiseexceptions"`` and ``"comment"`` from the base class are
+	supported in the command dictionary.
 	"""
 	type = "popraiseexceptions"
 
-	def __init__(self, location, raiseexceptions):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -1097,28 +1254,29 @@ class PopRaiseExceptionsCommand(Command):
 		return "popraiseexceptions command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, "popraiseexceptions")
+		context.commandstart("popraiseexceptions")
 
 		if len(context.raiseexceptions) <= 1:
 			raise ValueError("raiseexception stack empty")
 
 		context.raiseexceptions.pop()
 
-		self.endmessage(context, "reverting to {!r}".format(context.raiseexceptions[-1]))
+		context.count(self.type)
+
+		context.commandend("reverting to {!r}".format(context.raiseexceptions[-1]))
 
 
 @register
-class CheckErrorsCommand(Command):
+class CheckErrorsCommand(_DatabaseCommand):
 	"""
 	The ``"checkerrors"`` command checks that there are no compilation errors in
-	the target schema. If there are, an exception will be raised. (The
-	``raiseexceptions`` key is supported, but its value will be ignored).
+	the target schema. If there are, an exception will be raised.
+
+	The keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
+	and ``"connectstring"`` from the base classes are supported, but the value
+	of the ``"raiseexceptions"`` key will be ignored.
 	"""
 	type = "checkerrors"
-
-	def __init__(self, location, raiseexceptions, connectname=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
-		self.connectname = connectname
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -1127,28 +1285,32 @@ class CheckErrorsCommand(Command):
 		return "checkerrors command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, self.formatconnection(), "check errors")
+		connection = self.beginconnection(context)
 
-		cursor = context.cursor(self.connectname)
-		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
-		invalid_objects = [tuple(r) for r in cursor]
+		context.commandstart(str(connection), "check errors")
+
+		connection.cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+		invalid_objects = [tuple(r) for r in connection.cursor]
+
+		self.endconnection(context, connection)
+
+		context.count(connection.connectstring(), self.type)
 
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
 
-		self.endmessage(context)
+		context.commandend("done")
 
 
 @register
-class CompileAllCommand(Command):
+class CompileAllCommand(_DatabaseCommand):
 	"""
 	The ``"compileall"`` command will recompile all objects in the schema.
+
+	The keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
+	and ``"connectstring"`` from the base classes are supported.
 	"""
 	type = "compileall"
-
-	def __init__(self, location, raiseexceptions, connectname=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
-		self.connectname = connectname
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
@@ -1157,35 +1319,43 @@ class CompileAllCommand(Command):
 		return "compileall command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, self.formatconnection(), "compile all")
+		connection = self.beginconnection(context)
 
-		context.cursor(self.connectname).execute("begin dbms_utility.compile_schema(user); end;")
+		context.commandstart(str(connection), "compile all")
 
-		self.endmessage(context)
+		connection.cursor.execute("begin dbms_utility.compile_schema(user); end;")
+
+		self.endconnection(context, connection)
+
+		context.count(connection.connectstring(), self.type)
+
+		context.commandend("done")
 
 
 @register
 class SCPCommand(Command):
 	"""
 	The ``"scp"`` command creates a file by copying it via the ``scp`` command.
-	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
-	supported in the command dictionary:
+	The following keys are supported in the command dictionary:
 
-		``"name"`` : string (required)
-			The name of the file to be created. It may contain ``format()`` style
-			specifications containing any key that appeared in a ``"procedure"``
-			or ``"sql"`` command. These specifiers will be replaced by the correct
-			key values. As these files will be copied via the ``scp`` command,
-			ssh file names can be used.
+	``"name"`` : string (required)
+		The name of the file to be created. It may contain ``format()`` style
+		specifications containing any key that appeared in a ``"procedure"``
+		or ``"sql"`` command. These specifiers will be replaced by the correct
+		key values. As these files will be copied via the ``scp`` command,
+		ssh file names can be used.
 
-		``"content"``: bytes (required)
-			The content of the file to be created. This can also be a
-			:class:`load` object, to load the content from an external file.
+	``"content"``: bytes (required)
+		The content of the file to be created. This can also be a
+		:class:`loadbytes` object, to load the content from an external file.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "scp"
 
-	def __init__(self, location, raiseexceptions, name, content):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, name, content, raiseexceptions=None, comment=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 		self.content = content
 
@@ -1198,7 +1368,7 @@ class SCPCommand(Command):
 	def execute(self, context):
 		filename = context.scpdirectory + self.name.format(**context.keys)
 
-		self.startmessage(context, "scp {}".format(filename))
+		context.commandstart("scp {}".format(filename))
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(self.content)
@@ -1210,42 +1380,46 @@ class SCPCommand(Command):
 		finally:
 			os.remove(tempname)
 
-		self.endmessage(context, "{} written".format(_reprbytes(self.content)))
+		context.count(self.type)
+
+		context.commandend("{} written".format(_reprbytes(self.content)))
 
 
 @register
 class FileCommand(Command):
 	"""
 	The ``"file"`` command creates a file by directly saving it from Python.
-	In addition to ``"type"`` and ``"raiseexceptions"`` the following keys are
-	supported in the command dictionary:
+	The following keys are supported in the command dictionary:
 
-		``"name"`` : string (required)
-			The name of the file to be created. It may contain ``format()`` style
-			specifications containing any key that appeared in a ``"procedure"`` or
-			``"sql"`` command. These specifiers will be replaced by the correct
-			key values.
+	``"name"`` : string (required)
+		The name of the file to be created. It may contain ``format()`` style
+		specifications containing any key that appeared in a ``"procedure"`` or
+		``"sql"`` command. These specifiers will be replaced by the correct
+		key values.
 
-		``"content"``: bytes (required)
-			The content of the file to be created. This can also be a
-			:class:`load` object, to load the content from an external file.
+	``"content"``: bytes (required)
+		The content of the file to be created. This can also be a
+		:class:`load` object, to load the content from an external file.
 
-		``"mode"``: integer (optional)
-			The file mode for the new file. If the mode is specified :func:`os.chmod`
-			will be called on the file.
+	``"mode"``: integer (optional)
+		The file mode for the new file. If the mode is specified :func:`os.chmod`
+		will be called on the file.
 
-		``"owner"``: integer or string (optional)
-			The owner of the file (as a user name or a uid).
+	``"owner"``: integer or string (optional)
+		The owner of the file (as a user name or a uid).
 
-		``"group"``: integer or string (optional)
-			The owning group of the file (as a group name or a gid).
-			If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
-			the file.
+	``"group"``: integer or string (optional)
+		The owning group of the file (as a group name or a gid).
+		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
+		the file.
+
+	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
+	class are supported.
 	"""
 	type = "file"
 
-	def __init__(self, location, raiseexceptions, name, content, mode=None, owner=None, group=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, name, content, raiseexceptions, comment=None, mode=None, owner=None, group=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 		self.content = content
 		self.mode = mode
@@ -1261,7 +1435,7 @@ class FileCommand(Command):
 	def execute(self, context):
 		filename = context.filedirectory + self.name.format(**context.keys)
 
-		self.startmessage(context, "file {}".format(filename))
+		context.commandstart("file {}".format(filename))
 
 		try:
 			with open(filename, "wb") as f:
@@ -1292,6 +1466,8 @@ class FileCommand(Command):
 				gid = -1
 			os.chown(filename, uid, gid)
 
+		context.count(self.type)
+
 		message = "{} written".format(_reprbytes(self.content))
 		messageoptions = []
 		if self.mode:
@@ -1302,45 +1478,46 @@ class FileCommand(Command):
 			messageoptions.append("group {!r}".format(self.group))
 		if messageoptions:
 			message = "{} ({})".format(message, ", ".join(messageoptions))
-		self.endmessage(context, message)
+		context.commandend(message)
 
 
 @register
-class ResetSequenceCommand(Command):
+class ResetSequenceCommand(_DatabaseCommand):
 	"""
 	The ``"resetsequence"`` command resets a sequence in the Oracle database to
-	the maximum value of a field in a table. In addition to ``"type"`` and
-	``"raiseexceptions"`` the following keys are supported in the command
-	dictionary:
+	the maximum value of a field in a table. The following keys are supported
+	in the command dictionary:
 
-		``"sequence"``: string (required)
-			The name of the sequence to reset.
+	``"sequence"``: string (required)
+		The name of the sequence to reset.
 
-		``"table"``: string (required)
-			The name of the table that contains the field.
+	``"table"``: string (required)
+		The name of the table that contains the field.
 
-		``"field"``: string (required)
-			The name of the field in the table ``table``. The sequence will be
-			reset to a value, so that fetching the next value from the sequence
-			will deliver a value that is larger than the maximum value of the field
-			``field`` in the table ``table``.
+	``"field"``: string (required)
+		The name of the field in the table ``table``. The sequence will be
+		reset to a value, so that fetching the next value from the sequence
+		will deliver a value that is larger than the maximum value of the field
+		``field`` in the table ``table``.
 
-		``"minvalue"``: integer (optional, default taken from sequence)
-			The minimum value for the sequence.
+	``"minvalue"``: integer (optional, default taken from sequence)
+		The minimum value for the sequence.
 
-		``"increment"``: integer (optional, default taken from sequence)
-			The increment (i.e. the stop size) for the sequence.
+	``"increment"``: integer (optional, default taken from sequence)
+		The increment (i.e. the step size) for the sequence.
+
+	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
+	and ``"connectstring"`` from the base classes are supported.
 	"""
 	type = "resetsequence"
 
-	def __init__(self, location, raiseexceptions, sequence, table, field, minvalue=None, increment=None, connectname=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions)
+	def __init__(self, location, *, sequence, table, field, raiseexceptions=None, comment=None, minvalue=None, increment=None, connectstring=None, connectname=None):
+		super().__init__(location=location, raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
 		self.minvalue = minvalue
 		self.increment = increment
-		self.connectname = connectname
 
 	def __repr__(self):
 		return "<{0.__class__.__module__}.{0.__class__.__qualname__} sequence={0.sequence!r} {0.location} at {1:#x}>".format(self, id(self))
@@ -1349,9 +1526,11 @@ class ResetSequenceCommand(Command):
 		return "resetsequence command {}".format(self.location)
 
 	def execute(self, context):
-		self.startmessage(context, self.formatconnection(), "resetting sequence {} to maximum value from {}.{}".format(self.sequence, self.table, self.field))
+		connection = self.beginconnection(context)
 
-		cursor = context.cursor(self.connectname)
+		context.commandstart(str(connection), "resetting sequence {} to maximum value from {}.{}".format(self.sequence, self.table, self.field))
+
+		cursor = connection.cursor
 
 		# Fetch information about the sequence
 		cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
@@ -1377,13 +1556,34 @@ class ResetSequenceCommand(Command):
 			cursor.execute("select {}.nextval from dual".format(self.sequence))
 			seqvalue = cursor.fetchone()[0]
 			cursor.execute("alter sequence {} increment by {}".format(self.sequence, increment))
-			if context.verbose == 3:
-				print(" -> reset to {}".format(seqvalue), flush=True)
-			return seqvalue
+			message = "reset to {}".format(seqvalue)
+			result = seqvalue
 		else:
-			if context.verbose == 3:
-				print(" -> no reset required", flush=True)
-			return None
+			message = "no reset required"
+			result = None
+
+		context.count(connection.connectstring(), self.type)
+		self.endconnection(context, connection)
+		context.commandend(message)
+		return result
+
+
+@register
+class CommentCommand(Command):
+	"""
+	The ``"comment"`` command does nothing.
+
+	The keys ``"raiseexceptions"`` and ``"comment"`` from the base class are
+	supported.
+	"""
+	type = "comment"
+
+	def __str__(self):
+		return "comment {}".format(self.location)
+
+	def execute(self, context):
+		context.commandstart("comment")
+		context.commandend()
 
 
 ###
@@ -1654,11 +1854,11 @@ class Location:
 
 	def __str__(self):
 		if self.startline is None and self.endline is None:
-			return "{!r}".format(self.filename)
+			return self.filename
 		elif self.startline == self.endline:
-			return "{!r} at line {:,}".format(self.filename, self.startline)
+			return "{} :: line {:,}".format(self.filename, self.startline)
 		else:
-			return "{!r} at lines {:,}-{:,}".format(self.filename, self.startline, self.endline)
+			return "{} :: lines {:,}-{:,}".format(self.filename, self.startline, self.endline)
 
 
 def define(arg):
@@ -1695,8 +1895,8 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://www.livinglogic.de/Python/pysql.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", type=int, default=2, choices=(0, 1, 2, 3))
-	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "full"))
+	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default=None, choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument("-t", "--terminator", dest="terminator", metavar="STRING", help="Terminator after an SQL command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
@@ -1706,7 +1906,7 @@ def main(args=None):
 	args = p.parse_args(args)
 
 	context = Context(
-		db=cx_Oracle.connect(args.connectstring),
+		connectstring=args.connectstring,
 		scpdirectory=args.scpdirectory,
 		filedirectory=args.filedirectory,
 		commit=args.commit,

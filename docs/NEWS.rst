@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.22 (released 10/18/2016)
+-------------------------------------
+
+*	PySQL now supports connections to multiple database and comments on PySQL
+	commands.
+
+
 Changes in 5.21 (released 09/19/2016)
 -------------------------------------
 

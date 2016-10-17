@@ -22,105 +22,103 @@ from ll import orasql, pysql
 dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
 
 
-def commands():
-	yield """
-		create table pysql_test_table(
-			odtt_id integer
-		);
-	"""
+commands = """
+create table pysql_test_table(
+	odtt_id integer
+);
 
-	yield """
-		create or replace procedure pysql_test_procedure(
-			p_odtt_id in out integer
-		)
-		as
-		begin
-			if p_odtt_id is null then
-				p_odtt_id := 1;
-			end if;
-			insert into pysql_test_table (odtt_id) values (p_odtt_id);
-			p_odtt_id := p_odtt_id + 100;
-		end;
-		/
-	"""
+-- @@@
 
-	yield dict(
-		type="sql",
-		sql="""
-			create sequence pysql_test_sequence
-				minvalue 10
-				maxvalue 9999999999999999999999999999
-				start with 30
-				increment by 10
-				cache 20
-		"""
-	)
+create or replace procedure pysql_test_procedure(
+	p_odtt_id in out integer
+)
+as
+begin
+	if p_odtt_id is null then
+		p_odtt_id := 1;
+	end if;
+	insert into pysql_test_table (odtt_id) values (p_odtt_id);
+	p_odtt_id := p_odtt_id + 100;
+end;
+/
 
-	yield dict(
-		type="procedure",
-		name="pysql_test_procedure",
-		args=dict(
-			p_odtt_id=pysql.var("odtt_1"),
-		)
-	)
+-- @@@
 
-	yield dict(
-		type="procedure",
-		name="pysql_test_procedure",
-		args=dict(
-			p_odtt_id=pysql.var("odtt_1"),
-		)
-	)
+{
+	"type": "sql",
+	"sql":
+		"create sequence pysql_test_sequence"
+		"	minvalue 10"
+		"	maxvalue 9999999999999999999999999999"
+		"	start with 30"
+		"	increment by 10"
+		"	cache 20",
+	"comment": "Create the sequence pysql_test_sequence",
+}
 
-	yield dict(
-		type="resetsequence",
-		sequence="pysql_test_sequence",
-		table="pysql_test_table",
-		field="odtt_id"
-	)
+{
+	"type": "procedure",
+	"name": "pysql_test_procedure",
+	"args": {
+		"p_odtt_id": var("odtt_1"),
+	},
+	"comment": "Call pysql_test_procedure",
+}
 
-	yield dict(
-		type="sql",
-		sql="begin :filename_file := 'gurk_file.txt'; end;",
-		args=dict(
-			filename_file=pysql.var("filename_file", str),
-		)
-	)
+{
+	"type": "procedure",
+	"name": "pysql_test_procedure",
+	"args": {
+		"p_odtt_id": var("odtt_1"),
+	},
+	"comment": "Call pysql_test_procedure",
+}
 
-	yield dict(
-		type="sql",
-		sql="begin :filename_scp := 'gurk_scp.txt'; end;",
-		args=dict(
-			filename_scp=pysql.var("filename_scp", str),
-		)
-	)
+{
+	"type": "resetsequence",
+	"sequence": "pysql_test_sequence",
+	"table": "pysql_test_table",
+	"field": "odtt_id"
+}
 
-	yield dict(
-		type="file",
-		name="{filename_file}",
-		content=b"gurk_file",
-		mode=0o644,
-	)
+{
+	"type": "sql",
+	"sql": "begin :filename_file := 'gurk_file.txt'; end;",
+	"args": {
+		"filename_file": var("filename_file", str),
+	}
+}
 
-	yield dict(
-		type="scp",
-		name="{filename_scp}",
-		content=b"gurk_scp",
-	)
+{
+	"type": "sql",
+	"sql": "begin :filename_scp := 'gurk_scp.txt'; end;",
+	"args": {
+		"filename_scp": var("filename_scp", str),
+	}
+}
+
+{
+	"type": "file",
+	"name": "{filename_file}",
+	"content": b"gurk_file",
+	"mode": 0o644,
+}
+
+{
+	"type": "scp",
+	"name": "{filename_scp}",
+	"content": b"gurk_scp",
+}
+"""
 
 
 def execute_commands(commands, tmpdir):
-	s = io.StringIO()
-
-
 	with tempfile.NamedTemporaryFile(delete=False) as f:
 		tempname = f.name
-		for command in commands:
-			fmt = "{}\n\n-- @@@" if isinstance(command, str) else "\n\n{!r}"
-			f.write(fmt.format(command).encode("utf-8"))
+		f.write(commands.encode("utf-8"))
 
 	try:
-		pysql.main([dbname, tempname, "-v3", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
+		pysql.main([dbname, tempname, "-vfull", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
 	finally:
 		os.remove(tempname)
 
@@ -142,7 +140,7 @@ def cleanup():
 def test_pysql(tmpdir):
 	cleanup()
 
-	execute_commands(commands(), "{}/".format(tmpdir))
+	execute_commands(commands, "{}/".format(tmpdir))
 
 	with orasql.connect(dbname) as db:
 		c = db.cursor()
