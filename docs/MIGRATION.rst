@@ -8,6 +8,16 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.22
+=========================
+
+Changes to ``pysql``
+-----------------------
+
+*	The values for the option ``-v``/``--verbose`` has changed: ``-v1`` now is
+	``-vdot``, ``-v2`` is ``-vtype`` and ``-v3`` is ``-vfull``.
+
+
 Migrating to version 5.21
 =========================
 

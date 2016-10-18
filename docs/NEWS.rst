@@ -11,8 +11,16 @@ see :ref:`MIGRATION`.
 Changes in 5.22 (released 10/18/2016)
 -------------------------------------
 
-*	PySQL now supports connections to multiple database and comments on PySQL
-	commands.
+*	PySQL now supports connections to multiple databases via the new
+	``pushconnection`` and ``popconnection`` commands (and the ``connectname``
+	key for the PySQL commands ``procedure``, ``sql``, ``checkerrors``,
+	``compileall`` and ``resetsequence``).
+
+*	All PySQL command now support comments via the ``"comment"`` key.
+
+*	The values for the :mod:``ll.pysql`` option :option:`-v`/:option:`--verbose`
+	has changed: ``-v1`` now is ``-vdot``, ``-v2`` is ``-vtype`` and
+	``-v3`` is ``-vfull``.
 
 
 Changes in 5.21 (released 09/19/2016)
