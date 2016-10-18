@@ -21,7 +21,7 @@ A PySQL file can contain two different types of commands.
 SQL commands
 ------------
 
-A PySQL file may contains normal SQL commands. For the :mod:`pysql` script
+A PySQL file may contain normal SQL commands. For the :mod:`pysql` script
 to be able to execute these commands they must be terminated with a comment
 line that starts with ``-- @@@``. :mod:`pysql` will strip off a trailing
 ``;`` or ``/`` from the command and execute it. Any exception that is raised
@@ -288,7 +288,7 @@ if it hasn't been used before, however in later commands this is no problem).
 The type of the variable defaults to ``int``, but a different type can be passed
 when creating the object like this: ``var("foo", str)``.
 
-It is also possible to create variable objects via command line parameter.
+It is also possible to create variable objects via command line parameters.
 
 As a PySQL command is a Python literal, it is possible to use Python expressions
 inside a PySQL command. A variable object that has a value will be replaced by
@@ -345,9 +345,9 @@ it supports the following command line options:
 
 	``-c``, ``--commit``
 		Specifies when to commit database transactions. ``record`` commits after
-		every command. ``once`` (the default) at the end of the script (or when
-		a connection is popped) and ``never`` rolls back the transaction after all
-		commands.
+		every command. ``once`` (the default) commits at the end of the script
+		(or when a connection is popped) and ``never`` rolls back the transaction
+		after all commands.
 
 	``-s``, ``--scpdirectory``
 		The base directory for ``scp`` file copy commands. As files are copied
@@ -355,7 +355,7 @@ it supports the following command line options:
 		``root@www.example.org:~/uploads/``) and must include a trailing ``/``.
 
 	``-f``, ``--filedirectory``
-		The base directory for the ``file`` file save commands. It must include
+		The base directory for ``file`` file save commands. It must include
 		a trailing ``/``.
 
 	``-t``, ``--terminator``
