@@ -18,7 +18,7 @@ Changes in 5.22 (released 10/18/2016)
 
 *	All PySQL command now support comments via the ``"comment"`` key.
 
-*	The values for the :mod:``ll.pysql`` option :option:`-v`/:option:`--verbose`
+*	The values for the :mod:``ll.pysql`` option ``-v``/``--verbose``
 	has changed: ``-v1`` now is ``-vdot``, ``-v2`` is ``-vtype`` and
 	``-v3`` is ``-vfull``.
 
