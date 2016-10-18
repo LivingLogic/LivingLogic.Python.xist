@@ -17,7 +17,7 @@ XIST also includes the following modules and packages:
 
 	__ http://www.djangoproject.com/documentation/templates/
 
-	There are implementations for Python, Java, Javascript and PHP.
+	There are implementations for Python, Java and Javascript.
 
 *	:mod:`ll.ul4on` provides functions for encoding and decoding a lightweight
 	machine-readable text-based format for serializing the object types supported
@@ -26,7 +26,7 @@ XIST also includes the following modules and packages:
 	input/output instead of bytes and with an eye towards cross-plattform
 	support).
 
-	There are implementations for Python, Java, Javascript and PHP.
+	There are implementations for Python, Java and Javascript.
 
 *	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
 
