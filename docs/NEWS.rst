@@ -16,7 +16,7 @@ Changes in 5.22 (released 10/18/2016)
 	key for the PySQL commands ``procedure``, ``sql``, ``checkerrors``,
 	``compileall`` and ``resetsequence``).
 
-*	All PySQL command now support comments via the ``"comment"`` key.
+*	All PySQL commands now support comments via the ``"comment"`` key.
 
 *	The values for the :mod:`ll.pysql` option ``-v``/``--verbose``
 	have changed: ``-v1`` now is ``-vdot``, ``-v2`` is ``-vtype`` and
