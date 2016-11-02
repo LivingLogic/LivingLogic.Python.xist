@@ -1896,7 +1896,7 @@ def main(args=None):
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "full"))
-	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default=None, choices=("record", "once", "never"))
+	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument("-t", "--terminator", dest="terminator", metavar="STRING", help="Terminator after an SQL command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
