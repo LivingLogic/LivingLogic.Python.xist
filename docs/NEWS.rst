@@ -11,7 +11,7 @@ see :ref:`MIGRATION`.
 Changes in 5.22.1 (released 11/02/2016)
 ---------------------------------------
 
-*	Fixed the default value for the ``pysql`` option ``--commit``..
+*	Fixed the default value for the ``pysql`` option ``--commit``.
 
 
 Changes in 5.22 (released 10/18/2016)
