@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.22.1 (released 11/02/2016)
+---------------------------------------
+
+*	Fixed the default value for the ``pysql`` option ``--commit``..
+
+
 Changes in 5.22 (released 10/18/2016)
 -------------------------------------
 
