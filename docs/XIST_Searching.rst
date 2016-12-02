@@ -518,7 +518,7 @@ Apart from the ``/`` and ``//`` operators you can also use the ``|`` and
 		parse.Node(pool=xsc.Pool(xml, html, chars))
 	)
 
-	for node in doc.walknodes((html.a | html.area) &amp; xfind.hasattr("href")):
+	for node in doc.walknodes((html.a | html.area) & xfind.hasattr("href")):
 		print(node.attrs.href)
 
 Here's another example that finds all elements that have an ``id`` attribute:
