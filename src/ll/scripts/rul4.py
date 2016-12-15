@@ -578,7 +578,7 @@ class Globals:
 					template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
 				except Exception as exc:
 					print_exception_chain(exc)
-					return 1
+					raise SystemExit(1)
 			else:
 				template = ul4c.Template(templatesource, name=templatename, whitespace=args.whitespace)
 			# The first template is the main template
