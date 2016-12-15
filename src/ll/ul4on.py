@@ -24,7 +24,7 @@ There are implementations for Python (this module), Java_ and Javascript_
 .. _Javascript: https://github.com/LivingLogic/LivingLogic.Javascript.ul4
 
 Furthermore there's an `Oracle package`_ that can be used for generating
-UL4on encoded data.
+UL4ON encoded data.
 
 .. _Oracle package: https://github.com/LivingLogic/LivingLogic.Oracle.ul4
 
