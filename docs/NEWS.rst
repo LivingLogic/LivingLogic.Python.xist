@@ -9,7 +9,7 @@ see :ref:`MIGRATION`.
 
 
 Changes in 5.23 (released 12/16/2016)
----------------------------------------
+-------------------------------------
 
 *	UL4ON now supports ordered maps.
 
