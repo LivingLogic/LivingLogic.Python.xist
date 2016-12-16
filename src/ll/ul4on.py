@@ -259,7 +259,7 @@ class Encoder:
 				self._line("]")
 			elif isinstance(obj, collections.Mapping):
 				self._record(obj)
-				self._line("D")
+				self._line("E" if isinstance(obj, collections.OrderedDict) else "D")
 				self._level += 1
 				for (key, item) in obj.items():
 					self.dump(key)
@@ -464,9 +464,9 @@ class Decoder:
 				else:
 					item = self._load(typecode)
 					value.append(item)
-		elif typecode in "dD":
-			value = {}
-			if typecode == "D":
+		elif typecode in "dDeE":
+			value = {} if typecode in "dD" else collections.OrderedDict()
+			if typecode in "DE":
 				self._loading(value)
 			while True:
 				typecode = self._nextchar()

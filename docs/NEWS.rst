@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.23 (released 12/16/2016)
+---------------------------------------
+
+*	UL4ON now supports ordered maps.
+
+
 Changes in 5.22.1 (released 11/02/2016)
 ---------------------------------------
 

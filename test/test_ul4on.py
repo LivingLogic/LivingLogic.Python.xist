@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, io, os, json, datetime, math, tempfile, shutil, subprocess
+import sys, io, os, json, datetime, math, tempfile, shutil, subprocess, collections
 
 import pytest
 
@@ -327,6 +327,28 @@ def test_dict(t):
 	if t not in (transport_js_v8, transport_js_v8_pretty):
 		d = {17: None, None: 23}
 		assert d == t(d)
+
+
+def test_ordereddict(t):
+	if t not in (transport_js_v8, transport_js_v8_pretty):
+		d = collections.OrderedDict()
+		assert d == t(d)
+
+		assert isinstance(t(d), collections.OrderedDict)
+
+		d = collections.OrderedDict({"gurk": "hurz"})
+		assert d == t(d)
+
+		d1 = collections.OrderedDict()
+		d1[1] = 'one'
+		d1[2] = 'two'
+		assert d1 == t(d1)
+		assert list(t(d1)) == [1, 2]
+
+		d2 = collections.OrderedDict()
+		d2[2] = 'two'
+		d2[1] = 'one'
+		assert t(d1) != t(d2)
 
 
 def test_set(t):
