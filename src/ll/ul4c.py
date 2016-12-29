@@ -98,7 +98,7 @@ class LocationError(Exception):
 		code = repr(template.source[innerpos])[1:-1]
 		suffix = repr(template.source[innerpos.stop:outerpos.stop])[1:-1]
 
-		return "{}: offset {:,}:{:,}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), location.pos.start, location.pos.stop, line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+		return "{}: offset {}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), _offset(location.pos), line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
 
 	def _template(self):
 		if isinstance(self.location, Tag):
@@ -413,6 +413,17 @@ def _ul4setattr(obj, name, value):
 		obj[name] = value
 
 
+def _offset(pos):
+	offset = ["["]
+	if pos.start is not None:
+		offset.append("{:,}".format(pos.start))
+	offset.append(":")
+	if pos.stop is not None:
+		offset.append("{:,}".format(pos.stop))
+	offset.append("]")
+	return "".join(offset)
+
+
 ###
 ### Helper functions for the various UL4 functions
 ###
@@ -585,7 +596,7 @@ class AST:
 		parts = ["<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self)]
 		if self.pos is not None:
 			(line, col) = self._linecol()
-			parts.append("(offset {0.pos.start:,}:{0.pos.stop:,}; line {1:,}; col {2:,})".format(self, line, col))
+			parts.append("(offset {}; line {:,}; col {:,})".format(_offset(self.pos), line, col))
 		parts.extend(self._repr())
 		parts.append("at {:#x}>".format(id(self)))
 		return " ".join(parts)
@@ -597,13 +608,7 @@ class AST:
 		prefix = "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self)
 		if self.pos is not None:
 			(line, col) = self._linecol()
-			prefix += " (offset "
-			if self.pos.start is not None:
-				prefix += "{0.pos.start:,}".format(self)
-			prefix += ":"
-			if self.pos.stop is not None:
-				prefix += "{0.pos.stop:,}".format(self)
-			prefix += "; line {:,}; col {:,})".format(line, col)
+			prefix += "(offset {}; line {:,}; col {:,})".format(_offset(self.pos), line, col)
 		suffix = "at {:#x}".format(id(self))
 
 		if cycle:
@@ -780,7 +785,7 @@ class Tag(AST):
 
 	def __str__(self):
 		(line, col) = self._linecol()
-		return "{0.text!r} (offset {0.pos.start:,}:{0.pos.stop:,}; line {1:,}; col {2:,})".format(self, line, col)
+		return "{0.text!r} (offset {}; line {:,}; col {:,})".format(_offset(self.pos), line, col)
 
 	@property
 	def text(self):
@@ -4159,7 +4164,7 @@ class Signature(Code):
 				fmt = " {paramname}={default!r}"
 			params.append(fmt.format(paramname=paramname, default=default))
 
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} [{0.pos.start:,}:{0.pos.stop:,}]{1} at {2:#x}>".format(self, "".join(params), id(self))
+		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1}{2} at {3:#x}>".format(self, _offset(self.pos), "".join(params), id(self))
 
 	def _repr_pretty(self, p):
 		for (paramname, default) in self.params:
