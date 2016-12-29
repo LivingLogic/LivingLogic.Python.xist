@@ -597,7 +597,13 @@ class AST:
 		prefix = "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self)
 		if self.pos is not None:
 			(line, col) = self._linecol()
-			prefix += " (offset {0.pos.start:,}:{0.pos.stop:,}; line {1:,}; col {2:,})".format(self, line, col)
+			prefix += " (offset "
+			if self.pos.start is not None:
+				prefix += "{0.pos.start:,}".format(self)
+			prefix += ":"
+			if self.pos.stop is not None:
+				prefix += "{0.pos.stop:,}".format(self)
+			prefix += "; line {:,}; col {:,})".format(line, col)
 		suffix = "at {:#x}".format(id(self))
 
 		if cycle:
