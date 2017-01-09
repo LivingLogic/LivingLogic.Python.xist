@@ -1000,7 +1000,7 @@ Changes in 4.10 (released 03/04/2013)
 	have side effects (e.g. a call to the ``render`` method).
 
 *	The tag ``<?render?>`` has been removed. To update your code replace
-	``<?render r.render()?>`` with ``<?code r.render()?>``.
+	``<?render r()?>`` with ``<?code r.render()?>``.
 
 *	UL4 functions ``print`` and ``printx`` have been added. They behave like the
 	respective tags ``<?print?>`` and ``<?printx?>``, but can output an arbitrary
