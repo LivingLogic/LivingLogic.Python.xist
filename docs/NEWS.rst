@@ -199,7 +199,7 @@ Changes in 5.15 (released 03/18/2016)
 -------------------------------------
 
 *	Calls to UL4 functions and templates now support specifying a ``*`` or
-	``**`` argument multiple times (similar to Python's PEP 448).
+	``**`` argument multiple times (similar to Python's :pep:`448`).
 
 *	Also ``*`` and ``**`` expressions are now allowed in list, set and dict
 	"literals".
@@ -262,7 +262,8 @@ Changes in 5.14 (released 12/02/2015)
 	of the inner template to the indentation of the outer template.
 
 *	Rendering an UL4 template from inside a UL4 template is now again done via
-	the ``<?render?>`` tag.
+	the ``<?render?>`` tag. To update your code replace ``<?code r.render()?>``
+	with ``<?render r()?>``.
 
 *	Whitespace handling mode for UL4 templates can now be specified in the
 	template source itself via the ``<?whitepace?>`` tag::
@@ -382,7 +383,7 @@ Changes in 5.13 (released 12/18/2014)
 
 *	The option ``setproctitle`` for sisyphus jobs has been renamed to
 	``proctitle``. The new method :meth:`setproctitle` sets the process
-	title and can be used to customize setting the process title.
+	title and can be overwritten to customize setting the process title.
 
 *	Locally defined UL4 templates no longer see themselves among the variables
 	of the parent template. This avoids cycles in the object graph.
@@ -403,7 +404,7 @@ Changes in 5.12.1 (released 12/09/2014)
 Changes in 5.12 (released 11/07/2014)
 -------------------------------------
 
-*	Fixed bugs in oracle URLs: the type ``comment`` and ``column`` are now
+*	Fixed bugs in Oracle URLs: the types ``comment`` and ``column`` are now
 	skipped when iterating a user "directory". Content in the ``user`` directory
 	now works correctly.
 
@@ -434,7 +435,7 @@ Changes in 5.11 (released 10/29/2014)
 *	An option ``--setproctitle`` has been added to sisyphus jobs:
 	When this options is specified, the process title will be modified during
 	execution of the job, so that the ``ps`` command shows what the processes
-	are doing. (This requires :mod:`setproctitle` from the Cheeseshop.)
+	are doing. (This requires that the module :mod:`setproctitle` is installed.)
 
 
 Changes in 5.10 (released 10/09/2014)
@@ -445,7 +446,7 @@ Changes in 5.10 (released 10/09/2014)
 
 *	The functions :func:`misc.gzip` and :func:`misc.gunzip` have been removed
 	as Python 3.2 has the functions: :func:`gzip.compress` and
-	:func:`gzip.uncompress` which work the same.
+	:func:`gzip.decompress` which work the same.
 
 
 Changes in 5.9.1 (released 09/29/2014)
@@ -564,7 +565,7 @@ Changes in 5.8 (released 05/05/2014)
 
 *	Fixed the :mod:`oradd`\ ``resetsequence`` command to really reset the
 	sequence. The parameters ``minvalue`` and ``increment`` are now optional.
-	If missing they will be taken from the existing sequence.
+	If missing, they will be taken from the existing sequence.
 
 *	Passing the ``clientinfo`` parameter to :func:`cx_Oracle.connect` doesn't
 	work with Oracle 11.2.0.4.0 (leading to an ``ORA-03113: end-of-file on
@@ -635,7 +636,7 @@ Changes in 5.5 (released 01/23/2014)
 *	If expressions (i.e. ``code if cond else code``) have been added to UL4.
 
 *	The bitwise operators ``&``, ``|``, ``^``, ``~``, ``<<`` and ``>>``
-	(and their agumented assigment counterparts ``&=``, ``|=``, ``^=``, ``<<=``
+	(and their augmented assigment counterparts ``&=``, ``|=``, ``^=``, ``<<=``
 	and ``>>=``) have been added to UL4.
 
 *	UL4ON now supports ``slice`` objects.
@@ -803,7 +804,7 @@ Changes in 5.1 (released 08/02/2013)
 *	The methods :meth:`abslum` and :meth:`rellum` of :class:`Color` objects are
 	now exposed to UL4 templates.
 
-*	The :program:`oradd` script has a new option ``--dry-`run`` to rollback all
+*	The :program:`oradd` script has a new option ``--dry-run`` to roll back all
 	database changes instead of committing them. This can be used to test whether
 	an :program:`oradd` dump will work.
 
