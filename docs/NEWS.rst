@@ -966,7 +966,7 @@ Changes in 5.0 (released 06/04/2013)
 	command.
 
 *	Fixed a bug in :meth:`orasql.OracleFileResource.close` that surfaced when
-	writing to on Oracle object.
+	writing to an Oracle object.
 
 
 Changes in 4.10 (released 03/04/2013)
