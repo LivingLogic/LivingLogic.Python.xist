@@ -469,7 +469,9 @@ argumentmismatchmessage = [
 argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
 
 unorderabletypesmessage = [
-	# Python and Javascript
+	# Python 3.6
+	"not supported between instances of",
+	# Python < 3.6 and Javascript
 	"unorderable types",
 	# Java
 	"com.livinglogic.ul4.UnorderableTypesException",
