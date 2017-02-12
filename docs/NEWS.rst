@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.24 (released 02/13/2017)
+Changes in 5.24 (released 02/12/2017)
 -------------------------------------
 
 *	Dictionary literals or dictionary comprehensions in UL4 templates now always
