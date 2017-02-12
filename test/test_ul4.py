@@ -742,8 +742,8 @@ def test_dict(T):
 @pytest.mark.ul4
 def test_unpackdict(T):
 	assert '{}' == T('<?print {**{}}?>').renders()
-	assert '0:zero;1:one;2:two;' == T('<?code a = {0: "zero", 1: "one"}?><?code b = {2: "two", **a}?><?for (k, v) in sorted(b.items())?><?print k?>:<?print v?>;<?end for?>').renders()
-	assert '0:zero;1:one;2:two;3:three;' == T('<?code a = {0: "zero", 1: "one"}?><?code b = {2: "two"}?><?code c = {3: "three", **a, **b.items()}?><?for (k, v) in sorted(c.items())?><?print k?>:<?print v?>;<?end for?>').renders()
+	assert '2:two;0:zero;1:one;' == T('<?code a = {0: "zero", 1: "one"}?><?code b = {2: "two", **a}?><?for (k, v) in b.items()?><?print k?>:<?print v?>;<?end for?>').renders()
+	assert '3:three;0:zero;1:one;2:two;' == T('<?code a = {0: "zero", 1: "one"}?><?code b = {2: "two"}?><?code c = {3: "three", **a, **b.items()}?><?for (k, v) in c.items()?><?print k?>:<?print v?>;<?end for?>').renders()
 
 
 @pytest.mark.ul4
@@ -3650,14 +3650,14 @@ def test_method_mimeformat(T):
 
 @pytest.mark.ul4
 def test_method_items(T):
-	assert "a:42;b:17;c:23;" == T("<?for (key, value) in sorted(data.items())?><?print key?>:<?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
-	assert "a:42;b:17;c:23;" == T("<?code m = data.items?><?for (key, value) in sorted(m())?><?print key?>:<?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
+	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for (key, value) in data.items()?><?print key?>:<?print value?>;<?end for?>").renders()
+	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.items?><?for (key, value) in m()?><?print key?>:<?print value?>;<?end for?>").renders()
 
 
 @pytest.mark.ul4
 def test_method_values(T):
-	assert "17;23;42;" == T("<?for value in sorted(data.values())?><?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
-	assert "17;23;42;" == T("<?code m = data.values?><?for value in sorted(m())?><?print value?>;<?end for?>").renders(data=dict(a=42, b=17, c=23))
+	assert "42;17;23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for value in data.values()?><?print value?>;<?end for?>").renders()
+	assert "42;17;23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.values?><?for value in m()?><?print value?>;<?end for?>").renders()
 
 
 @pytest.mark.ul4

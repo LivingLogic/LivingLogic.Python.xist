@@ -142,13 +142,19 @@ This script outputs::
 	Loaded: <Person firstname='John' lastname='Doe'>
 """
 
-import datetime, collections, io, ast
+import sys, datetime, collections, io, ast
 
 
 __docformat__ = "reStructuredText"
 
 
 _registry = {}
+
+
+if sys.version_info >= (3, 6):
+	ordereddict = dict
+else:
+	ordereddict = collections.OrderedDict
 
 
 def register(name):
@@ -259,7 +265,7 @@ class Encoder:
 				self._line("]")
 			elif isinstance(obj, collections.Mapping):
 				self._record(obj)
-				self._line("E" if isinstance(obj, collections.OrderedDict) else "D")
+				self._line("E" if isinstance(obj, ordereddict) else "D")
 				self._level += 1
 				for (key, item) in obj.items():
 					self.dump(key)
@@ -465,7 +471,7 @@ class Decoder:
 					item = self._load(typecode)
 					value.append(item)
 		elif typecode in "dDeE":
-			value = {} if typecode in "dD" else collections.OrderedDict()
+			value = {} if typecode in "dD" else ordereddict()
 			if typecode in "DE":
 				self._loading(value)
 			while True:

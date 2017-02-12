@@ -35,6 +35,12 @@ _datesplitter = re.compile("[-T:.]")
 _defaultitem = object()
 
 
+if sys.version_info >= (3, 6):
+	ordereddict = dict
+else:
+	ordereddict = collections.OrderedDict
+
+
 def register(name):
 	from ll import ul4on
 
@@ -1427,7 +1433,7 @@ class Dict(Code):
 
 	@_handleexpressioneval
 	def eval(self, context):
-		result = {}
+		result = ordereddict()
 		for item in self.items:
 			item.eval_dict(context, result)
 		return result
@@ -1487,7 +1493,7 @@ class DictComp(Code):
 	def eval(self, context):
 		container = self.container.eval(context)
 		with context.chainvars(): # Don't let loop variables leak into the surrounding scope
-			result = {}
+			result = ordereddict()
 			for item in container:
 				for (lvalue, value) in _unpackvar(self.varname, item):
 					lvalue.evalset(context, value)
@@ -3380,7 +3386,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
 
-	version = "37"
+	version = "38"
 
 	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
 

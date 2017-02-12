@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.24 (released 02/13/2017)
+-------------------------------------
+
+*	Dictionary literals or dictionary comprehensions in UL4 templates now always
+	create ordered dictionaries (i.e. ``collections.OrderedDict`` objects on
+	Python 3.5 and normal ``dict`` objects on Python 3.6).
+
+
 Changes in 5.23 (released 12/16/2016)
 -------------------------------------
 
