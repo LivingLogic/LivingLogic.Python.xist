@@ -29,7 +29,7 @@ register:
 
 
 upload:
-	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip bdist_wheel upload
+	python$(PYVERSION) setup.py sdist --formats=gztar bdist_wheel upload
 
 
 livinglogic:
