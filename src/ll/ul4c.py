@@ -3386,7 +3386,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
 
-	version = "38"
+	version = "39"
 
 	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
 
@@ -3578,38 +3578,63 @@ class Template(Block):
 
 	def ul4onload(self, decoder):
 		version = decoder.load()
-		if version != self.version:
-			raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
-		self.name = decoder.load()
-		self.source = decoder.load()
-		self.whitespace = decoder.load()
-		self.startdelim = decoder.load()
-		self.enddelim = decoder.load()
-		self.parenttemplate = decoder.load()
+		# If the loaded version is ``None``, this is not a "compiled" version of the template,
+		# but a "source" version. It only contains the info required to compile the template.
+		#
+		# Not all implementations (i.e. the Javascript one) support this mode.
+		#
+		# This is implemented so that the PL/SQL version can put templates into UL4ON dumps.
+		if version is None: # dump is in "source" form
+			self.name = decoder.load()
+			source = decoder.load()
+			signature = decoder.load()
+			self.whitespace = decoder.load()
+			startdelim = decoder.load()
+			if startdelim is None:
+				startdelim = "<?"
+			enddelim = decoder.load()
+			if enddelim is None:
+				enddelim = "?>"
+			if signature is not None:
+				source = "{}ul4 {}({}){}{}".format(startdelim, self.name or "", signature, enddelim, source)
+			# Remove old content, before compiling the source
+			self.pos = slice(None, None)
+			self.tag = self.endtag = None
+			del self.content[:]
+			self._compile(source, startdelim, enddelim)
+		else: # dump is in compiled form
+			if version != self.version:
+				raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
+			self.name = decoder.load()
+			self.source = decoder.load()
+			self.whitespace = decoder.load()
+			self.startdelim = decoder.load()
+			self.enddelim = decoder.load()
+			self.parenttemplate = decoder.load()
 
-		dump = decoder.load()
-		if dump is None or isinstance(dump, Signature):
-			self.signature = dump
-		else:
-			params = []
-			nextdefault = False
-			paramname = None
-			for param in dump:
-				if nextdefault:
-					params.append(inspect.Parameter(paramname, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=param))
-					nextdefault = False
-				else:
-					if param.endswith("="):
-						paramname = param[:-1]
-						nextdefault = True # The next item is the default value
-					elif param.startswith("**"):
-						params.append(inspect.Parameter(param[2:], inspect.Parameter.VAR_KEYWORD))
-					elif param.startswith("*"):
-						params.append(inspect.Parameter(param[1:], inspect.Parameter.VAR_POSITIONAL))
+			dump = decoder.load()
+			if dump is None or isinstance(dump, Signature):
+				self.signature = dump
+			else:
+				params = []
+				nextdefault = False
+				paramname = None
+				for param in dump:
+					if nextdefault:
+						params.append(inspect.Parameter(paramname, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=param))
+						nextdefault = False
 					else:
-						params.append(inspect.Parameter(param, inspect.Parameter.POSITIONAL_OR_KEYWORD))
-			self.signature = inspect.Signature(params)
-		super().ul4onload(decoder)
+						if param.endswith("="):
+							paramname = param[:-1]
+							nextdefault = True # The next item is the default value
+						elif param.startswith("**"):
+							params.append(inspect.Parameter(param[2:], inspect.Parameter.VAR_KEYWORD))
+						elif param.startswith("*"):
+							params.append(inspect.Parameter(param[1:], inspect.Parameter.VAR_POSITIONAL))
+						else:
+							params.append(inspect.Parameter(param, inspect.Parameter.POSITIONAL_OR_KEYWORD))
+				self.signature = inspect.Signature(params)
+			super().ul4onload(decoder)
 
 	@classmethod
 	def loads(cls, data):

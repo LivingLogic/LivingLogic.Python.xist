@@ -382,6 +382,17 @@ def test_nested(t):
 	assert d == t(d)
 
 
+def test_template_from_source():
+	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'<?print x + y?>' s'x, y=23' s'keep' n n )")
+
+	assert t.name == "test"
+	assert t.source == "<?ul4 test(x, y=23)?><?print x + y?>"
+	assert t.whitespace == "keep"
+	assert t.startdelim == "<?"
+	assert t.enddelim == "?>"
+	assert t.renders(17) == "40"
+
+
 def test_recursion(t):
 	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_spidermonkey, transport_js_spidermonkey_pretty):
 		l1 = []
