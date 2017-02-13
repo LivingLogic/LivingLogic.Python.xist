@@ -325,6 +325,9 @@ class TemplateJavascript:
 			cmd = command.format(cmd=command, dir=dir, fn=f.name)
 			result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8", "passbytes")
+		stderr = result.stderr.decode("utf-8", "passbytes")
+		if stderr:
+			raise RuntimeError(stderr)
 		data = ul4on.loads(stdout)
 		# Check if we had an exception
 		if data["status"] == "error":
