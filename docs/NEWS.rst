@@ -8,6 +8,17 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.25 (released 02/13/2017)
+-------------------------------------
+
+*	UL4ON dumps can now contain UL4 templates in "source" format, i.e. the
+	template will be compiled by the UL4ON decoder. This makes it possible to
+	dump UL4 templates via PL/SQL code (see the LivingLogic.Oracle.ul4_ project
+	on GitHub for more info).
+
+.. _LivingLogic.Oracle.ul4: https://github.com/LivingLogic/LivingLogic.Oracle.ul4
+
+
 Changes in 5.24 (released 02/12/2017)
 -------------------------------------
 
