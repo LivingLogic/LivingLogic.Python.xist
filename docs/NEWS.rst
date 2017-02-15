@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.25.1 (released 02/15/2017)
+---------------------------------------
+
+*	Fixed a problem with the ``renders`` method of local UL4 templates. The local
+	template didn't see the variables from the surrounding scope.
+
+
 Changes in 5.25 (released 02/13/2017)
 -------------------------------------
 
