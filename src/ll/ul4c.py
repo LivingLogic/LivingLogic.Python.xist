@@ -4856,8 +4856,8 @@ class TemplateClosure(Block):
 		p.text("name=")
 		p.pretty(self.name)
 		p.breakable()
-		p.text("keepws=")
-		p.pretty(self.keepws)
+		p.text("whitespace=")
+		p.pretty(self.whitespace)
 		if self.startdelim != "<?":
 			p.breakable()
 			p.text("startdelim=")
