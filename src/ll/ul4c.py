@@ -4815,7 +4815,7 @@ class TemplateClosure(Block):
 			yield from self.template._renderbound(context)
 
 	@withcontext
-	def renders(*args, **kwargs):
+	def ul4renders(*args, **kwargs): # This will be exposed to UL4 as ``renders``
 		self = args[0]
 		context = args[1]
 		args = args[2:]
@@ -4839,7 +4839,16 @@ class TemplateClosure(Block):
 			return self.template._callbound(context)
 
 	def __getattr__(self, name):
-		return getattr(self.template, name)
+		if name == "renders":
+			return self.ul4renders
+		else:
+			return getattr(self.template, name)
+
+	def ul4getattr(self, name):
+		if name == "renders":
+			return self.ul4renders
+		else:
+			return getattr(self, name)
 
 	def _repr(self):
 		yield "name={!r}".format(self.name)

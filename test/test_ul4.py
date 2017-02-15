@@ -4332,11 +4332,18 @@ def test_function_name(T):
 def test_function_closure(T):
 	assert 24 == T("<?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner(x=4)?>")()
 	assert 24 == T("<?def outer?><?code y=3?><?def inner?><?return 2*x*y?><?end def?><?return inner?><?end def?><?return outer()(x=4)?>")()
+	assert 42 == T("<?def inner?><?return x?><?end def?><?return inner()?>")(x=42)
 
 
 @pytest.mark.ul4
 def test_template_closure(T):
 	assert "24" == T("<?code f = []?><?def outer()?><?code y=3?><?def inner(x)?><?print 2*x*y?><?end def?><?code f.append(inner)?><?end def?><?code outer()?><?render f[0](x=4)?>").renders()
+	assert "42" == T("<?def inner?><?print x?><?end def?><?render inner()?>").render(x=42)
+
+
+@pytest.mark.ul4
+def test_renders_closure(T):
+	assert "42" == T("<?def inner?><?print x?><?end def?><?print inner.renders()?>").render(x=42)
 
 
 @pytest.mark.ul4
