@@ -80,7 +80,7 @@ HEX_DIGIT
 	: ('0'..'9'|'a'..'f'|'A'..'F')
 	;
 
-/* We don't have negative ints (as this would lex "1-2" wrong) */
+/* We don't have negative ints (as this would tokenize "1-2" wrong) */
 INT
 	: DIGIT+
 	| '0' ('b'|'B') BIN_DIGIT+
