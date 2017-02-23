@@ -143,7 +143,7 @@ Recursively list the schema objects in an Oracle database:
 """
 
 
-import sys, re, argparse, contextlib, datetime, pwd, grp, stat, curses
+import sys, argparse, datetime, stat, curses
 
 from ll import misc, url as url_
 
