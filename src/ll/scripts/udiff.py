@@ -116,7 +116,7 @@ Recursively compare two Oracle schemas:
 """
 
 
-import sys, re, argparse, contextlib, datetime, pwd, grp, stat, curses, difflib
+import sys, argparse, difflib
 
 from ll import misc, url
 
