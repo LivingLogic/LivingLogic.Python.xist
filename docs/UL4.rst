@@ -182,11 +182,11 @@ Lists can be created like this:
 
 *	``[None, 42, "foo", [False, True]]``
 
-``*`` expressions can be used to expand other lists inplace, so::
+``*`` expressions can be used to expand other lists inplace, so ::
 
 	[1, *[2, 3], 4, *[5, 6]]
 
-is equivalent to
+is equivalent to ::
 
 	[1, 2, 3, 4, 5, 6]
 
@@ -194,15 +194,15 @@ It is also possible to create a list with a list comprehension::
 
 	["(" + c.upper() + ")" for c in "hurz" if c < "u"]
 
-This will create the list::
+This will create the list ::
 
 	["(H)", "(R)"]
 
-The ``if`` condition is optional, i.e.::
+The ``if`` condition is optional, i.e. ::
 
 	["(" + c.upper() + ")" for c in "hurz"]
 
-will create the list::
+will create the list ::
 
 	["(H)", "(U)", "(R)", "(Z)"]
 
@@ -222,7 +222,7 @@ Dictionaries can be created like this:
 
 	{"foo": 17, **{"bar": 23, "baz": 42}}
 
-is equivalent to::
+is equivalent to ::
 
 	{"foo": 17, "bar": 23, "baz": 42}
 
@@ -236,15 +236,15 @@ It is also possible to create a dictionary with a dictionary comprehension::
 
 	{ c.upper() : "(" + c + ")" for c in "hurz" if c < "u"}
 
-This will create the dictionary::
+This will create the dictionary ::
 
 	{ "H": "(h)", "R": "(r)"}
 
-The ``if`` condition is optional, i.e.::
+The ``if`` condition is optional, i.e. ::
 
 	{ c.upper() : "(" + c + ")" for c in "hurz"}
 
-will create the dictionary::
+will create the dictionary ::
 
 	{ "H": "(h)", "R": "(r)", "U": "(u)", "Z": "(z)"}
 
@@ -272,15 +272,15 @@ It is also possible to create a set with a set comprehension::
 
 	{c.upper() for c in "hurz" if c < "u"}
 
-This will create the set::
+This will create the set ::
 
 	{"H", "R"}
 
-The ``if`` condition is optional, i.e.::
+The ``if`` condition is optional, i.e. ::
 
 	{c.upper() for c in "hurz"}
 
-will create the dictionary::
+will create the dictionary ::
 
 	{"H", "R", "U", "Z"}
 
