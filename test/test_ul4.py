@@ -2102,6 +2102,11 @@ def test_function_str(T):
 	assert "-1 day, 23:59:59" == t.renders(data=datetime.timedelta(0, -1))
 	assert "-1 day, 23:59:59.999999" == t.renders(data=datetime.timedelta(0, 0, -1))
 
+	assert "(x=17, y=@(2000-02-29))" == T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print str(f.signature)?>").renders()
+	# Javascript version doesn't have support for printing recursive data structures
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+		assert "(bad=[...])" == T("<?code bad = []?><?code bad.append(bad)?><?def f(bad=bad)?><?end def?><?print str(f.signature)?>").renders()
+
 	# Make sure that the parameters have the same name in all implementations
 	assert "42" == T("<?print str(obj=data)?>").renders(data=42)
 
@@ -3016,6 +3021,9 @@ def repr_ascii(T, ascii):
 @pytest.mark.ul4
 def test_function_repr(T):
 	repr_ascii(T, False)
+
+	output = T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print repr(f.signature)?>").renders()
+	assert output.endswith("Signature (x=17, y=@(2000-02-29))>")
 
 
 @pytest.mark.ul4
@@ -4038,6 +4046,17 @@ def test_nested_exceptions(T):
 @pytest.mark.ul4
 def test_note(T):
 	assert "foo" == T("f<?note This is?>o<?note a comment?>o").renders()
+
+
+@pytest.mark.ul4
+def test_doc_attr():
+	template = ul4c.Template("<?doc foo?><?def inner?><?doc innerfoo?><?doc innerbar?><?end def?><?doc bar?><?printx inner.doc?>")
+	assert "foo" == template.doc
+
+
+@pytest.mark.ul4
+def test_doc(T):
+	assert "innerfoo" == T("<?doc foo?><?def inner?><?doc innerfoo?><?doc innerbar?><?end def?><?doc bar?><?printx inner.doc?>").renders()
 
 
 @pytest.mark.ul4

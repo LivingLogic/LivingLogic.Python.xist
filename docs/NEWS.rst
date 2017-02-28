@@ -8,6 +8,26 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.26 (released 02/28/2017)
+-------------------------------------
+
+*	UL4 templates now support a new tag: ``<?doc?>`` may contain the
+	documentation for the template and will by accessible in UL4 templates
+	via the attribute ``doc``.
+
+*	The signature of UL4 templates is now available to UL4 templates as the
+	``signature`` attribute::
+
+		<?def f(x=17, y=23)?>
+			<?print x+y?>
+		<?end def?>
+		<?print f.signature?>
+
+	will output ::
+
+		(x=17, y=23)
+
+
 Changes in 5.25.1 (released 02/15/2017)
 ---------------------------------------
 

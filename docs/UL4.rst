@@ -536,6 +536,42 @@ A ``note`` tag is a comment, i.e. the content of the tag will be completely
 ignored.
 
 
+``doc``
+-------
+
+A ``doc`` tag contains the documentation of the template itself. The content
+of the ``<?doc?>`` tag is available as the ``doc`` attribute::
+
+	>>> from ll import ul4c
+	>>> t = ul4c.Template("<?doc foo?><?print x?>")
+	>>> t.doc
+	'foo'
+
+Each ``<?doc?>`` contains the documentation for the template to which the
+``<?doc?>`` tag belongs, i.e. if the ``<?doc?>`` tag is at the outermost
+level, it belongs to the outermost template. If the ``<?doc?>`` tag is inside
+a local template, it is the documentation for the local template. If multiple
+``<?doc?>`` tags are given, only the first one will be used, all later ones will
+be ignored.
+
+Note that the template name, documentation and signature are accessible inside
+the templates themselves, i.e. ::
+
+	<?def f(x=17, y=23)?>
+		<?doc return the sum of x and y?>
+		<?return x+y?>
+	<?end def?>
+	<?print f.name?>
+	<?print f.doc?>
+	<?print f.signature?>
+
+will output ::
+
+	f
+	return the sum of x and y
+	(x=17, y=23)
+
+
 ``whitespace``
 --------------
 The ``whitespace`` tag can be used to overwrite the handling of whitespace in

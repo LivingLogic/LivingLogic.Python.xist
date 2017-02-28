@@ -446,6 +446,22 @@ def _str(obj=""):
 		return str(obj)
 	elif isinstance(obj, (collections.Sequence, collections.Set, collections.Mapping)):
 		return _repr(obj)
+	elif isinstance(obj, inspect.Signature):
+		v = []
+		v.append("(")
+		for (i, p) in enumerate(obj.parameters.values()):
+			if i:
+				v.append(", ")
+			if p.kind == p.VAR_POSITIONAL:
+				v.append("*")
+			elif p.kind == p.VAR_KEYWORD:
+				v.append("**")
+			v.append(p.name)
+			if p.default is not p.empty:
+				v.append("=")
+				v.append(_repr(p.default))
+		v.append(")")
+		return "".join(v)
 	else:
 		return str(obj)
 
@@ -504,6 +520,25 @@ def _repr_helper(obj, seen, forceascii):
 				seen.discard(id(obj))
 			else:
 				yield "{/}"
+	elif isinstance(obj, inspect.Signature):
+		if id(obj) in seen:
+			yield "..."
+		else:
+			seen.add(id(obj))
+			yield "<Signature ("
+			for (i, p) in enumerate(obj.parameters.values()):
+				if i:
+					yield ", "
+				if p.kind == p.VAR_POSITIONAL:
+					yield "*"
+				elif p.kind == p.VAR_KEYWORD:
+					yield "**"
+				yield p.name
+				if p.default is not p.empty:
+					yield "="
+					yield from _repr_helper(p.default, seen, forceascii)
+			yield ")>"
+			seen.discard(id(obj))
 	elif isinstance(obj, collections.Mapping):
 		if id(obj) in seen:
 			yield "..."
@@ -3384,9 +3419,9 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
+	ul4attrs = Block.ul4attrs.union({"signature", "doc", "source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
 
-	version = "39"
+	version = "41"
 
 	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
 
@@ -3472,6 +3507,7 @@ class Template(Block):
 		self.enddelim = enddelim or "?>"
 		self.name = name
 		self.source = None
+		self.docpos = None
 		self.parenttemplate = None
 		if isinstance(signature, str):
 			# The parser needs a tag, and each tag references its template which contains the source.
@@ -3536,6 +3572,10 @@ class Template(Block):
 		yield from super()._str()
 		yield -1
 
+	@property
+	def doc(self):
+		return self.source[self.docpos] if self.docpos is not None else None
+
 	def ul4getattr(self, name):
 		if name == "renders":
 			return self.ul4renders
@@ -3550,6 +3590,7 @@ class Template(Block):
 		encoder.dump(self.whitespace)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
+		encoder.dump(self.docpos)
 		encoder.dump(self.parenttemplate)
 
 		# Signature can be ``None`` or an instance of :class:`inspect.Signature` or :class:`Signature`
@@ -3610,6 +3651,7 @@ class Template(Block):
 			self.whitespace = decoder.load()
 			self.startdelim = decoder.load()
 			self.enddelim = decoder.load()
+			self.docpos = decoder.load()
 			self.parenttemplate = decoder.load()
 
 			dump = decoder.load()
@@ -3778,7 +3820,7 @@ class Template(Block):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = "{}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|render|note)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = "{}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|render|note|doc)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -4053,6 +4095,10 @@ class Template(Block):
 			try:
 				if isinstance(tag, Text):
 					blockstack[-1].append(tag)
+				elif tag.tag == "doc":
+					# Only use the first ``<?doc?>`` tag in each template, ignore all later ones
+					if templatestack[-1].docpos is None:
+						templatestack[-1].docpos = tag.codepos
 				elif tag.tag == "print":
 					blockstack[-1].append(Print(tag, tag.codepos, parseexpr(tag)))
 				elif tag.tag == "printx":
@@ -4152,8 +4198,8 @@ class Template(Block):
 						render.indent = innerblock[-1]
 						innerblock.pop()
 					blockstack[-1].append(render)
-				elif tag.tag in ("ul4", "whitespace", "note"):
-					# Don't copy declarations, whitespace specification or comments over into the syntax tree
+				elif tag.tag in ("ul4", "whitespace", "note", "doc"):
+					# Don't copy declarations, whitespace specification, comments or docstrings over into the syntax tree
 					pass
 				else: # Can't happen
 					raise ValueError("unknown tag {!r}".format(tag.tag))

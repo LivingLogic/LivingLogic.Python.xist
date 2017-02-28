@@ -38,8 +38,16 @@ class whitespace(xsc.ProcInst):
 
 
 ###
-### Processing instruction for comments
+### Processing instruction for documentation/comments
 ###
+
+class doc(xsc.ProcInst):
+	"""
+	A :class:`doc` processing instruction contains the documentation for a
+	template (which will be accessible by UL4 as the ``doc`` attribute of the
+	template).
+	"""
+
 
 class note(xsc.ProcInst):
 	"""
