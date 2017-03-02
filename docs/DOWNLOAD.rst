@@ -14,7 +14,22 @@ or choose one of the following archives:
 5.26 (released 02/28/2017)
 --------------------------
 
-(no files for this version)
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+====================================================================================================================================================== ========================== ====
+File                                                                                                                                                   Type                       Size
+====================================================================================================================================================== ========================== ====
+`ll-xist-5.26.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.26.tar.bz2>`_                                                     Source                     547K
+`ll-xist-5.26.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.26.tar.gz>`_                                                       Source                     660K
+`ll-xist-5.26.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.26.zip>`_                                                             Source                     776K
+`ll_xist-5.26-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.26-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5) 527K
+`ll_xist-5.26-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.26-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5) 530K
+`ll_xist-5.26-cp36-cp36m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.26-cp36-cp36m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.6)     522K
+`ll_xist-5.26-cp36-cp36m-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.26-cp36-cp36m-win32.whl>`_                           Windows wheel (Python 3.6) 527K
+`ll_xist-5.26-cp36-cp36m-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.26-cp36-cp36m-win_amd64.whl>`_                   Windows wheel (Python 3.6) 530K
+====================================================================================================================================================== ========================== ====
 
 
 5.25.1 (released 02/15/2017)
