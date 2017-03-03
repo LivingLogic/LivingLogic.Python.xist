@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.26.1 (released 03/03/2017)
+---------------------------------------
+
+*	The fields of a unique constraint are now output in the correct order by
+	:meth:`ll.orasql.UniqueConstraint.createsql`.
+
+
 Changes in 5.26 (released 02/28/2017)
 -------------------------------------
 
