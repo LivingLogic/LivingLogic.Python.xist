@@ -380,7 +380,7 @@ it supports the following command line options:
 
 		``name:type=value``
 			Defines a variable named ``name`` of type ``type`` and sets the value
-			to ``value``. For type ``bool`` supprted values are ``0``, ``no``,
+			to ``value``. For type ``bool`` supported values are ``0``, ``no``,
 			``false``, ``False``, ``1``, ``yes``, ``true`` and ``True``.
 """
 
