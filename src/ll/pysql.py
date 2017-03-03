@@ -1026,9 +1026,9 @@ class SQLCommand(_SQLCommand):
 
 	``"args"`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
-		values as values. Similar to procedure calls :class:`var` and
-		:class:`load` objects are supported. However :class:`sql` objects
-		are not supported (they will be ignored).
+		values as values. Similar to procedure calls :class:`var`,
+		:class:`loadbytes` and :class:`loadstr` objects are supported. However
+		:class:`sql` objects are not supported (they will be ignored).
 
 	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
 	and ``"connectstring"`` from the base classes are supported.
