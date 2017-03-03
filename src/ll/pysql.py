@@ -697,7 +697,7 @@ class Command:
 	``type`` : string (optional)
 		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
 		``"scp"``, ``"resetsequence"``, ``"setvar"``, ``"include"``,
-		``"compileall"`, ``"checkerrors"``, ``"pushconnection"``,
+		``"compileall"``, ``"checkerrors"``, ``"pushconnection"``,
 		``"popconnection"``, ``"raiseexceptions"``, ``"pushraiseexceptions"``
 		or ``"popraiseexceptions"``  and specifies the type of the PySQL command.
 
