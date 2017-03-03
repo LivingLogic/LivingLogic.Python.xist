@@ -2185,6 +2185,8 @@ class UniqueConstraint(Constraint):
 			where
 				owner = nvl(:owner, user) and
 				constraint_name = :name
+			order by
+				position
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
 		code = "alter table {} add constraint {} unique({})".format(tablename, uniquename, ", ".join(r.column_name for r in cursor))
