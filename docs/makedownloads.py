@@ -92,6 +92,7 @@ class Version:
 
 with url.Context():
 	versions = [
+		Version("5.27", "03/21/2017"),
 		Version("5.26.1", "03/03/2017"),
 		Version("5.26", "02/28/2017"),
 		Version("5.25.1", "02/15/2017"),
