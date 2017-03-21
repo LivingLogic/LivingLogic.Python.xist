@@ -140,6 +140,42 @@ This script outputs::
 
 	Dump: O S'com.example.person' S'John' S'Doe' )
 	Loaded: <Person firstname='John' lastname='Doe'>
+
+It is also possible to pass a custom registry to :func:`load` and
+:func:`loads`::
+
+	from ll import ul4on
+
+	class Person:
+		ul4onname = "com.example.person"
+
+		def __init__(self, firstname=None, lastname=None):
+			self.firstname = firstname
+			self.lastname = lastname
+
+		def __repr__(self):
+			return "<Person firstname={!r} lastname={!r}>".format(self.firstname, self.lastname)
+
+		def ul4ondump(self, encoder):
+			encoder.dump(self.firstname)
+			encoder.dump(self.lastname)
+
+		def ul4onload(self, decoder):
+			self.firstname = decoder.load()
+			self.lastname = decoder.load()
+
+	jd = Person("John", "Doe")
+	output = ul4on.dumps(jd)
+	print("Dump:", output)
+	jd2 = ul4on.loads(output, {"com.example.person": Person})
+	print("Loaded:", jd2)
+
+Any type name not found in the registry dict passed in will be looked up in the
+global registry.
+
+.. note::
+	If a class isn't registered with the UL4ON serialization machinery, you have
+	to set the class attribute ``ul4onname`` yourself for serialization to work.
 """
 
 import sys, datetime, collections, io, ast
@@ -176,6 +212,12 @@ def register(name):
 
 
 class Encoder:
+	"""
+	A :class:`Encoder` is used for serializing an object into an UL4ON dump.
+
+	It manages the internal state required for handling backreferences and other
+	stuff.
+	"""
 	def __init__(self, stream, indent=None):
 		"""
 		Create an encoder for serializing objects to  :obj:`self.stream`.
@@ -216,7 +258,7 @@ class Encoder:
 
 	def dump(self, obj):
 		"""
-		Serialize :obj:`obj` as an UL4ON formatted stream.
+		Serialize :obj:`obj` into the tream as an UL4ON formatted dump.
 		"""
 		# Have we written this object already?
 		if id(obj) in self._id2index:
@@ -290,15 +332,27 @@ class Encoder:
 
 
 class Decoder:
-	def __init__(self, stream):
+	"""
+	A :class:`Decoder` is used for deserializing an UL4ON dump.
+
+	It manages the internal state required for handling backreferences and other
+	stuff.
+	"""
+	def __init__(self, stream, registry=None):
 		"""
 		Create a decoder for deserializing objects from  :obj:`self.stream`.
 
 		:obj:`stream` must provide a :meth:`read` method.
+
+		:obj:`registry` is used as a "custom type registry". It must map UL4ON
+		type names to callables that create new empty instances of those types.
+		Any type not found in :obj:`registry` will be looked up in the global
+		registry (see :func:`register`).
 		"""
 		self.stream = stream
 		self._objects = []
 		self._keycache = {} # Used for "interning" dictionary keys
+		self.registry = registry
 
 	def load(self):
 		"""
@@ -502,9 +556,12 @@ class Decoder:
 			if typecode == "O":
 				oldpos = self._beginfakeloading()
 			name = self._load(None)
-			try:
-				cls = _registry[name]
-			except KeyError:
+			cls = None
+			if self.registry is not None:
+				cls = self.registry.get(name)
+			if cls is None:
+				cls = _registry.get(name)
+			if cls is None:
 				raise TypeError("can't decode object of type {}".format(name))
 			value = cls()
 			if typecode == "O":
@@ -557,28 +614,34 @@ def dump(obj, stream, indent=None):
 	Encoder(stream, indent=indent).dump(obj)
 
 
-def loadclob(clob, bufsize=1024*1024):
+def loadclob(clob, bufsize=1024*1024, registry=None):
 	"""
 	Deserialize :obj:`clob` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.
 
 	:obj:`bufsize` specifies the chunk size for reading the underlying ``CLOB``
 	object.
+
+	For the meaning of :obj:`registry` see :meth:`Decoder.__init__`.
 	"""
-	return Decoder(StreamBuffer(clob, bufsize)).load()
+	return Decoder(StreamBuffer(clob, bufsize), registry).load()
 
 
-def loads(string):
+def loads(string, registry=None):
 	"""
 	Deserialize :obj:`string` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
+
+	For the meaning of :obj:`registry` see :meth:`Decoder.__init__`.
 	"""
-	return Decoder(io.StringIO(string)).load()
+	return Decoder(io.StringIO(string), registry).load()
 
 
-def load(stream):
+def load(stream, registry=None):
 	"""
 	Deserialize :obj:`stream` (which must be file-like object with a :meth:`read`
 	method containing an UL4ON formatted object) to a Python object.
+
+	For the meaning of :obj:`registry` see :meth:`Decoder.__init__`.
 	"""
-	return Decoder(stream).load()
+	return Decoder(stream, registry).load()

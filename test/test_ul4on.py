@@ -53,16 +53,16 @@ def oracle(request):
 		return None
 
 
-def _transport_python(obj, indent):
-	return ul4on.loads(ul4on.dumps(obj, indent=indent))
+def _transport_python(obj, indent, registry):
+	return ul4on.loads(ul4on.dumps(obj, indent=indent), registry=registry)
 
 
-def transport_python(obj):
-	return _transport_python(obj, indent="")
+def transport_python(obj, registry=None):
+	return _transport_python(obj, indent="", registry=registry)
 
 
-def transport_python_pretty(obj):
-	return _transport_python(obj, indent="\t")
+def transport_python_pretty(obj, registry=None):
+	return _transport_python(obj, indent="\t", registry=registry)
 
 
 def _transport_js_v8(obj, indent):
@@ -401,6 +401,37 @@ def test_recursion(t):
 		l2 = t(l1)
 		assert len(l2) == 1
 		assert l2[0] is l2
+
+
+def test_custom_class(t):
+	if t in (transport_python, transport_python_pretty):
+		@ul4on.register("de.livinglogic.ul4.test.point")
+		class Point:
+			def __init__(self, x=None, y=None):
+				self.x = x
+				self.y = y
+
+			def ul4ondump(self, encoder):
+				encoder.dump(self.x)
+				encoder.dump(self.y)
+
+			def ul4onload(self, decoder):
+				self.x = decoder.load()
+				self.y = decoder.load()
+
+		p = t(Point(17, 23))
+
+		assert p.x == 17
+		assert p.y == 23
+
+		class Point2(Point):
+			pass
+
+		p = t(Point(17, 23), registry={"de.livinglogic.ul4.test.point": Point2})
+
+		assert p.x == 17
+		assert p.y == 23
+		assert isinstance(p, Point2)
 
 
 @pytest.mark.db

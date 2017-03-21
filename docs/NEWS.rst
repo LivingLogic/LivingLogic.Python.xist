@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.27 (released 03/21/2017)
+-------------------------------------
+
+*	When deserializing UL4ON dumps it is now possible to pass in a custom type
+	registry dictionary. This can be used to customize which objects get created
+	for which type.
+
+
 Changes in 5.26.1 (released 03/03/2017)
 ---------------------------------------
 
