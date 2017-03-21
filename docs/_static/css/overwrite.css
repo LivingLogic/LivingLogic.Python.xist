@@ -138,14 +138,14 @@ code, .rst-content tt, .rst-content code
 	font-size: inherit;
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	border-radius: 0.3em;
-	padding: 0 0.3em;
+	padding: 1px 0.3em;
 	margin: 0;
 }
 
 .wy-menu-vertical li code, .wy-menu-vertical li .rst-content tt, .rst-content .wy-menu-vertical li tt
 {
 	border-radius: 0.3em;
-	padding: 0 0.3em;
+	padding: 1px 0.3em;
 	margin: 0;
 	background-color: rgba(255, 255, 255, 0.05);
 	border: 1px solid rgba(0, 0, 0, 0.3);
