@@ -134,10 +134,21 @@ code, .rst-content tt, .rst-content code
 {
 	font-family: "Source Code Pro", monospace;
 	color: inherit;
-	background-color: inherit;
+	background-color: rgba(255, 255, 255, 0.66);
 	font-size: inherit;
-	border: 0;
-	padding: 0;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 0.3em;
+	padding: 0 0.3em;
+	margin: 0;
+}
+
+.wy-menu-vertical li code, .wy-menu-vertical li .rst-content tt, .rst-content .wy-menu-vertical li tt
+{
+	border-radius: 0.3em;
+	padding: 0 0.3em;
+	margin: 0;
+	background-color: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .rst-content dl dt
