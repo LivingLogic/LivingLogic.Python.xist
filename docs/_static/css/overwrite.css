@@ -1,24 +1,115 @@
 @import url("theme.css");
 
-h1, h2, h3, h4, h5, h6
+@font-face
 {
-	margin: 1em 0 0.2em 0;
+	font-family: "Source Sans Pro";
+	font-style: normal;
+	font-weight: 300;
+	src: url(fonts/SourceSansPro-Light.eot);
+	src: local('SourceSansPro-Light'), url(fonts/SourceSansPro-Light.woff) format('woff');
 }
 
-p
+@font-face
 {
-	margin-bottom: 12px;
+	font-family: "Source Sans Pro";
+	font-style: normal;
+	font-weight: 400;
+	src: url(fonts/SourceSansPro-Regular.eot);
+	src: local('SourceSansPro-Regular'), url(fonts/SourceSansPro-Regular.woff) format('woff');
+}
+
+@font-face
+{
+	font-family: "Source Sans Pro";
+	font-style: normal;
+	font-weight: 600;
+	src: url(fonts/SourceSansPro-Semibold.eot);
+	src: local('SourceSansPro-Semibold'), url(fonts/SourceSansPro-Semibold.woff) format('woff');
+}
+
+@font-face
+{
+	font-family: "Source Sans Pro";
+	font-style: normal;
+	font-weight: 700;
+	src: url(fonts/SourceSansPro-Bold.eot);
+	src: local('SourceSansPro-Bold'), url(fonts/SourceSansPro-Bold.woff) format('woff');
+}
+
+@font-face
+{
+	font-family: "Source Code Pro";
+	font-style: normal;
+	font-weight: 300;
+	src: url(fonts/SourceCodePro-Light.eot);
+	src: local('SourceCodePro-Light'), url(fonts/SourceCodePro-Light.ttf.woff) format('woff');
+}
+
+@font-face
+{
+	font-family: "Source Code Pro";
+	font-style: normal;
+	font-weight: 400;
+	src: url(fonts/SourceCodePro-Regular.eot);
+	src: local('SourceCodePro-Regular'), url(fonts/SourceCodePro-Regular.ttf.woff) format('woff');
+}
+
+@font-face
+{
+	font-family: "Source Code Pro";
+	font-style: normal;
+	font-weight: 600;
+	src: url(fonts/SourceCodePro-Semibold.eot);
+	src: local('SourceCodePro-Semibold'), url(fonts/SourceCodePro-Semibold.ttf.woff) format('woff');
+}
+
+@font-face
+{
+	font-family: "Source Code Pro";
+	font-style: normal;
+	font-weight: 700;
+	src: url(fonts/SourceCodePro-Bold.eot);
+	src: local('SourceCodePro-Bold'), url(fonts/SourceCodePro-Bold.ttf.woff) format('woff');
+}
+
+body
+{
+	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6
+{
+	margin: 1.6em 0 0.5rem 0;
+	font-weight: 400;
+	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
+}
+
+.document p,
+.document li,
+.document dd,
+.document ul,
+.document ol,
+.document dl
+{
+	line-height: 166%;
+	margin-bottom: 0.8rem;
+}
+
+.document dt
+{
+	line-height: 166%;
 }
 
 div[class^='highlight'] pre
 {
-	font-size: 14px;
-	line-height: 130%;
-	padding: 0.5em 1em;
+	font-family: "Source Code Pro", monospace;
+	font-size: 0.8em;
+	padding: 0.5rem 0.8rem;
 }
+
 .code-block-caption
 {
-	margin-bottom: 4px;
+	margin-bottom: 3px;
 }
 
 .code-block-caption .caption-text
@@ -41,55 +132,52 @@ div[class^='highlight'] pre
 
 code, .rst-content tt, .rst-content code
 {
-	background-color: inherit;
+	font-family: "Source Code Pro", monospace;
 	color: inherit;
-	font-size: 90%;
-	background-color: rgba(255, 255, 255, 0.66);
-	border: 1px solid rgba(0, 0, 0, 0.1);
-	padding: 0.1em 0.3em4px;
-	border-radius: 0.3em;
+	background-color: inherit;
+	font-size: inherit;
+	border: 0;
+	padding: 0;
+}
+
+.rst-content dl dt
+{
+	font-weight: 600;
+}
+
+h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
+{
+	font-weight: 400;
+	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
 }
 
 .literal-block-wrapper
 {
-	margin: 0 0 12px 24px;
+	margin: 0 0 0.8rem 0;
 }
 
 .codeblock, pre.literal-block, .rst-content .literal-block, .rst-content pre.literal-block, div[class^='highlight']
 {
-	margin: 0 0 12px 0;
-	border: 1px solid rgba(0, 0, 0, 0.1);
+	margin: 0 0 0.8rem 0;
+	border: 1px solid rgba(0, 0, 0, 0.2);
 	border-radius: 0.3em;
 	background-color: rgba(255, 255, 255, 0.66);
-}
-
-.wy-menu-vertical li code, .wy-menu-vertical li .rst-content tt, .rst-content .wy-menu-vertical li tt
-{
-	background-color: rgba(255, 255, 255, 0.05);
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	padding: 1px 4px;
-	border-radius: 0.3em;
-}
-
-.wy-menu-vertical li.toctree-l2 code, .wy-menu-vertical li.toctree-l2 .rst-content tt, .rst-content .wy-menu-vertical li.toctree-l2 tt
-{
-	background-color: rgba(255, 255, 255, 0.22);
-	border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .rst-content tt.xref, a .rst-content tt, .rst-content tt.xref, .rst-content code.xref, a .rst-content tt, a .rst-content code
 {
 	color: inherit;
+	font-weight: normal;
+}
+
+.rst-content dl:not(.docutils) tt, .rst-content dl:not(.docutils) tt, .rst-content dl:not(.docutils) code
+{
+	font-weight: normal;
 }
 
 .rst-content tt.literal, .rst-content tt.literal, .rst-content code.literal
 {
 	color: inherit;
-}
-
-dt, dd
-{
-	line-height: 24px;
 }
 
 .wy-plain-list-disc li, .rst-content .section ul li, .rst-content .toctree-wrapper ul li, article ul li
@@ -179,7 +267,7 @@ table.download td:last-child
 	border-top: 0;
 	margin: 0;
 	padding: 0;
-	line-height: 24px;
+	line-height: 166%;
 }
 
 .rst-content dl.class,
@@ -188,9 +276,9 @@ table.download td:last-child
 .rst-content dl.exception,
 .rst-content dl.attribute
 {
-	border-left: 1px solid #e1e4e5;
-	border-bottom: 1px solid #e1e4e5;
-	margin: 0 0 12px 0;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	margin: 0 0 0.8rem 0;
+	border-radius: 0.3em;
 }
 
 .rst-content dl.class > dt,
@@ -209,7 +297,7 @@ table.download td:last-child
 	display: block;
 	border: 0;
 	margin: 0;
-	padding: 6px 24px;
+	padding: 0.2rem 0.8rem;
 }
 
 .rst-content dl.class > dd,
@@ -223,7 +311,7 @@ table.download td:last-child
 .rst-content dl:not(.docutils) dl.exception > dd,
 .rst-content dl:not(.docutils) dl.attribute > dd
 {
-	margin: 12px 0 12px 24px;
+	margin: 0.2rem 0.8rem;
 }
 
 .rst-content dl.class > dd > *:last-child,

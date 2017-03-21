@@ -105,7 +105,7 @@ Defining new elements
 ---------------------
 
 You can define new elements and how they should be converted to HTML
-(or other XML vocabularies) like this:</p>
+(or other XML vocabularies) like this:
 
 .. sourcecode:: python
 

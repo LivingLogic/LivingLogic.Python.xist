@@ -13,7 +13,7 @@ special scheme named ``root`` that deserves an explanation.
 A ``root`` URL is supposed to be an URL that is relative to a "project"
 directory instead to a base URL of the document that contains the URL.
 
-Suppose we have the following document with the following base URL:
+Suppose we have a document with the following base URL:
 
 .. sourcecode:: pycon
 
