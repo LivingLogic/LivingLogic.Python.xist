@@ -783,7 +783,7 @@ class InAttrSelector(Selector):
 		... 	parse.NS(html),
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
-		>>> for node in doc.walknodes(xfind.inattr & xsc.Text, enterattrs=True, enterattr=True):
+		>>> for path in doc.walkpaths(xfind.inattr & xsc.Text, enterattrs=True, enterattr=True):
 		... 	print(path[-3].xmlname, path[-2].xmlname, path[-1].string())
 		...
 		html class no-js
