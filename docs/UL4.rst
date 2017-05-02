@@ -2042,7 +2042,7 @@ behaviour can be changed by passing a different value to the ``whitespace``
 parameter in the constructor. The possible values are:
 
 ``"keep"``
-	The default behaviour: literal text with be output as it is.
+	The default behaviour: literal text will be output as it is.
 
 ``"strip"``
 	Linefeeds and the following indentation in literal text will be ignored::
