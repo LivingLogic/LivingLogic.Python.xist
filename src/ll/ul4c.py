@@ -1731,9 +1731,11 @@ class CondBlock(Block):
 			self.newblock(IfBlock(tag, pos, condition))
 
 	def _repr_pretty(self, p):
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def append(self, item):
 		self.content[-1].append(item)
@@ -1774,9 +1776,11 @@ class IfBlock(Block):
 		p.breakable()
 		p.text("condition=")
 		p.pretty(self.condition)
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def _str(self):
 		yield "if "
@@ -1815,9 +1819,11 @@ class ElIfBlock(Block):
 		p.breakable()
 		p.text("condition=")
 		p.pretty(self.condition)
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def _str(self):
 		yield "elif "
@@ -1844,9 +1850,11 @@ class ElseBlock(Block):
 	"""
 
 	def _repr_pretty(self, p):
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def _str(self):
 		yield "else:"
@@ -1880,9 +1888,11 @@ class ForBlock(Block):
 		p.breakable()
 		p.text("container=")
 		p.pretty(self.container)
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1938,9 +1948,11 @@ class WhileBlock(Block):
 		p.breakable()
 		p.text("condition=")
 		p.pretty(self.condition)
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -3554,9 +3566,11 @@ class Template(Block):
 				p.pretty(self.signature)
 			else:
 				p.text("signature={}".format(self.signature))
-		for node in self.content:
-			p.breakable()
-			p.pretty(node)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
 
 	def _str(self):
 		yield "def "
