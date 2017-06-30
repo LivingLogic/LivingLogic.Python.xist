@@ -23,7 +23,7 @@ __docformat__ = "reStructuredText"
 class Color(tuple):
 	"""
 	A :class:`Color` object represents a color with red, green and blue
-	components.
+	components and transparency.
 	"""
 	ul4attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum"}
 

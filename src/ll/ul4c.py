@@ -141,7 +141,7 @@ class LocationError(Exception):
 		elif name == "innerpos":
 			return self._innerpos()
 		else:
-			return UndefinedKey(name)
+			raise AttributeError(name)
 
 
 class BlockError(Exception):
@@ -373,50 +373,422 @@ def _makevars(signature, args, kwargs):
 		return vars.arguments
 
 
-def _ul4getattr(obj, name):
-	"""
-	Return the attribute :obj:`name` of the object :obj`obj` and honor 
-	``ul4getattr`` and ``ul4attrs``.
-	"""
-	ul4attrs = getattr(obj, "ul4attrs", None)
-	ul4getattr = getattr(obj, "ul4getattr", None)
-	if callable(ul4getattr):
-		if ul4attrs is None or name in ul4attrs:
+class Proto:
+	name = "?"
+
+	# Attributes that are returned via a simple ``getattr`` call (either data attributes or as bound methods)
+	plainattrs = set()
+
+	# Attributes that should appear as data attributes, but are implemented as methods in the :class:`Proto` subclass
+	wrappeddataattrs = set()
+
+	# Attributes that should appear as methods and are implemented as methods in the :class:`Proto` subclass
+	wrappedmethattrs = set()
+
+	@classmethod
+	def wrapmethod(cls, obj, name):
+		func = getattr(cls, name)
+		def wrapped(*args, **kwargs):
+			return func(obj, *args, **kwargs)
+		wrapped.__name__ = name
+		wrapped.__module__ = cls.name
+		wrapped.__qualname__ = name
+		return wrapped
+
+	@classmethod
+	def missing(cls, obj, name, default=object):
+		if default is object:
+			raise AttributeError(name)
+		else:
+			return default
+
+	@classmethod
+	def getattr(cls, obj, name, default=object):
+		"""
+		Return the attribute :obj:`name` of the object :obj`obj` and honor
+		``ul4getattr`` and ``ul4attrs``.
+		"""
+		ul4getattr = getattr(obj, "ul4getattr", None)
+		if ul4getattr is not None:
 			try:
 				return ul4getattr(name)
-			except AttributeError:
-				pass
-	elif ul4attrs is not None:
-		if name in ul4attrs:
-			return getattr(obj, name)
-	else:
-		if isinstance(obj, slice):
-			if name in ("start", "stop"):
+			except AttributeError as exc:
+				return cls.missing(obj, name, default)
+		else:
+			ul4attrs = getattr(obj, "ul4attrs", None)
+			if ul4attrs is not None and name in ul4attrs:
 				return getattr(obj, name)
-			else:
-				UndefinedKey(name)
-		try:
-			return obj[name]
-		except KeyError:
-			pass
-	return UndefinedKey(name)
+			elif name in cls.plainattrs:
+				return getattr(obj, name)
+			elif name in cls.wrappeddataattrs:
+				return getattr(cls, name)(obj)
+			elif name in cls.wrappedmethattrs:
+				return cls.wrapmethod(obj, name)
+			return cls.missing(obj, name, default)
 
-
-def _ul4setattr(obj, name, value):
-	"""
-	Set the attribute :obj:`name` of the object :obj`obj` to :obj:`value` and
-	honor  ``ul4setattr`` and ``ul4attrs``.
-	"""
-	ul4setattr = getattr(obj, "ul4setattr", None)
-	if callable(ul4setattr):
-		ul4attrs = getattr(obj, "ul4attrs", None)
-		if ul4attrs is None or name in ul4attrs:
+	@classmethod
+	def setattr(cls, obj, name, value):
+		"""
+		Set the attribute :obj:`name` of the object :obj`obj` to :obj:`value` and
+		honor  ``ul4setattr`` and ``ul4attrs``.
+		"""
+		ul4setattr = getattr(obj, "ul4setattr", None)
+		if ul4setattr is not None:
 			ul4setattr(name, value)
 		else:
-			raise AttributeError("attribute {!r} is readonly".format(name))
-	else:
-		# An ``ul4attrs`` attribute without ``ul4setattr`` will *not* make the attribute writable
-		obj[name] = value
+			ul4attrs = getattr(obj, "ul4attrs", None)
+			if ul4attrs is not None:
+				# An ``ul4attrs`` attribute without ``ul4setattr`` will *not* make the attribute writable
+				raise TypeError("attribute {!r} is readonly".format(name))
+			else:
+				obj[name] = value
+
+	@classmethod
+	def hasattr(cls, obj, name):
+		"""
+		Return whether the object :obj`obj`  has an attribute :obj:`name` and
+		honor  ``ul4hasattr`` and ``ul4attrs``.
+		"""
+		ul4hasattr = getattr(obj, "ul4hasattr", None)
+		if ul4hasattr is not None:
+			return ul4hasattr(name)
+		else:
+			ul4attrs = getattr(obj, "ul4attrs", None)
+			if ul4attrs is not None:
+				return name in ul4attrs
+			else:
+				return name in cls.plainattrs or name in cls.wrappeddataattrs or name in cls.wrappedmethattrs
+
+	@classmethod
+	def dir(cls, obj):
+		return frozenset({*cls.plainattrs, *cls.wrappeddataattrs, *cls.wrappedmethattrs})
+
+
+class StrProto(Proto):
+	name = "str"
+	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join"}
+
+	@staticmethod
+	def split(obj, sep=None, count=None):
+		return obj.split(sep, count if count is not None else -1)
+
+	@staticmethod
+	def rsplit(obj, sep=None, count=None):
+		return obj.rsplit(sep, count if count is not None else -1)
+
+	@staticmethod
+	def splitlines(obj, keepends=False):
+		return obj.splitlines(keepends)
+
+	@staticmethod
+	def strip(obj, chars=None):
+		return obj.strip(chars)
+
+	@staticmethod
+	def lstrip(obj, chars=None):
+		return obj.lstrip(chars)
+
+	@staticmethod
+	def rstrip(obj, chars=None):
+		return obj.rstrip(chars)
+
+	@staticmethod
+	def count(obj, sub, start=None, end=None):
+		return obj.count(sub, start, end)
+
+	@staticmethod
+	def find(obj, sub, start=None, end=None):
+		return obj.find(sub, start, end)
+
+	@staticmethod
+	def rfind(obj, sub, start=None, end=None):
+		return obj.rfind(sub, start, end)
+
+	@staticmethod
+	def startswith(obj, prefix):
+		return obj.startswith(prefix)
+
+	@staticmethod
+	def endswith(obj, suffix):
+		return obj.endswith(suffix)
+
+	@staticmethod
+	def upper(obj):
+		return obj.upper()
+
+	@staticmethod
+	def lower(obj):
+		return obj.lower()
+
+	@staticmethod
+	def capitalize(obj):
+		return obj.capitalize()
+
+	@staticmethod
+	def replace(obj, old, new, count=None):
+		if count is None:
+			return obj.replace(old, new)
+		else:
+			return obj.replace(old, new, count)
+
+	@staticmethod
+	def join(obj, iterable):
+		return obj.join(iterable)
+
+
+class ListProto(Proto):
+	name = "list"
+	wrappedmethattrs = {"append", "insert", "pop", "count", "find", "rfind"}
+
+	@staticmethod
+	def append(obj, *items):
+		obj.extend(items)
+
+	@staticmethod
+	def insert(obj, pos, *items):
+		obj[pos:pos] = items
+
+	@staticmethod
+	def pop(obj, pos=-1):
+		return obj.pop(pos)
+
+	@staticmethod
+	def count(obj, sub, start=None, end=None):
+		if start is None and end is None:
+			return obj.count(sub)
+		else:
+			(start, stop, stride) = slice(start, end).indices(len(obj))
+			count = 0
+			for i in range(start, stop, stride):
+				if obj[i] == sub:
+					count += 1
+			return count
+
+	@staticmethod
+	def find(obj, sub, start=None, end=None):
+		try:
+			if end is None:
+				if start is None:
+					return obj.index(sub)
+				return obj.index(sub, start)
+			return obj.index(sub, start, end)
+		except ValueError:
+			return -1
+
+	@staticmethod
+	def rfind(obj, sub, start=None, end=None):
+		for i in reversed(range(*slice(start, end).indices(len(obj)))):
+			if obj[i] == sub:
+				return i
+		return -1
+
+
+class DictProto(Proto):
+	name = "dict"
+	plainattrs = {"items", "values", "clear"}
+	wrappedmethattrs = {"get", "update"}
+
+	@staticmethod
+	def get(obj, key, default=None):
+		return obj.get(key, default)
+
+	@staticmethod
+	def update(obj, *others, **kwargs):
+		for other in others:
+			obj.update(other)
+		obj.update(**kwargs)
+
+	@classmethod
+	def missing(cls, obj, name, default=None):
+		if name in obj:
+			return obj[name]
+		return super().missing(obj, name)
+
+
+class SetProto(Proto):
+	name = "set"
+	plainattrs = {"clear"}
+	wrappedmethattrs = {"add"}
+
+	@staticmethod
+	def add(obj, *items):
+		obj.update(items)
+
+
+class SliceProto(Proto):
+	name = "slice"
+	plainattrs = {"start", "stop"}
+
+
+class DateProto(Proto):
+	name = "date"
+	wrappedmethattrs = {"weekday", "week", "day", "month", "year", "hour", "minute", "second", "microsecond", "mimeformat", "isoformat", "yearday"}
+
+	@staticmethod
+	def weekday(obj):
+		return obj.weekday()
+
+	@staticmethod
+	def week(obj, firstweekday=None):
+		if firstweekday is None:
+			firstweekday = 0
+		else:
+			firstweekday %= 7
+		jan1 = obj.__class__(obj.year, 1, 1)
+		yearday = (obj - jan1).days+7
+		jan1weekday = jan1.weekday()
+		while jan1weekday != firstweekday:
+			yearday -= 1
+			jan1weekday += 1
+			if jan1weekday == 7:
+				jan1weekday = 0
+		return yearday//7
+
+	@staticmethod
+	def day(obj):
+		return obj.day
+
+	@staticmethod
+	def month(obj):
+		return obj.month
+
+	@staticmethod
+	def year(obj):
+		return obj.year
+
+	@staticmethod
+	def hour(obj):
+		return obj.hour
+
+	@staticmethod
+	def minute(obj):
+		return obj.minute
+
+	@staticmethod
+	def second(obj):
+		return obj.second
+
+	@staticmethod
+	def microsecond(obj):
+		return obj.microsecond
+
+	@staticmethod
+	def mimeformat(obj):
+		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+		return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+
+	@staticmethod
+	def isoformat(obj):
+		result = obj.isoformat()
+		suffix = "T00:00:00"
+		if result.endswith(suffix):
+			return result[:-len(suffix)]
+		return result
+
+	@staticmethod
+	def yearday(obj):
+		return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+
+class TimeDeltaProto(Proto):
+	name = "timedelta"
+	wrappedmethattrs = {"days", "seconds", "microseconds"}
+
+
+	@staticmethod
+	def days(obj):
+		return obj.days
+
+	@staticmethod
+	def seconds(obj):
+		return obj.seconds
+
+	@staticmethod
+	def microseconds(obj):
+		return obj.microseconds
+
+
+class ExceptionProto(Proto):
+	name = "exception"
+	wrappeddataattrs = {"cause"}
+
+	@staticmethod
+	def cause(obj):
+		if obj.__cause__ is not None:
+			return obj.__cause__
+		elif obj.__context__ is not None and not obj.__suppress_context__:
+			return obj.__context__
+		return None
+
+	@staticmethod
+	def seconds(obj):
+		return obj.seconds
+
+	@staticmethod
+	def microseconds(obj):
+		return obj.microseconds
+
+		if attrname == "cause":
+			if obj.__cause__ is not None:
+				return obj.__cause__
+			elif obj.__context__ is not None and not obj.__suppress_context__:
+				return obj.__context__
+			return None
+		else:
+			result = UndefinedKey(attrname)
+		return result
+
+
+@functools.singledispatch
+def proto(obj):
+	return Proto
+
+
+@proto.register(str)
+def proto_str(obj):
+	return StrProto
+
+
+@proto.register(list)
+@proto.register(tuple)
+@proto.register(collections.Sequence)
+def proto_list(obj):
+	return ListProto
+
+
+@proto.register(dict)
+@proto.register(collections.Mapping)
+def proto_dict(obj):
+	return DictProto
+
+
+@proto.register(set)
+@proto.register(frozenset)
+@proto.register(collections.Set)
+def proto_set(obj):
+	return SetProto
+
+
+@proto.register(slice)
+def proto_slice(obj):
+	return SliceProto
+
+
+@proto.register(datetime.date)
+@proto.register(datetime.datetime)
+def proto_date(obj):
+	return DateProto
+
+
+@proto.register(datetime.timedelta)
+def proto_timedelta(obj):
+	return TimeDeltaProto
+
+
+@proto.register(BaseException)
+def proto_exception(obj):
+	return ExceptionProto
 
 
 def _offset(pos):
@@ -1916,8 +2288,6 @@ class ForBlock(Block):
 	@_handleoutputeval
 	def eval(self, context):
 		container = self.container.eval(context)
-		if hasattr(container, "ul4attrs"):
-			container = container.ul4attrs
 		for item in container:
 			for (lvalue, value) in _unpackvar(self.varname, item):
 				lvalue.evalset(context, value)
@@ -2043,320 +2413,24 @@ class Attr(Code):
 	@_handleexpressioneval
 	def eval(self, context):
 		obj = self.obj.eval(context)
-		if hasattr(obj, "ul4getattr"):
-			if hasattr(obj, "ul4attrs") and self.attrname in {"items", "values"}:
-				return self.attr_ul4attrs(obj, self.attrname)
-			else:
-				return _ul4getattr(obj, self.attrname)
-		elif hasattr(obj, "ul4attrs"):
-			if self.attrname in {"items", "values"}:
-				return self.attr_ul4attrs(obj, self.attrname)
-			return _ul4getattr(obj, self.attrname)
-		elif isinstance(obj, str):
-			return self.attr_str(obj, self.attrname)
-		elif isinstance(obj, collections.Mapping):
-			return self.attr_dict(obj, self.attrname)
-		elif isinstance(obj, collections.Set):
-			return self.attr_set(obj, self.attrname)
-		elif isinstance(obj, collections.Sequence):
-			return self.attr_list(obj, self.attrname)
-		elif isinstance(obj, (datetime.datetime, datetime.date)):
-			return self.attr_date(obj, self.attrname)
-		elif isinstance(obj, datetime.timedelta):
-			return self.attr_timedelta(obj, self.attrname)
-		elif isinstance(obj, slice):
-			return self.attr_slice(obj, self.attrname)
-		elif isinstance(obj, BaseException):
-			return self.attr_exception(obj, self.attrname)
-		else:
-			return _ul4getattr(obj, self.attrname)
-
-	def attr_str(self, obj, attrname):
-		if attrname == "split":
-			def split(sep=None, count=None):
-				return obj.split(sep, count if count is not None else -1)
-			result = split
-		elif attrname == "rsplit":
-			def rsplit(sep=None, count=None):
-				return obj.rsplit(sep, count if count is not None else -1)
-			result = rsplit
-		elif attrname == "splitlines":
-			def splitlines(keepends=False):
-				return obj.splitlines(keepends)
-			result = splitlines
-		elif attrname == "strip":
-			def strip(chars=None):
-				return obj.strip(chars)
-			result = strip
-		elif attrname == "lstrip":
-			def lstrip(chars=None):
-				return obj.lstrip(chars)
-			result = lstrip
-		elif attrname == "rstrip":
-			def rstrip(chars=None):
-				return obj.rstrip(chars)
-			result = rstrip
-		elif attrname == "count":
-			def count(sub, start=None, end=None):
-				return obj.count(sub, start, end)
-			result = count
-		elif attrname == "find":
-			def find(sub, start=None, end=None):
-				return obj.find(sub, start, end)
-			result = find
-		elif attrname == "rfind":
-			def rfind(sub, start=None, end=None):
-				return obj.rfind(sub, start, end)
-			result = rfind
-		elif attrname == "startswith":
-			def startswith(prefix):
-				return obj.startswith(prefix)
-			result = startswith
-		elif attrname == "endswith":
-			def endswith(suffix):
-				return obj.endswith(suffix)
-			result = endswith
-		elif attrname == "upper":
-			def upper():
-				return obj.upper()
-			result = upper
-		elif attrname == "lower":
-			def lower():
-				return obj.lower()
-			result = lower
-		elif attrname == "capitalize":
-			def capitalize():
-				return obj.capitalize()
-			result = capitalize
-		elif attrname == "replace":
-			def replace(old, new, count=None):
-				if count is None:
-					return obj.replace(old, new)
-				else:
-					return obj.replace(old, new, count)
-			result = replace
-		elif attrname == "join":
-			def join(iterable):
-				return obj.join(iterable)
-			result = join
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
-	def attr_list(self, obj, attrname):
-		if attrname == "append":
-			def append(*items):
-				obj.extend(items)
-			result = append
-		elif attrname == "insert":
-			def insert(pos, *items):
-				obj[pos:pos] = items
-			result = insert
-		elif attrname == "pop":
-			def pop(pos=-1):
-				return obj.pop(pos)
-			result = pop
-		elif attrname == "count":
-			def count(sub, start=None, end=None):
-				if start is None and end is None:
-					return obj.count(sub)
-				else:
-					(start, stop, stride) = slice(start, end).indices(len(obj))
-					count = 0
-					for i in range(start, stop, stride):
-						if obj[i] == sub:
-							count += 1
-					return count
-			result = count
-		elif attrname == "find":
-			def find(sub, start=None, end=None):
-				try:
-					if end is None:
-						if start is None:
-							return obj.index(sub)
-						return obj.index(sub, start)
-					return obj.index(sub, start, end)
-				except ValueError:
-					return -1
-			result = find
-		elif attrname == "rfind":
-			def rfind(sub, start=None, end=None):
-				for i in reversed(range(*slice(start, end).indices(len(obj)))):
-					if obj[i] == sub:
-						return i
-				return -1
-			result = rfind
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
-	def attr_set(self, obj, attrname):
-		if attrname == "add":
-			def add(*items):
-				obj.update(items)
-			result = add
-		elif attrname == "clear":
-			result = obj.clear
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
-	def attr_ul4attrs(self, obj, attrname):
-		if attrname == "items":
-			def items():
-				for attrname in obj.ul4attrs:
-					yield (attrname, _ul4getattr(obj, attrname))
-			return items
-		elif attrname == "values":
-			def values():
-				for attrname in obj.ul4attrs:
-					yield _ul4getattr(obj, attrname)
-			return values
-
-	def attr_dict(self, obj, attrname):
-		if attrname == "items":
-			return obj.items
-		elif attrname == "values":
-			return obj.values
-		elif attrname == "update":
-			def update(*others, **kwargs):
-				for other in others:
-					obj.update(other)
-				obj.update(**kwargs)
-			result = update
-		elif attrname == "get":
-			def get(key, default=None):
-				return obj.get(key, default)
-			result = get
-		elif attrname == "clear":
-			result = obj.clear
-		else:
-			try:
-				result = obj[attrname]
-			except KeyError:
-				result = UndefinedKey(attrname)
-		return result
-
-	def attr_date(self, obj, attrname):
-		if attrname == "weekday":
-			def weekday():
-				return obj.weekday()
-			result = weekday
-		elif attrname == "week":
-			def week(firstweekday=None):
-				if firstweekday is None:
-					firstweekday = 0
-				else:
-					firstweekday %= 7
-				jan1 = obj.__class__(obj.year, 1, 1)
-				yearday = (obj - jan1).days+7
-				jan1weekday = jan1.weekday()
-				while jan1weekday != firstweekday:
-					yearday -= 1
-					jan1weekday += 1
-					if jan1weekday == 7:
-						jan1weekday = 0
-				return yearday//7
-			result = week
-		elif attrname == "day":
-			def day():
-				return obj.day
-			result = day
-		elif attrname == "month":
-			def month():
-				return obj.month
-			result = month
-		elif attrname == "year":
-			def year():
-				return obj.year
-			result = year
-		elif attrname == "hour":
-			def hour():
-				return obj.hour
-			result = hour
-		elif attrname == "minute":
-			def minute():
-				return obj.minute
-			result = minute
-		elif attrname == "second":
-			def second():
-				return obj.second
-			result = second
-		elif attrname == "microsecond":
-			def microsecond():
-				return obj.microsecond
-			result = microsecond
-		elif attrname == "mimeformat":
-			def mimeformat():
-				weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-				monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-				return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
-			result = mimeformat
-		elif attrname == "isoformat":
-			def isoformat():
-				result = obj.isoformat()
-				suffix = "T00:00:00"
-				if result.endswith(suffix):
-					return result[:-len(suffix)]
-				return result
-			result = isoformat
-		elif attrname == "yearday":
-			def yearday():
-				return (obj - obj.__class__(obj.year, 1, 1)).days+1
-			result = yearday
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
-	def attr_timedelta(self, obj, attrname):
-		if attrname == "days":
-			def days():
-				return obj.days
-			result = days
-		elif attrname == "seconds":
-			def seconds():
-				return obj.seconds
-			result = seconds
-		elif attrname == "microseconds":
-			def microseconds():
-				return obj.microseconds
-			result = microseconds
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
-	def attr_slice(self, obj, attrname):
-		if attrname == "start":
-			return obj.start
-		elif attrname == "stop":
-			return obj.stop
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
-	def attr_exception(self, obj, attrname):
-		if attrname == "cause":
-			if obj.__cause__ is not None:
-				return obj.__cause__
-			elif obj.__context__ is not None and not obj.__suppress_context__:
-				return obj.__context__
-			return None
-		else:
-			result = UndefinedKey(attrname)
-		return result
+		try:
+			return proto(obj).getattr(obj, self.attrname)
+		except AttributeError:
+			return UndefinedKey(self.attrname)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
 		obj = self.obj.eval(context)
-		_ul4setattr(obj, self.attrname, value)
+		proto(obj).setattr(obj, self.attrname, value)
 
 	@_handleexpressioneval
 	def evalmodify(self, context, operator, value):
 		obj = self.obj.eval(context)
 
-		oldvalue = _ul4getattr(obj, self.attrname)
+		p = proto(obj)
+		oldvalue = p.getattr(obj, self.attrname)
 		newvalue = operator.evalfoldaug(oldvalue, value)
-		_ul4setattr(obj, self.attrname, newvalue)
+		p.setattr(obj, self.attrname, newvalue)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2612,7 +2686,7 @@ class Item(Binary):
 	@classmethod
 	def evalfold(cls, obj1, obj2):
 		try:
-			return _ul4getattr(obj1, obj2) if isinstance(obj2, str) else obj1[obj2]
+			return obj1[obj2]
 		except KeyError:
 			return UndefinedKey(obj2)
 		except IndexError:
@@ -2622,18 +2696,15 @@ class Item(Binary):
 	def evalset(self, context, value):
 		obj1 = self.obj1.eval(context)
 		obj2 = self.obj2.eval(context)
-		_ul4setattr(obj1, obj2, value)
+		obj1[obj2] = value
 
 	@_handleexpressioneval
 	def evalmodify(self, context, operator, value):
 		obj1 = self.obj1.eval(context)
 		obj2 = self.obj2.eval(context)
-		oldvalue = _ul4getattr(obj1, obj2) if isinstance(obj2, str) else obj1[obj2]
+		oldvalue = obj1[obj2]
 		newvalue = operator.evalfoldaug(oldvalue, value)
-		if isinstance(obj2, str):
-			_ul4setattr(obj1, obj2, newvalue)
-		else:
-			obj1[obj2] = newvalue
+		obj1[obj2] = newvalue
 
 
 @register("is")
@@ -2736,10 +2807,7 @@ class Contains(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
-			return obj1 in obj2.ul4attrs
-		else:
-			return obj1 in obj2
+		return obj1 in obj2
 
 
 @register("notcontains")
@@ -2754,10 +2822,7 @@ class NotContains(Binary):
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
-		if isinstance(obj1, str) and hasattr(obj2, "ul4attrs"):
-			return obj1 not in obj2.ul4attrs
-		else:
-			return obj1 not in obj2
+		return obj1 not in obj2
 
 
 @register("add")
@@ -4852,6 +4917,26 @@ def function_log(x, base=None):
 @Context.makefunction
 def function_pow(x, y):
 	return math.pow(x, y)
+
+
+@Context.makefunction
+def function_getattr(obj, attrname, default=None):
+	return proto(obj).getattr(obj, attrname, default)
+
+
+@Context.makefunction
+def function_setattr(obj, attrname, value):
+	return proto(obj).setattr(obj, attrname, value)
+
+
+@Context.makefunction
+def function_hasattr(obj, attrname):
+	return proto(obj).hasattr(obj, attrname)
+
+
+@Context.makefunction
+def function_dir(obj):
+	return proto(obj).dir(obj)
 
 
 class TemplateClosure(Block):

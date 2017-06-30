@@ -28,6 +28,28 @@ def passbytes(exc):
 codecs.register_error("passbytes", passbytes)
 
 
+class Point:
+	ul4attrs = {"x", "y"}
+
+	def __init__(self, x, y):
+		self.x = x
+		self.y = y
+
+	def ul4getattr(self, name):
+		return getattr(self, name)
+
+	def ul4setattr(self, name, value):
+		if name == "x":
+			if isinstance(value, int):
+				self.x = value
+			else:
+				raise TypeError("attribute x must be of type int!")
+		elif name == "y":
+			raise TypeError("readonly attribute {!r}".format(name))
+		else:
+			raise AttributeError(name)
+
+
 class PseudoDict(collections.Mapping):
 	def __init__(self, dict):
 		self.dict = dict
@@ -426,8 +448,8 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	java_compiled_by_python=TemplateJavaCompiledByPython,
-	java_compiled_by_java=TemplateJavaCompiledByJava,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
 	js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
@@ -485,9 +507,18 @@ duplicatekeywordargument = [
 	# Python
 	"duplicate keyword argument",
 	# Java
-	"com.livinglogic.ul4.DuplicateArgumentException"
+	"com.livinglogic.ul4.DuplicateArgumentException",
 ]
 duplicatekeywordargument = "({})".format("|".join(duplicatekeywordargument))
+
+subscriptablemessage = [
+	# Python
+	"object is not subscriptable",
+	"object does not support item assignment",
+	# Java
+	"com.livinglogic.ul4.ArgumentTypeMismatchException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
+]
+subscriptablemessage = "({})".format("|".join(subscriptablemessage))
 
 
 class raises:
@@ -648,16 +679,19 @@ def test_color(T):
 
 @pytest.mark.ul4
 def test_slice(T):
-	sourceattr = "<?print repr(obj.start)?>:<?print repr(obj.stop)?>"
-	sourceitem = "<?print repr(obj['start'])?>:<?print repr(obj['stop'])?>"
+	source = "<?print repr(obj.start)?>:<?print repr(obj.stop)?>"
 
 	obj = slice(17, 42)
-	assert "17:42" == T(sourceattr).renders(obj=obj)
-	assert "17:42" == T(sourceitem).renders(obj=obj)
+	assert "17:42" == T(source).renders(obj=obj)
 
 	obj = slice(None, None)
-	assert "None:None" == T(sourceattr).renders(obj=obj)
-	assert "None:None" == T(sourceitem).renders(obj=obj)
+	assert "None:None" == T(source).renders(obj=obj)
+
+	with raises(subscriptablemessage):
+		T("<?print repr(obj['start'])?>").renders(obj=obj)
+
+	with raises(subscriptablemessage):
+		T("<?print repr(obj['stop'])?>").renders(obj=obj)
 
 
 @pytest.mark.ul4
@@ -675,7 +709,7 @@ def test_list(T):
 def test_unpacklist(T):
 	assert '[]' == T('<?print [*[]]?>').renders()
 	assert '[0, 1, 2]' == T('<?print [*range(3)]?>').renders()
-	assert '[0, 1, 2]' == T('<?print [*{0, 1, 2}]?>').renders()
+	assert '[0, 1, 2]' == T('<?print [*[0, 1, 2]]?>').renders()
 	assert '[-1, 0, 1, 2, -2, 3, 4, 5]' == T('<?print [-1, *range(3), -2, *range(3, 6)]?>').renders()
 	assert '[0]' == T('<?print [*{0: 1}]?>').renders()
 
@@ -3511,6 +3545,75 @@ def test_function_round(T):
 
 
 @pytest.mark.ul4
+def test_function_getattr(T):
+	assert "GURK" == T("<?print getattr('gurk', 'upper')()?>").renders()
+	assert "a:42;b:17;c:23;" == T("<?for (key, value) in sorted(getattr(data, 'items')())?><?print key?>:<?print value?>;<?end for?>").renders(data={"a": 42, "b": 17, "c": 23})
+	assert "{/}" == T("<?code getattr(data, 'clear')()?><?print data?>").renders(data={"a", "b", "c"})
+	if T in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS):
+		assert "x=17, y=23" == T("x=<?print getattr(data, 'x')?>, y=<?print getattr(data, 'y')?>").renders(data=Point(17, 23))
+
+
+@pytest.mark.ul4
+def test_function_hasattr(T):
+	assert "True" == T("<?print hasattr('gurk', 'upper')?>").renders()
+	assert "False" == T("<?print hasattr('gurk', 'no')?>").renders()
+	assert "TrueFalseFalse" == T("<?print hasattr(data, 'items')?><?print hasattr('data', 'a')?><?print hasattr('data', 'd')?>").renders(data={"a": 42, "b": 17, "c": 23})
+	assert "TrueFalse" == T("<?print hasattr(data, 'clear')?><?print hasattr('data', 'a')?>").renders(data={"a", "b", "c"})
+	if T in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS):
+		"TrueTrueFalse" == T("<?print hasattr(data, 'x')?><?print getattr(data, 'y')?><?print getattr(data, 'z')?>").renders(data=Point(17, 23))
+
+
+@pytest.mark.ul4
+def test_function_setattr(T):
+	if T in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS):
+		assert "42" == T("<?code setattr(data, 'x', 42)?><?print data.x?>").renders(data=Point(17, 23))
+
+		with raises("readonly attribute"):
+			T("<?code setattr(data, 'y', 42)?>").renders(data=Point(17, 23))
+
+		with raises("attribute x must be of type int"):
+			T("<?code setattr(data, 'x', 'gurk')?>").renders(data=Point(17, 23))
+
+		with raises("AttributeError: z"):
+			T("<?code setattr(data, 'z', 42)?>").renders(data=Point(17, 23))
+
+
+@pytest.mark.ul4
+def test_function_dir(T):
+	t = T("<?return dir(data)?>")
+
+	set() == t(data=None)
+	set() == t(data=True)
+	set() == t(data=42)
+	set() == t(data=42.5)
+	{"day", "hour", "isoformat", "microsecond", "mimeformat", "minute", "month", "second", "week", "weekday", "year", "yearday"} == t(data=datetime.datetime.now())
+	{'a', 'abslum', 'b', 'g', 'hls', 'hlsa', 'hsv', 'hsva', 'lum', 'r', 'rellum', 'witha', 'withlum'} == t(data=color.red)
+	{'append', 'count', 'find', 'insert', 'pop', 'rfind'} == t(data=[1, 2, 3])
+	{'add', 'clear'} == t(data={1, 2, 3})
+	{'clear', 'get', 'items', 'update', 'values'} == t(data={"a": 17, "b": 23})
+	if T in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS):
+		{'x', 'y'} == t(data=Point(17, 23))
+
+	all = [
+		None,
+		True,
+		42,
+		42.5,
+		datetime.datetime.now(),
+		color.red,
+		[1, 2, 3],
+		{1, 2, 3},
+		{"a": 17, "b": 23},
+	]
+
+	if T in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS):
+		all.append(Point(17, 23))
+
+	# Check that ``getattr(x, ...)`` returns every attribute in ``dir(x)``
+	assert "" == T("<?for obj in all?><?for an in dir(d)?><?if getattr(obj, an, None) is None?><?print repr(obj)?>.<?print an?>: FAIL<?end if?><?end for?><?end for?>").renders(all=all)
+
+
+@pytest.mark.ul4
 def test_method_upper(T):
 	assert "GURK" == T("<?print 'gurk'.upper()?>").renders()
 	assert "GURK" == T("<?code m = 'gurk'.upper?><?print m()?>").renders()
@@ -4383,83 +4486,91 @@ def test_customattributes():
 			return getattr(self, name)
 
 		def ul4setattr(self, name, value):
-			if name == "bar":
-				self.bar = value
+			if name == "foo":
+				self.foo = value
+			elif name == "bar":
+				raise TypeError("readonly attribute {!r}".format(name))
 			else:
-				raise AttributeError("readonly attribute {!r}".format(name))
+				raise AttributeError(name)
 
 	o = CustomAttributes(foo=42, bar=23)
 	assert "42" == TemplatePython("<?print o.foo?>").renders(o=o)
 	assert "23" == TemplatePython("<?print o.bar?>").renders(o=o)
 	assert "undefined" == TemplatePython("<?print type(o.baz)?>").renders(o=o)
-	assert "42" == TemplatePython("<?print o['foo']?>").renders(o=o)
-	assert "23" == TemplatePython("<?print o['bar']?>").renders(o=o)
-	assert "undefined" == TemplatePython("<?print type(o['baz'])?>").renders(o=o)
-	assert "True" == TemplatePython("<?print 'foo' in o?>").renders(o=o)
-	assert "True" == TemplatePython("<?print 'bar' in o?>").renders(o=o)
-	assert "False" == TemplatePython("<?print 'baz' in o?>").renders(o=o)
-	assert "[['bar', 23], ['foo', 42]]" == TemplatePython("<?print repr(sorted(list(o.items())))?>").renders(o=o)
-	assert "[23, 42]" == TemplatePython("<?print repr(sorted(list(o.values())))?>").renders(o=o)
-	assert "foo" == TemplatePython("<?for attr in o?><?if attr == 'foo'?><?print attr?><?end if?><?end for?>").renders(o=o)
-	assert "bar" == TemplatePython("<?for attr in o?><?if attr == 'bar'?><?print attr?><?end if?><?end for?>").renders(o=o)
 
 	readonlymessage = "readonly"
 
-	o = CustomAttributes(foo=42, bar=23)
+	o = CustomAttributes(foo=23, bar=42)
+	assert "17" == TemplatePython("<?code o.foo = 17?><?print o.foo?>").renders(o=o)
 	with raises(readonlymessage):
-		TemplatePython("<?code o.foo = 43?><?print o.foo?>").renders(o=o)
-	with raises(readonlymessage):
-		TemplatePython("<?code o['foo'] = 43?><?print o.foo?>").renders(o=o)
-	assert "17" == TemplatePython("<?code o.bar = 17?><?print o.bar?>").renders(o=o)
-	assert "17" == TemplatePython("<?code o['bar'] = 17?><?print o.bar?>").renders(o=o)
+		TemplatePython("<?code o.bar = 43?>").renders(o=o)
 
-	o = CustomAttributes(foo=42, bar=23)
+	o = CustomAttributes(foo=23, bar=42)
+	assert "24" == TemplatePython("<?code o.foo += 1?><?print o.foo?>").renders(o=o)
 	with raises(readonlymessage):
-		TemplatePython("<?code o.foo += 1?><?print o.foo?>").renders(o=o)
+		TemplatePython("<?code o.bar += 1?>").renders(o=o)
+
+	o = CustomAttributes(foo=23, bar=42)
+	assert "22" == TemplatePython("<?code o.foo -= 1?><?print o.foo?>").renders(o=o)
 	with raises(readonlymessage):
+		TemplatePython("<?code o.bar -= 1?>").renders(o=o)
+
+	o = CustomAttributes(foo=23, bar=42)
+	assert "46" == TemplatePython("<?code o.foo *= 2?><?print o.foo?>").renders(o=o)
+	with raises(readonlymessage):
+		TemplatePython("<?code o.bar *= 2?>").renders(o=o)
+
+	o = CustomAttributes(foo=23, bar=42)
+	assert "11" == TemplatePython("<?code o.foo //= 2?><?print o.foo?>").renders(o=o)
+	with raises(readonlymessage):
+		TemplatePython("<?code o.bar //= 2?>").renders(o=o)
+
+	o = CustomAttributes(foo=23, bar=42)
+	assert "11.5" == TemplatePython("<?code o.foo /= 2?><?print o.foo?>").renders(o=o)
+	with raises(readonlymessage):
+		TemplatePython("<?code o.bar /= 2?>").renders(o=o)
+
+	o = CustomAttributes(foo=23, bar=42)
+	assert "3" == TemplatePython("<?code o.foo %= 10?><?print o.foo?>").renders(o=o)
+	with raises(readonlymessage):
+		TemplatePython("<?code o.bar %= 2?>").renders(o=o)
+
+	# UL4 no longer tries to support dict access to custom objects,
+	# so all the following code should raise exceptions
+	with raises("is not callable"):
+		TemplatePython("<?print o.items()?>").renders(o=o)
+	with raises("is not callable"):
+		TemplatePython("<?print o.values()?>").renders(o=o)
+	with raises("is not iterable"):
+		TemplatePython("<?for attr in o?><?end for?>").renders(o=o)
+	with raises(subscriptablemessage):
+		TemplatePython("<?print o['foo']?>").renders(o=o)
+	with raises(subscriptablemessage):
+		TemplatePython("<?print o['bar']?>").renders(o=o)
+	with raises(subscriptablemessage):
+		TemplatePython("<?code o['foo'] = 17?><?print o.foo?>").renders(o=o)
+	with raises(subscriptablemessage):
 		TemplatePython("<?code o['foo'] += 1?><?print o.foo?>").renders(o=o)
-	assert "24" == TemplatePython("<?code o.bar += 1?><?print o.bar?>").renders(o=o)
-	assert "25" == TemplatePython("<?code o['bar'] += 1?><?print o.bar?>").renders(o=o)
-
-	o = CustomAttributes(foo=42, bar=23)
-	with raises(readonlymessage):
-		TemplatePython("<?code o.foo -= 1?><?print o.foo?>").renders(o=o)
-	with raises(readonlymessage):
+	with raises(subscriptablemessage):
 		TemplatePython("<?code o['foo'] -= 1?><?print o.foo?>").renders(o=o)
-	assert "22" == TemplatePython("<?code o.bar -= 1?><?print o.bar?>").renders(o=o)
-	assert "21" == TemplatePython("<?code o['bar'] -= 1?><?print o.bar?>").renders(o=o)
-
-	o = CustomAttributes(foo=42, bar=23)
-	with raises(readonlymessage):
-		TemplatePython("<?code o.foo *= 2?><?print o.foo?>").renders(o=o)
-	with raises(readonlymessage):
+	with raises(subscriptablemessage):
+		TemplatePython("<?code o['bar'] -= 1?><?print o.bar?>").renders(o=o)
+	with raises(subscriptablemessage):
 		TemplatePython("<?code o['foo'] *= 2?><?print o.foo?>").renders(o=o)
-	assert "46" == TemplatePython("<?code o.bar *= 2?><?print o.bar?>").renders(o=o)
-	assert "92" == TemplatePython("<?code o['bar'] *= 2?><?print o.bar?>").renders(o=o)
-
-	o = CustomAttributes(foo=42, bar=23)
-	with raises(readonlymessage):
-		TemplatePython("<?code o.foo //= 2?><?print o.foo?>").renders(o=o)
-	with raises(readonlymessage):
+	with raises(subscriptablemessage):
+		TemplatePython("<?code o['bar'] *= 2?><?print o.bar?>").renders(o=o)
+	with raises(subscriptablemessage):
 		TemplatePython("<?code o['foo'] //= 2?><?print o.foo?>").renders(o=o)
-	assert "11" == TemplatePython("<?code o.bar //= 2?><?print o.bar?>").renders(o=o)
-	assert "5" == TemplatePython("<?code o['bar'] //= 2?><?print o.bar?>").renders(o=o)
-
-	o = CustomAttributes(foo=42, bar=23)
-	with raises(readonlymessage):
-		TemplatePython("<?code o.foo /= 2?><?print o.foo?>").renders(o=o)
-	with raises(readonlymessage):
+	with raises(subscriptablemessage):
+		TemplatePython("<?code o['bar'] //= 2?><?print o.bar?>").renders(o=o)
+	with raises(subscriptablemessage):
 		TemplatePython("<?code o['foo'] /= 2?><?print o.foo?>").renders(o=o)
-	assert "11.5" == TemplatePython("<?code o.bar /= 2?><?print o.bar?>").renders(o=o)
-	assert "5.75" == TemplatePython("<?code o['bar'] /= 2?><?print o.bar?>").renders(o=o)
-
-	o = CustomAttributes(foo=42, bar=23)
-	with raises(readonlymessage):
-		TemplatePython("<?code o.foo %= 2?><?print o.foo?>").renders(o=o)
-	with raises(readonlymessage):
+	with raises(subscriptablemessage):
+		TemplatePython("<?code o['bar'] /= 2?><?print o.bar?>").renders(o=o)
+	with raises(subscriptablemessage):
 		TemplatePython("<?code o['foo'] %= 2?><?print o.foo?>").renders(o=o)
-	assert "3" == TemplatePython("<?code o.bar %= 10?><?print o.bar?>").renders(o=o)
-	assert "1" == TemplatePython("<?code o['bar'] %= 2?><?print o.bar?>").renders(o=o)
+	with raises(subscriptablemessage):
+		TemplatePython("<?code o['bar'] %= 2?><?print o.bar?>").renders(o=o)
 
 
 @pytest.mark.ul4
@@ -4478,7 +4589,7 @@ def test_custommethods():
 		def ul4getattr(self, name):
 			if name in {"foo", "bar"}:
 				return getattr(self, name)
-			return ul4c.UndefinedKey(name)
+			raise AttributeError(name)
 
 	o = CustomMethod()
 	assert "42" == TemplatePython("<?print o.foo()?>").renders(o=o)
