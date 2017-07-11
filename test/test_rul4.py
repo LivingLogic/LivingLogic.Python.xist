@@ -20,6 +20,16 @@ import pytest
 
 @pytest.fixture(scope="module")
 def globals(request):
+	"""
+	Return a ``rul4.Globals`` object with one defined variable: ``connectstring``
+	which will be the value of the environment variable ``LL_ORASQL_TEST_CONNECT``.
+
+	This can be used to create a database connection like this::
+
+		<?code db = globals.oracle(globals.vars.connectstring)?>
+
+	If ``LL_ORASQL_TEST_CONNECT`` is not set ``None`` will be returned instead.
+	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
 		return rul4.Globals(vars={"connectstring": connectstring})

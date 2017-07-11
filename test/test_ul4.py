@@ -458,6 +458,16 @@ all_templates = dict(
 
 @pytest.fixture(scope="module", params=all_templates.keys())
 def T(request):
+	"""
+	A parameterized fixture that returns each of the testing classes
+	:class:`TemplatePython`, :class:`TemplatePythonDumpS`,
+	:class:`TemplatePythonDump`, :class:`TemplateJavaCompiledByPython`,
+	:class:`TemplateJavaCompiledByJava`, :class:`TemplateJavascriptV8`,
+	:class:`TemplateJavascriptSpidermonkey` and :class:`TemplatePHP`.
+
+	Each of these classes has methods :meth:`render`, :meth:`renders` and
+	:meth:`__call__` to render/call the template with the appropriate  backend.
+	"""
 	return all_templates[request.param]
 
 
