@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.28 (released ??/??/2017)
+-------------------------------------
+
+*	Fixed an UL4ON bug: Strings containing line feed can now be deserialized
+	properly.
+
+
 Changes in 5.27 (released 03/21/2017)
 -------------------------------------
 
