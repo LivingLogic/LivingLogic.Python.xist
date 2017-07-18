@@ -449,7 +449,7 @@ class Decoder:
 					raise EOFError()
 				buffer.append(c)
 				if c == delimiter:
-					value = ast.literal_eval("".join(buffer))
+					value = ast.literal_eval("{}{}{}".format(2*delimiter, "".join(buffer), 2*delimiter))
 					break
 				elif c == "\\":
 					c2 = self.stream.read(1)
