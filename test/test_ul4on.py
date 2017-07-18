@@ -29,6 +29,19 @@ else:
 
 @pytest.fixture(scope="module")
 def oracle(request):
+	"""
+	A callable fixture that will execute the PL/SQL code passed in as a parameter.
+	This PL/SQL must use the ``ul4on_pkg`` package to output an UL4ON dump into
+	the PL/SQL variable ``c_out``. ``oracle`` returns the deserialized object
+	dump as a Python object. For example::
+
+		oracle('''
+			ul4on_pkg.begindict(c_out);
+			ul4on_pkg.enddict(c_out);
+		''')
+
+	should return a empty string.
+	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
 		from ll import orasql

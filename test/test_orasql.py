@@ -51,6 +51,11 @@ class Data:
 
 @pytest.fixture(scope="module")
 def db_data(request):
+	"""
+	Return a :class:`Data` object. :meth:`Data.objects` returns a dictionary
+	object containing information about all database objects and the references
+	between those objects.
+	"""
 	return Data(dbname)
 
 
