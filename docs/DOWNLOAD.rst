@@ -397,22 +397,22 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================================================== ============================== =====
-File                                                                                                                                                       Type                           Size 
+File                                                                                                                                                       Type                           Size
 ========================================================================================================================================================== ============================== =====
-`ll-xist-5.17.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.tar.bz2>`_                                                     Source                         523K 
-`ll-xist-5.17.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.tar.gz>`_                                                       Source                         628K 
-`ll-xist-5.17.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 771K 
+`ll-xist-5.17.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.tar.bz2>`_                                                     Source                         523K
+`ll-xist-5.17.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.tar.gz>`_                                                       Source                         628K
+`ll-xist-5.17.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 771K
 `ll-xist-5.17.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1470K
 `ll-xist-5.17.1.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1388K
-`ll-xist-5.17.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 741K 
+`ll-xist-5.17.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 741K
 `ll-xist-5.17.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1391K
 `ll-xist-5.17.1.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1329K
-`ll-xist-5.17.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.zip>`_                                                             Source                         733K 
-`ll_xist-5.17.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     524K 
-`ll_xist-5.17.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     524K 
-`ll_xist-5.17.1-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         510K 
-`ll_xist-5.17.1-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     523K 
-`ll_xist-5.17.1-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     526K 
+`ll-xist-5.17.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.1.zip>`_                                                             Source                         733K
+`ll_xist-5.17.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     524K
+`ll_xist-5.17.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     524K
+`ll_xist-5.17.1-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         510K
+`ll_xist-5.17.1-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     523K
+`ll_xist-5.17.1-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17.1-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     526K
 ========================================================================================================================================================== ============================== =====
 
 
@@ -424,22 +424,22 @@ File                                                                            
 .. rst-class:: download
 
 ====================================================================================================================================================== ============================== =====
-File                                                                                                                                                   Type                           Size 
+File                                                                                                                                                   Type                           Size
 ====================================================================================================================================================== ============================== =====
-`ll-xist-5.17.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.tar.bz2>`_                                                     Source                         523K 
-`ll-xist-5.17.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.tar.gz>`_                                                       Source                         628K 
-`ll-xist-5.17.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 772K 
+`ll-xist-5.17.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.tar.bz2>`_                                                     Source                         523K
+`ll-xist-5.17.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.tar.gz>`_                                                       Source                         628K
+`ll-xist-5.17.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 772K
 `ll-xist-5.17.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1471K
 `ll-xist-5.17.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1389K
-`ll-xist-5.17.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 742K 
+`ll-xist-5.17.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 742K
 `ll-xist-5.17.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1392K
 `ll-xist-5.17.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1330K
-`ll-xist-5.17.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.zip>`_                                                             Source                         732K 
-`ll_xist-5.17-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     525K 
-`ll_xist-5.17-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     525K 
-`ll_xist-5.17-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         510K 
-`ll_xist-5.17-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     523K 
-`ll_xist-5.17-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     540K 
+`ll-xist-5.17.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.17.zip>`_                                                             Source                         732K
+`ll_xist-5.17-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     525K
+`ll_xist-5.17-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     525K
+`ll_xist-5.17-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         510K
+`ll_xist-5.17-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     523K
+`ll_xist-5.17-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.17-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     540K
 ====================================================================================================================================================== ============================== =====
 
 
@@ -451,22 +451,22 @@ File                                                                            
 .. rst-class:: download
 
 ====================================================================================================================================================== ============================== =====
-File                                                                                                                                                   Type                           Size 
+File                                                                                                                                                   Type                           Size
 ====================================================================================================================================================== ============================== =====
-`ll-xist-5.16.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.tar.bz2>`_                                                     Source                         523K 
-`ll-xist-5.16.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.tar.gz>`_                                                       Source                         628K 
-`ll-xist-5.16.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 773K 
+`ll-xist-5.16.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.tar.bz2>`_                                                     Source                         523K
+`ll-xist-5.16.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.tar.gz>`_                                                       Source                         628K
+`ll-xist-5.16.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 773K
 `ll-xist-5.16.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1472K
 `ll-xist-5.16.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1390K
-`ll-xist-5.16.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 743K 
+`ll-xist-5.16.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 743K
 `ll-xist-5.16.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1393K
 `ll-xist-5.16.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1331K
-`ll-xist-5.16.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.zip>`_                                                             Source                         732K 
-`ll_xist-5.16-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     525K 
-`ll_xist-5.16-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     525K 
-`ll_xist-5.16-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         510K 
-`ll_xist-5.16-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     524K 
-`ll_xist-5.16-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     527K 
+`ll-xist-5.16.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.16.zip>`_                                                             Source                         732K
+`ll_xist-5.16-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     525K
+`ll_xist-5.16-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     525K
+`ll_xist-5.16-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         510K
+`ll_xist-5.16-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     524K
+`ll_xist-5.16-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.16-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     527K
 ====================================================================================================================================================== ============================== =====
 
 
@@ -478,22 +478,22 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================================================== ============================== =====
-File                                                                                                                                                       Type                           Size 
+File                                                                                                                                                       Type                           Size
 ========================================================================================================================================================== ============================== =====
-`ll-xist-5.15.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.tar.bz2>`_                                                     Source                         521K 
-`ll-xist-5.15.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.tar.gz>`_                                                       Source                         625K 
-`ll-xist-5.15.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 770K 
+`ll-xist-5.15.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.tar.bz2>`_                                                     Source                         521K
+`ll-xist-5.15.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.tar.gz>`_                                                       Source                         625K
+`ll-xist-5.15.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 770K
 `ll-xist-5.15.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1469K
 `ll-xist-5.15.1.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1386K
-`ll-xist-5.15.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 740K 
+`ll-xist-5.15.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 740K
 `ll-xist-5.15.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1390K
 `ll-xist-5.15.1.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1328K
-`ll-xist-5.15.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.zip>`_                                                             Source                         730K 
-`ll_xist-5.15.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     523K 
-`ll_xist-5.15.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     542K 
-`ll_xist-5.15.1-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         507K 
-`ll_xist-5.15.1-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     521K 
-`ll_xist-5.15.1-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     524K 
+`ll-xist-5.15.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.1.zip>`_                                                             Source                         730K
+`ll_xist-5.15.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     523K
+`ll_xist-5.15.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     542K
+`ll_xist-5.15.1-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         507K
+`ll_xist-5.15.1-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     521K
+`ll_xist-5.15.1-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15.1-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     524K
 ========================================================================================================================================================== ============================== =====
 
 
@@ -505,22 +505,22 @@ File                                                                            
 .. rst-class:: download
 
 ====================================================================================================================================================== ============================== =====
-File                                                                                                                                                   Type                           Size 
+File                                                                                                                                                   Type                           Size
 ====================================================================================================================================================== ============================== =====
-`ll-xist-5.15.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.tar.bz2>`_                                                     Source                         521K 
-`ll-xist-5.15.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.tar.gz>`_                                                       Source                         626K 
-`ll-xist-5.15.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 771K 
+`ll-xist-5.15.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.tar.bz2>`_                                                     Source                         521K
+`ll-xist-5.15.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.tar.gz>`_                                                       Source                         626K
+`ll-xist-5.15.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 771K
 `ll-xist-5.15.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1470K
 `ll-xist-5.15.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1388K
-`ll-xist-5.15.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 741K 
+`ll-xist-5.15.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 741K
 `ll-xist-5.15.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1391K
 `ll-xist-5.15.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1329K
-`ll-xist-5.15.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.zip>`_                                                             Source                         729K 
-`ll_xist-5.15-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     523K 
-`ll_xist-5.15-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     523K 
-`ll_xist-5.15-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         508K 
-`ll_xist-5.15-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     522K 
-`ll_xist-5.15-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     525K 
+`ll-xist-5.15.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.15.zip>`_                                                             Source                         729K
+`ll_xist-5.15-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     523K
+`ll_xist-5.15-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     523K
+`ll_xist-5.15-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         508K
+`ll_xist-5.15-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     522K
+`ll_xist-5.15-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.15-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     525K
 ====================================================================================================================================================== ============================== =====
 
 
@@ -532,22 +532,22 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================================================== ============================== =====
-File                                                                                                                                                       Type                           Size 
+File                                                                                                                                                       Type                           Size
 ========================================================================================================================================================== ============================== =====
-`ll-xist-5.14.2.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.tar.bz2>`_                                                     Source                         520K 
-`ll-xist-5.14.2.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.tar.gz>`_                                                       Source                         625K 
-`ll-xist-5.14.2.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 766K 
+`ll-xist-5.14.2.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.tar.bz2>`_                                                     Source                         520K
+`ll-xist-5.14.2.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.tar.gz>`_                                                       Source                         625K
+`ll-xist-5.14.2.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 766K
 `ll-xist-5.14.2.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1465K
 `ll-xist-5.14.2.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1383K
-`ll-xist-5.14.2.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 736K 
+`ll-xist-5.14.2.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 736K
 `ll-xist-5.14.2.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1386K
 `ll-xist-5.14.2.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1324K
-`ll-xist-5.14.2.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.zip>`_                                                             Source                         729K 
-`ll_xist-5.14.2-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     519K 
-`ll_xist-5.14.2-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     519K 
-`ll_xist-5.14.2-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         508K 
-`ll_xist-5.14.2-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     518K 
-`ll_xist-5.14.2-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     521K 
+`ll-xist-5.14.2.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.2.zip>`_                                                             Source                         729K
+`ll_xist-5.14.2-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     519K
+`ll_xist-5.14.2-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     519K
+`ll_xist-5.14.2-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         508K
+`ll_xist-5.14.2-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     518K
+`ll_xist-5.14.2-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.2-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     521K
 ========================================================================================================================================================== ============================== =====
 
 
@@ -559,22 +559,22 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================================================== ============================== =====
-File                                                                                                                                                       Type                           Size 
+File                                                                                                                                                       Type                           Size
 ========================================================================================================================================================== ============================== =====
-`ll-xist-5.14.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.tar.bz2>`_                                                     Source                         515K 
-`ll-xist-5.14.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.tar.gz>`_                                                       Source                         619K 
-`ll-xist-5.14.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 766K 
+`ll-xist-5.14.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.tar.bz2>`_                                                     Source                         515K
+`ll-xist-5.14.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.tar.gz>`_                                                       Source                         619K
+`ll-xist-5.14.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 766K
 `ll-xist-5.14.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1465K
 `ll-xist-5.14.1.win-amd64-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win-amd64-py3.5.exe>`_                             Windows installer (Python 3.5) 1382K
-`ll-xist-5.14.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 736K 
+`ll-xist-5.14.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 736K
 `ll-xist-5.14.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1386K
 `ll-xist-5.14.1.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1324K
-`ll-xist-5.14.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.zip>`_                                                             Source                         723K 
-`ll_xist-5.14.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     519K 
-`ll_xist-5.14.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     519K 
-`ll_xist-5.14.1-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         504K 
-`ll_xist-5.14.1-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     517K 
-`ll_xist-5.14.1-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     520K 
+`ll-xist-5.14.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.1.zip>`_                                                             Source                         723K
+`ll_xist-5.14.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     519K
+`ll_xist-5.14.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     519K
+`ll_xist-5.14.1-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         504K
+`ll_xist-5.14.1-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     517K
+`ll_xist-5.14.1-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14.1-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     520K
 ========================================================================================================================================================== ============================== =====
 
 
@@ -586,22 +586,22 @@ File                                                                            
 .. rst-class:: download
 
 ====================================================================================================================================================== ============================== =====
-File                                                                                                                                                   Type                           Size 
+File                                                                                                                                                   Type                           Size
 ====================================================================================================================================================== ============================== =====
-`ll-xist-5.14.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.tar.bz2>`_                                                     Source                         518K 
-`ll-xist-5.14.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.tar.gz>`_                                                       Source                         623K 
+`ll-xist-5.14.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.tar.bz2>`_                                                     Source                         518K
+`ll-xist-5.14.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.tar.gz>`_                                                       Source                         623K
 `ll-xist-5.14.win-amd64--py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win-amd64--py3.5.exe>`_                           Windows installer (Python 3.5) 1388K
-`ll-xist-5.14.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 772K 
+`ll-xist-5.14.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win-amd64-py3.3.exe>`_                             Windows installer (Python 3.3) 772K
 `ll-xist-5.14.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win-amd64-py3.4.exe>`_                             Windows installer (Python 3.4) 1471K
-`ll-xist-5.14.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 742K 
+`ll-xist-5.14.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win32-py3.3.exe>`_                                     Windows installer (Python 3.3) 742K
 `ll-xist-5.14.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win32-py3.4.exe>`_                                     Windows installer (Python 3.4) 1391K
 `ll-xist-5.14.win32-py3.5.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.win32-py3.5.exe>`_                                     Windows installer (Python 3.5) 1330K
-`ll-xist-5.14.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.zip>`_                                                             Source                         726K 
-`ll_xist-5.14-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     522K 
-`ll_xist-5.14-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     522K 
-`ll_xist-5.14-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         507K 
-`ll_xist-5.14-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     520K 
-`ll_xist-5.14-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     524K 
+`ll-xist-5.14.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.14.zip>`_                                                             Source                         726K
+`ll_xist-5.14-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp34-none-win32.whl>`_                             Windows wheel (Python 3.4)     522K
+`ll_xist-5.14-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp34-none-win_amd64.whl>`_                     Windows wheel (Python 3.4)     522K
+`ll_xist-5.14-cp35-cp35m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp35-cp35m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.5)         507K
+`ll_xist-5.14-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5)     520K
+`ll_xist-5.14-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.14-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5)     524K
 ====================================================================================================================================================== ============================== =====
 
 
@@ -613,17 +613,17 @@ File                                                                            
 .. rst-class:: download
 
 ====================================================================================================================================== ============================== =====
-File                                                                                                                                   Type                           Size 
+File                                                                                                                                   Type                           Size
 ====================================================================================================================================== ============================== =====
-`ll-xist-5.13.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.tar.bz2>`_                                 Source                         721K 
-`ll-xist-5.13.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.tar.gz>`_                                   Source                         931K 
-`ll-xist-5.13.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.win-amd64-py3.3.exe>`_         Windows installer (Python 3.3) 751K 
+`ll-xist-5.13.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.tar.bz2>`_                                 Source                         721K
+`ll-xist-5.13.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.tar.gz>`_                                   Source                         931K
+`ll-xist-5.13.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.win-amd64-py3.3.exe>`_         Windows installer (Python 3.3) 751K
 `ll-xist-5.13.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.win-amd64-py3.4.exe>`_         Windows installer (Python 3.4) 1449K
-`ll-xist-5.13.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.win32-py3.3.exe>`_                 Windows installer (Python 3.3) 720K 
+`ll-xist-5.13.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.win32-py3.3.exe>`_                 Windows installer (Python 3.3) 720K
 `ll-xist-5.13.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.win32-py3.4.exe>`_                 Windows installer (Python 3.4) 1370K
 `ll-xist-5.13.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.1.zip>`_                                         Source                         1054K
-`ll_xist-5.13.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13.1-cp34-none-win32.whl>`_         Windows wheel (Python 3.4)     503K 
-`ll_xist-5.13.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13.1-cp34-none-win_amd64.whl>`_ Windows wheel (Python 3.4)     503K 
+`ll_xist-5.13.1-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13.1-cp34-none-win32.whl>`_         Windows wheel (Python 3.4)     503K
+`ll_xist-5.13.1-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13.1-cp34-none-win_amd64.whl>`_ Windows wheel (Python 3.4)     503K
 ====================================================================================================================================== ============================== =====
 
 
@@ -635,17 +635,17 @@ File                                                                            
 .. rst-class:: download
 
 ================================================================================================================================== ============================== =====
-File                                                                                                                               Type                           Size 
+File                                                                                                                               Type                           Size
 ================================================================================================================================== ============================== =====
-`ll-xist-5.13.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.tar.bz2>`_                                 Source                         507K 
-`ll-xist-5.13.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.tar.gz>`_                                   Source                         604K 
-`ll-xist-5.13.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.win-amd64-py3.3.exe>`_         Windows installer (Python 3.3) 751K 
+`ll-xist-5.13.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.tar.bz2>`_                                 Source                         507K
+`ll-xist-5.13.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.tar.gz>`_                                   Source                         604K
+`ll-xist-5.13.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.win-amd64-py3.3.exe>`_         Windows installer (Python 3.3) 751K
 `ll-xist-5.13.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.win-amd64-py3.4.exe>`_         Windows installer (Python 3.4) 1450K
-`ll-xist-5.13.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.win32-py3.3.exe>`_                 Windows installer (Python 3.3) 723K 
+`ll-xist-5.13.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.win32-py3.3.exe>`_                 Windows installer (Python 3.3) 723K
 `ll-xist-5.13.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.win32-py3.4.exe>`_                 Windows installer (Python 3.4) 1373K
-`ll-xist-5.13.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.zip>`_                                         Source                         708K 
-`ll_xist-5.13-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13-cp34-none-win32.whl>`_         Windows wheel (Python 3.4)     506K 
-`ll_xist-5.13-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13-cp34-none-win_amd64.whl>`_ Windows wheel (Python 3.4)     503K 
+`ll-xist-5.13.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.13.zip>`_                                         Source                         708K
+`ll_xist-5.13-cp34-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13-cp34-none-win32.whl>`_         Windows wheel (Python 3.4)     506K
+`ll_xist-5.13-cp34-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.13-cp34-none-win_amd64.whl>`_ Windows wheel (Python 3.4)     503K
 ================================================================================================================================== ============================== =====
 
 
@@ -657,15 +657,15 @@ File                                                                            
 .. rst-class:: download
 
 ============================================================================================================================== ============================== =====
-File                                                                                                                           Type                           Size 
+File                                                                                                                           Type                           Size
 ============================================================================================================================== ============================== =====
-`ll-xist-5.12.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.tar.bz2>`_                         Source                         504K 
-`ll-xist-5.12.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.tar.gz>`_                           Source                         599K 
-`ll-xist-5.12.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 750K 
+`ll-xist-5.12.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.tar.bz2>`_                         Source                         504K
+`ll-xist-5.12.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.tar.gz>`_                           Source                         599K
+`ll-xist-5.12.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 750K
 `ll-xist-5.12.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1449K
-`ll-xist-5.12.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.win32-py3.3.exe>`_         Windows installer (Python 3.3) 722K 
+`ll-xist-5.12.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.win32-py3.3.exe>`_         Windows installer (Python 3.3) 722K
 `ll-xist-5.12.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1372K
-`ll-xist-5.12.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.zip>`_                                 Source                         703K 
+`ll-xist-5.12.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.1.zip>`_                                 Source                         703K
 ============================================================================================================================== ============================== =====
 
 
@@ -677,15 +677,15 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================== ============================== =====
-File                                                                                                                       Type                           Size 
+File                                                                                                                       Type                           Size
 ========================================================================================================================== ============================== =====
-`ll-xist-5.12.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.tar.bz2>`_                         Source                         504K 
-`ll-xist-5.12.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.tar.gz>`_                           Source                         599K 
-`ll-xist-5.12.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 746K 
+`ll-xist-5.12.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.tar.bz2>`_                         Source                         504K
+`ll-xist-5.12.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.tar.gz>`_                           Source                         599K
+`ll-xist-5.12.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 746K
 `ll-xist-5.12.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1444K
-`ll-xist-5.12.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.win32-py3.3.exe>`_         Windows installer (Python 3.3) 718K 
+`ll-xist-5.12.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.win32-py3.3.exe>`_         Windows installer (Python 3.3) 718K
 `ll-xist-5.12.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1368K
-`ll-xist-5.12.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.zip>`_                                 Source                         703K 
+`ll-xist-5.12.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.12.zip>`_                                 Source                         703K
 ========================================================================================================================== ============================== =====
 
 
@@ -697,15 +697,15 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================== ============================== =====
-File                                                                                                                       Type                           Size 
+File                                                                                                                       Type                           Size
 ========================================================================================================================== ============================== =====
-`ll-xist-5.11.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.tar.bz2>`_                         Source                         502K 
-`ll-xist-5.11.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.tar.gz>`_                           Source                         597K 
-`ll-xist-5.11.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 746K 
+`ll-xist-5.11.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.tar.bz2>`_                         Source                         502K
+`ll-xist-5.11.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.tar.gz>`_                           Source                         597K
+`ll-xist-5.11.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 746K
 `ll-xist-5.11.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1444K
-`ll-xist-5.11.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.win32-py3.3.exe>`_         Windows installer (Python 3.3) 718K 
+`ll-xist-5.11.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.win32-py3.3.exe>`_         Windows installer (Python 3.3) 718K
 `ll-xist-5.11.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1368K
-`ll-xist-5.11.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.zip>`_                                 Source                         701K 
+`ll-xist-5.11.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.11.zip>`_                                 Source                         701K
 ========================================================================================================================== ============================== =====
 
 
@@ -717,15 +717,15 @@ File                                                                            
 .. rst-class:: download
 
 ========================================================================================================================== ============================== =====
-File                                                                                                                       Type                           Size 
+File                                                                                                                       Type                           Size
 ========================================================================================================================== ============================== =====
-`ll-xist-5.10.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.tar.bz2>`_                         Source                         500K 
-`ll-xist-5.10.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.tar.gz>`_                           Source                         594K 
-`ll-xist-5.10.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 743K 
+`ll-xist-5.10.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.tar.bz2>`_                         Source                         500K
+`ll-xist-5.10.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.tar.gz>`_                           Source                         594K
+`ll-xist-5.10.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 743K
 `ll-xist-5.10.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1441K
-`ll-xist-5.10.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.win32-py3.3.exe>`_         Windows installer (Python 3.3) 715K 
+`ll-xist-5.10.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.win32-py3.3.exe>`_         Windows installer (Python 3.3) 715K
 `ll-xist-5.10.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1365K
-`ll-xist-5.10.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.zip>`_                                 Source                         697K 
+`ll-xist-5.10.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.10.zip>`_                                 Source                         697K
 ========================================================================================================================== ============================== =====
 
 
@@ -737,15 +737,15 @@ File                                                                            
 .. rst-class:: download
 
 ============================================================================================================================ ============================== =====
-File                                                                                                                         Type                           Size 
+File                                                                                                                         Type                           Size
 ============================================================================================================================ ============================== =====
-`ll-xist-5.9.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.tar.bz2>`_                         Source                         499K 
-`ll-xist-5.9.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.tar.gz>`_                           Source                         593K 
-`ll-xist-5.9.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 742K 
+`ll-xist-5.9.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.tar.bz2>`_                         Source                         499K
+`ll-xist-5.9.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.tar.gz>`_                           Source                         593K
+`ll-xist-5.9.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 742K
 `ll-xist-5.9.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1441K
-`ll-xist-5.9.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.win32-py3.3.exe>`_         Windows installer (Python 3.3) 714K 
+`ll-xist-5.9.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.win32-py3.3.exe>`_         Windows installer (Python 3.3) 714K
 `ll-xist-5.9.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1364K
-`ll-xist-5.9.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.zip>`_                                 Source                         697K 
+`ll-xist-5.9.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.1.zip>`_                                 Source                         697K
 ============================================================================================================================ ============================== =====
 
 
@@ -757,15 +757,15 @@ File                                                                            
 .. rst-class:: download
 
 ======================================================================================================================== ============================== =====
-File                                                                                                                     Type                           Size 
+File                                                                                                                     Type                           Size
 ======================================================================================================================== ============================== =====
-`ll-xist-5.9.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.tar.bz2>`_                         Source                         500K 
-`ll-xist-5.9.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.tar.gz>`_                           Source                         595K 
-`ll-xist-5.9.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 746K 
+`ll-xist-5.9.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.tar.bz2>`_                         Source                         500K
+`ll-xist-5.9.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.tar.gz>`_                           Source                         595K
+`ll-xist-5.9.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 746K
 `ll-xist-5.9.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1445K
-`ll-xist-5.9.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.win32-py3.3.exe>`_         Windows installer (Python 3.3) 719K 
+`ll-xist-5.9.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.win32-py3.3.exe>`_         Windows installer (Python 3.3) 719K
 `ll-xist-5.9.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1369K
-`ll-xist-5.9.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.zip>`_                                 Source                         698K 
+`ll-xist-5.9.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.9.zip>`_                                 Source                         698K
 ======================================================================================================================== ============================== =====
 
 
@@ -777,15 +777,15 @@ File                                                                            
 .. rst-class:: download
 
 ============================================================================================================================ ============================== =====
-File                                                                                                                         Type                           Size 
+File                                                                                                                         Type                           Size
 ============================================================================================================================ ============================== =====
-`ll-xist-5.8.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.tar.bz2>`_                         Source                         489K 
-`ll-xist-5.8.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.tar.gz>`_                           Source                         581K 
-`ll-xist-5.8.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 732K 
+`ll-xist-5.8.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.tar.bz2>`_                         Source                         489K
+`ll-xist-5.8.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.tar.gz>`_                           Source                         581K
+`ll-xist-5.8.1.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 732K
 `ll-xist-5.8.1.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1353K
-`ll-xist-5.8.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.win32-py3.3.exe>`_         Windows installer (Python 3.3) 702K 
+`ll-xist-5.8.1.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.win32-py3.3.exe>`_         Windows installer (Python 3.3) 702K
 `ll-xist-5.8.1.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1280K
-`ll-xist-5.8.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.zip>`_                                 Source                         682K 
+`ll-xist-5.8.1.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.1.zip>`_                                 Source                         682K
 ============================================================================================================================ ============================== =====
 
 
@@ -797,15 +797,15 @@ File                                                                            
 .. rst-class:: download
 
 ======================================================================================================================== ============================== =====
-File                                                                                                                     Type                           Size 
+File                                                                                                                     Type                           Size
 ======================================================================================================================== ============================== =====
-`ll-xist-5.8.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.tar.bz2>`_                         Source                         489K 
-`ll-xist-5.8.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.tar.gz>`_                           Source                         582K 
-`ll-xist-5.8.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 733K 
+`ll-xist-5.8.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.tar.bz2>`_                         Source                         489K
+`ll-xist-5.8.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.tar.gz>`_                           Source                         582K
+`ll-xist-5.8.win-amd64-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.win-amd64-py3.3.exe>`_ Windows installer (Python 3.3) 733K
 `ll-xist-5.8.win-amd64-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.win-amd64-py3.4.exe>`_ Windows installer (Python 3.4) 1354K
-`ll-xist-5.8.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.win32-py3.3.exe>`_         Windows installer (Python 3.3) 703K 
+`ll-xist-5.8.win32-py3.3.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.win32-py3.3.exe>`_         Windows installer (Python 3.3) 703K
 `ll-xist-5.8.win32-py3.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.win32-py3.4.exe>`_         Windows installer (Python 3.4) 1281K
-`ll-xist-5.8.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.zip>`_                                 Source                         682K 
+`ll-xist-5.8.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.8.zip>`_                                 Source                         682K
 ======================================================================================================================== ============================== =====
 
 
@@ -2555,14 +2555,14 @@ File                                                                            
 .. rst-class:: download
 
 ============================================================================================================================ ============================== =====
-File                                                                                                                         Type                           Size 
+File                                                                                                                         Type                           Size
 ============================================================================================================================ ============================== =====
-`ll-xist-2.15.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.tar.bz2>`_                           Source                         282K 
-`ll-xist-2.15.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.tar.gz>`_                             Source                         369K 
-`ll-xist-2.15.win32-py2.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.win32-py2.4.exe>`_           Windows installer (Python 2.4) 294K 
-`ll-xist-2.15.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.zip>`_                                   Source                         422K 
-`ll_xist-2.15-py2.4-linux-i686.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.15-py2.4-linux-i686.egg>`_ Linux egg (Python 2.4)         548K 
-`ll_xist-2.15-py2.4-win32.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.15-py2.4-win32.egg>`_           Windows egg (Python 2.4)       477K 
+`ll-xist-2.15.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.tar.bz2>`_                           Source                         282K
+`ll-xist-2.15.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.tar.gz>`_                             Source                         369K
+`ll-xist-2.15.win32-py2.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.win32-py2.4.exe>`_           Windows installer (Python 2.4) 294K
+`ll-xist-2.15.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.15.zip>`_                                   Source                         422K
+`ll_xist-2.15-py2.4-linux-i686.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.15-py2.4-linux-i686.egg>`_ Linux egg (Python 2.4)         548K
+`ll_xist-2.15-py2.4-win32.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.15-py2.4-win32.egg>`_           Windows egg (Python 2.4)       477K
 `ll_xist-2.15-py2.5-linux-i686.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.15-py2.5-linux-i686.egg>`_ Linux egg (Python 2.5)         4122K
 ============================================================================================================================ ============================== =====
 
@@ -2575,14 +2575,14 @@ File                                                                            
 .. rst-class:: download
 
 ================================================================================================================================ ============================== =====
-File                                                                                                                             Type                           Size 
+File                                                                                                                             Type                           Size
 ================================================================================================================================ ============================== =====
-`ll-xist-2.14.2.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.tar.bz2>`_                           Source                         272K 
-`ll-xist-2.14.2.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.tar.gz>`_                             Source                         360K 
-`ll-xist-2.14.2.win32-py2.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.win32-py2.4.exe>`_           Windows installer (Python 2.4) 286K 
-`ll-xist-2.14.2.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.zip>`_                                   Source                         443K 
-`ll_xist-2.14.2-py2.4-linux-i686.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.14.2-py2.4-linux-i686.egg>`_ Linux egg (Python 2.4)         515K 
-`ll_xist-2.14.2-py2.4-win32.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.14.2-py2.4-win32.egg>`_           Windows egg (Python 2.4)       467K 
+`ll-xist-2.14.2.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.tar.bz2>`_                           Source                         272K
+`ll-xist-2.14.2.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.tar.gz>`_                             Source                         360K
+`ll-xist-2.14.2.win32-py2.4.exe <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.win32-py2.4.exe>`_           Windows installer (Python 2.4) 286K
+`ll-xist-2.14.2.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-2.14.2.zip>`_                                   Source                         443K
+`ll_xist-2.14.2-py2.4-linux-i686.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.14.2-py2.4-linux-i686.egg>`_ Linux egg (Python 2.4)         515K
+`ll_xist-2.14.2-py2.4-win32.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.14.2-py2.4-win32.egg>`_           Windows egg (Python 2.4)       467K
 `ll_xist-2.14.2-py2.5-linux-i686.egg <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-2.14.2-py2.5-linux-i686.egg>`_ Linux egg (Python 2.5)         4120K
 ================================================================================================================================ ============================== =====
 
@@ -3740,7 +3740,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.7.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.7.tar.bz2>`_ Source 81K 
+`xist-0.4.7.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.7.tar.bz2>`_ Source 81K
 `xist-0.4.7.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.7.tar.gz>`_   Source 107K
 ============================================================================================== ====== ====
 
@@ -3755,7 +3755,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.6.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.6.tar.bz2>`_ Source 78K 
+`xist-0.4.6.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.6.tar.bz2>`_ Source 78K
 `xist-0.4.6.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.6.tar.gz>`_   Source 104K
 ============================================================================================== ====== ====
 
@@ -3770,7 +3770,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.5.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.5.tar.bz2>`_ Source 78K 
+`xist-0.4.5.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.5.tar.bz2>`_ Source 78K
 `xist-0.4.5.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.5.tar.gz>`_   Source 104K
 ============================================================================================== ====== ====
 
@@ -3785,7 +3785,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.4.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.4.tar.bz2>`_ Source 78K 
+`xist-0.4.4.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.4.tar.bz2>`_ Source 78K
 `xist-0.4.4.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.4.tar.gz>`_   Source 103K
 ============================================================================================== ====== ====
 
@@ -3800,7 +3800,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.3.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.3.tar.bz2>`_ Source 78K 
+`xist-0.4.3.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.3.tar.bz2>`_ Source 78K
 `xist-0.4.3.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.3.tar.gz>`_   Source 103K
 ============================================================================================== ====== ====
 
@@ -3815,7 +3815,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.2.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.2.tar.bz2>`_ Source 77K 
+`xist-0.4.2.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.2.tar.bz2>`_ Source 77K
 `xist-0.4.2.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.2.tar.gz>`_   Source 102K
 ============================================================================================== ====== ====
 
@@ -3830,7 +3830,7 @@ File                                                                            
 ============================================================================================== ====== ====
 File                                                                                           Type   Size
 ============================================================================================== ====== ====
-`xist-0.4.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.1.tar.bz2>`_ Source 77K 
+`xist-0.4.1.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.1.tar.bz2>`_ Source 77K
 `xist-0.4.1.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.1.tar.gz>`_   Source 102K
 ============================================================================================== ====== ====
 
@@ -3845,7 +3845,7 @@ File                                                                            
 ========================================================================================== ====== ====
 File                                                                                       Type   Size
 ========================================================================================== ====== ====
-`xist-0.4.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.tar.bz2>`_ Source 76K 
+`xist-0.4.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.tar.bz2>`_ Source 76K
 `xist-0.4.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/xist-0.4.tar.gz>`_   Source 101K
 ========================================================================================== ====== ====
 
