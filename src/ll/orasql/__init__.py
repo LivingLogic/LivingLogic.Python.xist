@@ -267,6 +267,12 @@ class Record(tuple, collections.Mapping):
 			raise AttributeError("'{}.{}' object has no attribute {!r}".format(self.__class__.__module__, self.__class__.__qualname__, name))
 		return tuple.__getitem__(self, index)
 
+	def ul4getattr(self, name):
+		return getattr(self, name)
+
+	def ul4hasattr(self, name):
+		return name.lower() in self._name2index
+
 	def get(self, name, default=None):
 		"""
 		Return the value for the field named :obj:`name`. If this field doesn't
