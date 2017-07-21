@@ -139,7 +139,7 @@ def test_size():
 
 	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("http://www.livinglogic.de/Python/static/favicon.gif")
+	check("http://python.livinglogic.de/static/favicon.gif")
 
 
 @pytest.mark.net
@@ -151,7 +151,7 @@ def test_imagesize():
 
 	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("http://www.livinglogic.de/Python/static/favicon.gif")
+	check("http://python.livinglogic.de/static/favicon.gif")
 
 
 @pytest.mark.net
@@ -163,7 +163,7 @@ def test_mimetype():
 
 	check(__file__.rstrip("c"), "text/x-python")
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python")
-	check("http://www.livinglogic.de/Python/xist/", "text/html")
+	check("http://python.livinglogic.de/", "text/html")
 
 
 @pytest.mark.net
@@ -195,7 +195,7 @@ def test_readline():
 
 	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
-	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
+	check("http://python.livinglogic.de/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
 @pytest.mark.net
@@ -209,7 +209,7 @@ def test_iter():
 
 	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
-	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
+	check("http://python.livinglogic.de/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
 @pytest.mark.net
@@ -329,7 +329,7 @@ def test_mdate():
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
-	check("http://www.livinglogic.de/Python/xist", 2006, 10, 3)
+	check("http://python.livinglogic.de/XIST.html", 2006, 10, 3)
 
 
 @pytest.mark.net
@@ -368,8 +368,6 @@ def test_isfile():
 	check("/", False)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
-	check("ssh://root@www.livinglogic.de/~livpython", False)
-	check("ssh://root@www.livinglogic.de/", False)
 
 
 @pytest.mark.net
@@ -384,8 +382,7 @@ def test_isdir():
 	check("/", True)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
-	check("ssh://root@www.livinglogic.de/~livpython", True)
-	check("ssh://root@www.livinglogic.de/", True)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/", True)
 
 
 @pytest.mark.net
@@ -412,8 +409,7 @@ def test_ismount():
 	check("/", True)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
-	check("ssh://root@www.livinglogic.de/~livpython", False)
-	check("ssh://root@www.livinglogic.de/", True)
+	check("ssh://livpython@python.livinglogic.de/~livpython", False)
 
 
 @pytest.mark.net
@@ -440,7 +436,7 @@ def test_resheaders():
 
 	check(url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"})
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
-	check("http://www.livinglogic.de/Python/xist/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"})
+	check("http://python.livinglogic.de/XIST.html", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"})
 
 
 @pytest.mark.net
@@ -451,7 +447,7 @@ def test_resdata():
 			realdata = u.open("rb").resdata()
 			assert realdata.splitlines(True)[0] == firstline
 
-	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
+	check("http://python.livinglogic.de/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
 @pytest.mark.net

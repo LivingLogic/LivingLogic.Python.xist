@@ -121,7 +121,7 @@ def main(args=None):
 				if not args.ignoreerrors:
 					raise
 
-	p = argparse.ArgumentParser(description="print URL content on the screen", epilog="For more info see http://www.livinglogic.de/Python/scripts_ucat.html")
+	p = argparse.ArgumentParser(description="print URL content on the screen", epilog="For more info see http://python.livinglogic.de/scripts_ucat.html")
 	p.add_argument("urls", metavar="url", help="URLs to be printed", nargs="+", type=url.URL)
 	p.add_argument("-r", "--recursive", dest="recursive", help="Print stuff recursively? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-x", "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)

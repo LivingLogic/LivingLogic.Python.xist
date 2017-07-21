@@ -222,7 +222,7 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Convert XML files to XIST namespace (on stdout)", epilog="For more info see http://www.livinglogic.de/Python/XIST_scripts_xml2xsc.html")
+	p = argparse.ArgumentParser(description="Convert XML files to XIST namespace (on stdout)", epilog="For more info see http://python.livinglogic.de/XIST_scripts_xml2xsc.html")
 	p.add_argument("urls", metavar="urls", type=url.URL, help="URLs of XML files to be parsed (default stdin)", nargs="*")
 	p.add_argument("-p", "--parser", dest="parser", help="parser module to use for XML parsing (default: %(default)s)", choices=("etree", "lxml"), default="etree")
 	p.add_argument("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements? (default: %(default)s)", choices=("none", "dupes", "all"), default="dupes")

@@ -70,7 +70,7 @@ def xsc2txt(instream, outstream, title, width):
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Convert an XML file (on stdin) using the ll.xist.ns.doc namespace into plain text and print it (on stdout)", epilog="For more info see http://www.livinglogic.de/Python/XIST_scripts_doc2txt.html")
+	p = argparse.ArgumentParser(description="Convert an XML file (on stdin) using the ll.xist.ns.doc namespace into plain text and print it (on stdout)", epilog="For more info see http://python.livinglogic.de/XIST_scripts_doc2txt.html")
 	p.add_argument("-t", "--title", dest="title", help="Title for the document")
 	p.add_argument("-w", "--width", dest="width", help="Width of the plain text output (default %(default)s)", type=int, default=72)
 

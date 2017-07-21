@@ -80,7 +80,7 @@ Documentation
 For documentation read the files in the :file:`docs/` directory or the
 `web pages`__ generated from those.
 
-__ http://www.livinglogic.de/Python/xist/
+__ http://python.livinglogic.de/
 
 For installation instructions read :file:`docs/INSTALL.rst`.
 

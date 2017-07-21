@@ -154,7 +154,7 @@ def gettimestamp(obj, cursor, format):
 
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Search for a string in all fields of all tables in an Oracle database schema", epilog="For more info see http://www.livinglogic.de/Python/orasql_scripts_orafind.html")
+	p = argparse.ArgumentParser(description="Search for a string in all fields of all tables in an Oracle database schema", epilog="For more info see http://python.livinglogic.de/orasql_scripts_orafind.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("searchstring", help="String to search for")
 	p.add_argument("tables", metavar="table", nargs="*", help="Limit search to those tables")

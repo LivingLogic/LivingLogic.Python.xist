@@ -360,7 +360,7 @@ def test_attributekeysvaluesitems():
 def test_attributeswithoutnames():
 	node = html.h1(
 		"gurk",
-		{xml.Attrs.lang: "de", xml.Attrs.base: "http://www.livinglogic.de/"},
+		{xml.Attrs.lang: "de", xml.Attrs.base: "http://python.livinglogic.de/"},
 		lang="de",
 		style="color: #fff",
 		align="right",
