@@ -25,7 +25,7 @@ download:
 	LL_URL_SSH_PYTHON=python3 python makedownloads.py
 
 deploy:
-	scp -r build/html/* livpython@www.livinglogic.de:~/public_html/
+	scp -r build/html/* livpython@python.livinglogic.de:~/public_html/
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
