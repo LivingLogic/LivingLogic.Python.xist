@@ -92,7 +92,7 @@ def httpdate(dt):
 		dt += datetime.timedelta(seconds=[time.timezone, time.altzone][time.daylight])
 	else:
 		dt -= dt.tzinfo.utcoffset(dt)
-	return "{}, {:02d} {:3s} {:4d} {:02d}:{:02d}:{:02d} GMT".format(weekdayname[dt.weekday()], dt.day, monthname[dt.month], dt.year, dt.hour, dt.minute, dt.second)
+	return f"{weekdayname[dt.weekday()]}, {dt.day:02d} {monthname[dt.month]:3s} {dt.year:4d} {dt.hour:02d}:{dt.minute:02d}:{dt.second:02d} GMT"
 
 
 class Connect:
@@ -277,7 +277,7 @@ class Call:
 		if encoding is None and isinstance(body, str):
 			encoding = "utf-8"
 		if encoding is not None:
-			cherrypy.response.headers["Content-Type"] = "{}; charset={}".format(mimetype, encoding)
+			cherrypy.response.headers["Content-Type"] = f"{mimetype}; charset={encoding}"
 		else:
 			cherrypy.response.headers["Content-Type"] = mimetype
 		hasetag = False
@@ -296,7 +296,7 @@ class Call:
 
 		# Set ETag
 		if not hasetag:
-			cherrypy.response.headers["ETag"] = '"{:x}"'.format(hash(body))
+			cherrypy.response.headers["ETag"] = f'"{hash(body):x}"'
 
 		if isinstance(body, str):
 			body = body.encode(encoding)

@@ -672,9 +672,9 @@ class CodePresenter(Presenter):
 					if attrvalue.xmlns is None:
 						otherattrs.append((repr(attrvalue.xmlname), attrvalue))
 					else:
-						otherattrs.append((repr("{{{}}}{}".format(attrvalue.xmlns, attrvalue.xmlname)), attrvalue))
+						otherattrs.append((repr(f"{{{attrvalue.xmlns}}}{attrvalue.xmlname}"), attrvalue))
 				else:
-					otherattrs.append(("{}.{}".format(attrvalue.__class__.__module__, attrvalue.__class__.__qualname__), attrvalue))
+					otherattrs.append((f"{attrvalue.__class__.__module__}.{attrvalue.__class__.__qualname__}", attrvalue))
 
 			if otherattrs:
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], astyle.style_default(self._indent(), "{"))

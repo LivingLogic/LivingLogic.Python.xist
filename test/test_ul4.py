@@ -22,7 +22,7 @@ def passbytes(exc):
 	if isinstance(exc, UnicodeDecodeError):
 		return (exc.object[exc.start:exc.end].decode("iso-8859-1"), exc.end)
 	else:
-		raise TypeError("don't know how to handle {!r}".format(exc))
+		raise TypeError(f"don't know how to handle {exc!r}")
 
 
 codecs.register_error("passbytes", passbytes)
@@ -45,7 +45,7 @@ class Point:
 			else:
 				raise TypeError("attribute x must be of type int!")
 		elif name == "y":
-			raise TypeError("readonly attribute {!r}".format(name))
+			raise TypeError(r"readonly attribute {name!r}")
 		else:
 			raise AttributeError(name)
 
@@ -256,38 +256,40 @@ class TemplatePHP:
 				elif c == '"':
 					c = '\\"'
 				elif ord(c) < 32:
-					c = '\\x{:02x}'.format(ord(c))
+					c = f'\\x{ord(c):02x}'
 				v.append(c)
 			v.append('"')
 			return "".join(v)
 		elif isinstance(obj, datetime.datetime):
-			return r"\com\livinglogic\ul4\Utils::date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond)
+			return rf"\com\livinglogic\ul4\Utils::date({obj.year}, {obj.month}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond})"
 		elif isinstance(obj, datetime.date):
-			return r"\com\livinglogic\ul4\Utils::date({}, {}, {})".format(obj.year, obj.month, obj.day)
+			return rf"\com\livinglogic\ul4\Utils::date({obj.year}, {obj.month}, {obj.day})"
 		elif isinstance(obj, datetime.timedelta):
-			return r"new \com\livinglogic\ul4\TimeDelta({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+			return rf"new \com\livinglogic\ul4\TimeDelta({obj.days}, {obj.seconds}, {obj.microseconds})"
 		elif isinstance(obj, misc.monthdelta):
-			return r"new \com\livinglogic\ul4\MonthDelta({})".format(obj.months)
+			return rf"new \com\livinglogic\ul4\MonthDelta({obj.months})"
 		elif isinstance(obj, color.Color):
-			return r"new \com\livinglogic\ul4\Color({}, {}, {}, {})".format(obj.r(), obj.g(), obj.b(), obj.a())
+			return rf"new \com\livinglogic\ul4\Color({obj.r()}, {obj.g()}, {obj.b()}, {obj.a()})"
 		elif isinstance(obj, ul4c.Template):
-			return r"\com\livinglogic\ul4\InterpretedTemplate::loads({})".format(self.phpexpr(obj.dumps()))
+			return rf"\com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(obj.dumps())})"
 		elif isinstance(obj, collections.Mapping):
-			return "array({})".format(", ".join("{} => {}".format(self.phpexpr(key), self.phpexpr(value)) for (key, value) in obj.items()))
+			items = ", ".join(f"{self.phpexpr(key)} => {self.phpexpr(value)}" for (key, value) in obj.items())
+			return f"array({items})"
 		elif isinstance(obj, collections.Sequence):
-			return "array({})".format(", ".join(self.phpexpr(item) for item in obj))
+			items = ", ".join(self.phpexpr(item) for item in obj)
+			return f"array({items})"
 		else:
-			raise ValueError("Can't convert {!r} to PHP".format(obj))
+			raise ValueError(f"Can't convert {obj!r} to PHP")
 
 	def runcode(self, source):
 		f = sys._getframe(2)
-		print("Rendering UL4 template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+		print(f"Rendering UL4 template ({f.f_code.co_filename}, line {f.f_lineno:,}):")
 		print(source)
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".php") as f:
 			f.write(source.encode("utf-8"))
 			f.flush()
 			dir = os.path.expanduser("~/checkouts/LivingLogic.PHP.ul4")
-			result = subprocess.run("php -n -d include_path={dir} -d date.timezone=Europe/Berlin {fn}".format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			result = subprocess.run(f"php -n -d include_path={dir} -d date.timezone=Europe/Berlin {f.name}", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8", "passbytes")
 		stderr = result.stderr.decode("utf-8", "passbytes")
 		# Check if we have an exception
@@ -301,12 +303,12 @@ class TemplatePHP:
 		if args:
 			raise ValueError("*args not supported")
 
-		source = r"""<?php
+		source = rf"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
-		$variables = {};
+		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
+		$variables = {self.phpexpr(kwargs)};
 		print $template->renders($variables);
-		?>""".format(self.phpexpr(template.dumps()), self.phpexpr(kwargs))
+		?>"""
 		return self.runcode(source)
 
 	def render(self, *args, **kwargs):
@@ -316,12 +318,12 @@ class TemplatePHP:
 		if args:
 			raise ValueError("*args not supported")
 
-		source = r"""<?php
+		source = rf"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({});
-		$variables = {};
+		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
+		$variables = {self.phpexpr(kwargs)};
 		print $template->call($variables);
-		?>""".format(self.phpexpr(template.dumps()), self.phpexpr(kwargs))
+		?>"""
 		return self.runcode(source)
 
 
@@ -338,7 +340,7 @@ class TemplateJavascript:
 
 	def runcode(self, command, source):
 		f = sys._getframe(2)
-		print("Rendering UL4 template ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+		print(f"Rendering UL4 template ({f.f_code.co_filename}, line {f.f_lineno:,}):")
 		print(source)
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(source.encode("utf-8"))
@@ -363,9 +365,9 @@ class TemplateJavascriptV8(TemplateJavascript):
 		if args:
 			raise ValueError("*args not supported")
 
-		source = """
-			template = {};
-			data = ul4._map2object(ul4on.loads({}));
+		source = f"""
+			template = {self.template.jssource()};
+			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
 				print(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
@@ -374,7 +376,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			{{
 				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
-		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+		"""
 
 		return self.runcode("d8 {dir}/ul4.min.js {fn}", source)
 
@@ -385,9 +387,9 @@ class TemplateJavascriptV8(TemplateJavascript):
 		if args:
 			raise ValueError("*args not supported")
 
-		source = """
-			template = {};
-			data = ul4._map2object(ul4on.loads({}));
+		source = f"""
+			template = {self.template.jssource()};
+			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
 				print(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
@@ -396,7 +398,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			{{
 				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
-		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+		"""
 
 		return self.runcode("d8 {dir}/ul4.min.js {fn}", source)
 
@@ -406,9 +408,9 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 		if args:
 			raise ValueError("*args not supported")
 
-		source = """
-			template = {};
-			data = ul4._map2object(ul4on.loads({}));
+		source = f"""
+			template = {self.template.jssource()};
+			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
 				print(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
@@ -417,7 +419,7 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			{{
 				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
-		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+		"""
 
 		return self.runcode("js -f {dir}/ul4.min.js -f {fn}", source)
 
@@ -428,9 +430,9 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 		if args:
 			raise ValueError("*args not supported")
 
-		source = """
-			template = {};
-			data = ul4._map2object(ul4on.loads({}));
+		source = f"""
+			template = {self.template.jssource()};
+			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
 				print(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
@@ -439,7 +441,7 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			{{
 				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
-		""".format(self.template.jssource(), ul4c._asjson(ul4on.dumps(kwargs)))
+		"""
 
 		return self.runcode("js -f {dir}/ul4.js -f {fn}", source)
 
@@ -598,7 +600,7 @@ def test_int(T):
 		# And PHP doesn't have any support for big integers (except for some GMP wrappers, that may not be installed)
 		values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
 	for value in values:
-		assert str(value) == T('<?print {}?>'.format(value)).renders()
+		assert str(value) == T(f'<?print {value}?>').renders()
 	assert '255' == T('<?print 0xff?>').renders()
 	assert '255' == T('<?print 0Xff?>').renders()
 	assert '-255' == T('<?print -0xff?>').renders()
@@ -834,7 +836,7 @@ def test_setvar_iterator(T):
 def test_addvar(T):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x + y == eval(T('<?code x = {}?><?code x += {}?><?print x?>'.format(x, y)).renders())
+			assert x + y == eval(T(f'<?code x = {x}?><?code x += {y}?><?print x?>').renders())
 	assert 'xyzzy' == T('<?code x = "xyz"?><?code x += "zy"?><?print x?>').renders()
 	assert '[1, 2, 3, 4]' == T('<?code x = [1, 2]?><?code x += [3, 4]?><?print x?>').renders()
 
@@ -843,17 +845,17 @@ def test_addvar(T):
 def test_subvar(T):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x - y == eval(T('<?code x = {}?><?code x -= {}?><?print x?>'.format(x, y)).renders())
+			assert x - y == eval(T(f'<?code x = {x}?><?code x -= {y}?><?print x?>').renders())
 
 
 @pytest.mark.ul4
 def test_mulvar(T):
 	for x in (17, 17., False, True):
 		for y in (23, 23., False, True):
-			assert x * y == eval(T('<?code x = {}?><?code x *= {}?><?print x?>'.format(x, y)).renders())
+			assert x * y == eval(T(f'<?code x = {x}?><?code x *= {y}?><?print x?>').renders())
 	for x in (17, False, True):
 		y = "xyzzy"
-		assert x * y == T('<?code x = {}?><?code x *= {!r}?><?print x?>'.format(x, y)).renders()
+		assert x * y == T(f'<?code x = {x}?><?code x *= {y!r}?><?print x?>').renders()
 	assert 17*"xyzzy" == T('<?code x = "xyzzy"?><?code x *= 17?><?print x?>').renders()
 
 
@@ -861,21 +863,21 @@ def test_mulvar(T):
 def test_floordivvar(T):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
-			assert x // y == eval(T('<?code x = {}?><?code x //= {}?><?print x?>'.format(x, y)).renders())
+			assert x // y == eval(T(f'<?code x = {x}?><?code x //= {y}?><?print x?>').renders())
 
 
 @pytest.mark.ul4
 def test_truedivvar(T):
 	for x in (5, -5, 5.0, -5.0, 4, -4, 4.0, -4.0, False, True):
 		for y in (2, -2, 2.0, -2.0, True):
-			assert x / y == eval(T('<?code x = {}?><?code x /= {}?><?print x?>'.format(x, y)).renders())
+			assert x / y == eval(T(f'<?code x = {x}?><?code x /= {y}?><?print x?>').renders())
 
 
 @pytest.mark.ul4
 def test_modvar(T):
 	for x in (1729, 1729.0, -1729, -1729.0, False, True):
 		for y in (23, 23., -23, -23.0, True):
-			assert x % y == eval(T('<?code x = {}?><?code x %= {}?><?print x?>'.format(x, y)).renders())
+			assert x % y == eval(T(f'<?code x = {x}?><?code x %= {y}?><?print x?>').renders())
 
 
 @pytest.mark.ul4
@@ -1271,7 +1273,7 @@ def test_mod(T):
 
 	for x in values:
 		for y in values:
-			assert x % y == eval(T('<?print {} % {}?>'.format(x, y)).renders())
+			assert x % y == eval(T(f'<?print {x} % {y}?>').renders())
 			assert x % y == eval(t.renders(x=x, y=y))
 
 
@@ -1413,7 +1415,7 @@ def test_eq(T):
 
 	for x in numbervalues:
 		for y in numbervalues:
-			assert str(x == y) == T('<?print {} == {}?>'.format(x, y)).renders()
+			assert str(x == y) == T(f'<?print {x} == {y}?>').renders()
 			assert str(x == y) == t.renders(x=x, y=y)
 
 	assert "True" == t.renders(x=None, y=None)
@@ -1472,7 +1474,7 @@ def test_ne(T):
 
 	for x in values:
 		for y in values:
-			assert str(x != y) == T('<?print {} != {}?>'.format(x, y)).renders()
+			assert str(x != y) == T(f'<?print {x} != {y}?>').renders()
 			assert str(x != y) == t.renders(x=x, y=y)
 
 	assert "False" == t.renders(x=None, y=None)
@@ -1531,7 +1533,7 @@ def test_lt(T):
 
 	for x in values:
 		for y in values:
-			assert str(x < y) == T('<?print {} < {}?>'.format(x, y)).renders()
+			assert str(x < y) == T(f'<?print {x} < {y}?>').renders()
 			assert str(x < y) == t.renders(x=x, y=y)
 
 	assert "False" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
@@ -1573,7 +1575,7 @@ def test_le(T):
 
 	for x in values:
 		for y in values:
-			assert str(x <= y) == T('<?print {} <= {}?>'.format(x, y)).renders()
+			assert str(x <= y) == T(f'<?print {x} <= {y}?>').renders()
 			assert str(x <= y) == t.renders(x=x, y=y)
 
 	assert "True" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
@@ -1617,7 +1619,7 @@ def test_gt(T):
 
 	for x in values:
 		for y in values:
-			assert str(x > y) == T('<?print {} > {}?>'.format(x, y)).renders()
+			assert str(x > y) == T(f'<?print {x} > {y}?>').renders()
 			assert str(x > y) == t.renders(x=x, y=y)
 
 	assert "False" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(1))
@@ -1660,7 +1662,7 @@ def test_ge(T):
 
 	for x in values:
 		for y in values:
-			assert str(x >= y) == T('<?print {} >= {}?>'.format(x, y)).renders()
+			assert str(x >= y) == T(f'<?print {x} >= {y}?>').renders()
 			assert str(x >= y) == t.renders(x=x, y=y)
 
 	assert "True" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0))
@@ -1825,12 +1827,12 @@ def test_nested(T):
 	# when using 8 Java will output "An irrecoverable stack overflow has occurred"
 	depth = 7
 	for i in range(depth):
-		sc = "({})+({})".format(sc, sc)
-		sv = "({})+({})".format(sv, sv)
+		sc = f"({sc})+({sc})"
+		sv = f"({sv})+({sv})"
 		n = n + n
 
-	assert str(n) == T('<?print {}?>'.format(sc)).renders()
-	assert str(n) == T('<?code x=4?><?print {}?>'.format(sv)).renders()
+	assert str(n) == T(f'<?print {sc}?>').renders()
+	assert str(n) == T(f'<?code x=4?><?print {sv}?>').renders()
 
 
 @pytest.mark.ul4
@@ -1866,11 +1868,11 @@ def test_bracket(T):
 	sc = "4"
 	sv = "x"
 	for i in range(10):
-		sc = "({})".format(sc)
-		sv = "({})".format(sv)
+		sc = f"({sc})"
+		sv = f"({sv})"
 
-	assert "4" == T('<?print {}?>'.format(sc)).renders()
-	assert "4" == T('<?code x=4?><?print {}?>'.format(sv)).renders()
+	assert "4" == T(f'<?print {sc}?>').renders()
+	assert "4" == T(f'<?code x=4?><?print {sv}?>').renders()
 
 
 @pytest.mark.ul4
@@ -2992,12 +2994,12 @@ def test_function_isexception(T):
 
 def repr_ascii(T, ascii):
 	name = "ascii" if ascii else "repr"
-	t = T("<?print {}(data)?>".format(name))
+	t = T(f"<?print {name}(data)?>")
 
 	with raises(argumentmismatchmessage):
-		T("<?print {}()?>".format(name)).renders()
+		T(f"<?print {name}()?>").renders()
 	with raises(argumentmismatchmessage):
-		T("<?print {}(1, 2)?>".format(name)).renders()
+		T(f"<?print {name}(1, 2)?>").renders()
 	assert "None" == t.renders(data=None)
 	assert "True" == t.renders(data=True)
 	assert "False" == t.renders(data=False)
@@ -3059,7 +3061,7 @@ def repr_ascii(T, ascii):
 	assert "timedelta(-1, 86399, 500000)" == t.renders(data=datetime.timedelta(0, -0.5))
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "None" == T("<?print {}(obj=data)?>".format(name)).renders(data=None)
+	assert "None" == T(f"<?print {name}(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
@@ -3731,14 +3733,14 @@ def test_method_splitlines(T):
 		"\u2029",
 	)
 
-	text = "".join("{}{}".format(chr(i), le) for (i, le) in enumerate(lineends, ord('a')))
+	text = "".join(f"{chr(i)}{le}" for (i, le) in enumerate(lineends, ord('a')))
 
 	source = "<?for item in obj.splitlines(keepends)?>(<?print repr(item)?>)<?end for?>"
 
 	expected1 = "('a')('b')('c')('d')('e')('f')('g')('h')('i')('j')('k')"
 	assert expected1 == T(source).renders(obj=text, keepends=False).replace('"', "'")
 
-	expected2 = "".join("({!r})".format(chr(i) + le) for (i, le) in enumerate(lineends, ord('a')))
+	expected2 = "".join(f"({chr(i)+le!r})" for (i, le) in enumerate(lineends, ord('a')))
 	assert expected2 == T(source).renders(obj=text, keepends=True).replace('"', "'")
 
 
@@ -4499,7 +4501,7 @@ def test_customattributes():
 			if name == "foo":
 				self.foo = value
 			elif name == "bar":
-				raise TypeError("readonly attribute {!r}".format(name))
+				raise TypeError(f"readonly attribute {name!r}")
 			else:
 				raise AttributeError(name)
 

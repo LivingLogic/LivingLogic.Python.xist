@@ -61,7 +61,7 @@ def test_oracle_query(globals):
 			""",
 			whitespace="strip"
 		)
-		assert template.renders(globals=globals) == "1|first|{}|2|second|{}|".format(10000*"first", 10000*"second")
+		assert template.renders(globals=globals) == f"1|first|{10000*'first'}|2|second|{10000*'second'}|"
 
 
 @pytest.mark.db
@@ -103,9 +103,9 @@ def test_oracle_execute_procedure_out(globals):
 					dbms_lob.createtemporary(p_clobarg, true);
 					for i in 1..100000 loop
 						dbms_lob.writeappend(p_clobarg, 3, 'foo');
-					end loop; 
-					p_datearg := to_date('05.10.2014 16:17:18', 'DD.MM.YYYY HH24:MI:SS'); 
-				end; 
+					end loop;
+					p_datearg := to_date('05.10.2014 16:17:18', 'DD.MM.YYYY HH24:MI:SS');
+				end;
 			''')?>
 			<?code vint = db.int()?>
 			<?code vnumber = db.number()?>
@@ -118,4 +118,4 @@ def test_oracle_execute_procedure_out(globals):
 			""",
 			whitespace="strip"
 		)
-		assert template.renders(globals=globals) == "42|42.5|foo|{}|2014-10-05 16:17:18".format(100000*"foo")
+		assert template.renders(globals=globals) == f"42|42.5|foo|{100000*'foo'}|2014-10-05 16:17:18"

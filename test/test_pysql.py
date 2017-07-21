@@ -140,7 +140,7 @@ def cleanup():
 def test_pysql(tmpdir):
 	cleanup()
 
-	execute_commands(commands, "{}/".format(tmpdir))
+	execute_commands(commands, f"{tmpdir}/")
 
 	with orasql.connect(dbname) as db:
 		c = db.cursor()

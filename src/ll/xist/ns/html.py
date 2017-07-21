@@ -620,7 +620,7 @@ class meta(xsc.Element):
 					node = self.__class__(
 						self.attrs,
 						http_equiv="Content-Type",
-						content=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in options.items())),
+						content=(contenttype, "; ", "; ".join(f"{name}={value}" for (name, value) in options.items())),
 					)
 					return node.publish(publisher) # return a generator-iterator
 		return super().publish(publisher) # return a generator-iterator
@@ -3516,7 +3516,7 @@ class _PlainTextFormatter:
 			else:
 				lines = []
 		else:
-			raise ValueError("unknown whitepace mode {!r}".format(whitespace))
+			raise ValueError(f"unknown whitepace mode {whitespace!r}")
 
 		if lines:
 			for i in range(self.blockspacing):

@@ -51,7 +51,7 @@ ALL = misc.Const("ALL", "ll.orasql") # marker object for specifying a user
 
 class SQLObjectNotFoundError(IOError):
 	def __init__(self, obj):
-		IOError.__init__(self, errno.ENOENT, "no such {}: {}".format(obj.type, obj.getfullname()))
+		IOError.__init__(self, errno.ENOENT, f"no such {obj.type}: {obj.getfullname()}")
 		self.obj = obj
 
 
@@ -61,13 +61,13 @@ class SQLNoSuchObjectError(Exception):
 		self.owner = owner
 
 	def __repr__(self):
-		return "<{}.{} name={!r} owner={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.name, self.owner, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} at {id(self):#x}>"
 
 	def __str__(self):
 		if self.owner is None:
-			return "no object named {!r}".format(self.name)
+			return f"no object named {self.name!r}"
 		else:
-			return "no object named {!r} for owner {!r}".format(self.name, self.owner)
+			return f"no object named {self.name!r} for owner {self.owner!r}"
 
 
 class UnknownModeError(ValueError):
@@ -75,10 +75,10 @@ class UnknownModeError(ValueError):
 		self.mode = mode
 
 	def __repr__(self):
-		return "<{}.{} mode={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.mode, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} mode={self.mode!r} at {id(self):#x}>"
 
 	def __str__(self):
-		return "unknown mode {!r}".format(self.mode)
+		return f"unknown mode {self.mode!r}"
 
 
 class ConflictError(ValueError):
@@ -87,10 +87,10 @@ class ConflictError(ValueError):
 		self.message = message
 
 	def __repr__(self):
-		return "<{}.{} object={!r} message={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.object, self.message, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object={self.object!r} message={self.message!r} at {id(self):#x}>"
 
 	def __str__(self):
-		return "conflict in {!r}: {}".format(self.object, self.message)
+		return f"conflict in {self.object!r}: {self.message}"
 
 
 class Args(dict):
@@ -135,7 +135,8 @@ class Args(dict):
 			raise AttributeError(name)
 
 	def __repr__(self):
-		return "{}.{}({})".format(self.__class__.__module__, self.__class__.__qualname__, ", ".join("{}={!r}".format(*item) for item in self.items()))
+		items = ", ".join(f"{key}={value!r}" for (key, value) in self.items())
+		return f"{self.__class__.__module__}.{self.__class__.__qualname__}({items})"
 
 
 class LOBStream:
@@ -200,7 +201,7 @@ class LOBStream:
 		elif whence == 1:
 			self.pos += whence
 		else:
-			raise ValueError("unkown whence: {!r}".format(whence))
+			raise ValueError(f"unkown whence: {whence!r}")
 		size = self.value.size()
 		if self.pos >= size:
 			self.pos = size
@@ -264,7 +265,7 @@ class Record(tuple, collections.Mapping):
 		try:
 			index = self._name2index[name.lower()]
 		except KeyError:
-			raise AttributeError("'{}.{}' object has no attribute {!r}".format(self.__class__.__module__, self.__class__.__qualname__, name))
+			raise AttributeError(f"{self.__class__.__module__}.{self.__class__.__qualname__} object has no attribute {name!r}")
 		return tuple.__getitem__(self, index)
 
 	def ul4getattr(self, name):
@@ -311,7 +312,8 @@ class Record(tuple, collections.Mapping):
 		return self.__class__(self._index2name, self._name2index, values)
 
 	def __repr__(self):
-		return "<{}.{} {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, ", ".join("{}={!r}".format(*item) for item in self.items()), id(self))
+		items = ", ".join(f"{key}={value!r}" for (key, value) in self.items())
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {items} at {id(self):#x}>"
 
 
 class SessionPool(SessionPool):
@@ -325,10 +327,10 @@ class SessionPool(SessionPool):
 		super().__init__(user, password, database, min, max, increment, connectiontype, threaded, getmode, homogeneous)
 
 	def connectstring(self):
-		return "{}@{}".format(self.username, self.tnsentry)
+		return f"{self.username}@{self.tnsentry}"
 
 	def __repr__(self):
-		return "<{}.{} object db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connectstring(), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object db={self.connectstring()!r} at {id(self):#x}>"
 
 
 class Connection(Connection):
@@ -378,7 +380,7 @@ class Connection(Connection):
 			return cursor.var(str, 100, cursor.arraysize, outconverter=decimal.Decimal)
 
 	def connectstring(self):
-		return "{}@{}".format(self.username, self.tnsentry)
+		return f"{self.username}@{self.tnsentry}"
 
 	def cursor(self, readlobs=None):
 		"""
@@ -388,7 +390,7 @@ class Connection(Connection):
 		return Cursor(self, readlobs=readlobs)
 
 	def __repr__(self):
-		return "<{}.{} db={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connectstring(), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} db={self.connectstring()!r} at {id(self):#x}>"
 
 	def tables(self, owner=ALL, mode="flat"):
 		"""
@@ -430,7 +432,7 @@ class Connection(Connection):
 			def do(table):
 				if table not in done:
 					done.add(table)
-					query = """
+					query = f"""
 						select
 							ac1.table_name,
 							decode(ac1.owner, user, null, ac1.owner) as owner
@@ -444,7 +446,7 @@ class Connection(Connection):
 							ac1.r_constraint_name = ac2.constraint_name and
 							ac1.r_owner = ac2.owner
 					"""
-					cursor.execute(query.format(ddprefix=ddprefix), name=table.name, owner=table.owner)
+					cursor.execute(query, name=table.name, owner=table.owner)
 					for rec in cursor.fetchall():
 						try:
 							t2 = tables[(rec.table_name, rec.owner)]
@@ -569,7 +571,8 @@ class Connection(Connection):
 
 	def _getobject(self, name, owner=None):
 		cursor = self.cursor()
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				object_name,
 				decode(owner, user, null, owner) as owner,
@@ -580,14 +583,14 @@ class Connection(Connection):
 				object_name = :object_name and
 				owner = nvl(:owner, user)
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), object_name=name, owner=owner)
+		cursor.execute(query, object_name=name, owner=owner)
 		rec = cursor.fetchone()
 		if rec is not None:
 			type = rec.object_type.lower()
 			try:
 				cls = Object.name2type[type]
 			except KeyError:
-				raise TypeError("type {} not supported".format(type))
+				raise TypeError(f"type {type} not supported")
 			else:
 				return cls(rec.object_name, rec.owner, self)
 		raise SQLNoSuchObjectError(name, owner)
@@ -603,9 +606,10 @@ class Connection(Connection):
 		if isinstance(owner, str):
 			owner = str(owner)
 		cursor = self.cursor()
+		ddprefix = cursor.ddprefix()
 		if "." in name:
 			name = name.split(".")
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name || '.' || procedure_name as object_name,
@@ -632,9 +636,9 @@ class Connection(Connection):
 					lower(owner) = lower(nvl(:owner, user)) and
 					lower(object_name) = lower(:package_name)
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), object_name=name[1], package_name=name[0], owner=owner)
+			cursor.execute(query, object_name=name[1], package_name=name[0], owner=owner)
 		else:
-			query = """
+			query = f"""
 				select
 					object_name,
 					decode(owner, user, null, owner) as owner,
@@ -645,7 +649,7 @@ class Connection(Connection):
 					lower(object_name) = lower(:object_name) and
 					lower(owner) = lower(nvl(:owner, user))
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), object_name=name, owner=owner)
+			cursor.execute(query, object_name=name, owner=owner)
 
 		rec = cursor.fetchone()
 		if rec is not None:
@@ -653,7 +657,7 @@ class Connection(Connection):
 			try:
 				cls = Object.name2type[type]
 			except KeyError:
-				raise TypeError("type {} not supported".format(type))
+				raise TypeError(f"type {type} not supported")
 			else:
 				return cls(rec.object_name, rec.owner, self)
 		raise SQLNoSuchObjectError(name, owner)
@@ -733,7 +737,7 @@ class Cursor(Cursor):
 		return result
 
 	def __repr__(self):
-		return "<{}.{} statement={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.statement, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} statement={self.statement!r} at {id(self):#x}>"
 
 
 def formatstring(value, latin1=False):
@@ -750,7 +754,7 @@ def formatstring(value, latin1=False):
 		if current and (force or (len(current) > 2000)):
 			if result:
 				result.append(" || ")
-			result.append("'{}'".format("".join(current)))
+			result.append(f"'{''.join(current)}'")
 
 	for c in value:
 		if c == "'":
@@ -761,7 +765,7 @@ def formatstring(value, latin1=False):
 			current = []
 			if result:
 				result.append(" || ")
-			result.append("chr({})".format(ord(c)))
+			result.append(f"chr({ord(c)})")
 		else:
 			current.append(c)
 			shipcurrent()
@@ -784,7 +788,8 @@ class MixinNormalDates:
 	"""
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				sys_extract_utc(from_tz(cast(created as timestamp), dbtimezone))
 			from
@@ -794,7 +799,7 @@ class MixinNormalDates:
 				object_name = :name and
 				owner = nvl(:owner, user)
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.__class__.type, name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.__class__.type, name=self.name, owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -802,7 +807,8 @@ class MixinNormalDates:
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				sys_extract_utc(from_tz(cast(last_ddl_time as timestamp), dbtimezone))
 			from
@@ -812,7 +818,7 @@ class MixinNormalDates:
 				object_name = :name and
 				owner = nvl(:owner, user)
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.__class__.type, name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.__class__.type, name=self.name, owner=self.owner)
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -826,7 +832,8 @@ class MixinCodeSQL:
 	"""
 	def exists(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -836,13 +843,14 @@ class MixinCodeSQL:
 				owner = nvl(:owner, user) and
 				name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.__class__.type.upper(), owner=self.owner, name=self.name)
+		cursor.execute(query, type=self.__class__.type.upper(), owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				text
 			from
@@ -854,7 +862,7 @@ class MixinCodeSQL:
 			order by
 				line
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.__class__.type.upper(), owner=self.owner, name=self.name)
+		cursor.execute(query, type=self.__class__.type.upper(), owner=self.owner, name=self.name)
 		code = "\n".join((rec.text or "").rstrip() for rec in cursor) # sqlplus strips trailing spaces when executing SQL scripts, so we do that too
 		if not code:
 			return ""
@@ -868,7 +876,7 @@ class MixinCodeSQL:
 		else:
 			while code and (code[0].isalnum() or code[0] in "_$."):
 				code = code[1:]
-		code = "create or replace {} {}{}\n".format(type, self.getfullname(), code)
+		code = f"create or replace {type} {self.getfullname()}{code}\n"
 		if term:
 			code += "\n/\n"
 		else:
@@ -877,10 +885,10 @@ class MixinCodeSQL:
 
 	def dropsql(self, connection=None, term=True):
 		if self.owner is not None:
-			name = "{}.{}".format(self.owner, self.name)
+			name = f"{self.owner}.{self.name}"
 		else:
 			name = self.name
-		code = "drop {} {}".format(self.__class__.type, name)
+		code = f"drop {self.__class__.type} {name}"
 		if term:
 			code += ";\n"
 		else:
@@ -890,7 +898,7 @@ class MixinCodeSQL:
 	def fixname(self, code):
 		if code:
 			code = code.split(None, 5)
-			code = "create or replace {} {}\n{}".format(code[3], self.getfullname(), code[5])
+			code = f"create or replace {code[3]} {self.getfullname()}\n{code[5]}"
 		return code
 
 
@@ -898,11 +906,11 @@ def getfullname(name, owner):
 	parts = []
 	if owner is not None:
 		if owner != owner.upper() or not all(c.isalnum() or c == "_" for c in owner):
-			part = '"{}"'.format(owner)
+			part = f'"{owner}"'
 		parts.append(owner)
 	for part in name.split("."):
 		if part != part.upper() or not all(c.isalnum() or c == "_" for c in part):
-			part = '"{}"'.format(part)
+			part = f'"{part}"'
 		parts.append(part)
 	return ".".join(parts)
 
@@ -933,22 +941,20 @@ class Object(object, metaclass=_Object_meta):
 	def __repr__(self):
 		if self.owner is not None:
 			if self.connection is not None:
-				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} connection={self.connectstring!r} at {id:#x}>"
+				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} connection={self.connectstring!r} at {id(self):#x}>"
 			else:
-				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} at {id:#x}>"
+				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} at {id(self):#x}>"
 		else:
 			if self.connection is not None:
-				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} connection={self.connectstring!r} at {id:#x}>"
+				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} connection={self.connectstring!r} at {id(self):#x}>"
 			else:
-				fmt = "<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id:#x}>"
-		return fmt.format(self=self, id=id(self))
+				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id(self):#x}>"
 
 	def __str__(self):
 		if self.owner is not None:
-			fmt = "{self.type} {self.name} @ {self.owner}"
+			return f"{self.type} {self.name} @ {self.owner}"
 		else:
-			fmt = "{self.type} {self.name}"
-		return fmt.format(self=self)
+			return f"{self.type} {self.name}"
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.name == other.name and self.owner == other.owner
@@ -1014,7 +1020,8 @@ class Object(object, metaclass=_Object_meta):
 		there is not such connection, you'll get an exception.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				referenced_type,
 				decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
@@ -1030,7 +1037,7 @@ class Object(object, metaclass=_Object_meta):
 				referenced_owner,
 				referenced_name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.type, name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.type, name=self.name, owner=self.owner)
 		for rec in cursor.fetchall():
 			try:
 				cls = Object.name2type[rec.referenced_type.lower()]
@@ -1062,7 +1069,8 @@ class Object(object, metaclass=_Object_meta):
 		For the meaning of :obj:`connection` see :meth:`references`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				type,
 				decode(owner, user, null, owner) as owner,
@@ -1078,7 +1086,7 @@ class Object(object, metaclass=_Object_meta):
 				owner,
 				name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.type.upper(), name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.type.upper(), name=self.name, owner=self.owner)
 		for rec in cursor.fetchall():
 			try:
 				type = Object.name2type[rec.type.lower()]
@@ -1140,6 +1148,7 @@ class Object(object, metaclass=_Object_meta):
 		Names will be in ascending order.
 		"""
 		cursor = connection.cursor()
+		ddprefix = cursor.ddprefix()
 		if owner is None:
 			query = """
 				select
@@ -1156,7 +1165,7 @@ class Object(object, metaclass=_Object_meta):
 			"""
 			cursor.execute(query, type=cls.type.upper())
 		elif owner is ALL:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name
@@ -1170,9 +1179,9 @@ class Object(object, metaclass=_Object_meta):
 					owner,
 					object_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=cls.type.upper())
+			cursor.execute(query, type=cls.type.upper())
 		else:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name
@@ -1187,7 +1196,7 @@ class Object(object, metaclass=_Object_meta):
 					owner,
 					object_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=cls.type.upper(), owner=owner)
+			cursor.execute(query, type=cls.type.upper(), owner=owner)
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
@@ -1218,7 +1227,8 @@ class Sequence(MixinNormalDates, Object):
 
 	def _createsql(self, connection, term, copyvalue):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				*
 			from
@@ -1227,24 +1237,26 @@ class Sequence(MixinNormalDates, Object):
 				sequence_owner = nvl(:owner, user) and
 				sequence_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		code  = "create sequence {}\n".format(self.getfullname())
-		code += "\tincrement by {}\n".format(rec.increment_by)
+		code  = f"create sequence {self.getfullname()}\n"
+		code += f"\tincrement by {rec.increment_by}\n"
 		if copyvalue:
-			code += "\tstart with {}\n".format(rec.last_number + rec.increment_by)
+			code += f"\tstart with {rec.last_number + rec.increment_by}\n"
 		else:
-			code += "\tstart with {}\n".format(rec.min_value)
-		code += "\tmaxvalue {}\n".format(rec.max_value)
-		code += "\tminvalue {}\n".format(rec.min_value)
-		code += "\t{}cycle\n".format("" if rec.cycle_flag == "Y" else "no")
+			code += f"\tstart with {rec.min_value}\n"
+		code += f"\tmaxvalue {rec.max_value}\n"
+		code += f"\tminvalue {rec.min_value}\n"
+		cycle = "" if rec.cycle_flag == "Y" else "no"
+		code += f"\t{cycle}cycle\n"
 		if rec.cache_size:
-			code += "\tcache {}\n".format(rec.cache_size)
+			code += f"\tcache {rec.cache_size}\n"
 		else:
 			code += "\tnocache\n"
-		code += "\t{}order".format("" if rec.cycle_flag == "Y" else "no")
+		order = "" if rec.order_flag == "Y" else "no"
+		code += f"\t{order}order"
 		if term:
 			code += ";\n"
 		else:
@@ -1253,7 +1265,8 @@ class Sequence(MixinNormalDates, Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -1262,7 +1275,7 @@ class Sequence(MixinNormalDates, Object):
 				sequence_owner = nvl(:owner, user) and
 				sequence_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -1276,7 +1289,7 @@ class Sequence(MixinNormalDates, Object):
 		return self._createsql(connection, term, True)
 
 	def dropsql(self, connection=None, term=True):
-		code = "drop sequence {}".format(self.getfullname())
+		code = f"drop sequence {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -1285,7 +1298,7 @@ class Sequence(MixinNormalDates, Object):
 
 	def fixname(self, code):
 		code = code.split(None, 3)
-		code = "create sequence {}\n{}".format(self.getfullname(), code[3])
+		code = f"create sequence {self.getfullname()}\n{code[3]}"
 		return code
 
 	def references(self, connection=None, done=None):
@@ -1310,22 +1323,22 @@ def _columntype(rec, data_precision=None, data_scale=None, char_length=None):
 	elif ftype == "number" and fprec is None and fsize is None:
 		ftype = "number"
 	elif ftype == "number" and fprec == 0:
-		ftype = "number({})".format(fsize)
+		ftype = f"number({fsize})"
 	elif ftype == "number":
-		ftype = "number({}, {})".format(fsize, fprec)
+		ftype = f"number({fsize}, {fprec})"
 	elif ftype == "raw":
-		ftype = "raw({})".format(rec.data_length)
+		ftype = f"raw({rec.data_length})"
 	else:
 		if char_length != 0:
 			fsize = char_length
 		if fsize is not None:
-			ftype += "({}".format(fsize)
+			ftype += f"({fsize}"
 			if rec.char_used == "B":
 				ftype += " byte"
 			elif rec.char_used == "C":
 				ftype += " char"
 			if fprec is not None:
-				ftype += ", {}".format(fprec)
+				ftype += f", {fprec}"
 			ftype += ")"
 	return ftype
 
@@ -1351,7 +1364,7 @@ class Table(MixinNormalDates, Object):
 
 		# Find the fields that where used for an inline primary key constraint,
 		# as we want to regenerate it as part of the create table statement
-		query = """
+		query = f"""
 			select
 				column_name
 			from
@@ -1364,12 +1377,12 @@ class Table(MixinNormalDates, Object):
 				c.table_name = :name and
 				c.constraint_name = cc.constraint_name
 		"""
-		cursor.execute(query.format(ddprefix=ddprefix), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		_inlinepkfields = {rec.column_name for rec in cursor}
 
 		(organization, logging) = self._info(connection)
 
-		query = """
+		query = f"""
 			select
 				*
 			from
@@ -1380,16 +1393,16 @@ class Table(MixinNormalDates, Object):
 			order by
 				column_id asc
 		"""
-		cursor.execute(query.format(ddprefix=ddprefix), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		recs = cursor.fetchall()
-		code = ["create table {}\n(\n".format(self.getfullname())]
+		code = [f"create table {self.getfullname()}\n(\n"]
 		for (i, rec) in enumerate(recs):
 			if i:
 				code.append(",\n")
-			code.append("\t{} {}".format(getfullname(rec.column_name, None), _columntype(rec)))
+			code.append(f"\t{getfullname(rec.column_name, None)} {_columntype(rec)}")
 			default = _columndefault(rec)
 			if default != "null":
-				code.append(" default {}".format(default))
+				code.append(f" default {default}")
 			if rec.nullable == "N":
 				code.append(" not null")
 			if rec.column_name in _inlinepkfields:
@@ -1406,7 +1419,8 @@ class Table(MixinNormalDates, Object):
 		(connection, cursor) = self.getcursor(connection)
 		if self.ismview(connection):
 			return False
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -1415,14 +1429,14 @@ class Table(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				table_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def dropsql(self, connection=None, term=True):
 		if self.ismview(connection):
 			return ""
-		code = "drop table {}".format(self.getfullname())
+		code = f"drop table {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -1431,7 +1445,7 @@ class Table(MixinNormalDates, Object):
 
 	def fixname(self, code):
 		code = code.split(None, 3)
-		code = "create table {}\n{}".format(self.getfullname(), code[3])
+		code = f"create table {self.getfullname()}\n{code[3]}"
 		return code
 
 	def mview(self, connection=None):
@@ -1440,7 +1454,8 @@ class Table(MixinNormalDates, Object):
 		real table).
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				mview_name
 			from
@@ -1449,7 +1464,7 @@ class Table(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				mview_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is not None:
 			rec = MaterializedView(self.name, self.owner, connection)
@@ -1463,7 +1478,8 @@ class Table(MixinNormalDates, Object):
 
 	def _info(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				logging,
 				iot_type
@@ -1473,7 +1489,7 @@ class Table(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				table_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -1496,6 +1512,7 @@ class Table(MixinNormalDates, Object):
 	def names(cls, connection, owner=ALL):
 		# Skip tables that are materialized views
 		cursor = connection.cursor()
+		ddprefix = cursor.ddprefix()
 		if owner is None:
 			query = """
 				select
@@ -1517,7 +1534,7 @@ class Table(MixinNormalDates, Object):
 			"""
 			cursor.execute(query)
 		elif owner is ALL:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					table_name
@@ -1535,9 +1552,9 @@ class Table(MixinNormalDates, Object):
 					owner,
 					table_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()))
+			cursor.execute(query)
 		else:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					table_name
@@ -1558,7 +1575,7 @@ class Table(MixinNormalDates, Object):
 				order by
 					table_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=owner)
+			cursor.execute(query, owner=owner)
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def columns(self, connection=None):
@@ -1566,7 +1583,8 @@ class Table(MixinNormalDates, Object):
 		Generator that yields all column objects of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				column_name
 			from
@@ -1577,15 +1595,15 @@ class Table(MixinNormalDates, Object):
 			order by
 				column_id
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
-		return (Column("{}.{}".format(self.name, rec.column_name), self.owner, connection) for rec in cursor)
+		cursor.execute(query, owner=self.owner, name=self.name)
+		return (Column(f"{self.name}.{rec.column_name}", self.owner, connection) for rec in cursor)
 
 	def records(self, connection=None):
 		"""
 		Generator that yields all records of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = "select * from {}".format(self.getfullname())
+		query = f"select * from {self.getfullname()}"
 		cursor.execute(query)
 		return iter(cursor)
 
@@ -1594,7 +1612,8 @@ class Table(MixinNormalDates, Object):
 		Generator that yields all column comments of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				column_name
 			from
@@ -1605,12 +1624,13 @@ class Table(MixinNormalDates, Object):
 			order by
 				column_id
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
-		return (Comment("{}.{}".format(self.name, rec.column_name), self.owner, connection) for rec in cursor)
+		cursor.execute(query, owner=self.owner, name=self.name)
+		return (Comment(f"{self.name}.{rec.column_name}", self.owner, connection) for rec in cursor)
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_type,
@@ -1623,7 +1643,7 @@ class Table(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				table_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix(), cond=cond), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
 		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
 
@@ -1667,7 +1687,8 @@ class Comment(Object):
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		tcname = self.name.split(".")
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				comments
 			from
@@ -1677,7 +1698,7 @@ class Comment(Object):
 				table_name=:tname and
 				column_name=:cname
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, tname=tcname[0], cname=tcname[1])
+		cursor.execute(query, owner=self.owner, tname=tcname[0], cname=tcname[1])
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -1687,7 +1708,8 @@ class Comment(Object):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		tcname = self.name.split(".")
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				comments
 			from
@@ -1697,7 +1719,7 @@ class Comment(Object):
 				table_name = :tname and
 				column_name = :cname
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, tname=tcname[0], cname=tcname[1])
+		cursor.execute(query, owner=self.owner, tname=tcname[0], cname=tcname[1])
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -1705,9 +1727,9 @@ class Comment(Object):
 		return rec.comments
 
 	def createsql(self, connection=None, term=True):
-		comment = self.comment(connection) or ""
+		comment = (self.comment(connection) or "").replace("'", "''")
 		name = self.getfullname()
-		code = "comment on column {} is '{}'".format(name, comment.replace("'", "''"))
+		code = f"comment on column {name} is '{comment}'"
 		if term:
 			code += ";\n"
 		else:
@@ -1720,7 +1742,7 @@ class Comment(Object):
 
 	def fixname(self, code):
 		code = code.split(None, 5)
-		code = "comment on column {} is {}".format(self.getfullname(), code[5])
+		code = f"comment on column {self.getfullname()} is {code[5]}"
 		return code
 
 	def cdate(self, connection=None):
@@ -1746,7 +1768,8 @@ class Constraint(Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -1756,13 +1779,14 @@ class Constraint(Object):
 				constraint_name = :name and
 				owner = nvl(:owner, user)
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.constraint_type, name=self.name, owner=self.owner)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				sys_extract_utc(from_tz(cast(last_change as timestamp), dbtimezone))
 			from
@@ -1772,7 +1796,7 @@ class Constraint(Object):
 				constraint_name = :name and
 				owner = nvl(:owner, user)
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.constraint_type, name=self.name, owner=self.owner)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -1780,7 +1804,8 @@ class Constraint(Object):
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				sys_extract_utc(from_tz(cast(last_change as timestamp), dbtimezone))
 			from
@@ -1790,7 +1815,7 @@ class Constraint(Object):
 				constraint_name=:name and
 				owner=nvl(:owner, user)
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.constraint_type, name=self.name, owner=self.owner)
+		cursor.execute(query, type=self.constraint_type, name=self.name, owner=self.owner)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -1798,7 +1823,8 @@ class Constraint(Object):
 
 	def _sql(self, connection, term, command):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_name
 			from
@@ -1808,13 +1834,13 @@ class Constraint(Object):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
+		cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec.table_name, self.owner)
 		checkname = getfullname(self.name, None)
-		code = "alter table {} {} constraint {}".format(tablename, command, checkname)
+		code = f"alter table {tablename} {command} constraint {checkname}"
 		if term:
 			code += ";\n"
 		else:
@@ -1835,7 +1861,8 @@ class Constraint(Object):
 		Return whether this constraint is enabled.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				status
 			from
@@ -1845,13 +1872,14 @@ class Constraint(Object):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
+		cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec[0] == "ENABLED"
 
 	@classmethod
 	def names(cls, connection, owner=ALL):
 		cursor = connection.cursor()
+		ddprefix = cursor.ddprefix()
 		if owner is None:
 			query = """
 				select
@@ -1868,7 +1896,7 @@ class Constraint(Object):
 			"""
 			cursor.execute(query, type=cls.constraint_type)
 		elif owner is ALL:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
@@ -1882,9 +1910,9 @@ class Constraint(Object):
 					owner,
 					constraint_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=cls.constraint_type)
+			cursor.execute(query, type=cls.constraint_type)
 		else:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
@@ -1899,12 +1927,12 @@ class Constraint(Object):
 					owner,
 					constraint_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=cls.constraint_type, owner=owner)
+			cursor.execute(query, type=cls.constraint_type, owner=owner)
 		return ((rec.constraint_name, rec.owner) for rec in cursor)
 
 	def fixname(self, code):
 		code = code.split(None, 6)
-		code = "alter table {} add constraint {} {}".format(code[2], self.getfullname(), code[6])
+		code = f"alter table {code[2]} add constraint {self.getfullname()} {code[6]}"
 		return code
 
 	def table(self, connection=None):
@@ -1912,7 +1940,8 @@ class Constraint(Object):
 		Return the :class:`Table` :obj:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_name
 			from
@@ -1922,7 +1951,7 @@ class Constraint(Object):
 				owner=nvl(:owner, user) and
 				constraint_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), type=self.constraint_type, owner=self.owner, name=self.name)
+		cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return Table(rec.table_name, self.owner, connection)
 
@@ -1939,7 +1968,8 @@ class PrimaryKey(Constraint):
 		Return an iterator over the columns this primary key consists of.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_name,
@@ -1953,12 +1983,12 @@ class PrimaryKey(Constraint):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec2 = cursor.fetchone()
 		if rec2 is None:
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec2.table_name, rec2.owner)
-		query = """
+		query = f"""
 			select
 				column_name
 			from
@@ -1969,12 +1999,13 @@ class PrimaryKey(Constraint):
 			order by
 				position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
-		return (Column("{}.{}".format(tablename, rec.column_name)) for rec in cursor)
+		cursor.execute(query, owner=self.owner, name=self.name)
+		return (Column(f"{tablename}.{rec.column_name}") for rec in cursor)
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_name,
@@ -1988,11 +2019,11 @@ class PrimaryKey(Constraint):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec2 = cursor.fetchone()
 		if rec2 is None:
 			raise SQLObjectNotFoundError(self)
-		query = """
+		query = f"""
 			select
 				column_name
 			from
@@ -2003,10 +2034,11 @@ class PrimaryKey(Constraint):
 			order by
 				position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		tablename = getfullname(rec2.table_name, rec2.owner)
 		pkname = getfullname(self.name, None)
-		code = "alter table {} add constraint {} primary key({})".format(tablename, pkname, ", ".join(r.column_name for r in cursor))
+		fields = ", ".join(r.column_name for r in cursor)
+		code = f"alter table {tablename} add constraint {pkname} primary key({fields})"
 		if term:
 			code += ";\n"
 		else:
@@ -2015,7 +2047,8 @@ class PrimaryKey(Constraint):
 
 	def referencedby(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_name
@@ -2026,7 +2059,7 @@ class PrimaryKey(Constraint):
 				r_owner=nvl(:owner, user) and
 				r_constraint_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
 		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
@@ -2045,7 +2078,8 @@ class ForeignKey(Constraint):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(r_owner, user, null, r_owner) as r_owner,
 				r_constraint_name,
@@ -2057,11 +2091,11 @@ class ForeignKey(Constraint):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		query = """
+		query = f"""
 			select
 				column_name
 			from
@@ -2072,9 +2106,9 @@ class ForeignKey(Constraint):
 			order by
 				position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		fields1 = ", ".join(r.column_name for r in cursor)
-		query = """
+		query = f"""
 			select
 				table_name,
 				column_name
@@ -2086,11 +2120,11 @@ class ForeignKey(Constraint):
 			order by
 				position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=rec.r_owner, name=rec.r_constraint_name)
-		fields2 = ", ".join("{}({})".format(getfullname(r.table_name, rec.r_owner), r.column_name) for r in cursor)
+		cursor.execute(query, owner=rec.r_owner, name=rec.r_constraint_name)
+		fields2 = ", ".join(f"{getfullname(r.table_name, rec.r_owner)}({r.column_name})" for r in cursor)
 		tablename = getfullname(rec.table_name, self.owner)
 		fkname = getfullname(self.name, None)
-		code = "alter table {} add constraint {} foreign key ({}) references {}".format(tablename, fkname, fields1, fields2)
+		code = f"alter table {tablename} add constraint {fkname} foreign key ({fields1}) references {fields2}"
 		if term:
 			code += ";\n"
 		else:
@@ -2114,7 +2148,8 @@ class ForeignKey(Constraint):
 		:class:`UniqueConstraint`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				c2.constraint_type,
 				decode(c1.r_owner, user, null, c1.r_owner) as r_owner,
@@ -2129,7 +2164,7 @@ class ForeignKey(Constraint):
 				c1.owner = c2.owner and
 				c1.r_constraint_name = c2.constraint_name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		types = {"P": PrimaryKey, "U": UniqueConstraint}
 		return types[rec.constraint_type](rec.r_constraint_name, rec.r_owner, connection)
@@ -2139,7 +2174,8 @@ class ForeignKey(Constraint):
 		Return an iterator over the columns this foreign key consists of.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				table_name,
@@ -2152,9 +2188,9 @@ class ForeignKey(Constraint):
 			order by
 				position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		for r in cursor:
-			yield Column("{}.{}".format(r.table_name, r.column_name), r.owner)
+			yield Column(f"{r.table_name}.{r.column_name}", r.owner)
 
 
 class UniqueConstraint(Constraint):
@@ -2167,7 +2203,8 @@ class UniqueConstraint(Constraint):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_name
 			from
@@ -2177,7 +2214,7 @@ class UniqueConstraint(Constraint):
 				owner=nvl(:owner, user) and
 				constraint_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2195,7 +2232,8 @@ class UniqueConstraint(Constraint):
 				position
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		code = "alter table {} add constraint {} unique({})".format(tablename, uniquename, ", ".join(r.column_name for r in cursor))
+		fields = ", ".join(r.column_name for r in cursor)
+		code = f"alter table {tablename} add constraint {uniquename} unique({fields})"
 		if term:
 			code += ";\n"
 		else:
@@ -2204,7 +2242,8 @@ class UniqueConstraint(Constraint):
 
 	def referencedby(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_name
@@ -2215,7 +2254,7 @@ class UniqueConstraint(Constraint):
 				r_owner = nvl(:owner, user) and
 				r_constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
 
@@ -2223,7 +2262,8 @@ class UniqueConstraint(Constraint):
 
 	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				table_name
@@ -2234,7 +2274,7 @@ class UniqueConstraint(Constraint):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
 			yield Table(rec.table_name, rec.owner, connection)
 
@@ -2249,7 +2289,8 @@ class CheckConstraint(Constraint):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_name,
 				search_condition
@@ -2260,13 +2301,13 @@ class CheckConstraint(Constraint):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec.table_name, self.owner)
 		checkname = getfullname(self.name, None)
-		code = "alter table {} add constraint {} check ({})".format(tablename, checkname, rec.search_condition)
+		code = f"alter table {tablename} add constraint {checkname} check ({rec.search_condition})"
 		if term:
 			code += ";\n"
 		else:
@@ -2280,7 +2321,8 @@ class CheckConstraint(Constraint):
 
 	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				decode(owner, user, null, owner) as owner,
 				table_name
@@ -2291,7 +2333,7 @@ class CheckConstraint(Constraint):
 				owner = nvl(:owner, user) and
 				constraint_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		for rec in cursor.fetchall():
 			yield Table(rec.table_name, rec.owner, connection)
 
@@ -2306,7 +2348,8 @@ class Index(MixinNormalDates, Object):
 		(connection, cursor) = self.getcursor(connection)
 		if self.isconstraint(connection):
 			return False
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -2315,7 +2358,7 @@ class Index(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				index_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -2323,7 +2366,8 @@ class Index(MixinNormalDates, Object):
 		(connection, cursor) = self.getcursor(connection)
 		if self.isconstraint(connection):
 			return ""
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				index_name,
 				table_name,
@@ -2339,7 +2383,7 @@ class Index(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				index_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2347,7 +2391,7 @@ class Index(MixinNormalDates, Object):
 		indexname = self.getfullname()
 		unique = " unique" if rec.uniqueness == "UNIQUE" else ""
 		logging = " nologging" if rec.logging=="NO" else ""
-		query = """
+		query = f"""
 			select
 				aie.column_expression,
 				aic.column_name
@@ -2363,14 +2407,16 @@ class Index(MixinNormalDates, Object):
 			order by
 				aic.column_position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
-		code = "create{} index {} on {} ({}){}".format(unique, indexname, tablename, ", ".join(r.column_expression or r.column_name for r in cursor), logging)
+		cursor.execute(query, owner=self.owner, name=self.name)
+		fields = ", ".join(r.column_expression or r.column_name for r in cursor)
+		code = f"create{unique} index {indexname} on {tablename} ({fields}){logging}"
 		if rec.index_type == "DOMAIN":
 			if rec.parameters:
-				parameters = " parameters ('{}')".format(rec.parameters.replace("'", "''"))
+				p = rec.parameters.replace("'", "''")
+				parameters = f" parameters ('{p}')"
 			else:
 				parameters = ""
-			code += " indextype is {}.{}{}".format(rec.ityp_owner, rec.ityp_name, parameters)
+			code += f" indextype is {rec.ityp_owner}.{rec.ityp_name}{parameters}"
 		if term:
 			code += ";\n"
 		else:
@@ -2380,7 +2426,7 @@ class Index(MixinNormalDates, Object):
 	def dropsql(self, connection=None, term=True):
 		if self.isconstraint(connection):
 			return ""
-		code = "drop index {}".format(self.getfullname())
+		code = f"drop index {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -2393,7 +2439,7 @@ class Index(MixinNormalDates, Object):
 		"""
 		if self.isconstraint(connection):
 			return ""
-		code = "alter index {} rebuild".format(self.getfullname())
+		code = f"alter index {self.getfullname()} rebuild"
 		if term:
 			code += ";\n"
 		else:
@@ -2404,6 +2450,7 @@ class Index(MixinNormalDates, Object):
 	def names(cls, connection, owner=ALL):
 		# We skip those indexes that are generated by a constraint
 		cursor = connection.cursor()
+		ddprefix = cursor.ddprefix()
 		if owner is None:
 			query = """
 				select
@@ -2433,7 +2480,7 @@ class Index(MixinNormalDates, Object):
 			"""
 			cursor.execute(query)
 		elif owner is ALL:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					index_name
@@ -2461,9 +2508,9 @@ class Index(MixinNormalDates, Object):
 						owner,
 						index_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()))
+			cursor.execute(query)
 		else:
-			query = """
+			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
 					index_name
@@ -2493,16 +2540,16 @@ class Index(MixinNormalDates, Object):
 					owner,
 					index_name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=owner)
+			cursor.execute(query, owner=owner)
 		return ((row.index_name, row.owner) for row in cursor)
 
 	def fixname(self, code):
 		if code.lower().startswith("create unique"):
 			code = code.split(None, 5)
-			code = "create unique index {} {}".format(self.getfullname(), code[5])
+			code = f"create unique index {self.getfullname()} {code[5]}"
 		else:
 			code = code.split(None, 4)
-			code = "create index {} {}".format(self.getfullname(), code[4])
+			code = f"create index {self.getfullname()} {code[4]}"
 		return code
 
 	def constraint(self, connection=None):
@@ -2511,7 +2558,8 @@ class Index(MixinNormalDates, Object):
 		otherwise return :const:`None`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				constraint_type
 			from
@@ -2521,7 +2569,7 @@ class Index(MixinNormalDates, Object):
 				constraint_name = :name and
 				constraint_type in ('U', 'P')
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is not None:
 			rec = {"U": UniqueConstraint, "P": PrimaryKey}[rec.constraint_type](self.name, self.owner, connection)
@@ -2538,8 +2586,9 @@ class Index(MixinNormalDates, Object):
 		# if self is generated by a constraint (i.e. ``constraint`` is not :const:`None`), we ignore all dependencies (such an index is never produced be :meth:`objects`)
 		if constraint is None:
 			(connection, cursor) = self.getcursor(connection)
+			ddprefix = cursor.ddprefix()
 			# If this is a domain index, reference the preferences defined there
-			query = """
+			query = f"""
 				select
 					index_type,
 					parameters
@@ -2549,7 +2598,7 @@ class Index(MixinNormalDates, Object):
 					owner = nvl(:owner, user) and
 					index_name = :name
 			"""
-			cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+			cursor.execute(query, owner=self.owner, name=self.name)
 			rec = cursor.fetchone()
 			if rec.index_type == "DOMAIN":
 				parameters = re.split('\\b(datastore|memory|lexer|stoplist|wordlist)\\b', rec.parameters, flags=re.IGNORECASE)
@@ -2573,7 +2622,8 @@ class Index(MixinNormalDates, Object):
 		Return the :class:`Table` :obj:`self` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_name,
 				decode(table_owner, user, null, table_owner) as table_owner
@@ -2583,7 +2633,7 @@ class Index(MixinNormalDates, Object):
 				owner=nvl(:owner, user) and
 				index_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return Table(rec.table_name, rec.table_owner, connection)
 
@@ -2593,7 +2643,8 @@ class Index(MixinNormalDates, Object):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		table = self.table(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				aie.column_expression,
 				aic.column_name
@@ -2609,12 +2660,12 @@ class Index(MixinNormalDates, Object):
 			order by
 				aic.column_position
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 
 		for rec in cursor:
 			if rec.column_expression is not None:
-				raise TypeError("{!r} contains an index expression".format(self))
-			yield Column("{}.{}".format(table.name, rec.column_name), owner=table.owner)
+				raise TypeError(f"{self!r} contains an index expression")
+			yield Column(f"{table.name}.{rec.column_name}", owner=table.owner)
 
 
 class Synonym(Object):
@@ -2625,7 +2676,8 @@ class Synonym(Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -2634,13 +2686,14 @@ class Synonym(Object):
 				owner=nvl(:owner, user) and
 				synonym_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_owner,
 				table_name,
@@ -2651,7 +2704,7 @@ class Synonym(Object):
 				owner = nvl(:owner, user) and
 				synonym_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2663,9 +2716,9 @@ class Synonym(Object):
 			public = ""
 		name = getfullname(self.name, owner)
 		name2 = getfullname(rec.table_name, rec.table_owner)
-		code = "create or replace {}synonym {} for {}".format(public, name, name2)
+		code = f"create or replace {public}synonym {name} for {name2}"
 		if rec.db_link is not None:
-			code += "@{}".format(rec.db_link)
+			code += f"@{rec.db_link}"
 		if term:
 			code += ";\n"
 		else:
@@ -2680,7 +2733,7 @@ class Synonym(Object):
 		else:
 			public = ""
 		name = getfullname(self.name, owner)
-		code = "drop {}synonym {}".format(public, name)
+		code = f"drop {public}synonym {name}"
 		if term:
 			code += ";\n"
 		else:
@@ -2690,10 +2743,10 @@ class Synonym(Object):
 	def fixname(self, code):
 		if code.lower().startswith("create or replace public"):
 			code = code.split(None, 6)
-			code = "create or replace public synonym {} {}".format(self.getfullname(), code[6])
+			code = f"create or replace public synonym {self.getfullname()} {code[6]}"
 		else:
 			code = code.split(None, 5)
-			code = "create or replace synonym {} {}".format(self.getfullname(), code[5])
+			code = f"create or replace synonym {self.getfullname()} {code[5]}"
 		return code
 
 	def cdate(self, connection=None):
@@ -2712,7 +2765,8 @@ class Synonym(Object):
 		Get the object for which :obj:`self` is a synonym.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				table_owner,
 				table_name,
@@ -2723,7 +2777,7 @@ class Synonym(Object):
 				owner=nvl(:owner, user) and
 				synonym_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2738,7 +2792,8 @@ class View(MixinNormalDates, Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -2747,13 +2802,14 @@ class View(MixinNormalDates, Object):
 				owner=nvl(:owner, user) and
 				view_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				text
 			from
@@ -2762,12 +2818,12 @@ class View(MixinNormalDates, Object):
 				owner=nvl(:owner, user) and
 				view_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		code = "\n".join(line.rstrip() for line in rec.text.strip().splitlines()) # Strip trailing whitespace
-		code = "create or replace force view {} as\n\t{}".format(self.getfullname(), code)
+		code = f"create or replace force view {self.getfullname()} as\n\t{code}"
 		if term:
 			code += "\n/\n"
 		else:
@@ -2775,7 +2831,7 @@ class View(MixinNormalDates, Object):
 		return code
 
 	def dropsql(self, connection=None, term=True):
-		code = "drop view {}".format(self.getfullname())
+		code = f"drop view {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -2784,12 +2840,12 @@ class View(MixinNormalDates, Object):
 
 	def fixname(self, code):
 		code = code.split(None, 6)
-		code = "create or replace force view {} {}".format(self.getfullname(), code[6])
+		code = f"create or replace force view {self.getfullname()} {code[6]}"
 		return code
 
 	def records(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = "select * from {}".format(self.getfullname())
+		query = f"select * from {self.getfullname()}"
 		cursor.execute(query)
 		return iter(cursor)
 
@@ -2802,7 +2858,8 @@ class MaterializedView(View):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -2811,13 +2868,14 @@ class MaterializedView(View):
 				owner=nvl(:owner, user) and
 				mview_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				*
 			from
@@ -2826,12 +2884,12 @@ class MaterializedView(View):
 				owner = nvl(:owner, user) and
 				mview_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		code = "\n".join(line.rstrip() for line in rec.query.strip().splitlines()) # Strip trailing whitespace
-		code = "create materialized view {}\nrefresh {} on {} as\n\t{}".format(self.getfullname(), rec.refresh_method, rec.refresh_mode, code)
+		code = f"create materialized view {self.getfullname()}\nrefresh {rec.refresh_method} on {rec.refresh_mode} as\n\t{code}"
 		if term:
 			code += "\n/\n"
 		else:
@@ -2839,7 +2897,7 @@ class MaterializedView(View):
 		return code
 
 	def dropsql(self, connection=None, term=True):
-		code = "drop materialized view {}".format(self.getfullname())
+		code = f"drop materialized view {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -2848,7 +2906,7 @@ class MaterializedView(View):
 
 	def fixname(self, code):
 		code = code.split(None, 4)
-		code = "create materialized view {} {}".format(self.getfullname(), code[4])
+		code = f"create materialized view {self.getfullname()} {code[4]}"
 		return code
 
 	def references(self, connection=None):
@@ -2870,7 +2928,8 @@ class Library(Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				file_spec
 			from
@@ -2879,13 +2938,14 @@ class Library(Object):
 				owner = nvl(:owner, user) and
 				library_name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				file_spec
 			from
@@ -2894,11 +2954,11 @@ class Library(Object):
 				owner=nvl(:owner, user) and
 				library_name=:name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		return "create or replace library {} as {!r}".format(self.getfullname(), rec.file_spec)
+		code = f"create or replace library {self.getfullname()} as {rec.file_spec!r}"
 		if term:
 			code += ";\n"
 		else:
@@ -2906,7 +2966,7 @@ class Library(Object):
 		return code
 
 	def dropsql(self, connection=None, term=True):
-		code = "drop library {}".format(self.getfullname())
+		code = f"drop library {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -2915,7 +2975,7 @@ class Library(Object):
 
 	def fixname(self, code):
 		code = code.split(None, 5)
-		code = "create or replace library {} {}".format(self.getfullname(), code[5])
+		code = f"create or replace library {self.getfullname()} {code[5]}"
 		return code
 
 
@@ -2932,7 +2992,7 @@ class Argument:
 		self.isout = isout
 
 	def __repr__(self):
-		return "<{}.{} name={!r} position={!r} datatype={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.name, self.position, self.datatype, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} position={self.position!r} datatype={self.datatype!r} at {id(self):#x}>"
 
 
 class Callable(MixinNormalDates, MixinCodeSQL, Object):
@@ -2958,9 +3018,10 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 
 	def _calcargs(self, cursor):
 		if self._argsbypos is None:
+			ddprefix = cursor.ddprefix()
 			if "." in self.name:
 				(package_name, procedure_name) = self.name.split(".")
-				query = """
+				query = f"""
 					select
 						object_name
 					from
@@ -2970,11 +3031,11 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 						object_name = :package_name and
 						procedure_name = :procedure_name
 				"""
-				cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, package_name=package_name, procedure_name=procedure_name)
+				cursor.execute(query, owner=self.owner, package_name=package_name, procedure_name=procedure_name)
 			else:
 				package_name = None
 				procedure_name = self.name
-				query = """
+				query = f"""
 					select
 						object_name
 					from
@@ -2984,13 +3045,13 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 						object_name = :name and
 						procedure_name is null
 				"""
-				cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=procedure_name)
+				cursor.execute(query, owner=self.owner, name=procedure_name)
 			if cursor.fetchone() is None:
 				raise SQLObjectNotFoundError(self)
 			self._argsbypos = []
 			self._argsbyname = {}
 			if package_name is not None:
-				query = """
+				query = f"""
 					select
 						lower(argument_name) as name,
 						lower(in_out) as in_out,
@@ -3005,9 +3066,9 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 					order by
 						sequence
 				"""
-				cursor.execute(query.format(ddprefix=cursor.ddprefixargs()), owner=self.owner, package_name=package_name, procedure_name=procedure_name)
+				cursor.execute(query, owner=self.owner, package_name=package_name, procedure_name=procedure_name)
 			else:
-				query = """
+				query = f"""
 					select
 						lower(argument_name) as name,
 						lower(in_out) as in_out,
@@ -3022,7 +3083,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 					order by
 						sequence
 				"""
-				cursor.execute(query.format(ddprefix=cursor.ddprefixargs()), owner=self.owner, procedure_name=procedure_name)
+				cursor.execute(query, owner=self.owner, procedure_name=procedure_name)
 			i = 0 # argument position (skip return value)
 			for record in cursor:
 				arginfo = Argument(record.name, i, record.datatype, "in" in record.in_out, "out" in record.in_out)
@@ -3037,7 +3098,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 		queryargs = {}
 
 		if len(args) > len(self._argsbypos):
-			raise TypeError("too many parameters for {!r}: {} given, {} expected".format(self, len(args), len(self._argsbypos)))
+			raise TypeError(f"too many parameters for {self!r}: {len(args):,} given, {len(self._argsbypos):,} expected")
 
 		# Handle positional arguments
 		for (arg, arginfo) in zip(args, self._argsbypos):
@@ -3047,11 +3108,11 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 		for (argname, arg) in kwargs.items():
 			argname = argname.lower()
 			if argname in queryargs:
-				raise TypeError("duplicate argument for {!r}: {}".format(self, argname))
+				raise TypeError(f"duplicate argument for {self!r}: {argname}")
 			try:
 				arginfo = self._argsbyname[argname]
 			except KeyError:
-				raise TypeError("unknown parameter for {!r}: {}".format(self, argname))
+				raise TypeError(f"unknown parameter for {self!r}: {argname}")
 			queryargs[arginfo.name] = self._wraparg(cursor, arginfo, arg)
 
 		# Add out parameters for anything that hasn't been specified
@@ -3068,7 +3129,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 			else:
 				t = type(arg)
 		except KeyError:
-			raise TypeError("can't handle parameter {} of type {} with value {!r} in {!r}".format(arginfo.name, arginfo.datatype, arg, self))
+			raise TypeError(f"can't handle parameter {arginfo.name} of type {arginfo.datatype} with value {arg!r} in {self!r}")
 		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``
 			t = BLOB
 		elif isinstance(arg, str) and len(arg) >= 2000:
@@ -3122,12 +3183,10 @@ class Procedure(Callable):
 		if self.owner is None:
 			name = self.name
 		else:
-			name = "{}.{}".format(self.owner, self.name)
-
+			name = f"{self.owner}.{self.name}"
 		queryargs = self._getargs(cursor, *args, **kwargs)
-
-		query = "begin {}({}); end;".format(name, ", ".join("{0}=>:{0}".format(name) for name in queryargs))
-
+		queryargstring = ", ".join(f"{name}=>:{name}" for name in queryargs)
+		query = f"begin {name}({queryargstring}); end;"
 		cursor.execute(query, queryargs)
 
 		return self._makerecord(cursor, queryargs)
@@ -3153,17 +3212,14 @@ class Function(Callable):
 		if self.owner is None:
 			name = self.name
 		else:
-			name = "{}.{}".format(self.owner, self.name)
-
+			name = f"{self.owner}.{self.name}"
 		queryargs = self._getargs(cursor, *args, **kwargs)
-
 		returnvalue = "r"
 		while returnvalue in queryargs:
 			returnvalue += "_"
 		queryargs[returnvalue] = self._wraparg(cursor, self._returnvalue, None)
-
-		query = "begin :{} := {}({}); end;".format(returnvalue, name, ", ".join("{0}=>:{0}".format(name) for name in queryargs if name != returnvalue))
-
+		queryargstring = ", ".join(f"{name}=>:{name}" for name in queryargs if name != returnvalue)
+		query = f"begin :{returnvalue} := {name}({queryargstring}); end;"
 		cursor.execute(query, queryargs)
 
 		returnvalue = self._unwraparg(self._returnvalue, cursor, queryargs.pop(returnvalue).getvalue(0))
@@ -3214,7 +3270,8 @@ class JavaSource(MixinNormalDates, Object):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -3224,13 +3281,14 @@ class JavaSource(MixinNormalDates, Object):
 				owner = nvl(:owner, user) and
 				name = :name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				text
 			from
@@ -3242,17 +3300,17 @@ class JavaSource(MixinNormalDates, Object):
 			order by
 				line
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		code = "\n".join((rec.text or "").rstrip() for rec in cursor)
 		code = code.strip()
 
-		code = "create or replace and compile java source named {} as\n{}\n".format(self.getfullname(), code)
+		code = f"create or replace and compile java source named {self.getfullname()} as\n{code}\n"
 		if term:
 			code += "/\n"
 		return code
 
 	def dropsql(self, connection=None, term=True):
-		code = "drop java source {}".format(self.getfullname())
+		code = f"drop java source {self.getfullname()}"
 		if term:
 			code += ";\n"
 		else:
@@ -3261,7 +3319,7 @@ class JavaSource(MixinNormalDates, Object):
 
 	def fixname(self, code):
 		code = code.split(None, 9)
-		code = "create or replace and compile java source named {} {}".format(self.getfullname(), code[9])
+		code = f"create or replace and compile java source named {self.getfullname()} {code[9]}"
 		return code
 
 
@@ -3302,16 +3360,15 @@ class Privilege:
 
 	def __repr__(self):
 		if self.owner is not None:
-			return "{}.{}({!r}, {!r}, {!r}, {!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.privilege, self.name, self.grantee, self.owner)
+			return f"{self.__class__.__module__}.{self.__class__.__qualname__}({self.privilege!r}, {self.name!r}, {self.grantee!r}, {self.owner!r})"
 		else:
-			return "{}.{}({!r}, {!r}, {!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.privilege, self.name, self.grantee)
+			return f"{self.__class__.__module__}.{self.__class__.__qualname__}({self.privilege!r}, {self.name!r}, {self.grantee!r})"
 
 	def __str__(self):
 		if self.owner is not None:
-			fmt = "{self.privilege} privilege on {self.name} @ {self.owner} by {self.grantor} to {self.grantee}"
+			return f"{self.privilege} privilege on {self.name} @ {self.owner} by {self.grantor} to {self.grantee}"
 		else:
-			fmt = "{self.privilege} privilege on {self.name} by {self.grantor} to {self.grantee}"
-		return fmt.format(self=self)
+			return f"{self.privilege} privilege on {self.name} by {self.grantor} to {self.grantee}"
 
 	def getconnection(self, connection):
 		if connection is None:
@@ -3388,6 +3445,7 @@ class Privilege:
 				"""
 			cursor.execute(query)
 		else:
+			ddprefix = cursor.ddprefix()
 			query = """
 				select
 					decode(table_schema, user, null, table_schema) as owner,
@@ -3404,7 +3462,7 @@ class Privilege:
 					table_name,
 					privilege
 			"""
-			cursor.execute(qury.format(ddprefix=cursor.ddprefix()), owner=owner)
+			cursor.execute(query, owner=owner)
 		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
 
 	def grantsql(self, connection=None, term=True, mapgrantee=True):
@@ -3429,7 +3487,7 @@ class Privilege:
 			grantee = mapgrantee.get(self.grantee.lower(), None)
 		if grantee is None:
 			return ""
-		code = "grant {} on {} to {}".format(self.privilege, self.name, grantee)
+		code = f"grant {self.privilege} on {self.name} to {grantee}"
 		if term:
 			code += ";\n"
 		return code
@@ -3445,7 +3503,8 @@ class Column(Object):
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		name = self.name.split(".")
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				1
 			from
@@ -3455,13 +3514,14 @@ class Column(Object):
 				table_name = :table_name and
 				column_name = :column_name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, table_name=name[0], column_name=name[1])
+		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def _getcolumnrecord(self, cursor):
 		name = self.name.split(".")
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				*
 			from
@@ -3471,7 +3531,7 @@ class Column(Object):
 				table_name = :table_name and
 				column_name = :column_name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, table_name=name[0], column_name=name[1])
+		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3481,11 +3541,11 @@ class Column(Object):
 		(connection, cursor) = self.getcursor(connection)
 		rec = self._getcolumnrecord(cursor)
 		name = self.name.split(".")
-		code = ["alter table {} add {}".format(getfullname(name[0], self.owner), getfullname(name[1], None))]
-		code.append(" {}".format(_columntype(rec)))
+		code = [f"alter table {getfullname(name[0], self.owner)} add {getfullname(name[1], None)}"]
+		code.append(f" {_columntype(rec)}")
 		default = _columndefault(rec)
 		if default != "null":
-			code.append(" default {}".format(default))
+			code.append(f" default {default}")
 		if rec.nullable == "N":
 			code.append(" not null")
 		if term:
@@ -3503,7 +3563,7 @@ class Column(Object):
 
 		name = self.name.split(".")
 
-		code = ["alter table {} modify {}".format(getfullname(name[0], self.owner), getfullname(name[1], None))]
+		code = [f"alter table {getfullname(name[0], self.owner)} modify {getfullname(name[1], None)}"]
 		# Has the type changed?
 		if recold.data_precision != recnew.data_precision or recold.data_length != recnew.data_length or recold.data_scale != recnew.data_scale or recold.char_length != recnew.char_length or recold.data_type != recnew.data_type or recold.data_type_owner != recnew.data_type_owner:
 			# Has only the size changed?
@@ -3520,7 +3580,8 @@ class Column(Object):
 					char_length = max(r.char_length for r in (rec, recold, recnew) if r.char_length is not None)
 				except ValueError:
 					char_length = None
-				code.append(" {}".format(_columntype(rec, data_precision=data_precision, data_scale=data_scale, char_length=char_length)))
+				columntype = _columntype(rec, data_precision=data_precision, data_scale=data_scale, char_length=char_length)
+				code.append(f" {columntype}")
 			else: # The type has changed too
 				if recnew.data_type != rec.data_type or recnew.data_type_owner != rec.data_type_owner:
 					raise ConflictError(self, "data_type unmergeable")
@@ -3530,7 +3591,7 @@ class Column(Object):
 					raise ConflictError(self, "data_scale unmergeable")
 				elif recnew.char_length != rec.char_length:
 					raise ConflictError(self, "char_length unmergeable")
-				code.append(" {}".format(_columntype(recnew)))
+				code.append(f" {_columntype(recnew)}")
 
 		# Has the default changed?
 		default = _columndefault(rec)
@@ -3539,7 +3600,7 @@ class Column(Object):
 		if olddefault != newdefault:
 			if newdefault != default:
 				raise ConflictError(self, "default value unmergable")
-			code.append(" default {}".format(newdefault))
+			code.append(f" default {newdefault}")
 
 		# Check nullability
 		if recold.nullable != recnew.nullable:
@@ -3558,7 +3619,7 @@ class Column(Object):
 	def dropsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		name = self.name.split(".")
-		code = "alter table {} drop column {}".format(getfullname(name[0], self.owner), getfullname(name[1], None))
+		code = f"alter table {getfullname(name[0], self.owner)} drop column {getfullname(name[1], None)}"
 		if term:
 			code += ";\n"
 		else:
@@ -3616,7 +3677,8 @@ class Column(Object):
 		"""
 		name = self.name.split(".")
 		(connection, cursor) = self.getcursor(connection)
-		query = """
+		ddprefix = cursor.ddprefix()
+		query = f"""
 			select
 				comments
 			from
@@ -3626,7 +3688,7 @@ class Column(Object):
 				table_name = :table_name and
 				column_name = :column_name
 		"""
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), owner=self.owner, table_name=name[0], column_name=name[1])
+		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3643,10 +3705,10 @@ class User:
 		self.connection = connection
 
 	def __repr__(self):
-		return "{}.{}({!r})".format(self.__class__.__module__, self.__class__.__qualname__, self.name)
+		return f"{self.__class__.__module__}.{self.__class__.__qualname__}({self.name!r})"
 
 	def __str__(self):
-		return "{}({})".format(self.__class__.__qualname__, self.name)
+		return "{self.__class__.__qualname__}({self.name})"
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.name == other.name
@@ -3676,8 +3738,9 @@ class User:
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.executequery = "select 1 from {ddprefix}_users where username = :username"
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()), username=self.name)
+		ddprefix = cursor.ddprefix()
+		query = f"select 1 from {ddprefix}_users where username = :username"
+		cursor.execute(query, username=self.name)
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -3687,8 +3750,9 @@ class User:
 		Generator that yields the names of all users in ascending order
 		"""
 		cursor = connection.cursor()
-		query = "select username from {ddprefix}_users order by username"
-		cursor.execute(query.format(ddprefix=cursor.ddprefix()))
+		ddprefix = cursor.ddprefix()
+		query = f"select username from {ddprefix}_users order by username"
+		cursor.execute(query)
 		return (row.username for row in cursor)
 
 	@classmethod
@@ -3721,11 +3785,15 @@ class Preference(Object):
 			raise SQLObjectNotFoundError(self)
 		name = self.getfullname()
 		code = ["begin\n"]
-		code.append("\tctx_ddl.create_preference('{}', '{}');\n".format(name.replace("'", "''"), rec.pre_object.replace("'", "''")))
+		name = name.replace("'", "''")
+		object = rec.pre_object.replace("'", "''")
+		code.append(f"\tctx_ddl.create_preference(f'{name}', '{object}');\n")
 		cursor.execute("select prv_attribute, prv_value from ctx_preference_values where prv_owner=nvl(:owner, user) and prv_preference=:name", owner=self.owner, name=self.name)
 		name = self.getfullname().replace("'", "''")
 		for rec in cursor:
-			code.append("\tctx_ddl.set_attribute('{}', '{}', '{}');\n".format(name, rec.prv_attribute.replace("'", "''"), rec.prv_value.replace("'", "''")))
+			attribute = rec.prv_attribute.replace("'", "''")
+			value = rec.prv_value.replace("'", "''")
+			code.append(f"\tctx_ddl.set_attribute('{name}', '{attribute}', '{value}');\n")
 		code.append("end;\n")
 		code = "".join(code)
 		if term:
@@ -3734,7 +3802,8 @@ class Preference(Object):
 
 	def dropsql(self, connection=None, term=True):
 		name = self.getfullname()
-		code = "begin\n\tctx_ddl.drop_preference('{}');\nend;\n".format(name.replace("'", "''"))
+		name = name.replace("'", "''")
+		code = f"begin\n\tctx_ddl.drop_preference('{name}');\nend;\n"
 		if term:
 			code += "/\n"
 		return code
@@ -3823,7 +3892,7 @@ class OracleURLConnection(url_.Connection):
 		elif lp == 4:
 			if path[0] == "user":
 				return "userobject"
-		raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+		raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
 
 	def _infofromurl(self, url):
 		type = self._type(url)
@@ -3864,7 +3933,7 @@ class OracleURLConnection(url_.Connection):
 	def _objectfromurl(self, url):
 		(type, owner, objecttype, name) = self._infofromurl(url)
 		if objecttype not in Object.name2type:
-			raise ValueError("don't know how to handle {0!r}".format(url))
+			raise ValueError(f"don't know how to handle {url!r}")
 		return Object.name2type[objecttype](name, owner)
 
 	def isdir(self, url):
@@ -3876,7 +3945,8 @@ class OracleURLConnection(url_.Connection):
 	def mimetype(self, url):
 		if self.isdir(url):
 			return "application/octet-stream"
-		return "text/x-oracle-{}".format(url.path[0 if url.path[0] != "user" else 2])
+		type = url.path[0 if url.path[0] != "user" else 2]
+		return f"text/x-oracle-{type}"
 
 	def owner(self, url):
 		if len(url.path) >= 2 and url.path[0] == "user" and url.path[1]:
@@ -3902,7 +3972,7 @@ class OracleURLConnection(url_.Connection):
 		try:
 			obj = self._objectfromurl(url)
 		except SQLNoSuchObjectError:
-			raise FileNotFoundError(errno.ENOENT, "no such file: {!r}".format(type, url))
+			raise FileNotFoundError(errno.ENOENT, f"no such file: {url!r}")
 		return obj.cdate(self.dbconnection)
 
 	def mdate(self, url):
@@ -3911,7 +3981,7 @@ class OracleURLConnection(url_.Connection):
 		try:
 			obj = self._objectfromurl(url)
 		except SQLNoSuchObjectError:
-			raise FileNotFoundError(errno.ENOENT, "no such file: {!r}".format(type, url))
+			raise FileNotFoundError(errno.ENOENT, f"no such file: {url!r}")
 		return obj.udate(self.dbconnection)
 
 	def _walk(self, cursor, url):
@@ -3945,47 +4015,47 @@ class OracleURLConnection(url_.Connection):
 		if type == "root": # directory of types for the current user
 			for childname in sorted(Object.name2type):
 				if childname not in ("comment", "column"):
-					yield from _dir("{}/".format(childname))
+					yield from _dir(f"{childname}/")
 		elif type == "type": # directory of objects of the specified type for current user
 			path = absurl.path
 			type = path[0]
 			try:
 				class_ = Object.name2type[type]
 			except KeyError:
-				raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
 			for (name, owner) in class_.names(self.dbconnection, None):
 				if cursor.file:
-					yield _event(url / "{}.sql".format(makeurl(name)), "file")
+					yield _event(url / f"{makeurl(name)}.sql", "file")
 					cursor.restore()
 		elif type == "allusers": # directory of all users
 			path = url.path
 			for name in User.names(self.dbconnection):
-				yield from _dir("{}/".format(makeurl(name)))
+				yield from _dir(f"{makeurl(name)}/")
 		elif type == "user": # directory of types for a specific user
 			path = absurl.path
 			for childname in sorted(Object.name2type):
 				if childname not in ("comment", "column"):
-					yield from _dir("{}/".format(childname))
+					yield from _dir(f"{childname}/")
 		elif type == "usertype": # directory of objects of the specified type for a specific user
 			path = absurl.path
 			type = path[2]
 			try:
 				class_ = Object.name2type[type]
 			except KeyError:
-				raise FileNotFoundError(errno.ENOENT, "no such file or directory: {!r}".format(url)) from None
+				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
 			for (name, owner) in class_.names(self.dbconnection, path[1]):
 				if cursor.file:
-					yield _event(url / "{}.sql".format(makeurl(name)), "file")
+					yield _event(url / f"{makeurl(name)}.sql", "file")
 					cursor.restore()
 		else:
-			raise NotADirectoryError(errno.ENOTDIR, "Not a directory: {}".format(url))
+			raise NotADirectoryError(errno.ENOTDIR, f"Not a directory: {url}")
 
 	def walk(self, url, beforedir=True, afterdir=False, file=True, enterdir=True):
 		cursor = url_.Cursor(url, beforedir=beforedir, afterdir=afterdir, file=file, enterdir=enterdir)
 		return self._walk(cursor, url_.URL())
 
 	def __repr__(self):
-		return "<{}.{} to {!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.connection.connectstring(), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} to {self.connection.connectstring()!r} at {id(self):#x}>"
 
 
 class OracleFileResource(url_.Resource):
@@ -4073,10 +4143,10 @@ class OracleSchemeDefinition(url_.SchemeDefinition):
 				try:
 					mode = dict(sysoper=SYSOPER, sysdba=SYSDBA, normal=None)[userinfo[2]]
 				except KeyError:
-					raise ValueError("unknown connect mode {!r}".format(userinfo[2]))
+					raise ValueError(f"unknown connect mode {userinfo[2]!r}")
 			else:
-				raise ValueError("illegal userinfo {!r}".format(url.userinfo))
-			connection = connections[server] = OracleURLConnection(context, "{}/{}@{}".format(userinfo[0], userinfo[1], url.host), mode)
+				raise ValueError(f"illegal userinfo {url.userinfo!r}")
+			connection = connections[server] = OracleURLConnection(context, f"{userinfo[0]}/{userinfo[1]}@{url.host}", mode)
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None):

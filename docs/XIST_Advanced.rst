@@ -148,7 +148,7 @@ different targets:
 			elif converter.target.xmlns == fo.xmlns:
 				node = converter.target.inline(self.content, font_weight="bold")
 			else:
-				raise TypeError("unsupported conversion target {!r}".format(converter.target))
+				raise TypeError(f"unsupported conversion target {converter.target!r}")
 			return node.convert(converter)
 
 The default target for conversion is :mod:`ll.xist.ns.html`.

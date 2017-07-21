@@ -25,7 +25,7 @@ class Icons:
 
 	@cherrypy.expose
 	def images(self, filename):
-		return cptools.serveFile("{}/{}".format(self.directory, filename))
+		return cptools.serveFile(f"{self.directory}/{filename}")
 
 	@cherrypy.expose
 	def index(self):

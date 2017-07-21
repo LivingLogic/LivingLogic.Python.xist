@@ -320,7 +320,7 @@ according to the nesting depth of a ``<section>`` element.
 
 		def convert(self, converter):
 			context = converter[self]
-			elementname = "h{}".format(min(context.level, 6))
+			elementname = f"h{min(context.level, 6)}"
 			node = xsc.Frag(
 				getattr(converter.target, elementname)(self.attrs.title),
 				self.content

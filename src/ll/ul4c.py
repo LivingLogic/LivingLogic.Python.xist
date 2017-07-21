@@ -82,7 +82,7 @@ class LocationError(Exception):
 		self.location = location
 
 	def __repr__(self):
-		return "<{}.{} in {} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.location, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} in {self.location} at {id(self):#x}>"
 
 	def _templateprefix(self, template):
 		prefix = "in local template" if template.parenttemplate is not None else "in template"
@@ -90,7 +90,7 @@ class LocationError(Exception):
 		while template is not None:
 			out.append(repr(template.name) if template.name is not None else "(unnamed)")
 			template = template.parenttemplate
-		return "{} {}".format(prefix, " in ".join(out))
+		return f"{prefix} {' in '.join(out)}"
 
 	def __str__(self):
 		location = self.location
@@ -103,8 +103,10 @@ class LocationError(Exception):
 		prefix = repr(template.source[outerpos.start:innerpos.start])[1:-1]
 		code = repr(template.source[innerpos])[1:-1]
 		suffix = repr(template.source[innerpos.stop:outerpos.stop])[1:-1]
+		indent = ' '*len(prefix)
+		underline = error_underline*len(code)
 
-		return "{}: offset {}; line {:,}; col {:,}\n{}{}{}\n{}{}".format(self._templateprefix(template), _offset(location.pos), line, col, prefix, code, suffix, " "*len(prefix), error_underline*len(code))
+		return f"{self._templateprefix(template)}: offset {_offset(location.pos)}; line {line:,}; col {col:,}\n{prefix}{code}{suffix}\n{indent}{underline}"
 
 	def _template(self):
 		if isinstance(self.location, Tag):
@@ -183,19 +185,19 @@ class Undefined:
 		return False
 
 	def __iter__(self):
-		raise TypeError("{!r} is not iterable".format(self))
+		raise TypeError(f"{self!r} is not iterable")
 
 	def __len__(self):
-		raise AttributeError("{!r} has no len()".format(self))
+		raise AttributeError(f"{self!r} has no len()")
 
 	def __call__(self, *args, **kwargs):
-		raise TypeError("{!r} is not callable".format(self))
+		raise TypeError(f"{self!r} is not callable")
 
 	def __getattr__(self, key):
-		raise AttributeError("{!r} has no attribute {!r}".format(self, key))
+		raise AttributeError(f"{self!r} has no attribute {key!r}")
 
 	def __getitem__(self, key):
-		raise TypeError("{!r} is not subscriptable (key={!r})".format(self, key))
+		raise TypeError(f"{self!r} is not subscriptable (key={key!r})")
 
 
 class UndefinedKey(Undefined):
@@ -203,7 +205,7 @@ class UndefinedKey(Undefined):
 		self._key = key
 
 	def __repr__(self):
-		return "UndefinedKey({!r})".format(self._key)
+		return f"UndefinedKey({self._key!r})"
 
 
 class UndefinedVariable(Undefined):
@@ -211,7 +213,7 @@ class UndefinedVariable(Undefined):
 		self._name = name
 
 	def __repr__(self):
-		return "UndefinedVariable({!r})".format(self._name)
+		return f"UndefinedVariable({self._name!r})"
 
 
 class UndefinedIndex(Undefined):
@@ -219,7 +221,7 @@ class UndefinedIndex(Undefined):
 		self._index = index
 
 	def __repr__(self):
-		return "UndefinedIndex({!r})".format(self._index)
+		return f"UndefinedIndex({self._index!r})"
 
 
 class Context:
@@ -339,7 +341,7 @@ def _unpackvar(lvalue, value):
 			value = list(itertools.islice(value, len(lvalue)+1))
 		if len(lvalue) != len(value):
 			# The number of variables on the left hand side doesn't match the number of values on the right hand side
-			raise TypeError("need {} value{} to unpack".format(len(lvalue), "s" if len(lvalue) != 1 else ""))
+			raise TypeError(f"need {len(lvalue):,} value{'s' if len(lvalue) != 1 else ''} to unpack")
 		for (lvalue, value) in zip(lvalue, value):
 			yield from _unpackvar(lvalue, value)
 
@@ -439,7 +441,7 @@ class Proto:
 			ul4attrs = getattr(obj, "ul4attrs", None)
 			if ul4attrs is not None:
 				# An ``ul4attrs`` attribute without ``ul4setattr`` will *not* make the attribute writable
-				raise TypeError("attribute {!r} is readonly".format(name))
+				raise TypeError(f"attribute {name!r} is readonly")
 			else:
 				obj[name] = value
 
@@ -676,7 +678,7 @@ class DateProto(Proto):
 	def mimeformat(obj):
 		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-		return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(obj, weekdayname[obj.weekday()], monthname[obj.month])
+		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4} {obj.hour:02}:{obj.minute:02}:{obj.second:02} GMT"
 
 	@staticmethod
 	def isoformat(obj):
@@ -794,10 +796,10 @@ def proto_exception(obj):
 def _offset(pos):
 	offset = ["["]
 	if pos.start is not None:
-		offset.append("{:,}".format(pos.start))
+		offset.append(f"{pos.start:,}")
 	offset.append(":")
 	if pos.stop is not None:
-		offset.append("{:,}".format(pos.stop))
+		offset.append("{pos.stop:,}")
 	offset.append("]")
 	return "".join(offset)
 
@@ -849,21 +851,21 @@ def _repr_helper(obj, seen, forceascii):
 		s = str(obj.isoformat())
 		if s.endswith("T00:00:00"):
 			s = s[:-9]
-		yield "@({})".format(s)
+		yield f"@({s})"
 	elif isinstance(obj, datetime.date):
-		yield "@({})".format(obj.isoformat())
+		yield f"@({obj.isoformat()})"
 	elif isinstance(obj, datetime.timedelta):
 		yield repr(obj).partition(".")[-1]
 	elif isinstance(obj, color.Color):
 		if obj[3] == 0xff:
-			s = "#{:02x}{:02x}{:02x}".format(obj[0], obj[1], obj[2])
+			s = f"#{obj[0]:02x}{obj[1]:02x}{obj[2]:02x}"
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6]:
-				s = "#{}{}{}".format(s[1], s[3], s[5])
+				s = f"#{s[1]}{s[3]}{s[5]}"
 			yield s
 		else:
-			s = "#{:02x}{:02x}{:02x}{:02x}".format(*obj)
+			s = f"#{obj[0]:02x}{obj[1]:02x}{obj[2]:02x}{obj[3]:02x}"
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6] and s[7] == s[8]:
-				s = "#{}{}{}{}".format(s[1], s[3], s[5], s[7])
+				s = f"#{s[1]}{s[3]}{s[5]}{s[7]}"
 			yield s
 	elif isinstance(obj, collections.Sequence):
 		if id(obj) in seen:
@@ -949,23 +951,25 @@ def _asjson(obj):
 	if isinstance(obj, (bool, int, float, str)):
 		return json.dumps(obj)
 	elif isinstance(obj, datetime.datetime):
-		return "new Date({}, {}, {}, {}, {}, {}, {})".format(obj.year, obj.month-1, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond//1000)
+		return f"new Date({obj.year}, {obj.month-1}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond//1000})"
 	elif isinstance(obj, datetime.date):
-		return "new Date({}, {}, {})".format(obj.year, obj.month-1, obj.day)
+		return f"new Date({obj.year}, {obj.month-1}, {obj.day})"
 	elif isinstance(obj, datetime.timedelta):
-		return "ul4.TimeDelta.create({}, {}, {})".format(obj.days, obj.seconds, obj.microseconds)
+		return f"ul4.TimeDelta.create({obj.days}, {obj.seconds}, {obj.microseconds})"
 	elif isinstance(obj, misc.monthdelta):
-		return "ul4.MonthDelta.create({})".format(obj.months())
+		return f"ul4.MonthDelta.create({obj.months()})"
 	elif isinstance(obj, color.Color):
-		return "ul4.Color.create({}, {}, {}, {})".format(*obj)
+		return f"ul4.Color.create({obj[0]}, {obj[1]}, {obj[2]}, {obj[3]})"
 	elif isinstance(obj, collections.Mapping):
-		return "{{{}}}".format(", ".join("{}: {}".format(_asjson(key), _asjson(value)) for (key, value) in obj.items()))
+		items = ", ".join(f"{_asjson(key)}: {_asjson(value)}" for (key, value) in obj.items())
+		return f"{{{items}}}"
 	elif isinstance(obj, collections.Sequence):
-		return "[{}]".format(", ".join(_asjson(item) for item in obj))
+		items = ", ".join(_asjson(item) for item in obj)
+		return f"[{items}]"
 	elif isinstance(obj, Template):
 		return obj.jssource()
 	else:
-		raise TypeError("can't handle object of type {}".format(type(obj)))
+		raise TypeError(f"can't handle object of type {type(obj)}")
 
 
 def _xmlescape(obj):
@@ -1006,26 +1010,26 @@ class AST:
 			return (1, pos.start + 1)
 
 	def __repr__(self):
-		parts = ["<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self)]
+		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
 		if self.pos is not None:
 			(line, col) = self._linecol()
-			parts.append("(offset {}; line {:,}; col {:,})".format(_offset(self.pos), line, col))
+			parts.append(f"(offset {_offset(self.pos)}; line {line:,}; col {col:,})")
 		parts.extend(self._repr())
-		parts.append("at {:#x}>".format(id(self)))
+		parts.append(f"at {id(self):#x}>")
 		return " ".join(parts)
 
 	def _repr(self):
 		yield from ()
 
 	def _repr_pretty_(self, p, cycle):
-		prefix = "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self)
+		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
 		if self.pos is not None:
 			(line, col) = self._linecol()
-			prefix += "(offset {}; line {:,}; col {:,})".format(_offset(self.pos), line, col)
-		suffix = "at {:#x}".format(id(self))
+			prefix += f"(offset {_offset(self.pos)}; line {line:,}; col {col:,})"
+		suffix = f"at {id(self):#x}"
 
 		if cycle:
-			p.text("{} ... {}>".format(prefix, suffix))
+			p.text(f"{prefix} ... {suffix}>")
 		else:
 			with p.group(4, prefix, ">"):
 				self._repr_pretty(p)
@@ -1109,7 +1113,7 @@ class Text(AST):
 		return self.template.source[self.pos]
 
 	def _str(self):
-		yield "text {!r}".format(self.text)
+		yield f"text {self.text!r}"
 
 	def eval(self, context):
 		yield self.text
@@ -1147,7 +1151,7 @@ class Indent(Text):
 		self._text = text if text != self.template.source[self.pos] else None
 
 	def _str(self):
-		yield "indent {!r}".format(self.text)
+		yield f"indent {self.text!r}"
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1169,7 +1173,7 @@ class LineEnd(Text):
 	"""
 
 	def _str(self):
-		yield "lineend {!r}".format(self.text)
+		yield f"lineend {self.text!r}"
 
 
 @register("tag")
@@ -1198,7 +1202,7 @@ class Tag(AST):
 
 	def __str__(self):
 		(line, col) = self._linecol()
-		return "{0.text!r} (offset {}; line {:,}; col {:,})".format(_offset(self.pos), line, col)
+		return f"{self.text!r} (offset {_offset(self.pos)}; line {line:,}; col {col:,})"
 
 	@property
 	def text(self):
@@ -1300,7 +1304,7 @@ class SeqItem(Code):
 		self.value = value
 
 	def _repr(self):
-		yield "{!r}".format(self.value)
+		yield f"{self.value!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1337,7 +1341,7 @@ class UnpackSeqItem(Code):
 		self.value = value
 
 	def _repr(self):
-		yield "*{!r}".format(self.value)
+		yield f"*{self.value!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1379,7 +1383,7 @@ class DictItem(Code):
 		self.value = value
 
 	def _repr(self):
-		yield "{!r}={!r}".format(self.key, self.value)
+		yield f"{self.key!r}={self.value!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1419,7 +1423,7 @@ class UnpackDictItem(Code):
 		self.item = item
 
 	def _repr(self):
-		yield "**{!r}".format(self.item)
+		yield f"**{self.item!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1454,7 +1458,7 @@ class PosArg(Code):
 		self.value = value
 
 	def _repr(self):
-		yield "{!r}".format(self.value)
+		yield f"{self.value!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1496,7 +1500,7 @@ class KeywordArg(Code):
 		self.value = value
 
 	def _repr(self):
-		yield "{}={!r}".format(self.name, self.value)
+		yield f"{self.name}={self.value!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1512,7 +1516,7 @@ class KeywordArg(Code):
 	@_handleexpressioneval
 	def eval_call(self, context, args, kwargs):
 		if self.name in kwargs:
-			raise SyntaxError("duplicate keyword argument {!r}".format(self.name))
+			raise SyntaxError(f"duplicate keyword argument {self.name!r}")
 		kwargs[self.name] = self.value.eval(context)
 
 	def ul4ondump(self, encoder):
@@ -1539,7 +1543,7 @@ class UnpackListArg(Code):
 		self.item = item
 
 	def _repr(self):
-		yield "*{!r}".format(self.item)
+		yield f"*{self.item!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1579,7 +1583,7 @@ class UnpackDictArg(Code):
 		self.item = item
 
 	def _repr(self):
-		yield "**{!r}".format(self.item)
+		yield f"**{self.item!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1595,12 +1599,12 @@ class UnpackDictArg(Code):
 		if hasattr(item, "keys"):
 			for key in item:
 				if key in kwargs:
-					raise SyntaxError("duplicate keyword argument {!r}".format(key))
+					raise SyntaxError(f"duplicate keyword argument {key!r}")
 				kwargs[key] = item[key]
 		else:
 			for (key, value) in item:
 				if key in kwargs:
-					raise SyntaxError("duplicate keyword argument {!r}".format(key))
+					raise SyntaxError(f"duplicate keyword argument {key!r}")
 				kwargs[key] = value
 
 	def ul4ondump(self, encoder):
@@ -1625,7 +1629,7 @@ class List(Code):
 		self.items = list(items)
 
 	def _repr(self):
-		yield "with {:,} items".format(len(self.items))
+		yield f"with {len(self.items):,} items"
 
 	def _repr_pretty(self, p):
 		for item in self.items:
@@ -1664,11 +1668,11 @@ class ListComp(Code):
 		self.condition = condition
 
 	def _repr(self):
-		yield "item={!r}".format(self.item)
-		yield "varname={!r}".format(self.varname)
-		yield "container={!r}".format(self.container)
+		yield f"item={self.item!r}"
+		yield f"varname={self.varname!r}"
+		yield f"container={self.container!r}"
 		if self.container is not None:
-			yield "condition={!r}".format(self.condition)
+			yield f"condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable("")
@@ -1728,7 +1732,7 @@ class Set(Code):
 		self.items = list(items)
 
 	def _repr(self):
-		yield "with {:,} items".format(len(self))
+		yield f"with {len(self.items):,} items"
 
 	def _repr_pretty(self, p):
 		for item in self.items:
@@ -1767,11 +1771,11 @@ class SetComp(Code):
 		self.condition = condition
 
 	def _repr(self):
-		yield "item={!r}".format(self.item)
-		yield "varname={!r}".format(self.varname)
-		yield "container={!r}".format(self.container)
+		yield f"item={self.item!r}"
+		yield f"varname={self.varname!r}"
+		yield f"container={self.container!r}"
 		if self.container is not None:
-			yield "condition={!r}".format(self.condition)
+			yield f"condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable("")
@@ -1831,7 +1835,7 @@ class Dict(Code):
 		self.items = list(items)
 
 	def _repr(self):
-		yield "with {:,} items".format(len(self))
+		yield f"with {len(self.items):,} items"
 
 	def _repr_pretty(self, p):
 		for item in self.items:
@@ -1871,12 +1875,12 @@ class DictComp(Code):
 		self.condition = condition
 
 	def __repr__(self):
-		yield "key={!r}".format(self.key)
-		yield "value={!r}".format(self.value)
-		yield "varname={!r}".format(self.varname)
-		yield "container={!r}".format(self.container)
+		yield f"key={self.key!r}"
+		yield f"value={self.value!r}"
+		yield f"varname={self.varname!r}"
+		yield f"container={self.container!r}"
 		if self.container is not None:
-			yield "condition={!r}".format(self.condition)
+			yield f"condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1941,11 +1945,11 @@ class GenExpr(Code):
 		self.condition = condition
 
 	def _repr(self):
-		yield "item={!r}".format(self.item)
-		yield "varname={!r}".format(self.varname)
-		yield "container={!r}".format(self.container)
+		yield f"item={self.item!r}"
+		yield f"varname={self.varname!r}"
+		yield f"container={self.container!r}"
 		if self.container is not None:
-			yield "condition={!r}".format(self.condition)
+			yield f"condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2142,7 +2146,7 @@ class IfBlock(Block):
 		self.condition = condition
 
 	def _repr(self):
-		yield " condition={!r}".format(self.condition)
+		yield f" condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2185,7 +2189,7 @@ class ElIfBlock(Block):
 		self.condition = condition
 
 	def _repr(self):
-		yield " condition={!r}".format(self.condition)
+		yield f" condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2250,8 +2254,8 @@ class ForBlock(Block):
 		self.container = container
 
 	def _repr(self):
-		yield "varname={!r}".format(self.varname)
-		yield "container={!r}".format(self.container)
+		yield f"varname={self.varname!r}"
+		yield f"container={self.container!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2312,7 +2316,7 @@ class WhileBlock(Block):
 		self.condition = condition
 
 	def _repr(self):
-		yield "condition={!r}".format(self.condition)
+		yield f"condition={self.condition!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2399,8 +2403,8 @@ class Attr(Code):
 		self.attrname = attrname
 
 	def _repr(self):
-		yield "obj={!r}".format(self.obj)
-		yield "attrname={!r}".format(self.attrname)
+		yield f"obj={self.obj!r}"
+		yield f"attrname={self.attrname!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2463,9 +2467,9 @@ class Slice(Code):
 
 	def _repr(self):
 		if self.index1 is not None:
-			yield "index1={!r}".format(self.index1)
+			yield f"index1={self.index1!r}"
 		if self.index2 is not None:
-			yield "index2={!r}".format(self.index2)
+			yield f"index2={self.index2!r}"
 
 	def _repr_pretty(self, p):
 		if self.index1 is not None:
@@ -3084,9 +3088,9 @@ class If(Code):
 		self.objelse = objelse
 
 	def _repr(self):
-		yield "objif={!r}".format(self.objif)
-		yield "objcond={!r}".format(self.objcond)
-		yield "objelse={!r}".format(self.objelse)
+		yield f"objif={self.objif!r}"
+		yield f"objcond={self.objcond!r}"
+		yield f"objelse={self.objelse!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -3139,8 +3143,8 @@ class ChangeVar(Code):
 		self.value = value
 
 	def _repr(self):
-		yield "lvalue={!r}".format(self.lvalue)
-		yield "value={!r}".format(self.value)
+		yield f"lvalue={self.lvalue!r}"
+		yield f"value={self.value!r}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -3335,7 +3339,7 @@ class Call(Code):
 		self.args = []
 
 	def _repr(self):
-		yield "obj={!r}".format(self.obj)
+		yield f"obj={self.obj!r}"
 		for arg in self.args:
 			yield from arg._repr()
 
@@ -3418,8 +3422,8 @@ class Render(Call):
 	output = True
 
 	def _repr(self):
-		yield "indent={!r}".format(self.indent)
-		yield "obj={!r}".format(self.obj)
+		yield f"indent={self.indent!r}"
+		yield f"obj={self.obj!r}"
 		for arg in self.args:
 			yield from arg._repr()
 
@@ -3455,7 +3459,7 @@ class Render(Call):
 					context.indents.pop()
 			else:
 				from ll import misc
-				raise TypeError("{} object can't be rendered".format(misc.format_class(obj)))
+				raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
 			raise LocationError(self) from exc
@@ -3464,7 +3468,7 @@ class Render(Call):
 		yield "render "
 		yield from super()._str()
 		if self.indent is not None:
-			yield " with indent {!r}".format(self.indent.text)
+			yield f" with indent {self.indent.text!r}"
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -3589,7 +3593,7 @@ class Template(Block):
 		if isinstance(signature, str):
 			# The parser needs a tag, and each tag references its template which contains the source.
 			# So to make the source of the signature available in the source, we prepend an ``<?ul4?>`` tag
-			source = "{}ul4 {}({}){}{}".format(self.startdelim, name or "", signature, self.enddelim, source)
+			source = f"{self.startdelim}ul4 {name or ''}({signature}){self.enddelim}{source}"
 			signature = None
 		elif callable(signature):
 			signature = inspect.signature(signature)
@@ -3600,14 +3604,14 @@ class Template(Block):
 			self._compile(source, startdelim, enddelim)
 
 	def _repr(self):
-		yield "name={!r}".format(self.name)
-		yield "whitespace={!r}".format(self.whitespace)
+		yield f"name={self.name!r}"
+		yield f"whitespace={self.whitespace!r}"
 		if self.startdelim != "<?":
-			yield "startdelim={!r}".format(self.startdelim)
+			yield f"startdelim={self.startdelim!r}"
 		if self.enddelim != "?>":
-			yield "enddelim={!r}".format(self.enddelim)
+			yield f"enddelim={self.enddelim!r}"
 		if self.signature is not None:
-			yield "signature={}".format(self.signature)
+			yield f"signature={self.signature}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -3630,7 +3634,7 @@ class Template(Block):
 				p.text("signature=")
 				p.pretty(self.signature)
 			else:
-				p.text("signature={}".format(self.signature))
+				p.text(f"signature={self.signature}")
 		p.breakable()
 		with p.group(4, "content=[", "]"):
 			for node in self.content:
@@ -3691,7 +3695,7 @@ class Template(Block):
 				elif param.kind is inspect.Parameter.VAR_KEYWORD:
 					dump.append("**" + param.name)
 				else:
-					raise ValueError("can dump parameter {} of type {}".format(param.name, param.kind))
+					raise ValueError(f"can't dump parameter {param.name} of type {param.kind}")
 			encoder.dump(dump)
 
 		super().ul4ondump(encoder)
@@ -3716,7 +3720,7 @@ class Template(Block):
 			if enddelim is None:
 				enddelim = "?>"
 			if signature is not None:
-				source = "{}ul4 {}({}){}{}".format(startdelim, self.name or "", signature, enddelim, source)
+				source = f"{startdelim}ul4 {self.name or ''}({signature}){enddelim}{source}"
 			# Remove old content, before compiling the source
 			self.pos = slice(None, None)
 			self.tag = self.endtag = None
@@ -3724,7 +3728,7 @@ class Template(Block):
 			self._compile(source, startdelim, enddelim)
 		else: # dump is in compiled form
 			if version != self.version:
-				raise ValueError("invalid version, expected {!r}, got {!r}".format(self.version, version))
+				raise ValueError(f"invalid version, expected {self.version!r}, got {version!r}")
 			self.name = decoder.load()
 			self.source = decoder.load()
 			self.whitespace = decoder.load()
@@ -3881,14 +3885,14 @@ class Template(Block):
 		"""
 		Return the template as the source code of a Javascript function.
 		"""
-		return "ul4.Template.loads({})".format(_asjson(self.dumps()))
+		return f"ul4.Template.loads({_asjson(self.dumps())})"
 
 	def javasource(self):
 		"""
 		Return the template as Java source code.
 		"""
 		from ll import misc
-		return "com.livinglogic.ul4.InterpretedTemplate.loads({})".format(misc.javaexpr(self.dumps()))
+		return f"com.livinglogic.ul4.InterpretedTemplate.loads({misc.javaexpr(self.dumps())})"
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
@@ -3899,7 +3903,7 @@ class Template(Block):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = "{}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|render|note|doc)(\s*((.|\\n)*?)\s*)?{}".format(re.escape(startdelim), re.escape(enddelim))
+		pattern = f"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|render|note|doc)(\s*((.|\\n)*?)\s*)?{re.escape(enddelim)}"
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -4155,7 +4159,7 @@ class Template(Block):
 							self.whitespace = whitespace
 						else:
 							try:
-								raise ValueError("whitespace mode {!r} unknown".format(whitespace))
+								raise ValueError(f"whitespace mode {whitespace!r} unknown")
 							except Exception as exc:
 								raise LocationError(tag) from exc
 
@@ -4167,7 +4171,7 @@ class Template(Block):
 		elif self.whitespace == "smart":
 			tags = self._whitespace_smart(lines)
 		else:
-			raise ValueError("whitespace mode {!r} unknown".format(self.whitespace))
+			raise ValueError(f"whitespace mode {self.whitespace!r} unknown")
 
 		for tag in tags:
 			tag.template = templatestack[-1]
@@ -4219,7 +4223,7 @@ class Template(Block):
 								raise BlockError("enddef doesn't match any def")
 							templatestack.pop()
 						else:
-							raise BlockError("illegal end value {!r}".format(code))
+							raise BlockError(f"illegal end value {code!r}")
 					last = blockstack.pop()
 					# Set ``endtag`` of block
 					last.endtag = tag
@@ -4281,7 +4285,7 @@ class Template(Block):
 					# Don't copy declarations, whitespace specification, comments or docstrings over into the syntax tree
 					pass
 				else: # Can't happen
-					raise ValueError("unknown tag {!r}".format(tag.tag))
+					raise ValueError(f"unknown tag {tag.tag!r}")
 				lasttag = tag
 			except Exception as exc:
 				raise LocationError(tag) from exc
@@ -4312,15 +4316,8 @@ class Signature(Code):
 		self.params = []
 
 	def __repr__(self):
-		params = []
-		for (paramname, default) in self.params:
-			if default is None:
-				fmt = " {paramname}"
-			else:
-				fmt = " {paramname}={default!r}"
-			params.append(fmt.format(paramname=paramname, default=default))
-
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {1}{2} at {3:#x}>".format(self, _offset(self.pos), "".join(params), id(self))
+		params = "".join(f" {paramname}" if default is None else f" {paramname}={default!r}" for (paramname, default) in self.params)
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {_offset(self.pos)}{params} at {id(self):#x}>"
 
 	def _repr_pretty(self, p):
 		for (paramname, default) in self.params:
@@ -4328,7 +4325,7 @@ class Signature(Code):
 			if default is None:
 				p.text(paramname)
 			else:
-				p.text("{}=".format(paramname))
+				p.text(f"{paramname}=")
 				p.pretty(default)
 
 	def _str(self):
@@ -4442,7 +4439,8 @@ def function_csv(obj):
 	elif not isinstance(obj, str):
 		obj = _repr(obj)
 	if any(c in obj for c in ',"\n'):
-		return '"{}"'.format(obj.replace('"', '""'))
+		text = obj.replace('"', '""')
+		return f'"{text}"'
 	return obj
 
 
@@ -4996,14 +4994,14 @@ class TemplateClosure(Block):
 			return getattr(self, name)
 
 	def _repr(self):
-		yield "name={!r}".format(self.name)
-		yield "whitespace={!r}".format(self.whitespace)
+		yield f"name={self.name!r}"
+		yield f"whitespace={self.whitespace!r}"
 		if self.startdelim != "<?":
-			yield "startdelim={!r}".format(self.startdelim)
+			yield f"startdelim={self.startdelim!r}"
 		if self.enddelim != "?>":
-			yield "enddelim={!r}".format(self.enddelim)
+			yield f"enddelim={self.enddelim!r}"
 		if self.signature is not None:
-			yield "signature={}".format(self.signature)
+			yield f"signature={self.signature}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -5022,7 +5020,7 @@ class TemplateClosure(Block):
 			p.pretty(self.enddelim)
 		if self.signature is not None:
 			p.breakable()
-			p.text("signature={}".format(self.signature))
+			p.text(f"signature={self.signature}")
 		for node in self.content:
 			p.breakable()
 			p.pretty(node)

@@ -87,7 +87,7 @@ def httpdate(dt):
 
 	:obj:`dt` is a :class:`datetime.datetime` object in UTC.
 	"""
-	return "{1}, {0.day:02d} {2:3} {0.year:4} {0.hour:02}:{0.minute:02}:{0.second:02} GMT".format(dt, weekdayname[dt.weekday()], monthname[dt.month])
+	return f"{weekdayname[dt.weekday()]}, {dt.day:02d} {monthname[dt.month]:3} {dt.year:4} {dt.hour:02}:{dt.minute:02}:{dt.second:02} GMT"
 
 
 def _normalizepath(path_segments):
@@ -145,7 +145,7 @@ def _urlencode(query_parts):
 				# generate a canonical order for the values
 				values.sort()
 			for value in values:
-				res.append("{}={}".format(_escape(name, querysafe), _escape(value, querysafe)))
+				res.append(f"{_escape(name, querysafe)}={_escape(value, querysafe)}")
 		return "&".join(res)
 	else:
 		return None
@@ -444,7 +444,7 @@ class Connection(object):
 		"""
 		Return the MIME headers for the file/resource :obj:`url`.
 		"""
-		return email.message_from_string("Content-Type: {}\nContent-Length: {}\nLast-modified: {}\n".format(self.mimetype(url), self.size(url), httpdate(self.mdate(url))))
+		return email.message_from_string(f"Content-Type: {self.mimetype(url)}\nContent-Length: {self.size(url)}\nLast-modified: {httpdate(self.mdate(url))}\n")
 
 	@misc.notimplemented
 	def remove(self, url):
@@ -1033,7 +1033,7 @@ class SshConnection(Connection):
 
 	def _url2filename(self, url):
 		if url.scheme != "ssh":
-			raise ValueError("URL {0!r} is not an ssh URL".format(url))
+			raise ValueError(f"URL {url!r} is not an ssh URL")
 		filename = str(url.path)
 		if filename.startswith("/~"):
 			filename = filename[1:]
@@ -1041,14 +1041,14 @@ class SshConnection(Connection):
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
-			server = "ssh={}".format(self.server)
+			server = f"ssh={self.server}"
 			python = self.python
 			if python is None:
 				python = default_ssh_python
 			if python is not None:
-				server += "//python={}".format(python)
+				server += f"//python={python}"
 			if self.nice is not None:
-				server += "//nice={}".format(self.nice)
+				server += f"//nice={self.nice}"
 			gateway = execnet.makegateway(server) # This requires ``execnet`` (http://codespeak.net/execnet/)
 			gateway.reconfigure(py2str_as_py3str=False, py3str_as_py2str=False)
 			self._channel = gateway.remote_exec(self.remote_code)
@@ -1189,7 +1189,7 @@ class SshConnection(Connection):
 		return RemoteFileResource(self, url, *args, **kwargs)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__name__} to {0.server!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__name__} to {self.server!r} at {id(self):#x}>"
 
 
 class URLConnection(Connection):
@@ -1214,7 +1214,7 @@ class URLConnection(Connection):
 
 	def open(self, url, mode="rb", headers=None, data=None):
 		if mode != "rb":
-			raise NotImplementedError("mode {0!r} not supported".format(mode))
+			raise NotImplementedError(f"mode {mode!r} not supported")
 		return URLResource(url, headers=headers, data=data)
 
 
@@ -1235,7 +1235,7 @@ def home(user="", scheme="file"):
 		>>> url.home("andreas")
 		URL('file:/home/andreas/')
 	"""
-	return Dir("~{}".format(user), scheme)
+	return Dir(f"~{user}", scheme)
 
 
 def root():
@@ -1399,7 +1399,7 @@ class Resource(object):
 		self.close()
 
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.closed else "open", self, id(self))
+		return f"<{'closed' if self.closed else 'open'} {self.__class__.__module__}.{self.__class__.__name__} {self.name}, mode {self.mode!r} at {id(self):#x}>"
 
 
 class FileResource(Resource):
@@ -1468,7 +1468,7 @@ class RemoteFileResource(Resource):
 		self.remoteid = self._send(filename, "open", mode, *args, **kwargs)
 
 	def __repr__(self):
-		return "<{0} {1.__class__.__module__}.{1.__class__.__name__} {1.name}, mode {1.mode!r} at {2:#x}>".format("closed" if self.connection is None else "open", self, id(self))
+		return f"<{'closed' if self.connection is None else 'open'} {self.__class__.__module__}.{self.__class__.__name__} {self.name}, mode {self.mode!r} at {id(self):#x}>"
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self.connection is None:
@@ -1541,7 +1541,7 @@ class URLResource(Resource):
 	"""
 	def __init__(self, url, mode="rb", headers=None, data=None):
 		if "w" in mode:
-			raise ValueError("writing mode {0!r} not supported".format(mode))
+			raise ValueError(f"writing mode {mode!r} not supported")
 		self.url = URL(url)
 		self.name = str(self.url)
 		self.mode = mode
@@ -1703,7 +1703,7 @@ class SchemeDefinition(object):
 		"""
 
 	def __repr__(self):
-		return "<{0.__class__.__name__} instance scheme={0.scheme!r} usehierarchy={0.usehierarchy!r} useserver={0.useserver!r} usefrag={0.usefrag!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__name__} instance scheme={self.scheme!r} usehierarchy={self.usehierarchy!r} useserver={self.useserver!r} usefrag={self.usefrag!r} at {id(self):#x}>"
 
 
 class LocalSchemeDefinition(SchemeDefinition):
@@ -1815,7 +1815,7 @@ class Path(object):
 		return Path(self)
 
 	def __repr__(self):
-		return "Path({!r})".format(self._path)
+		return f"Path({self._path!r})"
 
 	def __str__(self):
 		return self.path
@@ -2256,7 +2256,7 @@ class URL(object):
 				scheme = scheme.lower()
 				# check if the scheme only has allowed characters
 				if not self._checkscheme(scheme):
-					raise ValueError("Illegal scheme char in scheme {!r}".format(scheme))
+					raise ValueError(f"Illegal scheme char in scheme {scheme!r}")
 				self._scheme = scheme
 			self.reg = schemereg.get(scheme, defaultreg)
 		def __delete__(self):
@@ -2317,7 +2317,7 @@ class URL(object):
 			if self.host is not None:
 				hostport = _escape(self.host, safe)
 				if self.port is not None:
-					hostport += ":{}".format(self.port)
+					hostport += f":{self.port}"
 				return hostport
 			else:
 				return None
@@ -2801,7 +2801,7 @@ class URL(object):
 		return self.url
 
 	def __repr__(self):
-		return "URL({!r})".format(self.url)
+		return f"URL({self.url!r})"
 
 	def __bool__(self):
 		"""
@@ -2908,7 +2908,7 @@ class URL(object):
 
 	def _checklocal(self):
 		if not self.islocal():
-			raise ValueError("URL {!r} is not local".format(self))
+			raise ValueError(f"URL {self!r} is not local")
 
 	def local(self):
 		"""
@@ -2984,7 +2984,7 @@ class URL(object):
 		if self.islocal():
 			filename = self.real().local()
 		else:
-			filename = "/{}/{}{}".format(self.scheme, self.server, self.path)
+			filename = f"/{self.scheme}/{self.server}{self.path}"
 		return misc.module(self.openread().read(), filename, name)
 
 	def __iter__(self):

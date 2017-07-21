@@ -151,7 +151,7 @@ def main(args=None):
 		# Progress report
 		if args.verbose:
 			msg = "truncating" if args.truncate else "deleting from"
-			msg = astyle.style_default("oradelete.py: ", cs, ": {} #{:,} ".format(msg, i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradelete.py: ", cs, f": {msg} #{i+1:,} ", s4object(str(obj)))
 			if not keepobj:
 				msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 			stderr.writeln(msg)
@@ -160,17 +160,20 @@ def main(args=None):
 			# Print or execute SQL
 			if args.execute:
 				try:
-					fmt = "truncate table {}" if args.truncate else "delete from {}"
-					cursor.execute(fmt.format(obj.name))
+					if args.truncate:
+						query = f"truncate table {obj.name}"
+					else:
+						query = f"delete from {obj.name}"
+					cursor.execute(query)
 				except orasql.DatabaseError as exc:
 					if not args.ignore or "ORA-01013" in str(exc):
 						raise
-					stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
+					stderr.writeln("oradelete.py: ", s4error(f"{exc.__class__}: {str(exc).strip()}"))
 			else:
 				if args.truncate:
-					sql = "truncate table {};".format(obj.name)
+					sql = f"truncate table {obj.name};"
 				else:
-					sql = "delete from {};".format(obj.name)
+					sql = f"delete from {obj.name};"
 				stdout.writeln(sql)
 				stdout.writeln()
 				if args.format == "pysql":
@@ -184,7 +187,7 @@ def main(args=None):
 			keepobj = keep(obj)
 			# Progress report
 			if args.verbose:
-				msg = astyle.style_default("oradelete.py: ", cs, ": recreating #{:,} ".format(i+1), s4object(str(obj)))
+				msg = astyle.style_default("oradelete.py: ", cs, f": recreating #{i+1:,} ", s4object(str(obj)))
 				if not keepobj:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)
@@ -199,7 +202,7 @@ def main(args=None):
 					except orasql.DatabaseError as exc:
 						if not args.ignore or "ORA-01013" in str(exc):
 							raise
-						stderr.writeln("oradelete.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
+						stderr.writeln("oradelete.py: ", s4error(f"{exc.__class__}: {str(exc).strip()}"))
 				else:
 					stdout.writeln(obj.dropsql(term=True).strip())
 					stdout.writeln()

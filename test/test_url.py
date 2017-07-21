@@ -144,9 +144,9 @@ def test_join_rfc2396():
 	def check(rel, res):
 		relurl = url.URL(rel)
 		resurl = url.URL(res)
-		assert baseurl/relurl == resurl, "{!r}/{!r} is {!r}, but should be {!r}".format(baseurl, relurl, baseurl/relurl, resurl)
+		assert baseurl/relurl == resurl, f"{baseurl!r}/{relurl!r} is {baseurl/relurl!r}, but should be {resurl!r}"
 		# This checks rdiv
-		assert str(baseurl)/relurl == resurl, "{!r}/{!r} is {!r}, but should be {!r}".format(baseurl, relurl, str(baseurl)/relurl, resurl)
+		assert str(baseurl)/relurl == resurl, f"{baseurl!r}/{relurl!r} is {str(baseurl)/relurl!r}, but should be {resurl!r}"
 
 	# RFC2396 Section C.1: Normal Examples
 	check("g:h",           "g:h")
@@ -200,9 +200,9 @@ def test_join():
 		baseurl = url.URL(base)
 		relurl = url.URL(rel)
 		resurl = url.URL(res)
-		assert baseurl/relurl == resurl, "{!r}/{!r} is {!r}, but should be {!r}".format(baseurl, relurl, baseurl/relurl, resurl)
+		assert baseurl/relurl == resurl, f"{baseurl!r}/{relurl!r} is {baseurl/relurl!r}, but should be {resurl!r}"
 		# This checks rdiv
-		assert str(baseurl)/relurl == resurl, "{!r}/{!r} is {!r}, but should be {!r}".format(baseurl, relurl, str(baseurl)/relurl, resurl)
+		assert str(baseurl)/relurl == resurl, f"{baseurl!r}/{relurl!r} is {str(baseurl)/relurl!r}, but should be {resurl!r}"
 
 	check("http://test.com/index.html", "impress.html", "http://test.com/impress.html")
 	check("http://test.com/index.html", "", "http://test.com/index.html")
@@ -229,7 +229,7 @@ def test_normalize():
 		u1 = u.clone()
 		u1.path.normalize()
 		u2 = url.URL(u2)
-		assert u1 == u2, "{!r} normalized is {!r}, but should be {!r}".format(u, u1, u2)
+		assert u1 == u2, f"{u!r} normalized is {u1!r}, but should be {u2!r}"
 
 	check("", "")
 	check("./", "")
@@ -266,7 +266,7 @@ def test_relative():
 		baseurl = url.URL(base)
 		relurl = url.URL(rel)
 		resurl = url.URL(res)
-		assert relurl.relative(baseurl) == resurl, "{!r}.relative({!r}) is {!r}, but should be {!r}".format(relurl, baseurl, relurl.relative(baseurl), resurl)
+		assert relurl.relative(baseurl) == resurl, f"{relurl!r}.relative({baseurl!r}) is {relurl.relative(baseurl)!r}, but should be {resurl!r}"
 
 	check("./", "./", "./")
 	check("cc.html", "./", "./")

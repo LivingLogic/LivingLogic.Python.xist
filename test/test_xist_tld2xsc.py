@@ -34,7 +34,7 @@ def tld2ns(s, shareattrs=None):
 def test_tld2xsc():
 	xmlns = "http://xmlns.example.com/foo"
 
-	tldstring = """<?xml version="1.0" encoding="ISO-8859-1"?>
+	tldstring = f"""<?xml version="1.0" encoding="ISO-8859-1"?>
 	<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd">
 	<taglib>
 		<tlibversion>1.0</tlibversion>
@@ -69,7 +69,7 @@ def test_tld2xsc():
 			</attribute>
 		</tag>
 	</taglib>
-	""".format(xmlns=xmlns)
+	"""
 	ns = tld2ns(tldstring)
 	assert ns.bar.xmlns == xmlns
 	assert ns.__doc__.strip() == "just a test"

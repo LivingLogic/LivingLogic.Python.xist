@@ -80,7 +80,7 @@ def test_connection_connectstring():
 	db = orasql.connect(dbname)
 	user = dbname.split("/")[0]
 	name = dbname.split("@")[1]
-	assert "{}@{}".format(user, name) == db.connectstring()
+	assert f"{user}@{name}" == db.connectstring()
 
 
 @pytest.mark.db
@@ -261,7 +261,7 @@ def test_createorder(db_data):
 def test_scripts_oracreate():
 	if dbname:
 		# Test oracreate without executing anything
-		args = "--color=yes --verbose=yes --seqcopy=yes {}".format(dbname)
+		args = f"--color=yes --verbose=yes --seqcopy=yes {dbname}"
 		oracreate.main(args.split())
 
 
@@ -269,7 +269,7 @@ def test_scripts_oracreate():
 def test_scripts_oradrop():
 	if dbname:
 		# Test oradrop without executing anything
-		args = "--color=yes --verbose=yes {}".format(dbname)
+		args = f"--color=yes --verbose=yes {dbname}"
 		oradrop.main(args.split())
 
 
@@ -278,8 +278,8 @@ def test_scripts_oradiff():
 	if dbname:
 		# Test oradiff (not really: we will not get any differences)
 		allargs = [
-			"--color=yes --verbose=yes {0} {0}".format(dbname),
-			"--color=yes --verbose=yes {0} {0} -mfull".format(dbname),
+			f"--color=yes --verbose=yes {dbname} {dbname}",
+			f"--color=yes --verbose=yes {dbname} {dbname} -mfull",
 		]
 		for args in allargs:
 			oradiff.main(args.split())
@@ -289,7 +289,7 @@ def test_scripts_oradiff():
 def test_scripts_oramerge():
 	if dbname:
 		# Test oramerge (not really: we will not get any differences)
-		args = "--color=yes --verbose=yes {0} {0} {0}".format(dbname)
+		args = f"--color=yes --verbose=yes {dbname} {dbname} {dbname}"
 		oramerge.main(args.split())
 
 
@@ -297,7 +297,7 @@ def test_scripts_oramerge():
 def test_scripts_oragrant():
 	if dbname:
 		# Test oragrant
-		args = "--color=yes {0}".format(dbname)
+		args = f"--color=yes {dbname}"
 		oragrant.main(args.split())
 
 
@@ -305,7 +305,7 @@ def test_scripts_oragrant():
 def test_scripts_orafind():
 	if dbname:
 		# Test orafind
-		args = "--ignore-case yes --color=yes {0} foo".format(dbname)
+		args = f"--ignore-case yes --color=yes {dbname} foo"
 		orafind.main(args.split())
 
 
@@ -313,7 +313,7 @@ def test_scripts_orafind():
 def test_scripts_oradelete():
 	if dbname:
 		# Test oradelete without executing anything
-		args = "--color=yes --verbose=yes {}".format(dbname)
+		args = f"--color=yes --verbose=yes {dbname}"
 		oradelete.main(args.split())
 
 
@@ -321,7 +321,7 @@ def test_scripts_oradelete():
 def test_scripts_orareindex():
 	if dbname:
 		# Test orareindex without executing anything
-		args = "--color=yes --verbose=yes {}".format(dbname)
+		args = f"--color=yes --verbose=yes {dbname}"
 		orareindex.main(args.split())
 
 
@@ -382,10 +382,10 @@ def test_fetch(db_data):
 			# fetch only a few records
 			db = orasql.connect(dbname)
 			c = db.cursor()
-			c.execute("select * from {}".format(obj.name))
+			c.execute(f"select * from {obj.name}")
 			c.readlobs = False
 			c.fetchone()
-			c.execute("select * from {}".format(obj.name))
+			c.execute(f"select * from {obj.name}")
 			c.readlobs = True
 			c.fetchone()
 			break
@@ -393,7 +393,8 @@ def test_fetch(db_data):
 
 @pytest.mark.db
 def test_url():
-	u = url.URL("oracle://{}/".format(dbname.replace("/", ":")))
+	dburl = dbname.replace("/", ":")
+	u = url.URL(f"oracle://{dburl}/")
 	assert u.isdir()
 	assert u.mimetype() == "application/octet-stream"
 	u.owner()
@@ -403,7 +404,7 @@ def test_url():
 	u.files()
 	u.dirs()
 
-	u = url.URL("oracle://{}/procedure/ORASQL_TESTPROCEDURE".format(dbname.replace("/", ":")))
+	u = url.URL(f"oracle://{dburl}/procedure/ORASQL_TESTPROCEDURE")
 	assert u.isfile()
 	assert u.mimetype() == "text/x-oracle-procedure"
 	u.owner()

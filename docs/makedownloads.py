@@ -51,10 +51,11 @@ class File:
 		self.url.server = "ftp.livinglogic.de"
 
 	def restfile(self):
-		return "`{} <{}>`_".format(self.url.file, self.url)
+		return f"`{self.url.file} <{self.url}>`_"
 
 	def restsize(self):
-		return "{}K".format((self.size+511)//1024) # Round up
+		size = (self.size+511)//1024 # Round up
+		return f"{size}K"
 
 
 class Version:
@@ -62,11 +63,11 @@ class Version:
 		self.version = version
 		self.date = datetime.datetime.strptime(date, "%m/%d/%Y")
 		u = url.URL("ssh://root@ftp.livinglogic.de/~ftp/pub/livinglogic/xist/")
-		files = u/u.files("*-%s[-.][twpzc]*" % version)
+		files = u/u.files(f"*-{version}[-.][twpzc]*")
 		self.files = [File(f) for f in sorted(files, key=str)]
 
 	def output(self, out):
-		title = "{} (released {:%m/%d/%Y})".format(self.version, self.date)
+		title = f"{self.version} (released {self.date:%m/%d/%Y})"
 		out()
 		out()
 		out(title)
@@ -81,10 +82,10 @@ class Version:
 			out(".. rst-class:: download")
 			out()
 			out("=" * widthfile, "=" * widthtype, "=" * widthsize)
-			out("{:{}} {:{}} {:{}}".format("File", widthfile, "Type", widthtype, "Size", widthsize))
+			out(f"{'File':{widthfile}} {'Type':{widthtype}} Size")
 			out("=" * widthfile, "=" * widthtype, "=" * widthsize)
 			for f in self.files:
-				out("{:{}} {:{}} {:{}}".format(f.restfile(), widthfile, f.type or "", widthtype, f.restsize(), widthsize))
+				out(f"{f.restfile():{widthfile}} {f.type or '':{widthtype}} {f.restsize()}")
 			out("=" * widthfile, "=" * widthtype, "=" * widthsize)
 		else:
 			out("(no files for this version)")

@@ -51,19 +51,19 @@ def getdoc(thing, format):
 
 	text = "\n".join(lines)
 
+	modulename = _getmodulename(thing)
 	if inspect.ismethod(thing):
-		fmt = "METHOD-DOCSTRING({0}.{1.__class__.__name__}.{1.__qualname__})"
+		base = f"METHOD-DOCSTRING({modulename}.{thing.__class__.__name__}.{thing.__qualname__})"
 	elif isinstance(thing, property):
-		fmt = "PROPERTY-DOCSTRING({0}.{1})"
+		base = f"PROPERTY-DOCSTRING({modulename}.{thing})"
 	elif inspect.isfunction(thing):
-		fmt = "FUNCTION-DOCSTRING({0}.{1.__qualname__})"
+		base = f"FUNCTION-DOCSTRING({modulename}.{thing.__qualname__})"
 	elif inspect.isclass(thing):
-		fmt = "CLASS-DOCSTRING({0}.{1.__qualname__})"
+		base = f"CLASS-DOCSTRING({modulename}.{thing.__qualname__})"
 	elif inspect.ismodule(thing):
-		fmt = "MODULE-DOCSTRING({0})"
+		base = f"MODULE-DOCSTRING({modulename})"
 	else:
-		fmt = "DOCSTRING"
-	base = fmt.format(_getmodulename(thing), thing)
+		base = "DOCSTRING"
 
 	lformat = format.lower()
 	if lformat == "plaintext":
@@ -108,7 +108,7 @@ def getdoc(thing, format):
 					ref["module"] = thing.__name__
 		return node
 	else:
-		raise ValueError("unsupported __docformat__ {!r}".format(format))
+		raise ValueError(f"unsupported __docformat__ {format!r}")
 
 
 def getsourceline(obj):
@@ -403,10 +403,10 @@ class base(xsc.Element):
 			return "-0.7cm"
 
 		def indent(self):
-			return "{:.1f}cm".format(0.7*self.indentcount)
+			return f"{0.7*self.indentcount:.1f}cm"
 
 		def labelindent(self):
-			return "{:.1f}cm".format(0.7*self.indentcount-0.4)
+			return f"{0.7*self.indentcount-0.4:.1f}cm"
 
 	def convert(self, converter):
 		target = converter.target
@@ -419,7 +419,7 @@ class base(xsc.Element):
 		elif target.xmlns == fo.xmlns:
 			return self.convert_fo(converter)
 		else:
-			raise ValueError("unknown conversion target {!r}".format(target))
+			raise ValueError(f"unknown conversion target {target!r}")
 
 	def convert_doc(self, converter):
 		e = self.__class__(
@@ -975,9 +975,9 @@ class h(base):
 				level = len(context.sections)
 				if context.firstheaderlevel is None:
 					context.firstheaderlevel = level
-				e = getattr(converter.target, "h{}".format(context.firstheaderlevel+level), converter.target.h6)(self.content)
+				e = getattr(converter.target, f"h{context.firstheaderlevel+level}", converter.target.h6)(self.content)
 			else:
-				raise ValueError("unknown node {!r} on the stack".format(context.stack[-1]))
+				raise ValueError(f"unknown node {context.stack[-1]!r} on the stack")
 		else:
 			context.firstheaderlevel = 0
 			e = converter.target.h1(self.content)
@@ -1020,7 +1020,7 @@ class section(block):
 			e.attrs.class_.append(" ", self.attrs.role)
 		#if "id" in self.attrs:
 		#	e.append(target.a(name=self.attrs.id, id=self.attrs.id))
-		hclass = getattr(target, "h{}".format(level), target.h6)
+		hclass = getattr(target, f"h{level}", target.h6)
 		for t in ts:
 			e.append(hclass(t.content))
 		e.append(cs)
@@ -1161,7 +1161,7 @@ class li(block):
 		if type=="ul":
 			label = "\u2022"
 		elif type=="ol":
-			label = "{}.".format(context.lists[-1][1])
+			label = f"{context.lists[-1][1]}."
 		context.indentcount += 1
 		if self[block]: # Do we have a block in our content?
 			content = self.content # yes => use the content as is

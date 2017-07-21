@@ -160,7 +160,7 @@ class Line:
 		elif blank == "collapse":
 			self.compareline = " ".join(line.strip().split())
 		else:
-			raise ValueError("unknown blank value {!r}".format(blank))
+			raise ValueError(f"unknown blank value {blank!r}")
 
 	def __eq__(self, other):
 		return self.compareline == other.compareline
@@ -216,7 +216,7 @@ def main(args=None):
 	def comparefiles(url1, url2):
 		def header(prefix, style, url):
 			if prefix:
-				return style("{} {}".format(prefix, url))
+				return style(f"{prefix} {url}")
 			else:
 				return style(str(url))
 
@@ -224,7 +224,7 @@ def main(args=None):
 		lines2 = [Line(line[:-1], args.blank) for line in url2.open("r", encoding=args.encoding, errors=args.errors)]
 
 		if args.verbose:
-			stderr.writeln(header("", s4comment, "diff {} {}".format(url1, url2)))
+			stderr.writeln(header("", s4comment, f"diff {url1} {url2}"))
 		started = False
 		for group in difflib.SequenceMatcher(None, lines1, lines2).get_grouped_opcodes(args.context):
 			if not started:
@@ -232,11 +232,11 @@ def main(args=None):
 				stdout.writeln(header("+++", s4addedfile, url2))
 				started = True
 			(i1, i2, j1, j2) = group[0][1], group[-1][2], group[0][3], group[-1][4]
-			stdout.writeln(s4pos("@@ -{},{} +{},{} @@".format(i1+1, i2-i1, j1+1, j2-j1)))
+			stdout.writeln(s4pos(f"@@ -{i1+1},{i2-i1} +{j1+1},{j2-j1} @@"))
 			for (tag, i1, i2, j1, j2) in group:
 				if tag == "equal":
 					for line in lines1[i1:i2]:
-						stdout.writeln(" {}".format(line.originalline))
+						stdout.writeln(f" {line.originalline}")
 					continue
 				if tag == "replace" or tag == "delete":
 					for line in lines1[i1:i2]:
@@ -274,20 +274,20 @@ def main(args=None):
 
 	with url.Context():
 		if not args.url1.exists():
-			print("{} doesn't exist".format(args.url1))
+			print(f"{args.url1} doesn't exist")
 			return 1
 		if not args.url2.exists():
-			print("{} doesn't exist".format(args.url2))
+			print(f"{args.url2} doesn't exist")
 			return 1
 		if args.url1.isfile():
 			if args.url2.isfile():
 				comparefiles(args.url1, args.url2)
 			else:
-				print("Can't compare file {} with directory {}".format(args.url1, args.url2))
+				print(f"Can't compare file {args.url1} with directory {args.url2}")
 				return 1
 		else:
 			if args.url2.isfile():
-				print("Can't compare directory {} with file {}".format(args.url1, args.url2))
+				print(f"Can't compare directory {args.url1} with file {args.url2}")
 				return 1
 			else:
 				for (url1, file1, url2, file2) in comparedirs(args.url1, args.url2):

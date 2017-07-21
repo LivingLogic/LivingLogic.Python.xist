@@ -40,7 +40,7 @@ def test_xmlescape():
 			elif c=="'":
 				escape_output.append("&#39;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#{};".format(ord(c)))
+				escape_output.append(f"&#{ord(c)};")
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -58,7 +58,7 @@ def test_xmlescape_text():
 			elif c==">":
 				escape_output.append("&gt;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#{};".format(ord(c)))
+				escape_output.append(f"&#{ord(c)};")
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -78,7 +78,7 @@ def test_xmlescape_attr():
 			elif c=='"':
 				escape_output.append("&quot;")
 			elif restrictedchars.match(c) is not None:
-				escape_output.append("&#{};".format(ord(c)))
+				escape_output.append(f"&#{ord(c)};")
 			else:
 				escape_output.append(c)
 		escape_output = "".join(escape_output)
@@ -264,8 +264,9 @@ def test_javaexpr():
 	assert str(1<<31)+"L" == misc.javaexpr(1<<31)
 	assert str(-(1<<31)) == misc.javaexpr(-(1<<31))
 	assert str(-(1<<31)-1) + "L" == misc.javaexpr(-(1<<31)-1)
+	assert str(-(1<<63)) + "L" == misc.javaexpr(-(1<<63))
 	assert str((1<<63)-1) + "L" == misc.javaexpr((1<<63)-1)
-	assert 'new java.math.BigInteger("{}")'.format(1<<64) == misc.javaexpr(1<<64)
+	assert f'new java.math.BigInteger("{1<<64}")' == misc.javaexpr(1<<64)
 	# float
 	assert "42.5" == misc.javaexpr(42.5)
 	assert "1e+20" == misc.javaexpr(1e20)

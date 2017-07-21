@@ -48,16 +48,16 @@ def oracle(request):
 		db = orasql.connect(connectstring, readlobs=True)
 		cursor = db.cursor()
 		def run(code):
-			cursor.execute("""
+			cursor.execute(f"""
 				create or replace function ul4ontest
 				return clob
 				as
 					c_out clob;
 				begin
-					{}
+					{code}
 					return c_out;
 				end;
-			""".format(code))
+			""")
 			cursor.execute("select ul4ontest from dual")
 			dump = cursor.fetchone().ul4ontest
 			return ul4on.loads(dump)
@@ -86,16 +86,16 @@ def _transport_js_v8(obj, indent):
 	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	"""
 	dump = ul4on.dumps(obj, indent=indent)
-	js = "obj = ul4on.loads({});\nprint(ul4on.dumps(obj, {}));\n".format(ul4c._asjson(dump), ul4c._asjson(indent))
+	js = f"obj = ul4on.loads({ul4c._asjson(dump)});\nprint(ul4on.dumps(obj, {ul4c._asjson(indent)}));\n"
 	f = sys._getframe(1)
-	print("Testing UL4ON via V8 ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(f"Testing UL4ON via V8 ({f.f_code.co_filename}, line {f.f_lineno:,}):")
 	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "d8 {dir}/ul4.js {fn}"
-		result = subprocess.run(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		cmd = f"d8 {dir}/ul4.js {f.name}"
+		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	stdout = result.stdout.decode("utf-8")
 	stderr = result.stderr.decode("utf-8")
 	# Check if we have an exception
@@ -104,7 +104,7 @@ def _transport_js_v8(obj, indent):
 		print(stderr, file=sys.stderr)
 		raise RuntimeError((stderr or stdout).splitlines()[0])
 	output = stdout[:-1] # Drop the "\n"
-	print("Got result {!r}".format(output))
+	print(f"Got result {output!r}")
 	return ul4on.loads(output)
 
 
@@ -124,16 +124,16 @@ def _transport_js_spidermonkey(obj, indent):
 	(this requires an installed ``js`` shell from Spidermonkey
 	"""
 	dump = ul4on.dumps(obj, indent=indent)
-	js = "obj = ul4on.loads({});\nprint(JSON.stringify(ul4on.dumps(obj, {})));\n".format(ul4c._asjson(dump), ul4c._asjson(indent))
+	js = f"obj = ul4on.loads({ul4c._asjson(dump)});\nprint(JSON.stringify(ul4on.dumps(obj, {ul4c._asjson(indent)})));\n"
 	f = sys._getframe(1)
-	print("Testing UL4ON via Spidermonkey ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
+	print(f"Testing UL4ON via Spidermonkey ({f.f_code.co_filename}, line {f.f_lineno:,}):")
 	print(js)
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		fmt = "js -f {dir}/ul4.js -f {fn}"
-		result = subprocess.run(fmt.format(dir=dir, fn=f.name), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		cmd = f"js -f {dir}/ul4.js -f {f.name}"
+		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	stdout = result.stdout.decode("utf-8")
 	stderr = result.stderr.decode("utf-8")
 	# Check if we have an exception
@@ -141,7 +141,7 @@ def _transport_js_spidermonkey(obj, indent):
 		print(stdout, file=sys.stdout)
 		print(stderr, file=sys.stderr)
 		raise RuntimeError((stderr or stdout).splitlines()[0])
-	print("Got result {!r}".format(stdout))
+	print(f"Got result {stdout!r}")
 	return ul4on.loads(json.loads(stdout))
 
 
@@ -189,33 +189,32 @@ def java_runsource(source):
 	"""
 	Compile the Java source :obj:`source`, run it and return the output
 	"""
-	maincodetemplate = """
+	source = f"""
 	public class UL4ONTest
-	{
+	{{
 		@SuppressWarnings("unchecked")
 		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException, org.antlr.runtime.RecognitionException, ClassNotFoundException
-		{
+		{{
 			// Force the JVM to register the UL4 classes for UL4ON
 			Class.forName("com.livinglogic.ul4.InterpretedTemplate");
-			%(source)s
-		}
-	}
+			{source}
+		}}
+	}}
 	"""
 
 	tempdir = tempfile.mkdtemp()
 	stderr = stdout = None
 	try:
-		source = maincodetemplate % dict(source=source)
 		source = java_formatsource(source)
 		print(source)
 		with open(os.path.join(tempdir, "UL4ONTest.java"), "wb") as f:
 			f.write(source.encode("utf-8"))
-		result = subprocess.run("cd {}; javac -encoding utf-8 UL4ONTest.java".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		result = subprocess.run(f"cd {tempdir}; javac -encoding utf-8 UL4ONTest.java", stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		if result.returncode:
 			stderr = result.stderr.decode("utf-8")
 			print(stderr, file=sys.stderr)
 			raise RuntimeError(stderr.splitlines()[0])
-		result = subprocess.run("cd {}; java UL4ONTest".format(tempdir), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		result = subprocess.run(f"cd {tempdir}; java UL4ONTest", stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8")
 		# Check if we have an exception
 		java_findexception(result.stderr.decode("utf-8"))
@@ -234,21 +233,21 @@ def _transport_java(obj, indent):
 	(this requires an installed Java compiler and the Java UL4 jar)
 	"""
 
-	codetemplate = """
-	String input = %(dump)s;
-	Object object = com.livinglogic.ul4on.Utils.loads(input);
-	String output = com.livinglogic.ul4on.Utils.dumps(object, %(indent)s);
+	f = sys._getframe(1)
+	print(f"Testing UL4ON via Java ({f.f_code.co_filename}, line {f.f_lineno}):")
+
+	dump = ul4on.dumps(obj, indent=indent)
+	code = f"""
+	String input = {misc.javaexpr(dump)};
+	Object object = com.livinglogic.ul4on.Utils.loads(input, null);
+	String output = com.livinglogic.ul4on.Utils.dumps(object, {misc.javaexpr(indent)});
 	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
 	// Use ``System.out.write`` to make sure the output is in UTF-8
 	byte[] outputBytes = output.getBytes("utf-8");
 	System.out.write(outputBytes, 0, outputBytes.length);
 	"""
 
-	dump = ul4on.dumps(obj, indent=indent)
-	f = sys._getframe(1)
-	print("Testing UL4ON via Java ({}, line {}):".format(f.f_code.co_filename, f.f_lineno))
-	java = codetemplate % dict(dump=misc.javaexpr(dump), indent=misc.javaexpr(indent))
-	output = java_runsource(java)
+	output = java_runsource(code)
 	return ul4on.loads(output)
 
 

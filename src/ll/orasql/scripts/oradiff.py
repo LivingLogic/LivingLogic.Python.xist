@@ -129,7 +129,7 @@ def comment(*texts):
 
 
 def connid(name):
-	return s4connid("[{}]".format(name))
+	return s4connid(f"[{name}]")
 
 
 def gettimestamp(obj, connection, format):
@@ -164,7 +164,7 @@ class Line:
 		elif blank == "collapse":
 			self.compareline = " ".join(line.strip().split())
 		else:
-			raise ValueError("unknown blank value {!r}".format(blank))
+			raise ValueError(f"unknown blank value {blank!r}")
 
 	def __eq__(self, other):
 		return self.compareline == other.compareline
@@ -178,7 +178,7 @@ class Line:
 
 def showudiff(out, obj, sql1, sql2, connection1, connection2, context=3, timeformat="%c"):
 	def header(prefix, style, connection):
-		return style("{} {} in {}: {}".format(prefix, obj, connection.connectstring(), gettimestamp(obj, connection, timeformat)))
+		return style(f"{prefix} {obj} in {connection.connectstring()}: {gettimestamp(obj, connection, timeformat)}")
 
 	started = False
 	for group in difflib.SequenceMatcher(None, sql1, sql2).get_grouped_opcodes(context):
@@ -187,11 +187,11 @@ def showudiff(out, obj, sql1, sql2, connection1, connection2, context=3, timefor
 			out.writeln(header("+++", s4addedfile, connection2))
 			started = True
 		(i1, i2, j1, j2) = group[0][1], group[-1][2], group[0][3], group[-1][4]
-		out.writeln(s4pos("@@ -{},{} +{},{} @@".format(i1+1, i2-i1, j1+1, j2-j1)))
+		out.writeln(s4pos(f"@@ -{i1+1},{i2-i1} +{j1+1},{j2-j1} @@"))
 		for (tag, i1, i2, j1, j2) in group:
 			if tag == "equal":
 				for line in sql1[i1:i2]:
-					out.writeln(" {}".format(line.originalline))
+					out.writeln(f" {line.originalline}")
 				continue
 			if tag == "replace" or tag == "delete":
 				for line in sql1[i1:i2]:
@@ -251,7 +251,7 @@ def main(args=None):
 		for (i, obj) in enumerate(connection.objects(owner=None, mode=mode)):
 			keepdef = keep(obj)
 			if args.verbose:
-				msg = astyle.style_default("oradiff.py: ", cs(connection), connid(name), ": fetching #{:,} ".format(i+1), df(obj))
+				msg = astyle.style_default("oradiff.py: ", cs(connection), connid(name), f": fetching #{i+1:,} ", df(obj))
 				if not keepdef:
 					msg = astyle.style_default(msg, " ", s4warning("(skipped)"))
 				stderr.writeln(msg)
@@ -273,7 +273,7 @@ def main(args=None):
 		# Objects only in database 2
 		if obj not in objectset1:
 			if args.verbose:
-				stderr.writeln("oradiff.py: only in ", cs(connection2), " #{:,}/{:,} ".format(count, len(allobjects)), df(obj))
+				stderr.writeln("oradiff.py: only in ", cs(connection2), f" #{count:,}/{len(allobjects):,} ", df(obj))
 			if args.mode == "brief":
 				stdout.writeln(df(obj), ": only in ", cs(connection2))
 			elif args.mode == "full":
@@ -290,7 +290,7 @@ def main(args=None):
 				showudiff(stdout, obj, [], sql, connection1, connection2, args.context)
 		else:
 			if args.verbose:
-				stderr.writeln("oradiff.py: diffing #{:,}/{:,} ".format(count, len(allobjects)), df(obj))
+				stderr.writeln(f"oradiff.py: diffing #{count:,}/{len(allobjects):,} ", df(obj))
 			sql1 = obj.createsql(connection1)
 			sql2 = obj.createsql(connection2)
 			sql1c = getcanonicalsql(sql1, args.blank)
@@ -314,7 +314,7 @@ def main(args=None):
 	for obj in objectlist1:
 		if obj not in objectset2:
 			if args.verbose:
-				stderr.writeln("oradiff.py: only in ", cs(connection1), " #{:,}/{:,} ".format(count, len(allobjects)), df(obj))
+				stderr.writeln("oradiff.py: only in ", cs(connection1), f" #{count:,}/{len(allobjects):,} ", df(obj))
 			if args.mode == "brief":
 				stdout.writeln(df(obj), ": only in ", cs(connection1))
 			elif args.mode == "full":

@@ -404,10 +404,9 @@ __docformat__ = "reStructuredText"
 
 def format_class(obj):
 	if obj.__module__ not in ("builtins", "exceptions"):
-		fmt = "{0.__module__}.{0.__qualname__}"
+		return f"{obj.__module__}.{obj.__qualname__}"
 	else:
-		fmt = "{0.__qualname__}"
-	return fmt.format(obj)
+		return obj.__qualname__
 
 
 class Connection:
@@ -417,7 +416,7 @@ class Connection:
 		self.commit = commit
 
 	def connectstring(self):
-		return "{}@{}".format(self.connection.username, self.connection.tnsentry)
+		return f"{self.connection.username}@{self.connection.tnsentry}"
 
 	def close(self):
 		if self.connection is not None:
@@ -431,10 +430,10 @@ class Connection:
 			self.connection = None
 
 	def __str__(self):
-		return "connection {}".format(self.connectstring())
+		return f"connection {self.connectstring()}"
 
 	def __repr__(self):
-		return "<Connection to {}>".format(self.connectstring())
+		return f"<Connection to {self.connectstring()}>"
 
 
 class Context:
@@ -464,7 +463,7 @@ class Context:
 
 	def connection(self, connectname=None):
 		if connectname not in self.connections:
-			raise ValueError("no connection named {!r}".format(connectname))
+			raise ValueError(f"no connection named {connectname!r}")
 		return self.connections[connectname][-1]
 
 	def pushconnection(self, connectname, connection):
@@ -474,16 +473,16 @@ class Context:
 
 	def popconnection(self, connectname):
 		if connectname not in self.connections:
-			raise ValueError("no connection named {!r}".format(connectname))
+			raise ValueError(f"no connection named {connectname!r}")
 		if not self.connections[connectname]:
-			raise ValueError("connection stack for name {!r} empty".format(connectname))
+			raise ValueError(f"connection stack for name {connectname!r} empty")
 		return self.connections[connectname].pop()
 
 	def var(self, key, type=int):
 		if key in self.keys:
 			value = self.keys[key]
 			if value is not None and not isinstance(value, type):
-				raise TypeError("{!r} is not of type {}".format(value, format_class(type)))
+				raise TypeError("f{value!r} is not of type {format_class(type)}")
 			return value
 		else:
 			return var(key, type)
@@ -500,7 +499,7 @@ class Context:
 		elif self.verbose == "type":
 			print(" " + command.type, end="", flush=True)
 		elif self.verbose == "full":
-			print("pysql #{:,} :: {}".format(self.totalcount+1, command.location), end="", flush=True)
+			print(f"pysql #{self.totalcount+1:,} :: {command.location}", end="", flush=True)
 
 	def commandstart(self, *messages):
 		if self.verbose == "full":
@@ -516,7 +515,7 @@ class Context:
 	def commandend(self, message=None):
 		if self.verbose == "full":
 			if message is not None:
-				print(" -> {}".format(message), flush=True)
+				print(f" -> {message}", flush=True)
 			else:
 				print(flush=True)
 
@@ -561,7 +560,7 @@ class Context:
 							args["type"] = "sql"
 							args["sql"] = text[:-1]
 						else:
-							raise ValueError("block terminator {!r} unknown".format(text[-1:]))
+							raise ValueError(f"block terminator {text[-1:]!r} unknown")
 
 						type = args.pop("type")
 						if "raiseexceptions" not in args:
@@ -633,7 +632,7 @@ class Context:
 							print("(error)", end="", flush=True)
 						elif self.verbose == "full":
 							exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
-							print(" -> ignored {}.{}: {}".format(exc.__class__.__module__, exc.__class__.__qualname__, exctext))
+							print(f" -> ignored {format_class(exc.__class__)}: {exctext}")
 			for connections in self.connections.values():
 				for connection in connections:
 					if connection.commit == "once":
@@ -651,7 +650,7 @@ class Context:
 				print()
 			print("Command summary:")
 			anyoutput = False
-			totallen = len("{:,}".format(self.totalcount))
+			totallen = len(f"{self.totalcount:,}")
 			def sortkey(keyvalue):
 				(key, value) = keyvalue
 				if len(key) > 1: # db command
@@ -664,18 +663,19 @@ class Context:
 				if not anyoutput or connection != lastconnection:
 					print()
 					if connection:
-						print("Connection {}:".format(connection))
+						print(f"Connection {connection}:")
 					else:
 						print("Other commands:")
 				lastconnection = connection
 				anyoutput = True
-				print("    {:>{},} {}".format(count, totallen, " ".join(key[1:]) if len(key) > 1 else key[0]))
+				keys = " ".join(key[1:]) if len(key) > 1 else key[0]
+				print(f"    {count:>{totallen},} {keys}")
 			if self.errorcount:
 				print("")
-				print("Exceptions: {:,} exception{} ignored".format(self.errorcount, "s" if self.errorcount != 1 else ""))
+				print(f"Exceptions: {self.errorcount:,} exception{'s' if self.errorcount != 1 else ''} ignored")
 			if anyoutput:
 				print("")
-				print("Total: {:,} command{} executed".format(self.totalcount, "s" if self.totalcount != 1 else ""))
+				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed")
 			if not anyoutput:
 				print("    no commands executed")
 
@@ -721,10 +721,10 @@ class Command:
 	def fromdict(cls, type, location, d):
 		if type in cls.commands:
 			return cls.commands[type](location, **d)
-		raise ValueError("command type {!r} unknown".format(type))
+		raise ValueError(f"command type {type!r} unknown")
 
 	def __str__(self):
-		return "{} command {}".format(self.type, self.location)
+		return f"{self.type} command {self.location}"
 
 
 def register(cls):
@@ -749,10 +749,10 @@ class IncludeCommand(Command):
 		self.name = name
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "incluce command {}".format(self.location)
+		return f"incluce command {self.location}"
 
 
 @register
@@ -777,14 +777,14 @@ class PushConnectionCommand(Command):
 		self.commit = commit
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} connectname={0.connectname!r} connection={0.connection!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectname={self.connectname!r} connection={self.connection!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "pushconnection command {}".format(self.location)
+		return f"pushconnection command {self.location}"
 
 	def execute(self, context):
-		connectname = "default connection" if self.connectname is None else "connection {!r}".format(self.connectname)
-		context.commandstart("push {!r} as {}".format(self.connectstring, connectname))
+		connectname = "default connection" if self.connectname is None else f"connection {self.connectname!r}"
+		context.commandstart(f"push {self.connectstring!r} as {connectname}")
 
 		context.pushconnection(self.connectname, context.connect(self.connectstring, self.commit if self.commit is not None else context.commit))
 
@@ -810,20 +810,20 @@ class PopConnectionCommand(Command):
 		self.connectname = connectname
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} connectname={0.connectname!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectname={self.connectname!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "popconnection command {}".format(self.location)
+		return f"popconnection command {self.location}"
 
 	def execute(self, context):
-		connectname = "default connection" if self.connectname is None else "connection {!r}".format(self.connectname)
-		context.commandstart("pop {}".format(connectname))
+		connectname = "default connection" if self.connectname is None else f"connection {self.connectname!r}"
+		context.commandstart(f"pop {connectname}")
 
 		connection = context.popconnection(self.connectname)
 		connectstring = connection.connectstring()
 		connection.close()
 
-		context.commandend("popped {}".format(connectstring))
+		context.commandend(f"popped {connectstring}")
 
 
 class _DatabaseCommand(Command):
@@ -916,7 +916,7 @@ class _SQLCommand(_DatabaseCommand):
 					argvalue = _reprbytes(argvalue)
 				else:
 					argvalue = repr(argvalue)
-				arg = "{}={}".format(argname, argvalue)
+				arg = f"{argname}={argvalue}"
 				args.append(arg)
 		return ", ".join(args)
 
@@ -972,31 +972,31 @@ class ProcedureCommand(_SQLCommand):
 
 	def __repr__(self):
 		if self.args:
-			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} args={0.args!r} {0.location} at {1:#x}>"
+			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} args={self.args!r} {self.location} at {id(self):#x}>"
 		else:
-			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} {0.location} at {1:#x}>"
-		return fmt.format(self, id(self))
+			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "procedure command {}".format(self.location)
+		return f"procedure command {self.location}"
 
 	def _formatprocedurecall(self, context):
-		return "{}({})".format(self.name, self._formatargs(context))
+		return f"{self.name}({self._formatargs(context)})"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
 
-		context.commandstart(str(connection), "procedure {}".format(self._formatprocedurecall(context)))
+		context.commandstart(str(connection), f"procedure {self._formatprocedurecall(context)}")
 
 		queryargvalues = {}
 		for (argname, argvalue) in self.args.items():
 			if isinstance(argvalue, sql):
 				argvalue = argvalue.expression
 			else:
-				argvalue = ":{}".format(argname)
+				argvalue = f":{argname}"
 			queryargvalues[argname] = argvalue
 
-		query = "begin {}({}); end;".format(self.name, ", ".join("{}=>{}".format(*argitem) for argitem in queryargvalues.items()))
+		args = ", ".join(f"{argname}=>{argvalue}" for (argname, argvalue) in queryargvalues.items())
+		query = f"begin {self.name}({args}); end;"
 		result = self._executesql(context, query, connection)
 
 		context.count(connection.connectstring(), self.type, self.name)
@@ -1004,7 +1004,7 @@ class ProcedureCommand(_SQLCommand):
 		self.endconnection(context, connection)
 
 		if result:
-			message = ", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())
+			message = ", ".join(f"{argname}={argvalue!r}" for (argname, argvalue) in result.items())
 		else:
 			message = "done"
 
@@ -1042,24 +1042,23 @@ class SQLCommand(_SQLCommand):
 
 	def __repr__(self):
 		if self.args:
-			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} sql={0.sql!r} args={0.args!r} {0.location} at {1:#x}>"
+			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} args={self.args!r} {self.location} at {id(self):#x}>"
 		else:
-			fmt = "<{0.__class__.__module__}.{0.__class__.__qualname__} sql={0.sql!r} {0.location} at {1:#x}>"
-		return fmt.format(self, id(self))
+			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "sql command {}".format(self.location)
+		return f"sql command {self.location}"
 
 	def _formatsql(self, context):
 		if self.args:
-			return "{!r} with args {}".format(self.sql, self._formatargs(context))
+			return f"{self.sql!r} with args {self._formatargs(context)}"
 		else:
 			return repr(self.sql)
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
 
-		context.commandstart(str(connection), "sql {}".format(self._formatsql(context)))
+		context.commandstart(str(connection), f"sql {self._formatsql(context)}")
 
 		result = self._executesql(context, self.sql, connection)
 
@@ -1068,7 +1067,7 @@ class SQLCommand(_SQLCommand):
 		self.endconnection(context, connection)
 
 		if result:
-			message = ", ".join("{}={!r}".format(argname, argvalue) for (argname, argvalue) in result.items())
+			message = ", ".join(f"{argname}={argvalue!r}" for (argname, argvalue) in result.items())
 		else:
 			message = "done"
 		context.commandend(message)
@@ -1099,13 +1098,13 @@ class SetVarCommand(Command):
 		self.value = value
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} value={self.value!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "setvar command {}".format(self.location)
+		return f"setvar command {self.location}"
 
 	def execute(self, context):
-		context.commandstart("set var {!r} to {!r}".format(self.name, self.value))
+		context.commandstart(f"set var {self.name!r} to {self.value!r}")
 
 		context.keys[self.name] = self.value
 
@@ -1130,13 +1129,13 @@ class UnsetVarCommand(Command):
 		self.name = name
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "unsetvar command {}".format(self.location)
+		return f"unsetvar command {self.location}"
 
 	def execute(self, context):
-		context.commandstart("unset var {!r}".format(self.name))
+		context.commandstart(f"unset var {self.name!r}")
 
 		context.keys.pop(self.name, None)
 
@@ -1174,13 +1173,13 @@ class RaiseExceptionsCommand(Command):
 		self.value = bool(value)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "raiseexceptions command {}".format(self.location)
+		return f"raiseexceptions command {self.location}"
 
 	def execute(self, context):
-		context.commandstart("raiseexceptions {!r}".format(self.value))
+		context.commandstart(f"raiseexceptions {self.value!r}")
 
 		context.raiseexceptions[-1] = self.value
 
@@ -1217,13 +1216,13 @@ class PushRaiseExceptionsCommand(Command):
 		self.value = bool(value)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} value={0.value!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "pushraiseexceptions command {}".format(self.location)
+		return f"pushraiseexceptions command {self.location}"
 
 	def execute(self, context):
-		context.commandstart("pushraiseexceptions {!r}".format(self.value))
+		context.commandstart(f"pushraiseexceptions {self.value!r}")
 
 		context.raiseexceptions.append(self.value)
 
@@ -1248,10 +1247,10 @@ class PopRaiseExceptionsCommand(Command):
 		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "popraiseexceptions command {}".format(self.location)
+		return f"popraiseexceptions command {self.location}"
 
 	def execute(self, context):
 		context.commandstart("popraiseexceptions")
@@ -1263,7 +1262,7 @@ class PopRaiseExceptionsCommand(Command):
 
 		context.count(self.type)
 
-		context.commandend("reverting to {!r}".format(context.raiseexceptions[-1]))
+		context.commandend(f"reverting to {context.raiseexceptions[-1]!r}")
 
 
 @register
@@ -1279,10 +1278,10 @@ class CheckErrorsCommand(_DatabaseCommand):
 	type = "checkerrors"
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "checkerrors command {}".format(self.location)
+		return f"checkerrors command {self.location}"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
@@ -1313,10 +1312,10 @@ class CompileAllCommand(_DatabaseCommand):
 	type = "compileall"
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "compileall command {}".format(self.location)
+		return f"compileall command {self.location}"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
@@ -1360,15 +1359,15 @@ class SCPCommand(Command):
 		self.content = content
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} content={1} {0.location} at {2:#x}>".format(self, self.formatload(self.content), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={self.formatload(self.content)} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "scp command {}".format(self.location)
+		return f"scp command {self.location}"
 
 	def execute(self, context):
 		filename = context.scpdirectory + self.name.format(**context.keys)
 
-		context.commandstart("scp {}".format(filename))
+		context.commandstart(f"scp {filename}")
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(self.content)
@@ -1382,7 +1381,7 @@ class SCPCommand(Command):
 
 		context.count(self.type)
 
-		context.commandend("{} written".format(_reprbytes(self.content)))
+		context.commandend(f"{_reprbytes(self.content)} written")
 
 
 @register
@@ -1427,15 +1426,15 @@ class FileCommand(Command):
 		self.group = group
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} content={1} {0.location} at {2:#x}>".format(self, self.formatload(self.content), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={self.formatload(self.content)} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "file command {}".format(self.location)
+		return f"file command {self.location}"
 
 	def execute(self, context):
 		filename = context.filedirectory + self.name.format(**context.keys)
 
-		context.commandstart("file {}".format(filename))
+		context.commandstart(f"file {filename}")
 
 		try:
 			with open(filename, "wb") as f:
@@ -1468,16 +1467,16 @@ class FileCommand(Command):
 
 		context.count(self.type)
 
-		message = "{} written".format(_reprbytes(self.content))
+		message = f"{_reprbytes(self.content)} written"
 		messageoptions = []
 		if self.mode:
-			messageoptions.append("mode {:#o}".format(self.mode))
+			messageoptions.append(f"mode {self.mode:#o}")
 		if self.owner:
-			messageoptions.append("owner {!r}".format(self.owner))
+			messageoptions.append(f"owner {self.owner!r}")
 		if self.group:
-			messageoptions.append("group {!r}".format(self.group))
+			messageoptions.append(f"group {self.group!r}")
 		if messageoptions:
-			message = "{} ({})".format(message, ", ".join(messageoptions))
+			message = "{message} ({', '.join(messageoptions)})"
 		context.commandend(message)
 
 
@@ -1520,15 +1519,15 @@ class ResetSequenceCommand(_DatabaseCommand):
 		self.increment = increment
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} sequence={0.sequence!r} {0.location} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sequence={self.sequence!r} {self.location} at {id(self):#x}>"
 
 	def __str__(self):
-		return "resetsequence command {}".format(self.location)
+		return f"resetsequence command {self.location}"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
 
-		context.commandstart(str(connection), "resetting sequence {} to maximum value from {}.{}".format(self.sequence, self.table, self.field))
+		context.commandstart(str(connection), f"resetting sequence {self.sequence} to maximum value from {self.table}.{self.field}")
 
 		cursor = connection.cursor
 
@@ -1536,27 +1535,27 @@ class ResetSequenceCommand(_DatabaseCommand):
 		cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
 		oldvalues = cursor.fetchone()
 		if oldvalues is None:
-			raise ValueError("sequence {!r} unknown".format(self.sequence))
+			raise ValueError(f"sequence {self.sequence!r} unknown")
 		increment = self.increment
 		if increment is None:
 			increment = oldvalues[1]
 		minvalue = self.minvalue
 		if minvalue is None:
 			minvalue = oldvalues[0]
-		cursor.execute("select {}.nextval from dual".format(self.sequence))
+		cursor.execute(f"select {self.sequence}.nextval from dual")
 		seqvalue = cursor.fetchone()[0]
 
 		# Fetch information about the table values
-		cursor.execute("select nvl(max({}), 0) from {}".format(self.field, self.table))
+		cursor.execute(f"select nvl(max({self.field}), 0) from {self.table}")
 		tabvalue = cursor.fetchone()[0]
 
 		step = max(tabvalue, minvalue) - seqvalue
 		if step:
-			cursor.execute("alter sequence {} increment by {}".format(self.sequence, step))
-			cursor.execute("select {}.nextval from dual".format(self.sequence))
+			cursor.execute(f"alter sequence {self.sequence} increment by {step}")
+			cursor.execute(f"select {self.sequence}.nextval from dual")
 			seqvalue = cursor.fetchone()[0]
-			cursor.execute("alter sequence {} increment by {}".format(self.sequence, increment))
-			message = "reset to {}".format(seqvalue)
+			cursor.execute(f"alter sequence {self.sequence} increment by {increment}")
+			message = f"reset to {seqvalue}"
 			result = seqvalue
 		else:
 			message = "no reset required"
@@ -1579,7 +1578,7 @@ class CommentCommand(Command):
 	type = "comment"
 
 	def __str__(self):
-		return "comment {}".format(self.location)
+		return f"comment {self.location}"
 
 	def execute(self, context):
 		context.commandstart("comment")
@@ -1616,9 +1615,9 @@ class var:
 
 	def __repr__(self):
 		if self.type is int:
-			return "var({!r})".format(self.key)
+			return f"var({self.key!r})"
 		else:
-			return "var({!r}, {})".format(self.key, format_class(self.type))
+			return f"var({self.key!r}, {format_class(self.type)})"
 
 	def __bool__(self):
 		"""
@@ -1632,14 +1631,14 @@ reprthreshold = 100
 
 def _reprbytes(value):
 	if len(value) > reprthreshold:
-		return "({:,} bytes starting with {})".format(len(value), bytes.__repr__(value[:reprthreshold]))
+		return f"({len(value):,} bytes starting with {__repr__(value[:reprthreshold])})"
 	else:
 		return bytes.__repr__(value) # Because ``value`` might be an instance of a subclass of :class:`bytes`
 
 
 def _reprstr(value):
 	if len(value) > reprthreshold:
-		return "({:,} characters starting with {})".format(len(value), str.__repr__(value[:reprthreshold]))
+		return f"({len(value):,} characters starting with {str.__repr__(value[:reprthreshold])})"
 	else:
 		return str.__repr__(value) # Because ``value`` might be an instance of a subclass of :class:`str`
 
@@ -1651,7 +1650,7 @@ class strvalue(str):
 		return self
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__qualname__, self.key, _reprstr(self))
+		return f"{self.__class__.__qualname__}({self.key!r}, {_reprstr(self)})"
 
 
 class bytesvalue(bytes):
@@ -1661,7 +1660,7 @@ class bytesvalue(bytes):
 		return self
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__qualname__, self.key, _reprstr(self))
+		return f"{self.__class__.__qualname__}({self.key!r}, {_reprstr(self)})"
 
 
 class intvalue(int):
@@ -1671,7 +1670,7 @@ class intvalue(int):
 		return self
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__qualname__, self.key, int.__repr__(self))
+		return f"{self.__class__.__qualname__}({self.key!r}, {int.__repr__(self)})"
 
 
 class floatvalue(float):
@@ -1681,7 +1680,7 @@ class floatvalue(float):
 		return self
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__qualname__, self.key, int.__repr__(self))
+		return f"{self.__class__.__qualname__}({self.key!r}, {float.__repr__(self)})"
 
 
 def _makevalue(name, value):
@@ -1708,7 +1707,7 @@ class sql:
 		self.expression = expression
 
 	def __repr__(self):
-		return "sql({!r})".format(self.expression)
+		return f"sql({self.expression!r})"
 
 
 class loadbytes:
@@ -1727,7 +1726,7 @@ class loadbytes:
 		self.filename = filename
 
 	def __repr__(self):
-		return "{}({!r})".format(self.__class__.__qualname__, self.filename)
+		return f"{self.__class__.__qualname__}({self.filename!r})"
 
 	def execute(self, basefilename):
 		"""
@@ -1760,13 +1759,12 @@ class loadstr:
 		self.errors = errors
 
 	def __repr__(self):
-		fmt = "{0.__class__.__qualname__}({0.filename!r}"
+		result = f"{self.__class__.__qualname__}({self.filename!r}"
 		if self.encoding is not None:
-			fmt += ", encoding={0.encoding!r}"
+			text += f", encoding={self.encoding!r}"
 		if self.errors is not None:
-			fmt += ", errors={0.errors!r}"
-		fmt += ")"
-		return fmt.format(self)
+			text += f", errors={self.errors!r}"
+		return text + ")"
 
 	def execute(self, basefilename):
 		"""
@@ -1787,7 +1785,7 @@ class loadedbytes(bytes):
 		return self
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__qualname__, self.filename, _reprbytes(self))
+		return f"{self.__class__.__qualname__}({self.filename!r}, {_reprbytes(self)})"
 
 
 class loadedstr(str):
@@ -1797,7 +1795,7 @@ class loadedstr(str):
 		return self
 
 	def __repr__(self):
-		return "{}({!r}, {})".format(self.__class__.__qualname__, self.filename, _reprstr(self))
+		return f"{self.__class__.__qualname__}({self.filename!r}, {_reprstr(self)})"
 
 
 ###
@@ -1822,9 +1820,10 @@ class CompilationError(Exception):
 
 	def __str__(self):
 		if len(self.objects) == 1:
-			return "one invalid db object: {} {}".format(*self.objects[0])
+			return f"one invalid db object: {self.objects[0][0]} {self.objects[0][1]}"
 		else:
-			return "{:,} invalid db objects: {}".format(len(self.objects), ", ".join("{} {}".format(*object) for object in self.objects))
+			objects = ", ".join(f"{object[0]} {object[1]}" for object in self.objects)
+			return f"{len(self.objects):,} invalid db objects: {objects}"
 
 
 class SCPError(Exception):
@@ -1837,7 +1836,7 @@ class SCPError(Exception):
 		self.msg = msg
 
 	def __str__(self):
-		return "scp failed with code {}: {}".format(self.status, self.msg)
+		return f"scp failed with code {self.status}: {self.msg}"
 
 
 class Location:
@@ -1850,15 +1849,15 @@ class Location:
 		self.endline = endline
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} filename={0.filename!r} startline={0.startline!r} endline={0.endline!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r} startline={self.startline!r} endline={self.endline!r} at {id(self):#x}>"
 
 	def __str__(self):
 		if self.startline is None and self.endline is None:
 			return self.filename
 		elif self.startline == self.endline:
-			return "{} :: line {:,}".format(self.filename, self.startline)
+			return f"{self.filename} :: line {self.startline:,}"
 		else:
-			return "{} :: lines {:,}-{:,}".format(self.filename, self.startline, self.endline)
+			return f"{self.filename} :: lines {self.startline:,}-{self.endline:,}"
 
 
 def define(arg):
@@ -1871,23 +1870,23 @@ def define(arg):
 		try:
 			return intvalue(name, int(value))
 		except ValueError:
-			raise argparse.ArgumentTypeError("{!r} is not a legal integer value".format(value))
+			raise argparse.ArgumentTypeError(f"{value!r} is not a legal integer value")
 	elif type == "float":
 		if not value:
 			return floatvalue(name, 0.)
 		try:
 			return floatvalue(name, float(value))
 		except ValueError:
-			raise argparse.ArgumentTypeError("{!r} is not a legal float value".format(value))
+			raise argparse.ArgumentTypeError(f"{value!r} is not a legal float value")
 	elif type == "bool":
 		if value in ("", "0", "no", "false", "False"):
 			return False
 		elif value in ("1", "yes", "true", "True"):
 			return True
 		else:
-			raise argparse.ArgumentTypeError("{!r} is not a legal bool value".format(value))
+			raise argparse.ArgumentTypeError(f"{value!r} is not a legal bool value")
 	elif type and type != "str":
-		raise argparse.ArgumentTypeError("{!r} is not a legal type".format(type))
+		raise argparse.ArgumentTypeError(f"{type!r} is not a legal type")
 	return strvalue(name, value)
 
 

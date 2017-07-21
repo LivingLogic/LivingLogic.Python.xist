@@ -51,18 +51,18 @@ The following example illustrates the use of this module:
 
 		def __init__(self):
 			self.url = "http://www.python.org/"
-			self.tmpname = "Fetch_Tmp_{}.html".format(os.getpid())
+			self.tmpname = f"Fetch_Tmp_{os.getpid()}.html"
 			self.officialname = "Python.html"
 
 		def execute(self):
-			self.log("fetching data from {!r}".format(self.url))
+			self.log(f"fetching data from {self.url!r}")
 			data = urllib.request.urlopen(self.url).read()
 			datasize = len(data)
-			self.log("writing file {!r} ({:,} bytes)".format(self.tmpname, datasize))
+			self.log(f"writing file {self.tmpname!r} ({datasize:,} bytes)")
 			open(self.tmpname, "wb").write(data)
-			self.log("renaming file {!r} to {!r}".format(self.tmpname, self.officialname))
+			self.log(f"renaming file {self.tmpname!r} to {self.officialname!r}")
 			os.rename(self.tmpname, self.officialname)
-			return "cached {!r} as {!r} ({:,} bytes)".format(self.url, self.officialname, datasize)
+			return f"cached {self.url!r} as {self.officialname!r} ({datasize:,} bytes)"
 
 	if __name__=="__main__":
 		sisyphus.executewithargs(Fetch())
@@ -78,7 +78,7 @@ Logging itself is done by calling :meth:`~Job.log`:
 
 .. sourcecode:: python
 
-	self.log("can't parse XML file {}".format(filename))
+	self.log(f"can't parse XML file {filename}")
 
 This logs the argument without tagging the line.
 
@@ -88,14 +88,14 @@ attributes of the ``log`` pseudo method. I.e. to add the tags ``xml`` and
 
 .. sourcecode:: python
 
-	self.log.xml.warning("can't parse XML file {}".format(filename))
+	self.log.xml.warning(f"can't parse XML file {filename}")
 
 It's also possible to do this via ``__getitem__`` calls, i.e. the above can be
 written like this:
 
 .. sourcecode:: python
 
-	self.log['xml']['warning']("can't parse XML file {}".format(filename))
+	self.log['xml']['warning'](f"can't parse XML file {filename}")
 
 :mod:`ll.sisyphus` itself uses the following tags:
 
@@ -705,12 +705,12 @@ class Job:
 		os.kill(self.killpid, signal.SIGTERM) # Kill our child
 		maxtime = self.getmaxtime()
 		self.endtime = datetime.datetime.now()
-		exc = RuntimeError("maximum runtime {} exceeded in forked child (pid {})".format(maxtime, misc.sysinfo.pid))
+		exc = RuntimeError(f"maximum runtime {maxtime} exceeded in forked child (pid {misc.sysinfo.pid})")
 		if self.noisykills:
 			self.log.email(exc)
 		else:
 			self.log(exc)
-		self.log.sisyphus.result.kill("Terminated child after {}".format(maxtime))
+		self.log.sisyphus.result.kill(f"Terminated child after {maxtime}")
 		for logger in self._loggers:
 			logger.close()
 		os._exit(1)
@@ -718,12 +718,12 @@ class Job:
 	def _alarm_nofork(self, signum, frame):
 		maxtime = self.getmaxtime()
 		self.endtime = datetime.datetime.now()
-		exc = RuntimeError("maximum runtime {} exceeded (pid {})".format(maxtime, misc.sysinfo.pid))
+		exc = RuntimeError(f"maximum runtime {maxtime} exceeded (pid {misc.sysinfo.pid})")
 		if self.noisykills:
 			self.log.email(exc)
 		else:
 			self.log(exc)
-		self.log.sisyphus.result.kill("Terminated after {}".format(maxtime))
+		self.log.sisyphus.result.kill(f"Terminated after {maxtime}")
 		for logger in self._loggers:
 			logger.close()
 		os._exit(1)
@@ -762,7 +762,7 @@ class Job:
 			self._createlog() # Create loggers
 
 			maxtime = self.getmaxtime()
-			self.log.sisyphus.init("{} (max time {}; pid {})".format(misc.sysinfo.script_name, maxtime, misc.sysinfo.pid))
+			self.log.sisyphus.init(f"{misc.sysinfo.script_name} (max time {maxtime}; pid {misc.sysinfo.pid})")
 			if self.setproctitle and setproctitle is None:
 				self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available)")
 
@@ -770,7 +770,8 @@ class Job:
 				# Fork the process; the child will do the work; the parent will monitor the maximum runtime
 				self.killpid = pid = os.fork()
 				if pid: # We are the parent process
-					self.setproctitle("parent", "{} (max time {})".format("logging to {}".format(self.logfileurl) if self.logfileurl else "no logging", maxtime))
+					msg = f"logging to {self.logfileurl}" if self.logfileurl else "no logging"
+					self.setproctitle("parent", f"{msg} (max time {maxtime})")
 					# set a signal to kill the child process after the maximum runtime
 					signal.signal(signal.SIGALRM, self._alarm_fork)
 					signal.alarm(self.getmaxtime_seconds())
@@ -780,7 +781,7 @@ class Job:
 						pass
 					return # Exit normally
 				self.setproctitle("child")
-				self.log.sisyphus.init("forked worker child (child pid {})".format(os.getpid()))
+				self.log.sisyphus.init(f"forked worker child (child pid {os.getpid()})")
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
 				signal.signal(signal.SIGALRM, self._alarm_nofork)
@@ -796,7 +797,7 @@ class Job:
 			except Exception as exc:
 				self.endtime = datetime.datetime.now()
 				self.setproctitle("child", "Handling exception")
-				result = "failed with {}".format(misc.format_exception(exc))
+				result = f"failed with {misc.format_exception(exc)}"
 				# log the error to the logfile, because the job probably didn't have a chance to do it
 				self.log.sisyphus.email(exc)
 				self.log.sisyphus.result.fail(result)
@@ -828,8 +829,8 @@ class Job:
 	def notifyfinish(self, result):
 		if self.notify:
 			misc.notifyfinish(
-				"{} {}".format(self.projectname, self.jobname),
-				"finished after {}".format(self.endtime-self.starttime),
+				f"{self.projectname} {self.jobname}",
+				f"finished after {self.endtime-self.starttime}",
 				result,
 			)
 
@@ -871,7 +872,7 @@ class Job:
 
 			items = sys.modules.items()
 			for (name, module) in self.tasks(items, "module", operator.itemgetter(0)):
-				self.log("module is {}".format(module))
+				self.log(f"module is {module}")
 
 		The log output will look something like the following::
 
@@ -910,12 +911,12 @@ class Job:
 			return title
 		if not title:
 			return detail
-		return "{} >> {}".format(title, detail)
+		return f"{title} >> {detail}"
 
 	def setproctitle(self, process, detail=None):
 		if self.proctitle and setproctitle:
 			title = self.makeproctitle(process, detail)
-			setproctitle.setproctitle("{} :: {}".format(self._originalproctitle, title))
+			setproctitle.setproctitle(f"{self._originalproctitle} :: {title}")
 
 	def _log(self, tags, obj):
 		"""
@@ -1029,9 +1030,9 @@ class Task:
 		if self.index is not None:
 			if v:
 				v += " "
-			v += "({}".format(self.index+1)
+			v += f"({self.index+1}"
 			if self.count is not None:
-				v += "/{}".format(self.count)
+				v += f"/{self.count}"
 			v += ")"
 		return v or "?"
 
@@ -1047,7 +1048,7 @@ class Task:
 		)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} type={0.type!r} name={0.name!r} at {1:#x}".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} type={self.type!r} name={self.name!r} at {id(self):#x}"
 
 
 class Tag:
@@ -1106,7 +1107,7 @@ class StreamLogger(Logger):
 		self.stream.flush()
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} stream={0.stream!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} stream={self.stream!r} at {id(self):#x}>"
 
 
 class URLResourceLogger(StreamLogger):
@@ -1140,25 +1141,25 @@ class URLResourceLogger(StreamLogger):
 				if mdate < keepthreshold:
 					if not removedany: # Only log this line for the first logfile we remove
 						# This will still work, as the file isn't closed yet.
-						self.job.log.sisyphus.info("Removing logfiles older than {}".format(keepfilelogs))
+						self.job.log.sisyphus.info(f"Removing logfiles older than {keepfilelogs}")
 						removedany = True
 					self.remove(fileurl)
 				elif mdate < compressthreshold:
 					if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
 						if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
 							if not warnedcompressany:
-								self.job.log.sisyphus.warning("{} compression not available, leaving log files uncompressed".format(self.job.compressmode))
+								self.job.log.sisyphus.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
 								warnedcompressany = True
 						else:
 							if not compressedany:
-								self.job.log.sisyphus.info("Compressing logfiles older than {} via {}".format(compressfilelogs, self.job.compressmode))
+								self.job.log.sisyphus.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
 								compressedany = True
 							self.compress(fileurl)
 			if removedany or compressedany:
 				self.job.log.sisyphus.info("Logfiles cleaned up")
 
 	def remove(self, fileurl):
-		self.job.log.sisyphus.info("Removing logfile {}".format(fileurl.local()))
+		self.job.log.sisyphus.info(f"Removing logfile {fileurl.local()}")
 		fileurl.remove()
 
 	def compress(self, fileurl, bufsize=65536):
@@ -1172,10 +1173,10 @@ class URLResourceLogger(StreamLogger):
 			compressor = lzma.LZMAFile
 			ext = ".xz"
 		else:
-			raise ValueError("unknown compressmode {!r}".format(self.job.compressmode))
+			raise ValueError(f"unknown compressmode {self.job.compressmode!r}")
 
 		filename = fileurl.local()
-		self.job.log.sisyphus.info("Compressing logfile {}".format(fileurl.local()))
+		self.job.log.sisyphus.info(f"Compressing logfile {fileurl.local()}")
 		with open(filename, "rb") as logfile:
 			with compressor(filename + ext, mode="wb") as compressedlogfile:
 				while True:
@@ -1262,7 +1263,7 @@ class EmailLogger(Logger):
 			textpart = text.MIMEText(emailbodytext)
 			htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
 			jsonpart = application.MIMEApplication(json.dumps(jsondata).encode("utf-8"), _subtype="json", _encoder=encoders.encode_base64)
-			jsonpart.add_header('Content-Disposition', 'attachment', filename="{}.{}.json".format(self.job.projectname, self.job.jobname))
+			jsonpart.add_header('Content-Disposition', 'attachment', filename=f"{self.job.projectname}.{self.job.jobname}.json")
 
 			msg = multipart.MIMEMultipart(
 				_subparts=[
@@ -1280,7 +1281,7 @@ class EmailLogger(Logger):
 					server.login(self.job.smtpuser, self.job.smtppassword)
 				server.send_message(msg)
 				server.quit()
-				self.job.log.sisyphus.report("Sent email report to {}".format(self.job.toemail))
+				self.job.log.sisyphus.report(f"Sent email report to {self.job.toemail}")
 			except smtplib.SMTPException as exc:
 				self.job.log.sisyphus.report(exc)
 

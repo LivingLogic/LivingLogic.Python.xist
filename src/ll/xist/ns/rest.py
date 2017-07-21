@@ -1012,7 +1012,7 @@ class ReSTConverter:
 			warnings.warn(ReSTConversionWarning(str(node)))
 			return xsc.Null # ignore system messages
 		else:
-			raise TypeError("can't handle {!r}".format(node.__class__))
+			raise TypeError(f"can't handle {node.__class__!r}")
 
 
 def fromstring(string, base=None, **options):

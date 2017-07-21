@@ -60,7 +60,7 @@ class attribute(xsc.Element):
 			if value in ("true", "yes"):
 				isrequired = True
 			elif value not in ("false", "no"):
-				raise ValueError("value {!r} not allowed for tag <required>".format(value))
+				raise ValueError(f"value {value!r} not allowed for tag <required>")
 		return xnd.Attr(str(self[name][0].content), "xsc.TextAttr", isrequired)
 
 
@@ -174,7 +174,7 @@ class tag(xsc.Element):
 			elif value == "empty":
 				empty = True
 			else:
-				raise ValueError("value {!r} is not allowed for tag <bodycontent>".format(value))
+				raise ValueError(f"value {value!r} is not allowed for tag <bodycontent>")
 		if model != "none":
 			if model == "simple":
 				e.modeltype = not empty

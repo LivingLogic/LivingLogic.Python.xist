@@ -55,7 +55,7 @@ class EmptyElementWithContentWarning(SIMSWarning):
 		self.path = tuple(path)
 
 	def __str__(self):
-		return "{} doesn't allow content".format(self.path[-1]._str())
+		return f"{self.path[-1]._str()} doesn't allow content"
 
 
 class WrongElementWarning(SIMSWarning):
@@ -69,7 +69,7 @@ class WrongElementWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "{} may not contain {}".format(self.path[-1]._str(), self.badnode._str())
+		return f"{self.path[-1]._str()} may not contain {self.badnode._str()}"
 
 
 class ElementWarning(SIMSWarning):
@@ -83,7 +83,7 @@ class ElementWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "{} may not contain other elements".format(self.path[-1]._str())
+		return f"{self.path[-1]._str()} may not contain other elements"
 
 
 class IllegalTextWarning(SIMSWarning):
@@ -96,7 +96,7 @@ class IllegalTextWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		return "{} may not contain text".format(self.path[-1]._str())
+		return f"{self.path[-1]._str()} may not contain text"
 
 
 class AnyWarning(SIMSWarning):
@@ -109,7 +109,7 @@ class AnyWarning(SIMSWarning):
 		self.warnings = warnings
 
 	def __str__(self):
-		return " or ".join("{}".format(" and ".join("({})".format(warning) for warning in warnings)) for warnings in self.warnings)
+		return " or ".join(" and ".join(f"({warning})" for warning in warnings) for warnings in self.warnings)
 
 
 def badtext(node):
@@ -217,7 +217,8 @@ class Elements:
 		self.elements = elements
 
 	def __repr__(self):
-		return "Elements({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
+		elements = ", ".join(f"{cls.__module__}.{cls.__qualname__}" for cls in self.elements)
+		return f"Elements({elements})"
 
 	def validate(self, path):
 		"""
@@ -252,7 +253,8 @@ class ElementsOrText(Elements):
 		self.elements = elements
 
 	def __repr__(self):
-		return "ElementsOrText({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
+		elements = ", ".join(f"{cls.__module__}.{cls.__name__}" for cls in self.elements)
+		return f"ElementsOrText({elements})"
 
 	def validate(self, path):
 		"""
@@ -284,7 +286,8 @@ class NotElements:
 		self.elements = elements
 
 	def __repr__(self):
-		return "NotElements({})".format(", ".join("{0.__module__}.{0.__name__}".format(cls) for cls in self.elements))
+		elements = ", ".join(f"{cls.__module__}.{cls.__name__}" for cls in self.elements)
+		return f"NotElements({elements})"
 
 	def validate(self, path):
 		node = path[-1]
@@ -305,7 +308,8 @@ class All:
 		self.validators = validators
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}:{0.__class__.__qualname__} {1} at {2:#x}>".format(self, " ".join(repr(validator) for validator in self.validators), id(self))
+		validators = " ".join(repr(validator) for validator in self.validators)
+		return f"<{self.__class__.__module__}:{self.__class__.__qualname__} {validators} at {id(self):#x}>"
 
 	def validate(self, path):
 		seen = set()
@@ -327,7 +331,8 @@ class Any:
 		self.validators = validators
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}:{0.__class__.__qualname__} {1} at {2:#x}>".format(self, " ".join(repr(validator) for validator in self.validators), id(self))
+		validators = " ".join(repr(validator) for validator in self.validators)
+		return f"<{self.__class__.__module__}:{self.__class__.__qualname__} {validators} at {id(self):#x}>"
 
 	def validate(self, path):
 		if self.validators:

@@ -280,7 +280,7 @@ class UnknownEventError(TypeError):
 		self.event = event
 
 	def __str__(self):
-		return "{0.pipe!r} can't handle event type {0.event[0]!r}".format(self)
+		return f"{self.pipe!r} can't handle event type {self.event[0]!r}"
 
 
 ###
@@ -553,7 +553,7 @@ class Decoder:
 			yield ("str", data)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object encoding={self.encoding!r} at {id(self):#x}>"
 
 
 class Encoder:
@@ -608,7 +608,7 @@ class Encoder:
 			yield ("bytes", data)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object encoding={self.encoding!r} at {id(self):#x}>"
 
 
 class Transcoder:
@@ -645,7 +645,7 @@ class Transcoder:
 			yield ("bytes", data)
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object fromencoding={0.fromencoding!r} toencoding={0.toencoding!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object fromencoding={self.fromencoding!r} toencoding={self.toencoding!r} at {id(self):#x}>"
 
 
 ###
@@ -721,18 +721,19 @@ class Expat(Parser):
 	def __repr__(self):
 		v = []
 		if self.encoding is not None:
-			v.append(" encoding={!r}".format(self.encoding))
+			v.append(f" encoding={self.encoding!r}")
 		if self.xmldecl is not None:
-			v.append(" xmldecl={!r}".format(self.xmldecl))
+			v.append(f" xmldecl={self.xmldecl!r}")
 		if self.doctype is not None:
-			v.append(" doctype={!r}".format(self.doctype))
+			v.append(f" doctype={self.doctype!r}")
 		if self.loc is not None:
-			v.append(" loc={!r}".format(self.loc))
+			v.append(f" loc={self.loc!r}")
 		if self.cdata is not None:
-			v.append(" cdata={!r}".format(self.cdata))
+			v.append(f" cdata={self.cdata!r}")
 		if self.ns is not None:
-			v.append(" ns={!r}".format(self.ns))
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object{1} at {2:#x}>".format(self, "".join(v), id(self))
+			v.append(f" ns={self.ns!r}")
+		attrs = "".join(v)
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object{attrs} at {id(self):#x}>"
 
 	def __call__(self, input):
 		"""
@@ -897,7 +898,7 @@ class SGMLOP(Parser):
 		self.cdata = cdata
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object encoding={self.encoding!r} at {id(self):#x}>"
 
 	def __call__(self, input):
 		"""
@@ -1027,10 +1028,10 @@ class NS:
 
 		def make(prefix, xmlns):
 			if prefix is not None and not isinstance(prefix, str):
-				raise TypeError("prefix must be None or string, not {!r}".format(prefix))
+				raise TypeError(f"prefix must be None or string, not {type(prefix)!r}")
 			xmlns = xsc.nsname(xmlns)
 			if not isinstance(xmlns, str):
-				raise TypeError("xmlns must be string, not {!r}".format(xmlns))
+				raise TypeError(f"xmlns must be string, not {type(xmlns)!r}")
 			newprefixes[prefix] = xmlns
 
 		if prefixes is not None:
@@ -1264,12 +1265,12 @@ class Node:
 
 	def begindoctype(self, data):
 		if data["publicid"]:
-			fmt = '{0[name]} PUBLIC "{0[publicid]}" "{0[systemid]}"'
+			content = f'{data["name"]} PUBLIC "{data["publicid"]}" "{data["systemid"]}"'
 		elif data["systemid"]:
-			fmt = '{0[name]} SYSTEM "{0[systemid]}"'
+			content = f'{data["name"]} SYSTEM "{data["systemid"]}"'
 		else:
-			fmt = '{0[name]}'
-		node = xsc.DocType(fmt.format(data))
+			content = data["name"]
+		node = xsc.DocType(content)
 		if self.loc:
 			node.startloc = xsc.Location(self._url, *self._position)
 		self.doctype = node
@@ -1411,7 +1412,7 @@ class Tidy:
 		self.doctype = doctype
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} object encoding={0.encoding!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object encoding={self.encoding!r} at {id(self):#x}>"
 
 	def _asxist(self, node):
 		name = type(node).__name__

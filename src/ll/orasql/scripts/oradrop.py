@@ -164,9 +164,9 @@ def main(args=None):
 
 		# Progress report
 		if args.verbose:
-			msg = astyle.style_default("oradrop.py: ", cs, ": fetching #{:,} ".format(i+1), s4object(str(obj)))
+			msg = astyle.style_default("oradrop.py: ", cs, f": fetching #{i+1:,} ", s4object(str(obj)))
 			if action is not None:
-				msg = astyle.style_default(msg, " ", s4warning("({})".format(action)))
+				msg = astyle.style_default(msg, " ", s4warning(f"({action})"))
 			stderr.writeln(msg)
 
 		if sql:
@@ -185,13 +185,13 @@ def main(args=None):
 		cursor = connection.cursor()
 		for (i, (obj, sql)) in enumerate(sqls):
 			if args.verbose:
-				stderr.writeln("oradrop.py: ", cs, ": dropping #{:,}/{:,} ".format(i+1, len(sqls)), s4object(str(obj)))
+				stderr.writeln("oradrop.py: ", cs, f": dropping #{i+1:,}/{len(sqls):,} ", s4object(str(obj)))
 			try:
 				cursor.execute(sql)
 			except orasql.DatabaseError as exc:
 				if not args.ignore or "ORA-01013" in str(exc):
 					raise
-				stderr.writeln("oradrop.py: ", s4error("{}: {}".format(exc.__class__, str(exc).strip())))
+				stderr.writeln("oradrop.py: ", s4error(f"{exc.__class__}: {str(exc).strip()}"))
 
 
 if __name__ == "__main__":

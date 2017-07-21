@@ -188,7 +188,7 @@ class IllegalAttrValueWarning(Warning):
 		self.attr = attr
 
 	def __str__(self):
-		return "Attribute value {!r} not allowed for {}".format(str(self.attr), nsclark(self.attr))
+		return f"Attribute value {str(self.attr)!r} not allowed for {nsclark(self.attr)}"
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -201,7 +201,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.attr = attr
 
 	def __str__(self):
-		return "Required attribute {} missing in {!r}".format(nsclark(self.attr), self.attrs)
+		return f"Required attribute {nsclark(self.attr)} missing in {self.attrs!r}"
 
 
 class UndeclaredAttrWarning(Warning):
@@ -214,7 +214,7 @@ class UndeclaredAttrWarning(Warning):
 		self.attr = attr
 
 	def __str__(self):
-		return "Attribute {} is undeclared in {!r}".format(nsclark(self.attr), self.attrs)
+		return f"Attribute {nsclark(self.attr)} is undeclared in {self.attrs!r}"
 
 
 class UndeclaredNodeWarning(Warning):
@@ -227,7 +227,7 @@ class UndeclaredNodeWarning(Warning):
 		self.obj = obj
 
 	def __str__(self):
-		return "{!r} is undeclared".format(self.obj)
+		return f"{self.obj!r} is undeclared"
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -238,7 +238,7 @@ class IllegalPrefixError(Error, LookupError):
 		self.prefix = prefix
 
 	def __str__(self):
-		return "namespace prefix {} is undefined".format(self.prefix)
+		return f"namespace prefix {self.prefix!r} is undefined"
 
 
 class MultipleRootsError(Error):
@@ -257,7 +257,7 @@ class FileNotFoundWarning(Warning):
 		self.exc = exc
 
 	def __str__(self):
-		return "{0.message}: {0.filename!r} not found ({0.exc})".format(self)
+		return f"{self.message}: {self.filename!r} not found ({self.exc})"
 
 
 class IllegalObjectError(Error, TypeError):
@@ -270,7 +270,7 @@ class IllegalObjectError(Error, TypeError):
 		self.object = object
 
 	def __str__(self):
-		return "can't convert object {!r} of type {} to an XIST node".format(self.object, type(self.object).__name__)
+		return f"can't convert object {self.object!r} of type {type(self.object).__name__} to an XIST node"
 
 
 class IllegalCommentContentWarning(Warning):
@@ -284,7 +284,7 @@ class IllegalCommentContentWarning(Warning):
 		self.comment = comment
 
 	def __str__(self):
-		return "comment with content {!r} is illegal, as it contains '--' or ends in '-'".format(self.comment.content)
+		return f"comment with content {self.comment.content!r} is illegal, as it contains '--' or ends in '-'"
 
 
 class IllegalProcInstFormatError(Error):
@@ -298,7 +298,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return "processing instruction with content {!r} is illegal, as it contains '?>'".format(self.procinst.content)
+		return f"processing instruction with content {self.procinst.content!r} is illegal, as it contains '?>'"
 
 
 warnings.simplefilter("always", category=Warning)
@@ -657,7 +657,7 @@ class Publisher:
 		while True:
 			if prefix not in self._prefix2ns:
 				return prefix
-			prefix = "ns{}".format(suffix)
+			prefix = f"ns{suffix}"
 			suffix += 1
 
 	def getencoding(self):
@@ -972,7 +972,7 @@ class _Node_Meta(type):
 		return type.__new__(cls, name, bases, dict)
 
 	def __repr__(self):
-		return "<class {self.__module__}:{self.__qualname__} at {id:#x}>".format(self=self, id=id(self))
+		return f"<class {self.__module__}:{self.__qualname__} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
 		p.text(repr(self))
@@ -1039,7 +1039,7 @@ class Node(object, metaclass=_Node_Meta):
 	prettyindentafter = 0
 
 	def __repr__(self):
-		return "<{self.__module__}:{self.__qualname_} object at {id:#x}>".format(self=self, id=id(self))
+		return f"<{self.__module__}:{self.__qualname_} object at {id(self):#x}>"
 
 	def __ne__(self, other):
 		return not self == other
@@ -1426,7 +1426,7 @@ class Node(object, metaclass=_Node_Meta):
 		if converter is None:
 			converter = Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
+		assert isinstance(node, Node), f"the mapped method returned the illegal object {node!r} (type {type(node)!r}) when mapping {self!r}"
 		return node
 
 	def normalized(self):
@@ -1482,20 +1482,20 @@ class CharacterData(Node):
 
 	def __repr__(self):
 		if self.startloc is not None:
-			loc = " location={!r}".format(str(self.startloc))
+			loc = f" location={str(self.startloc)!r}"
 		else:
 			loc = ""
-		return "<{self.__class__.__module__}.{self.__class__.__qualname__} content={self.content!r}{loc} at {id:#x}>".format(self=self, loc=loc, id=id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} content={self.content!r}{loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+		with p.group(4, f"<{self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			p.breakable()
-			p.text("content={!r}".format(self.content))
+			p.text(f"content={self.content!r}")
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def __getstate__(self):
 		return self._content
@@ -1707,22 +1707,22 @@ class Frag(Node, list):
 		elif l == 1:
 			childcount = "1 child"
 		else:
-			childcount = "{} children".format(l)
-		loc = " location={!r}".format(str(self.startloc)) if self.startloc is not None else ""
-		return "<{self.__class__.__module__}.{self.__class__.__qualname__} object ({childcount}){loc} at {id:#x}>".format(self=self, childcount=childcount, loc=loc, id=id(self))
+			childcount = f"{l:,} children"
+		loc = f" location={str(self.startloc)!r}" if self.startloc is not None else ""
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object ({childcount}){loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<{0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+		with p.group(4, f"<{self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			if cycle:
 				p.text("...")
 			for child in self:
 				p.breakable()
 				p.pretty(child)
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def __str__(self):
 		return "".join(str(child) for child in self)
@@ -1759,7 +1759,7 @@ class Frag(Node, list):
 		node = self._create()
 		for child in self:
 			convertedchild = child.convert(converter)
-			assert isinstance(convertedchild, Node), "the convert method returned the illegal object {!r} (type {!r}) when converting {!r}".format(convertedchild, type(convertedchild), self)
+			assert isinstance(convertedchild, Node), f"the convert method returned the illegal object {convertedchild!r} (type {type(convertedchild)!r}) when converting {self!r}"
 			node.append(convertedchild)
 		return self._decoratenode(node)
 
@@ -1949,7 +1949,7 @@ class Frag(Node, list):
 		node = self._create()
 		for child in self:
 			compactedchild = child.compacted()
-			assert isinstance(compactedchild, Node), "the compact method returned the illegal object {!r} (type {!r}) when compacting {!r}".format(compactedchild, type(compactedchild), child)
+			assert isinstance(compactedchild, Node), f"the compact method returned the illegal object {compactedchild!r} (type {type(compactedchild)!r}) when compacting {child!r}"
 			if compactedchild is not Null:
 				list.append(node, compactedchild)
 		return self._decoratenode(node)
@@ -2007,7 +2007,7 @@ class Frag(Node, list):
 		if converter is None:
 			converter = Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
+		assert isinstance(node, Node), f"the mapped method returned the illegal object {node!r} (type {type(node)!r}) when mapping {self!r}"
 		if node is self:
 			node = self._create()
 			for child in self:
@@ -2084,7 +2084,7 @@ class Comment(CharacterData):
 
 class _DocType_Meta(type(Node)):
 	def __repr__(self):
-		return "<doctype class {self.__module__}:{self.__name__} at {id:#x}>".format(self=self, id=id(self))
+		return f"<doctype class {self.__module__}:{self.__name__} at {id(self):#x}>"
 
 
 class DocType(CharacterData, metaclass=_DocType_Meta):
@@ -2122,10 +2122,10 @@ class _ProcInst_Meta(type(Node)):
 
 	def __repr__(self):
 		if self.xmlname != self.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
-		return "<procinst class {self.__module__}:{self.__name__}{xmlname} at {id:#x}>".format(self=self, xmlname=xmlname, id=id(self))
+		return f"<procinst class {self.__module__}:{self.__name__}{xmlname} at {id(self):#x}>"
 
 
 class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
@@ -2140,33 +2140,33 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 
 	def __repr__(self):
 		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 		if self.startloc is not None:
-			loc = " location={!r}".format(str(self.startloc))
+			loc = f" location={str(self.startloc)!r}"
 		else:
 			loc = ""
-		return "<procinst {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
+		return f"<procinst {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<procinst {0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+		with p.group(4, f"<procinst {self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
-				p.text("xmlname={!r}".format(self.xmlname))
+				p.text(f"xmlname={self.xmlname!r}")
 			p.breakable()
-			p.text("content={!r}".format(self.content))
+			p.text(f"content={self.content!r}")
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def __str__(self):
 		return ""
 
 	def _str(self):
-		return "processing instruction {}".format(self.xmlname)
+		return f"processing instruction {self.xmlname}"
 
 	def __eq__(self, other):
 		if isinstance(other, ProcInst):
@@ -2187,7 +2187,7 @@ class ProcInst(CharacterData, metaclass=_ProcInst_Meta):
 		content = self.content
 		if "?>" in content:
 			raise IllegalProcInstFormatError(self)
-		yield publisher.encode("<?{} {}?>".format(self.xmlname, content))
+		yield publisher.encode(f"<?{self.xmlname} {content}?>")
 
 	def _walk(self, cursor):
 		cursor.event = "procinstnode"
@@ -2210,7 +2210,7 @@ class Null(CharacterData):
 		return "ll.xist.xsc.Null"
 
 	def _repr_pretty_(self, p, cycle):
-		p.text("<{self.__class__.__module__}.{self.__class__.__qualname__} at {id:#x}>".format(self=self, id=id(self)))
+		p.text(f"<{self.__class__.__module__}.{self.__class__.__qualname__} at {id(self):#x}>")
 
 	def __str__(self):
 		return ""
@@ -2257,16 +2257,16 @@ class _Attr_Meta(type(Frag)):
 
 	def __repr__(self):
 		if self.xmlname != self.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 		if self.xmlns is not None:
 			isglobal = "global "
-			xmlns = " xmlns={!r}".format(self.xmlns)
+			xmlns = f" xmlns={self.xmlns!r}"
 		else:
 			isglobal = ""
 			xmlns = ""
-		return "<{isglobal}attribute class {self.__module__}:{self.__qualname__}{xmlname}{xmlns} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, id=id(self))
+		return f"<{isglobal}attribute class {self.__module__}:{self.__qualname__}{xmlname}{xmlns} at {id(self):#x}>"
 
 
 class Attr(Frag, metaclass=_Attr_Meta):
@@ -2303,13 +2303,13 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 	def __repr__(self):
 		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 
 		if self.xmlns is not None:
 			isglobal = "global "
-			xmlns = " xmlns={!r}".format(self.xmlns)
+			xmlns = f" xmlns={self.xmlns!r}"
 		else:
 			isglobal = ""
 			xmlns = ""
@@ -2320,23 +2320,24 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		elif l == 1:
 			childcount = "1 child"
 		else:
-			childcount = "{} children".format(l)
+			childcount = f"{l:,} children"
 
-		loc = " location={!r}".format(str(self.startloc)) if self.startloc is not None else ""
+		loc = f" location={str(self.startloc)!r}" if self.startloc is not None else ""
 
-		return "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}){loc} at {id:#x}>".format(self=self, isglobal=isglobal, xmlname=xmlname, xmlns=xmlns, childcount=childcount, loc=loc, id=id(self))
+		return f"<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}){loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self, isglobal="global " if self.xmlns is not None else ""), ">"):
+		isglobal = "global " if self.xmlns is not None else ""
+		with p.group(4, f"<{isglobal}attribute {self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.xmlns is not None:
 				p.breakable()
-				p.text("xmlns={!r}".format(self.xmlns))
+				p.text(f"xmlns={self.xmlns!r}")
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
-				p.text("xmlname={!r}".format(self.xmlname))
+				p.text(f"xmlname={self.xmlname!r}")
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			if cycle:
 				p.breakable()
 				p.text("...")
@@ -2345,13 +2346,13 @@ class Attr(Frag, metaclass=_Attr_Meta):
 					p.breakable()
 					p.pretty(child)
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def _str(self):
 		if self.xmlns is not None:
-			return "attribute {{{}}}{}".format(self.xmlns, self.xmlname)
+			return f"attribute {{{self.xmlns}}}{self.xmlname}"
 		else:
-			return "attribute {}".format(self.xmlname)
+			return f"attribute {self.xmlname}"
 
 	def _create(self):
 		node = self.__class__()
@@ -2394,7 +2395,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else "xml"
 			if prefix is not None:
-				return "{}:{}".format(prefix, self.xmlname)
+				return f"{prefix}:{self.xmlname}"
 		return self.xmlname
 
 	def _publishattrvalue(self, publisher):
@@ -2408,7 +2409,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 			yield from self[0].publishattr(publisher, self)
 		else:
 			publisher.inattr += 1
-			yield publisher.encode(' {}="'.format(self._publishname(publisher)))
+			yield publisher.encode(f' {self._publishname(publisher)}="')
 			publisher.pushtextfilter(misc.xmlescape_attr)
 			yield from self._publishattrvalue(publisher)
 			publisher.poptextfilter()
@@ -2483,7 +2484,7 @@ class BoolAttr(Attr):
 		else:
 			publisher.inattr += 1
 			name = self._publishname(publisher)
-			yield publisher.encode(" {}".format(name))
+			yield publisher.encode(f" {name}")
 			if publisher.xhtml > 0:
 				yield publisher.encode('="')
 				publisher.pushtextfilter(misc.xmlescape)
@@ -2506,7 +2507,7 @@ class StyleAttr(Attr):
 
 	def _transform(self, replacer):
 		from ll.xist import css
-		stylesheet = cssutils.parseString("a{{{}}}".format(self))
+		stylesheet = cssutils.parseString(f"a{{{self}}}")
 		css.replaceurls(stylesheet, replacer)
 		return stylesheet.cssRules[0].style.getCssText(separator=" ")
 
@@ -2542,7 +2543,7 @@ class StyleAttr(Attr):
 		def collect(u):
 			urls.append(u)
 			return u
-		s = cssutils.parseString("a{{{}}}".format(self))
+		s = cssutils.parseString(f"a{{{self}}}")
 		css.replaceurls(s, collect)
 		return urls
 
@@ -2636,8 +2637,8 @@ class _Attrs_Meta(type(Node)):
 		elif l == 1:
 			attrcount = "1 attr"
 		else:
-			attrcount = "{} attrs".format(l)
-		return "<attributes class {self.__module__}:{self.__qualname__} ({attrcount}) at {id:#x}>".format(self=self, attrcount=attrcount, id=id(self))
+			attrcount = f"{l:,} attrs"
+		return f"<attributes class {self.__module__}:{self.__qualname__} ({attrcount}) at {id(self):#x}>"
 
 	def _attrinfo(self, name):
 		if isinstance(name, str):
@@ -2659,7 +2660,7 @@ class _Attrs_Meta(type(Node)):
 		elif isinstance(name, Attr):
 			return (name.xmlns, name.xmlname, name.__class__)
 		else:
-			raise TypeError("can't handle attribute name {!r}".format(name))
+			raise TypeError(f"can't handle attribute name {name!r}")
 
 	def __contains__(self, key):
 		(attrxmlns, attrname, attrclass) = self._attrinfo(key)
@@ -2687,12 +2688,12 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		elif l == 1:
 			attrcount = "1 attr"
 		else:
-			attrcount = "{} attrs".format(l)
+			attrcount = f"{l:,} attrs"
 		if self.startloc is not None:
-			loc = " location={!r}".format(str(self.startloc))
+			loc = f" location={str(self.startloc)!r}"
 		else:
 			loc = ""
-		return "<attributes {self.__class__.__module__}.{self.__class__.__qualname__} ({attrcount}){loc} at {id:#x}>".format(self=self, attrcount=attrcount, loc=loc, id=id(self))
+		return f"<attributes {self.__class__.__module__}.{self.__class__.__qualname__} ({attrcount}){loc} at {id(self):#x}>"
 
 	@staticmethod
 	def _sortorder(attrvalue):
@@ -2704,17 +2705,17 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			p.pretty(attr)
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<attributes {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self), ">"):
+		with p.group(4, f"<attributes {self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			if cycle:
 				p.breakable()
 				p.text("...")
 			else:
 				self._repr_pretty_content_(p)
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def __str__(self):
 		return ""
@@ -2831,7 +2832,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.convert(converter)
-			assert isinstance(newvalue, Node), "the convert method returned the illegal object {0!r} (type {1!r}) when converting the attribute {2.__class__.__qualname__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			assert isinstance(newvalue, Node), f"the convert method returned the illegal object {newvalue!r} (type {type(newvalue)!r}) when converting the attribute {value.__class__.__qualname__} with the value {value!r}"
 			node[value] = newvalue
 		return node
 
@@ -2839,7 +2840,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.compacted()
-			assert isinstance(newvalue, Node), "the compacted method returned the illegal object {0!r} (type {1!r}) when compacting the attribute {2.__class__.__qualname__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			assert isinstance(newvalue, Node), f"the compacted method returned the illegal object {newvalue!r} (type {type(newvalue)!r}) when compacting the attribute {value.__class__.__qualname__} with the value {value!r}"
 			node[value] = newvalue
 		return node
 
@@ -2847,7 +2848,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 		node = self._create()
 		for value in self.values():
 			newvalue = value.normalized()
-			assert isinstance(newvalue, Node), "the normalized method returned the illegal object {0!r} (type {1!r}) when normalizing the attribute {2.__class__.__qualname__} with the value {2!r}".format(newvalue, type(newvalue), value)
+			assert isinstance(newvalue, Node), f"the normalized method returned the illegal object {newvalue!r} (type {type(newvalue)!r}) when normalizing the attribute {value.__class__.__qualname__} with the value {value!r}"
 			node[value] = newvalue
 		return node
 
@@ -3069,16 +3070,16 @@ class _Element_Meta(type(Node)):
 
 	def __repr__(self):
 		if self.xmlname != self.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 
 		if self.xmlns is not None:
-			xmlns = " xmlns={!r}".format(self.xmlns)
+			xmlns = f" xmlns={self.xmlns!r}"
 		else:
 			xmlns = ""
 
-		return "<element class {self.__module__}:{self.__qualname__}{xmlname}{xmlns} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, id=id(self))
+		return f"<element class {self.__module__}:{self.__qualname__}{xmlname}{xmlns} at {id(self):#x}>"
 
 
 class Element(Node, metaclass=_Element_Meta):
@@ -3135,12 +3136,12 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __repr__(self):
 		if self.xmlns is not None:
-			xmlns = " xmlns={!r}".format(self.xmlns)
+			xmlns = f" xmlns={self.xmlns!r}"
 		else:
 			xmlns = ""
 
 		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 
@@ -3150,31 +3151,31 @@ class Element(Node, metaclass=_Element_Meta):
 		elif lc == 1:
 			childcount = "1 child"
 		else:
-			childcount = "{} children".format(lc)
+			childcount = f"{lc:,} children"
 		la = len(self.attrs)
 		if la == 0:
 			attrcount = "no attrs"
 		elif la == 1:
 			attrcount = "1 attr"
 		else:
-			attrcount = "{} attrs".format(la)
+			attrcount = f"{la:,} attrs"
 		if self.startloc is not None:
-			loc = " location={!r}".format(str(self.startloc))
+			loc = f" location={str(self.startloc)!r}"
 		else:
 			loc = ""
-		return "<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}/{attrcount}){loc} at {id:#x}>".format(self=self, xmlname=xmlname, xmlns=xmlns, childcount=childcount, attrcount=attrcount, loc=loc, id=id(self))
+		return f"<element {self.__class__.__module__}.{self.__class__.__qualname__}{xmlns}{xmlname} ({childcount}/{attrcount}){loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<element {self.__class__.__module__}.{self.__class__.__qualname__}".format(self=self), ">"):
+		with p.group(4, f"<element {self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.xmlns is not None:
 				p.breakable()
-				p.text("xmlns={!r}".format(self.xmlns))
+				p.text(f"xmlns={self.xmlns!r}")
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
-				p.text("xmlname={!r}".format(self.xmlname))
+				p.text(f"xmlname={self.xmlname!r}")
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			if cycle:
 				p.breakable()
 				p.text("...")
@@ -3184,13 +3185,13 @@ class Element(Node, metaclass=_Element_Meta):
 					p.breakable()
 					p.pretty(child)
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def __str__(self):
 		return str(self.content)
 
 	def _str(self):
-		return "element {{{}}}{}".format(self.xmlns, self.xmlname)
+		return f"element {{{self.xmlns}}}{self.xmlname}"
 
 	def __getstate__(self):
 		attrs = {key : (value.__class__.__module__, value.__class__.__qualname__, Frag(value)) for (key, value) in dict.items(self.attrs)}
@@ -3336,7 +3337,7 @@ class Element(Node, metaclass=_Element_Meta):
 		if self.xmlns is not None:
 			prefix = publisher._ns2prefix.get(self.xmlns)
 			if prefix is not None:
-				return "{}:{}".format(prefix, self.xmlname)
+				return f"{prefix}:{self.xmlname}"
 		return self.xmlname
 
 	def _publishfull(self, publisher):
@@ -3521,7 +3522,7 @@ class Element(Node, metaclass=_Element_Meta):
 		if converter is None:
 			converter = Converter(**converterargs)
 		node = function(self, converter)
-		assert isinstance(node, Node), "the mapped method returned the illegal object {!r} (type {!r}) when mapping {!r}".format(node, type(node), self)
+		assert isinstance(node, Node), f"the mapped method returned the illegal object {node!r} (type {type(node)!r}) when mapping {self!r}"
 		if node is self:
 			node = self._create()
 			node.content = Frag(self.content.mapped(function, converter))
@@ -3622,11 +3623,11 @@ class _Entity_Meta(type(Node)):
 
 	def __repr__(self):
 		if self.xmlname != self.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 
-		return "<entity class {self.__module__}:{self.__qualname__}{xmlname} at {id:#x}>".format(self=self, xmlname=xmlname, id=id(self))
+		return f"<entity class {self.__module__}:{self.__qualname__}{xmlname} at {id(self):#x}>"
 
 
 class Entity(Node, metaclass=_Entity_Meta):
@@ -3639,29 +3640,29 @@ class Entity(Node, metaclass=_Entity_Meta):
 
 	def __repr__(self):
 		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 
 		if self.startloc is not None:
-			loc = " location={!r}".format(str(self.startloc))
+			loc = f" location={str(self.startloc)!r}"
 		else:
 			loc = ""
-		return "<entity {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
+		return f"<entity {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname}{loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<entity {0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+		with p.group(4, f"<entity {self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
-				p.text("xmlname={!r}".format(self.xmlname))
+				p.text(f"xmlname={self.xmlname!r}")
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def _str(self):
-		return "entity {}".format(self.xmlname)
+		return f"entity {self.xmlname}"
 
 	def __eq__(self, other):
 		if isinstance(other, Entity):
@@ -3695,10 +3696,10 @@ class Entity(Node, metaclass=_Entity_Meta):
 class _CharRef_Meta(type(Entity)): # don't subclass type(Text), as this is redundant
 	def __repr__(self):
 		if self.xmlname != self.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
-		return "<charref class {self.__module__}:{self.__qualname__}{xmlname} at {id:#x}>".format(self=self, xmlname=xmlname, id=id(self))
+		return f"<charref class {self.__module__}:{self.__qualname__}{xmlname} at {id(self):#x}>"
 
 
 class CharRef(Text, Entity, metaclass=_CharRef_Meta):
@@ -3714,28 +3715,28 @@ class CharRef(Text, Entity, metaclass=_CharRef_Meta):
 
 	def __repr__(self):
 		if self.xmlname != self.__class__.__name__:
-			xmlname = " xmlname={!r}".format(self.xmlname)
+			xmlname = f" xmlname={self.xmlname!r}"
 		else:
 			xmlname = ""
 
 		if self.startloc is not None:
-			loc = " location={!r}".format(str(self.startloc))
+			loc = f" location={str(self.startloc)!r}"
 		else:
 			loc = ""
-		return "<charref {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id:#x}>".format(self=self, xmlname=xmlname, loc=loc, id=id(self))
+		return f"<charref {self.__class__.__module__}.{self.__class__.__qualname__}{xmlname} content={self.content!r}{loc} at {id(self):#x}>"
 
 	def _repr_pretty_(self, p, cycle):
-		with p.group(4, "<charref {0.__class__.__module__}.{0.__class__.__qualname__}".format(self), ">"):
+		with p.group(4, f"<charref {self.__class__.__module__}.{self.__class__.__qualname__}", ">"):
 			if self.xmlname != self.__class__.__name__:
 				p.breakable()
-				p.text("xmlname={!r}".format(self.xmlname))
+				p.text(f"xmlname={self.xmlname!r}")
 			if self.startloc is not None:
 				p.breakable()
-				p.text("location={!r}".format(str(self.startloc)))
+				p.text(f"location={str(self.startloc)!r}")
 			p.breakable()
-			p.text("codepoint={:#x}".format(self.codepoint))
+			p.text(f"codepoint={self.codepoint:#x}")
 			p.breakable()
-			p.text("at {:#x}".format(id(self)))
+			p.text(f"at {id(self):#x}")
 
 	def __getnewargs__(self):
 		return ()
@@ -4135,17 +4136,17 @@ def nsclark(obj):
 	if obj is None:
 		return "{}"
 	elif isinstance(obj, (Element, _Element_Meta)):
-		return "{{{}}}{}".format(obj.xmlns, obj.xmlname)
+		return f"{{{obj.xmlns}}}{obj.xmlname}"
 	elif isinstance(obj, (Attr, _Attr_Meta)):
 		if obj.xmlns is None:
 			return obj.xmlname
 		else:
-			return "{{{}}}{}".format(obj.xmlns, obj.xmlname)
+			return f"{{{obj.xmlns}}}{obj.xmlname}"
 	elif isinstance(obj, (Node, _Node_Meta)):
 		return obj.xmlname
 	elif not isinstance(obj, str):
-		return "{{{}}}".format(obj.xmlns)
-	return "{{{}}}".format(obj)
+		return f"{{{obj.xmlns}}}"
+	return f"{{{obj}}}"
 
 
 # C0 Controls and Basic Latin
@@ -4231,10 +4232,11 @@ class Location:
 		url = str(self.url) if self.url is not None else "???"
 		line = str(self.line) if self.line is not None else "?"
 		col = str(self.col) if self.col is not None else "?"
-		return "{}:{}:{}".format(url, line, col)
+		return f"{url}:{line}:{col}"
 
 	def __repr__(self):
-		return "{0.__class__.__qualname__}({1})".format(self, ", ".join("{}={!r}".format(attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
+		attrs = ", ".join(f"{attr}={getattr(self, attr)!r}" for attr in ("url", "line", "col") if getattr(self, attr) is not None)
+		return f"{self.__class__.__qualname__}({attrs})"
 
 	def __eq__(self, other):
 		if self.__class__ is other.__class__:

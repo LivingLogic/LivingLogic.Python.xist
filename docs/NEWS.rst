@@ -11,6 +11,8 @@ see :ref:`MIGRATION`.
 Changes in 5.28 (released ??/??/2017)
 -------------------------------------
 
+*	XIST requires Python 3.6 now.
+
 *	Fixed an UL4ON bug: Strings containing line feed can now be deserialized
 	properly.
 
@@ -494,7 +496,7 @@ Changes in 5.11 (released 10/29/2014)
 
 		items = sys.modules.items()
 		for (name, module) in self.tasks(items, "module", lambda kv: kv[0]):
-			self.log("module is {}".format(module))
+			self.log(f"module is {module}")
 
 *	An option ``--maxemailerrors`` has been added to sisyphus jobs:
 	This options limits the number of exceptions and errors messages that

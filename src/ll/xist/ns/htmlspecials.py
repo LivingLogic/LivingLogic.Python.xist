@@ -150,7 +150,7 @@ class autoimg(html_.img):
 		if target.xmlns in (ihtml.xmlns, html_.xmlns):
 			e = target.img(self.attrs.convert(converter))
 		else:
-			raise ValueError("unknown conversion target {!r}".format(target))
+			raise ValueError(f"unknown conversion target {target!r}")
 		src = self["src"].convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, "width", "height")
 		return e
@@ -167,7 +167,7 @@ class autopixel(_pixelbase):
 	def convert(self, converter):
 		target = converter.target
 		if target.xmlns not in (ihtml.xmlns, html_.xmlns):
-			raise ValueError("unknown conversion target {!r}".format(target))
+			raise ValueError(f"unknown conversion target {target!r}")
 		e = target.img(self.attrs.withoutnames("color"))
 		src = self.attrs.src.convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, "width", "height")

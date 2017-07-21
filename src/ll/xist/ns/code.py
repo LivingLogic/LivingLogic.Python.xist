@@ -70,7 +70,7 @@ class Code:
 
 	def funcify(self, name="__"):
 		self.indent()
-		self.lines.insert(0, ["", "def {}(converter):".format(name)])
+		self.lines.insert(0, ["", f"def {name}(converter):"])
 
 	def asstring(self):
 		v = []

@@ -30,12 +30,12 @@ An example script might look like this::
 	if __name__ == "__main__":
 		if counter.service():
 			import sys, os, time
-			sys.stdout.write("Daemon started with pid {}\n".format(os.getpid()))
-			sys.stdout.write("Daemon stdout output\n")
-			sys.stderr.write("Daemon stderr output\n")
+			sys.stdout.write(f"Daemon started with pid {os.getpid()}\n")
+			sys.stdout.write(f"Daemon stdout output\n")
+			sys.stderr.write(f"Daemon stderr output\n")
 			c = 0
 			while True:
-				sys.stdout.write('{}: {}\n'.format(c, time.ctime(time.time())))
+				sys.stdout.write(f"{c}: {time.ctime(time.time())}\n")
 				sys.stdout.flush()
 				c += 1
 				time.sleep(1)
@@ -142,7 +142,7 @@ class Daemon:
 			if pid > 0:
 				sys.exit(0) # Exit first parent
 		except OSError as exc:
-			sys.exit("{}: fork #1 failed: ({}) {}\n".format(sys.argv[0], exc.errno, exc.strerror))
+			sys.exit(f"{sys.argv[0]}: fork #1 failed: ({exc.errno}) {exc.strerror}\n")
 
 		# Decouple from parent environment
 		os.chdir("/")
@@ -155,7 +155,7 @@ class Daemon:
 			if pid > 0:
 				sys.exit(0) # Exit second parent
 		except OSError as exc:
-			sys.exit("{}: fork #2 failed: ({}) {}\n".format(sys.argv[0], exc.errno, exc.strerror))
+			sys.exit(f"{sys.argv[0]}: fork #2 failed: ({exc.errno}) {exc.strerror}\n")
 
 		# Now I am a daemon!
 
@@ -188,9 +188,9 @@ class Daemon:
 				data = f.read()
 				pid = int(data.decode("utf-8"))
 		except IOError as exc:
-			sys.exit("can't open pidfile {}: {}".format(self.pidfile, str(exc)))
+			sys.exit(f"can't open pidfile {self.pidfile}: {exc}")
 		except ValueError:
-			sys.exit("mangled pidfile {}: {}".format(self.pidfile, data))
+			sys.exit(f"mangled pidfile {self.pidfile}: {data}")
 		os.kill(pid, signal.SIGTERM)
 
 	def argparser(self):

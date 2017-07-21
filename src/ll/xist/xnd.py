@@ -33,7 +33,7 @@ def _simplify(value):
 		if '"' in value:
 			value = repr(value)
 		else:
-			value = '"{}"'.format(repr(value)[1:-1])
+			value = f'"{repr(value)[1:-1]}"'
 	return value
 
 
@@ -48,22 +48,25 @@ class RedefinedElementError(Error):
 		self.duplicates = duplicates
 
 	def __str__(self):
-		msg = "element named {0.oldelement.name} redefined".format(self)
+		msg = f"element named {self.oldelement.name} redefined"
 		if self.duplicates == "allow":
 			msgs = []
 			if self.oldelement.attrs != self.newelement.attrs:
 				# New element has different attributes
 				removed = [attr.name for attr in self.oldelement.attrs.values() if attr.name not in self.newelement.attrs]
 				if removed:
-					msgs.append("attribute{} {} removed".format("s" if len(removed) > 1 else "", ", ".join(removed)))
+					removed = ", ".join(removed)
+					msgs.append(f"attribute{'s' if len(removed) > 1 else ''} {removed} removed")
 				added = [attr.name for attr in self.newelement.attrs.values() if attr.name not in self.oldelement.attrs]
 				if added:
-					msgs.append("attribute{} {} added".format("s" if len(added) > 1 else "", ", ".join(added)))
+					added = ", ".join(added)
+					msgs.append(f"attribute{'s' if len(added) > 1 else ''} {added} added")
 			if msgs:
-				msg += " ({})".format("; ".join(msgs))
+				msgs = "; ".join(msgs)
+				msg += f" ({msgs})"
 		elif self.duplicates == "merge":
 			incompatible = [attr.name for attr in self.oldelement.attrs if attr != self.newelement.attrs[attr.name]]
-			msg += " (attribute{} {} incompatible)".format("s" if len(added) > 1 else "", ", ".join(incompatible))
+			msg += f" (attribute{'s' if len(added) > 1 else ''} {', '.join(incompatible)} incompatible)"
 		# else self.duplicates == "reject"
 		return msg
 
@@ -75,7 +78,7 @@ class RedefinedProcInstError(Error):
 		self.duplicates = duplicates
 
 	def __str__(self):
-		return "procinst named {0.oldprocinst.named} redefined".format(self)
+		return f"procinst named {self.oldprocinst.named} redefined"
 
 
 class RedefinedEntityError(Error):
@@ -85,7 +88,7 @@ class RedefinedEntityError(Error):
 		self.duplicates = duplicates
 
 	def __str__(self):
-		return "entity named {0.oldentity.named} redefined".format(self)
+		return f"entity named {self.oldentity.named} redefined"
 
 
 class RedefinedCharRefError(Error):
@@ -95,7 +98,7 @@ class RedefinedCharRefError(Error):
 		self.duplicates = duplicates
 
 	def __str__(self):
-		return "charref named {0.oldcharref.named} with code point {0.oldcharref.codepoint} redefined with codepoint {0.newcharref.codepoint}".format(self)
+		return f"charref named {self.oldcharref.named} with code point {self.oldcharref.codepoint} redefined with codepoint {self.newcharref.codepoint}"
 
 
 def findname(basename, names):
@@ -111,7 +114,7 @@ def findname(basename, names):
 		testname += "_"
 	suffix = 2
 	while testname in names:
-		testname = "{0}{1}".format(basename, suffix)
+		testname = f"{basename}{suffix}"
 		suffix += 1
 	return testname
 
@@ -121,7 +124,7 @@ def _addlines(lines, newlines):
 	if l == 0:
 		lines[-1][1] += " pass"
 	elif l == 1:
-		lines[-1][1] += " {}".format(newlines[-1][1])
+		lines[-1][1] += f" {newlines[-1][1]}"
 	else:
 		lines.extend(newlines)
 
@@ -143,13 +146,13 @@ class Module:
 		self.defaults = defaults
 		self.model = model
 		self.duplicates = duplicates
-		self.elements = collections.OrderedDict() # Maps (namespace name, element name) to ``xnd.Element``
-		self.procinsts = collections.OrderedDict() # Maps pi target to ``xnd.ProcInst``
-		self.entities = collections.OrderedDict() # Maps entity name to ``xnd.Entity``
-		self.charrefs = collections.OrderedDict() # Maps charref name to ``xnd.CharRef``
+		self.elements = collections.OrderedDict() # Maps (namespace name, element name) to :class:`xnd.Element`
+		self.procinsts = collections.OrderedDict() # Maps pi target to :class:`xnd.ProcInst`
+		self.entities = collections.OrderedDict() # Maps entity name to :class:`xnd.Entity`
+		self.charrefs = collections.OrderedDict() # Maps charref name to :class:`xnd.CharRef`
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} url={0.url!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} at {id(self):#x}>"
 
 	def __iadd__(self, node):
 		node._add(self)
@@ -158,7 +161,7 @@ class Module:
 	def __str__(self):
 		lines = []
 		self._aspy(lines, 0, set(), self)
-		return "".join("{}{}\n".format(level*self.indent, text) for (level, text) in lines)
+		return "".join(f"{level*self.indent}{text}\n" for (level, text) in lines)
 
 	def _findgroups(self):
 		"""
@@ -211,7 +214,7 @@ class Module:
 		for attrgroup in attrgroups:
 			attrgroup.assignpyname(names)
 
-		lines.append([level, "# -*- coding: {} -*-".format(module.encoding)])
+		lines.append([level, f"# -*- coding: {module.encoding} -*-"])
 		lines.append([0, ""])
 		lines.append([0, ""])
 
@@ -224,7 +227,7 @@ class Module:
 			lines.append([0, ""])
 			lines.append([0, ""])
 			for (xmlns, varname) in self._xmlnames.items():
-				lines.append([level, "{} = {!r}".format(varname, xmlns)])
+				lines.append([level, f"{varname} = {xmlns!r}"])
 
 		# output attribute groups
 		for attrgroup in attrgroups:
@@ -253,19 +256,19 @@ class Module:
 							if isinstance(arg, Element):
 								arg = arg.pyname
 							modelargs.append(arg)
-					newlines.append(("{}.model".format(node.pyname), "{}({})".format(node.modeltype, ", ".join(modelargs))))
+					modelargs = ", ".join(modelargs)
+					newlines.append((f"{node.pyname}.model", f"{node.modeltype}({modelargs})"))
 				if self.model in ("simple", "fullall"):
-					for line in newlines:
-						lines.append([0, "{} = {}".format(*line)])
+					for (var, code) in newlines:
+						lines.append([0, f"{var} = {code}"])
 				elif self.model == "fullonce":
 					newlines.sort(key=lambda l: l[1])
-					for (i, line) in enumerate(newlines):
-						(var, code) = line
+					for (i, (var, code)) in enumerate(newlines):
 						if i != len(newlines)-1 and code == newlines[i+1][1]:
 							code = "\\"
-						lines.append([0, "{} = {}".format(var, code)])
+						lines.append([0, f"{var} = {code}"])
 				else:
-					raise ValueError("unknown sims mode {!r}".format(self.model))
+					raise ValueError(f"unknown sims mode {self.model!r}")
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -318,7 +321,7 @@ class Element(Named):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} xmlns={0.xmlns!r} attrs={0.attrs!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} xmlns={self.xmlns!r} attrs={self.attrs!r} at {id(self):#x}>"
 
 	def __eq__(self, other):
 		# Don't compare the models
@@ -353,7 +356,7 @@ class Element(Named):
 			self.xmlns = module.defaultxmlns
 
 	def _aspy(self, lines, level, names, module):
-		lines.append([level, "class {}(xsc.Element):".format(self.pyname)])
+		lines.append([level, f"class {self.pyname}(xsc.Element):"])
 		newlines = []
 		_adddoc(newlines, self.doc, level+1)
 		if self.xmlns is not None:
@@ -361,13 +364,13 @@ class Element(Named):
 				xmlns = module._xmlnames[self.xmlns] # Use variable name
 			except KeyError:
 				xmlns = _simplify(self.xmlns) # Use literal
-			newlines.append([level+1, "xmlns = {}".format(xmlns)])
+			newlines.append([level+1, f"xmlns = {xmlns}"])
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+			newlines.append([level+1, f"xmlname = {_simplify(self.name)}"])
 		# only output model if it is a bool, otherwise it might reference other element,
 		# in which case this is done after all element classes have been defined
 		if isinstance(self.modeltype, bool):
-			newlines.append([level+1, "model = {!r}".format(self.modeltype)])
+			newlines.append([level+1, f"model = {self.modeltype!r}"])
 
 		if self.attrs:
 			# find the attribute groups our elements are in
@@ -385,7 +388,7 @@ class Element(Named):
 				base = ", ".join(group.pyname for group in groups)
 			else:
 				base = "xsc.Element.Attrs"
-			newlines.append([level+1, "class Attrs({}):".format(base)])
+			newlines.append([level+1, f"class Attrs({base}):"])
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
@@ -400,7 +403,7 @@ class AttrGroup(Named):
 
 	def __init__(self, name):
 		if name is None:
-			name = "attrgroup_{}".format(self.__class__.id)
+			name = f"attrgroup_{self.__class__.id}"
 			self.__class__.id += 1
 		Named.__init__(self, name)
 		self.attrs = []
@@ -410,7 +413,7 @@ class AttrGroup(Named):
 		return self
 
 	def _aspy(self, lines, level, names, module):
-		lines.append([level, "class {}(xsc.Element.Attrs):".format(self.pyname)])
+		lines.append([level, f"class {self.pyname}(xsc.Element.Attrs):"])
 		localnames = []
 		for attr in self.attrs:
 			attr._aspy(lines, level+1, localnames, module)
@@ -427,7 +430,7 @@ class Attr(Named):
 		self.shared = None # if this attribute is part of a group ``shared`` will point to the group
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} type={0.type!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} type={self.type!r} at {id(self):#x}>"
 
 	def __eq__(self, other):
 		return type(other) is Attr and self.name == other.name and self.type == other.type and self.required == other.required and self.default == other.default and self.values == other.values
@@ -438,27 +441,27 @@ class Attr(Named):
 	def _aspy(self, lines, level, names, module):
 		name = self.name
 		if isinstance(self.type, type):
-			basename = "{0.type.__module__}.{0.type.__name__}".format(self)
+			basename = f"{self.type.__module__}.{self.type.__name__}"
 		else:
 			basename = self.type
 		if basename.startswith("ll.xist.xsc."):
 			basename = basename[8:]
-		lines.append([level, "class {}({}):".format(self.pyname, basename)])
+		lines.append([level, f"class {self.pyname}({basename}):"])
 		newlines = []
 		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+			newlines.append([level+1, f"xmlname = {_simplify(self.name)}"])
 		if self.values:
-			values = "({})".format(", ".join(str(_simplify(value)) for value in self.values))
-			newlines.append([level+1, "values = {}".format(values)])
+			values = ", ".join(str(_simplify(value)) for value in self.values)
+			newlines.append([level+1, f"values = ({values})"])
 		if self.default and module.defaults:
-			newlines.append([level+1, "default = {}".format(_simplify(self.default))])
+			newlines.append([level+1, f"default = {_simplify(self.default)}"])
 		if self.required:
 			newlines.append([level+1, "required = True"])
 		_addlines(lines, newlines)
 
 	def share(self, group):
-		assert self.shared is None, "cannot share attr {!r} twice".format(self)
+		assert self.shared is None, f"cannot share attr {self!r} twice"
 		self.shared = group
 
 	def ident(self):
@@ -471,7 +474,7 @@ class ProcInst(Named):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id(self):#x}>"
 
 	def _add(self, module):
 		if self.name in module.procinsts:
@@ -481,11 +484,11 @@ class ProcInst(Named):
 			module.procinsts[self.name] = self
 
 	def _aspy(self, lines, level, names, module):
-		lines.append([level, "class {}(xsc.ProcInst):".format(self.pyname)])
+		lines.append([level, f"class {self.pyname}(xsc.ProcInst):"])
 		newlines = []
 		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+			newlines.append([level+1, f"xmlname = {_simplify(self.name)}"])
 		_addlines(lines, newlines)
 
 
@@ -495,7 +498,7 @@ class Entity(Named):
 		self.doc = doc
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id(self):#x}>"
 
 	def __eq__(self, other):
 		return type(other) is CharRef and self.name == other.name
@@ -508,11 +511,11 @@ class Entity(Named):
 			module.entities[self.name] = self
 
 	def _aspy(self, lines, level, names, module):
-		lines.append([level, "class {}(xsc.Entity):".format(self.pyname)])
+		lines.append([level, f"class {self.pyname}(xsc.Entity):"])
 		newlines = []
 		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+			newlines.append([level+1, f"xmlname = {_simplify(self.name)}"])
 		_addlines(lines, newlines)
 
 
@@ -522,7 +525,7 @@ class CharRef(Entity):
 		self.codepoint = codepoint
 
 	def __repr__(self):
-		return "<{0.__class__.__module__}.{0.__class__.__qualname__} name={0.name!r} codepoint={0.codepoint:#x} at {1:#x}>".format(self, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} codepoint={self.codepoint:#x} at {id(self):#x}>"
 
 	def __eq__(self, other):
 		return type(other) is CharRef and self.name == other.name and self.codepoint == other.codepoint
@@ -540,16 +543,16 @@ class CharRef(Entity):
 			module.charrefs[self.name] = self
 
 	def _aspy(self, lines, level, names, module):
-		lines.append([level, "class {}(xsc.CharRef):".format(self.pyname)])
+		lines.append([level, f"class {self.pyname}(xsc.CharRef):"])
 		newlines = []
 		_adddoc(newlines, self.doc, level+1)
 		if self.pyname != self.name:
-			newlines.append([level+1, "xmlname = {}".format(_simplify(self.name))])
+			newlines.append([level+1, f"xmlname = {_simplify(self.name)}"])
 		if self.codepoint > 0xffff:
 			fmt = "#010x"
 		elif self.codepoint > 0xff:
 			fmt = "#06x"
 		else:
 			fmt = "#02x"
-		newlines.append([level+1, "codepoint = {0:{1}}".format(self.codepoint, fmt)])
+		newlines.append([level+1, f"codepoint = {self.codepoint:{fmt}}"])
 		_addlines(lines, newlines)

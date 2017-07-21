@@ -37,15 +37,18 @@ class Color(tuple):
 
 	@classmethod
 	def fromrepr(cls, s):
-		if len(s) == 9:
-			return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))
-		elif len(s) == 7:
-			return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))
-		elif len(s) == 5:
-			return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))
-		elif len(s) == 4:
-			return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))
-		raise ValueError("can't interpret {} as color repr value".format(s))
+		try:
+			if len(s) == 9:
+				return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))
+			elif len(s) == 7:
+				return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))
+			elif len(s) == 5:
+				return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))
+			elif len(s) == 4:
+				return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))
+		except ValueError:
+			pass
+		raise ValueError(f"can't interpret {s!r} as color repr value")
 
 	@classmethod
 	def fromcss(cls, s):
@@ -86,7 +89,7 @@ class Color(tuple):
 			return cls(*channels)
 		elif s in csscolors:
 			return csscolors[s]
-		raise ValueError("can't interpret {} as css value".format(s))
+		raise ValueError(f"can't interpret {s!r} as css value")
 
 	@classmethod
 	def fromrgb(cls, r, g, b, a=1.0):
@@ -121,20 +124,20 @@ class Color(tuple):
 
 	def __repr__(self):
 		if self[3] != 0xff:
-			return "Color({:#04x}, {:#04x}, {:#04x}, {:#04x})".format(*self)
+			return f"Color({self[0]:#04x}, {self[1]:#04x}, {self[2]:#04x}, {self[3]:#04x})"
 		else:
-			return "Color({:#04x}, {:#04x}, {:#04x})".format(*self)
+			return f"Color({self[0]:#04x}, {self[1]:#04x}, {self[2]:#04x})"
 
 	def __str__(self):
 		"""
 		:obj:`self` formatted as a CSS color string.
 		"""
 		if self[3] != 0xff:
-			return "rgba({},{},{},{:.3f})".format(self[0], self[1], self[2], self[3]/255.)
+			return f"rgba({self[0]},{self[1]},{self[2]},{self[3]/255.:.3f})"
 		else:
-			s = "#{:02x}{:02x}{:02x}".format(self[0], self[1], self[2])
+			s = f"#{self[0]:02x}{self[1]:02x}{self[2]:02x}"
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6]:
-				s = "#{}{}{}".format(s[1], s[3], s[5])
+				s = f"#{s[1]}{s[3]}{s[5]}"
 		return s
 
 	def r(self):

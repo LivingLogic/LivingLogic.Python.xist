@@ -52,7 +52,7 @@ method:
 	>>> from ll.xist.ns import html
 	>>> e = html.ul(html.li(i) for i in range(3))
 	>>> for cursor in e.walk():
-	... 	print("{0.event} {0.node!r}".format(cursor))
+	... 	print(f"{cursor.event} {cursor.node!r}")
 	... 
 	enterelementnode <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x43fbb0>
 	enterelementnode <ll.xist.ns.html.li element object (1 child/no attrs) at 0x452750>
@@ -70,7 +70,7 @@ The :attr:`path` attribute can be used like this:
 	>>> from ll.xist.ns import html
 	>>> e = html.ul(html.li(i) for i in range(3))
 	>>> for cursor in e.walk():
-	... 	print(["{0.__module__}.{0.__qualname__}".format(n.__class__) for n in cursor.path])
+	... 	print([f"{n.__class__.__module__}.{n.__class__.__qualname__}" for n in cursor.path])
 	...
 	['ll.xist.ns.html.ul']
 	['ll.xist.ns.html.ul', 'll.xist.ns.html.li']
@@ -88,7 +88,7 @@ The following example shows how the :attr:`index` attribute works:
 	>>> from ll.xist.ns import html
 	>>> e = html.ul(html.li(i) for i in range(3))
 	>>> for cursor in e.walk():
-	... 	print("{0.index} {0.node!r}".format(cursor))
+	... 	print(f"{cursor.index} {cursor.node!r}")
 	...
 	[] <ll.xist.ns.html.ul element object (5 children/no attrs) at 0x4b7bb0>
 	[0] <ll.xist.ns.html.li element object (1 child/no attrs) at 0x4ca750>
@@ -118,9 +118,10 @@ specify which part of the tree should be traversed and in which order:
 		:caption: Using the :obj:`enterattrs` paameter
 
 		>>> from ll.xist.ns import html
-		>>> e = html.ul(html.li(i, class_="li-{}".format(i)) for i in range(3))
+		>>> e = html.ul(html.li(i, class_=f"li-{i}") for i in range(3))
 		>>> for cursor in e.walk(enterattrs=True):
-		... 	print("{}{!r}".format("\t"*(len(cursor.path)-1), cursor.node))
+		... 	indent = "\t"*(len(cursor.path)-1)
+		... 	print(f"{indent}{cursor.node!r}")
 		... 
 		<ll.xist.ns.html.ul element object (3 children/no attrs) at 0x51e790>
 			<ll.xist.ns.html.li element object (1 child/1 attr) at 0x51e8b0>
@@ -146,9 +147,10 @@ will only visit the attribute nodes themselves, but not their content.
 		:caption: Using the :obj:`enterattr` paameter
 
 		>>> from ll.xist.ns import html
-		>>> e = html.ul(html.li(i, class_="li-{}".format(i)) for i in range(3))
+		>>> e = html.ul(html.li(i, class_=f"li-{i}") for i in range(3))
 		>>> for cursor in e.walk(enterattrs=True, enterattr=True):
-		... 	print("{}{!r}".format("\t"*(len(cursor.path)-1), cursor.node))
+		... 	indent = "\t"*(len(cursor.path)-1)
+		... 	print(f"{indent}{cursor.node!r}")
 		... 
 		<ll.xist.ns.html.ul element object (3 children/no attrs) at 0x4c1790>
 			<ll.xist.ns.html.li element object (1 child/1 attr) at 0x4c18b0>
@@ -205,11 +207,12 @@ Passing ``True`` for all these parameters gives us the following output:
 	:caption: Full tree traversal
 
 	>>> from ll.xist.ns import html
-	>>> e = html.ul(html.li(i, class_="li-{}".format(i)) for i in range(3))
+	>>> e = html.ul(html.li(i, class_=f"li-{i}") for i in range(3))
 	>>> for cursor in e.walk(entercontent=True, enterattrs=True, enterattr=True,
 	... 	 enterelementnode=True, leaveelementnode=True,
 	... 	 enterattrnode=True, leaveattrnode=True):
-	... 	print("{0}{1.event} {1.index} {1.node!r}".format("\t"*(len(cursor.path)-1), cursor))
+	... 	indent = "\t"*(len(cursor.path)-1)
+	... 	print(f"{indent}{cursor.event} {cursor.index} {cursor.node!r}")
 	... 
 	enterelementnode [] <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x4cbe50>
 		enterelementnode [0] <ll.xist.ns.html.li element object (1 child/1 attr) at 0x4de850>
@@ -245,11 +248,12 @@ the content of :class:`~ll.xist.ns.html.li` elements is skipped if they have a
 	:caption: Skipping parts of the tree
 
 	>>> from ll.xist.ns import html
-	>>> e = html.ul(html.li(i, class_=None if i%2 else "li-{}".format(i)) for i in range(3))
+	>>> e = html.ul(html.li(i, class_=None if i%2 else f"li-{i}") for i in range(3))
 	>>> for cursor in e.walk():
 	... 	if isinstance(cursor.node, html.li) and "class_" in cursor.node.attrs:
 	... 		cursor.entercontent = False
-	... 	print("{0}{1.event} {1.node!r}".format("\t"*(len(cursor.path)-1), cursor))
+	... 	indent = "\t"*(len(cursor.path)-1)
+	... 	print(f"{indent}{cursor.event} {cursor.node!r}")
 	... 
 	enterelementnode <ll.xist.ns.html.ul element object (3 children/no attrs) at 0x495790>
 		enterelementnode <ll.xist.ns.html.li element object (1 child/1 attr) at 0x4958d0>
@@ -309,7 +313,7 @@ reentered:
 	>>> from ll.xist.ns import html
 	>>> e = html.ul(html.li(i) for i in range(3))
 	>>> for path in e.walkpaths():
-	... 	print(["{0.__module__}.{0.__qualname__}".format(n.__class__) for n in path])
+	... 	print([f"{n.__class__.__module__}.{n.__class__.__qualname__}" for n in path])
 	...
 	['ll.xist.ns.html.ul']
 	['ll.xist.ns.html.ul', 'll.xist.ns.html.li']

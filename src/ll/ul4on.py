@@ -120,7 +120,7 @@ the class with the UL4ON serialization machinery::
 			self.lastname = lastname
 
 		def __repr__(self):
-			return "<Person firstname={!r} lastname={!r}>".format(self.firstname, self.lastname)
+			return f"<Person firstname={self.firstname!r} lastname={self.lastname!r}>"
 
 		def ul4ondump(self, encoder):
 			encoder.dump(self.firstname)
@@ -154,7 +154,7 @@ It is also possible to pass a custom registry to :func:`load` and
 			self.lastname = lastname
 
 		def __repr__(self):
-			return "<Person firstname={!r} lastname={!r}>".format(self.firstname, self.lastname)
+			return f"<Person firstname={self.firstname!r} lastname={self.lastname!r}>"
 
 		def ul4ondump(self, encoder):
 			encoder.dump(self.firstname)
@@ -263,7 +263,7 @@ class Encoder:
 		# Have we written this object already?
 		if id(obj) in self._id2index:
 			# Yes: Store a backreference to the object
-			self._line("^{}".format(self._id2index[id(obj)]))
+			self._line(f"^{self._id2index[id(obj)]}")
 		else:
 			from ll import ul4c, color, misc
 			# No: Write the object itself
@@ -273,12 +273,12 @@ class Encoder:
 			elif isinstance(obj, bool):
 				self._line("bT" if obj else "bF")
 			elif isinstance(obj, int):
-				self._line("i{}".format(obj))
+				self._line(f"i{obj}")
 			elif isinstance(obj, float):
-				self._line("f{!r}".format(obj))
+				self._line(f"f{obj!r}")
 			elif isinstance(obj, str):
 				self._record(obj)
-				self._line("S{!r}".format(obj))
+				self._line(f"S{obj!r}")
 			elif isinstance(obj, slice):
 				self._record(obj)
 				self._line("R", obj.start, obj.stop)
@@ -417,7 +417,7 @@ class Decoder:
 			elif value == "F":
 				value = False
 			else:
-				raise ValueError("broken UL4ON stream at position {}: expected 'T' or 'F' for bool; got {!r}".format(self.stream.tell(), value))
+				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,}: expected 'T' or 'F' for bool; got {value!r}")
 			if typecode == "B":
 				self._loading(value)
 			return value
@@ -449,7 +449,8 @@ class Decoder:
 					raise EOFError()
 				buffer.append(c)
 				if c == delimiter:
-					value = ast.literal_eval("{}{}{}".format(2*delimiter, "".join(buffer), 2*delimiter))
+					# Create a triple quoted string literal so that linefeeds in the string work
+					value = ast.literal_eval(f"{delimiter}{delimiter}{''.join(buffer)}{delimiter}{delimiter}")
 					break
 				elif c == "\\":
 					c2 = self.stream.read(1)
@@ -562,17 +563,17 @@ class Decoder:
 			if cls is None:
 				cls = _registry.get(name)
 			if cls is None:
-				raise TypeError("can't decode object of type {}".format(name))
+				raise TypeError(f"can't decode object of type {name!r}")
 			value = cls()
 			if typecode == "O":
 				self._endfakeloading(oldpos, value)
 			value.ul4onload(self)
 			typecode = self._nextchar()
 			if typecode != ")":
-				raise ValueError("broken UL4ON stream at position {}: object terminator ')' expected, got {!r}".format(self.stream.tell(), typecode))
+				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,}: object terminator ')' expected, got {typecode!r}")
 			return value
 		else:
-			raise ValueError("broken UL4ON stream at position {}: unknown typecode {!r}".format(self.stream.tell(), typecode))
+			raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,}: unknown typecode {typecode!r}")
 
 
 class StreamBuffer:

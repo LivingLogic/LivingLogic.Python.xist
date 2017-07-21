@@ -108,13 +108,13 @@ class attr_if(xsc.AttrElement):
 		class cond(xsc.TextAttr): required = True
 
 	def publish(self, publisher):
-		yield publisher.encode('<?if {cond}?>'.format(cond=str(self.attrs.cond)))
+		yield publisher.encode(f'<?if {self.attrs.cond}?>')
 		yield from self.content.publish(publisher)
 		yield publisher.encode('<?end if?>')
 
 	def publishattr(self, publisher, attr):
 		publisher.inattr += 1
-		yield publisher.encode('<?if {cond}?> {name}="'.format(cond=str(self.attrs.cond), name=attr._publishname(publisher)))
+		yield publisher.encode(f'<?if {self.attrs.cond}?> {attr._publishname(publisher)}="')
 		publisher.pushtextfilter(misc.xmlescape_attr)
 		yield from self.content.publish(publisher)
 		publisher.poptextfilter()
@@ -123,9 +123,9 @@ class attr_if(xsc.AttrElement):
 
 	def publishboolattr(self, publisher, attr):
 		name = attr._publishname(publisher)
-		yield publisher.encode('<?if {cond}?> {name}'.format(cond=str(self.attrs.cond), name=name))
+		yield publisher.encode(f'<?if {self.attrs.cond}?> {name}')
 		if publisher.xhtml>0:
-			yield publisher.encode('="{name}"'.format(name=name))
+			yield publisher.encode(f'="{name}"')
 		yield publisher.encode('<?end if?>')
 
 

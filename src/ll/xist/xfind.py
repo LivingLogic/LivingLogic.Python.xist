@@ -115,7 +115,7 @@ def selector(*objs):
 		elif obj is None:
 			return any
 		else:
-			raise TypeError("can't convert {0!r} to selector".format(obj))
+			raise TypeError(f"can't convert {obj!r} to selector")
 	elif all(isinstance(sel, type) for sel in objs):
 		return IsInstanceSelector(*objs)
 	return OrCombinator(*objs)
@@ -258,9 +258,10 @@ class IsInstanceSelector(Selector):
 
 	def __str__(self):
 		if len(self.types) == 1:
-			return "{0.types[0].__module__}.{0.types[0].__name__}".format(self)
+			return f"{self.types[0].__module__}.{self.types[0].__name__}"
 		else:
-			return "({})".format(" | ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
+			types = " | ".join(f"{type.__module__}.{type.__name__}" for type in self.types)
+			return f"({types})"
 
 
 class element(Selector):
@@ -290,7 +291,7 @@ class element(Selector):
 		return isinstance(node, xsc.Element) and node.xmlns == self.xmlns and node.xmlname == self.xmlname
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.name!r}, {0.xmlns!r})".format(self)
+		return f"{self.__class__.__qualname__}({self.name!r}, {self.xmlns!r})"
 
 
 class procinst(Selector):
@@ -305,7 +306,7 @@ class procinst(Selector):
 		return isinstance(node, xsc.ProcInst) and node.xmlname == self.xmlname
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.name!r})".format(self)
+		return f"{self.__class__.__qualname__}({self.name!r})"
 
 
 class entity(Selector):
@@ -320,7 +321,7 @@ class entity(Selector):
 		return isinstance(node, xsc.Entity) and node.xmlname == self.xmlname
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.name!r})".format(self)
+		return f"{self.__class__.__qualname__}({self.name!r})"
 
 
 class IsSelector(Selector):
@@ -352,7 +353,7 @@ class IsSelector(Selector):
 		return path[-1] is self.node
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.node!r})".format(self)
+		return f"{self.__class__.__qualname__}({self.node!r})"
 
 
 class IsRootSelector(Selector):
@@ -524,7 +525,8 @@ class hasattr(Selector):
 		return False
 
 	def __str__(self):
-		return "{}({})".format(self.__class__.__qualname__, ", ".join(repr(attrname) for attrname in self.attrnames))
+		attrnames = ", ".join(repr(attrname) for attrname in self.attrnames)
+		return f"{self.__class__.__qualname__}({attrname})"
 
 
 class attrhasvalue(Selector):
@@ -565,7 +567,8 @@ class attrhasvalue(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.attrname!r}, {1})".format(self, repr(self.attrvalues)[1:-1])
+		attrvalues = repr(self.attrvalues)[1:-1]
+		return f"{self.__class__.__qualname__}({self.attrname!r}, {attrvalues})"
 
 
 class attrcontains(Selector):
@@ -606,7 +609,8 @@ class attrcontains(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.attrname!1}, {0.attrvalue!r})".format(self)
+		attrvalues = repr(self.attrvalues)[1:-1]
+		return f"{self.__class__.__qualname__}({self.attrname!r}, {attrvalues})"
 
 
 class attrstartswith(Selector):
@@ -650,7 +654,8 @@ class attrstartswith(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.attrname!1}, {0.attrvalue!r})".format(self)
+		attrvalues = repr(self.attrvalues)[1:-1]
+		return f"{self.__class__.__qualname__}({self.attrname!r}, {attrvalues})"
 
 
 class attrendswith(Selector):
@@ -691,7 +696,8 @@ class attrendswith(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.attrname!1}, {0.attrvalue!r})".format(self)
+		attrvalues = repr(self.attrvalues)[1:-1]
+		return f"{self.__class__.__qualname__}({self.attrname!r}, {attrvalues})"
 
 
 class hasid(Selector):
@@ -727,7 +733,8 @@ class hasid(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.id!r})".format(self)
+		ids = repr(self.ids)[1:-1]
+		return f"{self.__class__.__qualname__}({ids})"
 
 
 class hasclass(Selector):
@@ -768,7 +775,8 @@ class hasclass(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.classname!r})".format(self)
+		classnames = repr(self.classnames)[1:-1]
+		return f"{self.__class__.__qualname__}({classnames})"
 
 
 class InAttrSelector(Selector):
@@ -825,11 +833,11 @@ class BinaryCombinator(Combinator):
 	def __str__(self):
 		left = str(self.left)
 		if isinstance(self.left, Combinator) and not isinstance(self.left, self.__class__):
-			left = "({})".format(left)
+			left = f"({left})"
 		right = str(self.right)
 		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
-			right = "({})".format(right)
-		return "{}{}{}".format(left, self.symbol, right)
+			right = f"({right})"
+		return f"{left}{self.symbol}{right}"
 
 
 class ChildCombinator(BinaryCombinator):
@@ -996,7 +1004,7 @@ class ChainedCombinator(Combinator):
 		v = []
 		for sel in self.selectors:
 			if isinstance(sel, Combinator) and not isinstance(sel, self.__class__):
-				s = "({})".format(sel)
+				s = f"({sel})"
 			else:
 				s = str(sel)
 			v.append(s)
@@ -1109,9 +1117,9 @@ class NotCombinator(Combinator):
 
 	def __str__(self):
 		if isinstance(self.selector, Combinator) and not isinstance(self.selector, NotCombinator):
-			return "~({})".format(self.selector)
+			return f"~({self.selector})"
 		else:
-			return "~{}".format(self.selector)
+			return f"~{self.selector}"
 
 
 class CallableSelector(Selector):
@@ -1153,7 +1161,7 @@ class CallableSelector(Selector):
 		return self.func(path)
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.func!r})".format(self)
+		return f"{self.__class__.__qualname__}({self.func!r})"
 
 
 class nthchild(Selector):
@@ -1182,7 +1190,7 @@ class nthchild(Selector):
 		return False
 
 	def __str__(self):
-		return "{0.__class__.__qualname__}({0.index!r})".format(self)
+		return f"{self.__class__.__qualname__}({self.index!r})"
 
 
 class nthoftype(Selector):
@@ -1236,6 +1244,7 @@ class nthoftype(Selector):
 
 	def __str__(self):
 		if self.types:
-			return "{0.__class__.__qualname__}({0.index!r}, {1})".format(self, ", ".join("{0.__module__}.{0.__name__}".format(type) for type in self.types))
+			types = ", ".join(f"{type.__module__}.{type.__qualname__}" for type in self.types)
+			return f"{self.__class__.__qualname__}({self.index!r}, {types})"
 		else:
-			return "{0.__class__.__qualname__}({0.index!r})".format(self)
+			return f"{self.__class__.__qualname__}({self.index!r})"

@@ -178,13 +178,13 @@ def main(args=None):
 					if args.verbose:
 						exctype = misc.format_class(exc)
 						excmsg = str(exc).replace("\n", " ").strip()
-						msg = astyle.style_error(" (failed with {}: {})".format(exctype, excmsg))
+						msg = astyle.style_error(f" (failed with {exctype}: {excmsg})")
 						stderr.writeln(msg)
 				else:
 					raise
 			else:
 				if args.verbose:
-					msg = astyle.style_default(astyle.style_url(str(urlwrite)), " ({:,} bytes)".format(size))
+					msg = astyle.style_default(astyle.style_url(str(urlwrite)), f" ({size:,} bytes)")
 					stderr.writeln(msg)
 
 	p = argparse.ArgumentParser(description="Copies URLs", epilog="For more info see http://www.livinglogic.de/Python/scripts_ucp.html")

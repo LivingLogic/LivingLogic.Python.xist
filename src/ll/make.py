@@ -92,7 +92,7 @@ class Level:
 		self.reported = reported
 
 	def __repr__(self):
-		return "<{}.{} object action={!r} since={!r} reportable={!r} reported={} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.action, self.since, self.reportable, self.reported, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object action={self.action!r} since={self.since!r} reportable={self.reportable!r} reported={self.reported} at {id(self):#x}>"
 
 
 def report(func):
@@ -153,8 +153,7 @@ def report(func):
 				if project.showdata:
 					args.append(": ")
 					if error is not None:
-						fmt = "{0.__module__}.{0.__name__}" if error.__module__ != "exceptions" else "{0.__name__}"
-						text = fmt.format(error)
+						text = f"{error.__module__}.{error.__name__}" if error.__module__ != "exceptions" else error.__name__
 						args.append(s4error(text))
 					else:
 						args.append(project.strdata(data))
@@ -180,7 +179,7 @@ class RedefinedTargetWarning(Warning):
 		self.key = key
 
 	def __str__(self):
-		return "target with key={!r} redefined".format(self.key)
+		return f"target with key={self.key!r} redefined"
 
 
 class UndefinedTargetError(KeyError):
@@ -193,7 +192,7 @@ class UndefinedTargetError(KeyError):
 		self.key = key
 
 	def __str__(self):
-		return "target {!r} undefined".format(self.key)
+		return f"target {self.key!r} undefined"
 
 
 ###
@@ -357,7 +356,7 @@ class Action:
 	def __repr__(self):
 		def format(arg):
 			if isinstance(arg, Action):
-				return " from {}.{}".format(arg.__class__.__module__, arg.__class__.__qualname__)
+				return f" from {arg.__class__.__module__}.{arg.__class__.__qualname__}"
 			elif isinstance(arg, tuple):
 				return "=(?)"
 			elif isinstance(arg, list):
@@ -365,17 +364,17 @@ class Action:
 			elif isinstance(arg, dict):
 				return "={?}"
 			else:
-				return "={!r}".format(arg)
+				return f"={arg!r}"
 
-		output = ["arg {}{}".format(i, format(arg)) for (i, arg) in enumerate(self.getargs())]
+		output = [f"arg {i}{format(arg)}" for (i, arg) in enumerate(self.getargs())]
 		for (argname, arg) in self.getkwargs().items():
-			output.append("arg {}{}".format(argname, format(arg)))
+			output.append(f"arg {argname}{format(arg)}")
 
 		if output:
-			output = " with {}".format(", ".join(output))
+			output = f" with {', '.join(output)}"
 		else:
 			output = ""
-		return "<{}.{} object{} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, output, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object{output} at {id(self):#x}>"
 
 	@misc.notimplemented
 	def __iter__(self):
@@ -486,7 +485,7 @@ class CollectAction(TransformAction):
 		return data
 
 	def __repr__(self):
-		return "<{}.{} object at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object at {id(self):#x}>"
 
 
 class PhonyAction(Action):
@@ -538,10 +537,10 @@ class PhonyAction(Action):
 			return None if self.changed > since else nodata
 
 	def __repr__(self):
-		s = "<{}.{} object".format(self.__class__.__module__, self.__class__.__qualname__)
+		s = f"<{self.__class__.__module__}.{self.__class__.__qualname__} object"
 		if self.key is not None:
-			s += " with key={!r}".format(self.key)
-		s += " at {:#x}>".format(id(self))
+			s += f" with key={self.key!r}"
+		s += f" at {id(self):#x}>"
 		return s
 
 
@@ -617,7 +616,7 @@ class FileAction(TransformAction):
 				return data
 		else: # We have no inputs (i.e. this is a "source" file)
 			if self.changed is bigbang:
-				raise ValueError("source file {!r} doesn't exist".format(self.key))
+				raise ValueError(f"source file {self.key!r} doesn't exist")
 		if self.changed > since: # We are up to date now and newer than the output action
 			return self.read(project) # return file data (to output action or client)
 		# else fail through and return :const:`nodata`
@@ -638,7 +637,7 @@ class FileAction(TransformAction):
 		return OwnerAction(self, user, group)
 
 	def __repr__(self):
-		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.key, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object key={self.key!r} at {id(self):#x}>"
 
 
 class MkDirAction(TransformAction):
@@ -665,7 +664,7 @@ class MkDirAction(TransformAction):
 		self.key.makedirs(self.mode)
 
 	def __repr__(self):
-		return "<{}.{} object with mode={:#03o} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.mode, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object with mode={self.mode:#03o} at {id(self):#x}>"
 
 
 class PipeAction(TransformAction):
@@ -696,7 +695,7 @@ class PipeAction(TransformAction):
 		return output
 
 	def __repr__(self):
-		return "<{}.{} object with command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.command, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object with command={self.command!r} at {id(self):#x}>"
 
 
 class CacheAction(TransformAction):
@@ -773,17 +772,15 @@ class CallAction(Action):
 			if len(args) == 1:
 				argsmsg = " with 1 arg"
 			else:
-				argsmsg = " with {} args".format(len(args))
+				argsmsg = f" with {len(args)} args"
 		else:
 			argsmsg = " without args"
 		if kwargs:
-			if len(kwargs) == 1:
-				kwargsmsg = " and keyword {}".format(", ".join(kwargs))
-			else:
-				kwargsmsg = " and keywords {}".format(", ".join(kwargs))
+			kwargsstr = ", ".join(kwargs)
+			kwargsmsg = f" and keyword {kwargsstr}" if len(kwargs) == 1 f" and keywords {kwargsstr}"
 		else:
 			kwargsmsg = ""
-		project.writestep(self, "Calling {!r}".format(func), argsmsg, kwargsmsg)
+		project.writestep(self, f"Calling {func!r}", argsmsg, kwargsmsg)
 		return func(*args, **kwargs)
 
 
@@ -814,7 +811,7 @@ class CallAttrAction(Action):
 
 	def execute(self, project, obj, attrname, *args, **kwargs):
 		func = getattr(obj, attrname)
-		project.writestep(self, "Calling {!r}".format(func))
+		project.writestep(self, f"Calling {func!r}")
 		return func(*args, **kwargs)
 
 
@@ -837,7 +834,7 @@ class CommandAction(TransformAction):
 		os.system(self.command)
 
 	def __repr__(self):
-		return "<{}.{} object command={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.command, id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object command={self.command!r} at {id(self):#x}>"
 
 
 class ModeAction(TransformAction):
@@ -865,7 +862,7 @@ class ModeAction(TransformAction):
 		Change the permission bits of the file ``self.getkey()``.
 		"""
 		key = self.getkey()
-		project.writestep(self, "Changing mode of ", project.strkey(key), " to {:#03o}".format(mode))
+		project.writestep(self, "Changing mode of ", project.strkey(key), f" to {mode:#03o}")
 		key.chmod(mode)
 		return data
 
@@ -1007,7 +1004,7 @@ class ModuleAction(TransformAction):
 		return nodata
 
 	def __repr__(self):
-		return "<{}.{} object key={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, self.getkey(), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object key={self.getkey()!r} at {id(self):#x}>"
 
 
 class FOPAction(TransformAction):
@@ -1127,7 +1124,7 @@ class Project(dict):
 		self.notify = self._getenvbool("LL_MAKE_NOTIFY", False)
 
 	def __repr__(self):
-		return "<{}.{} with {} targets at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, len(self), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} with {len(self)} targets at {id(self):#x}>"
 
 	class showaction(misc.propclass):
 		"""
@@ -1265,11 +1262,11 @@ class Project(dict):
 
 			secs += delta.microseconds/1000000.
 			if rest:
-				text = "{:d}:{:02d}:{:06.3f}h".format(rest, mins, secs)
+				text = f"{rest:d}:{mins:02d}:{secs:06.3f}h"
 			elif mins:
-				text = "{:02d}:{:06.3f}m".format(mins, secs)
+				text = f"{mins:02d}:{secs:06.3f}m"
 			else:
-				text = "{:.3f}s".format(secs)
+				text = f"{secs:.3f}s"
 		return s4time(text)
 
 	def strdatetime(self, dt):
@@ -1284,7 +1281,7 @@ class Project(dict):
 		Return a nicely formatted and colored string for the counter value
 		:obj:`counter`.
 		"""
-		return s4counter("{}.".format(counter))
+		return s4counter(f"{counter}.")
 
 	def strerror(self, text):
 		"""
@@ -1307,7 +1304,7 @@ class Project(dict):
 			test = str(key.relative(self.here))
 			if len(test) < len(s):
 				s = test
-			test = "~/{}".format(key.relative(self.home))
+			test = f"~/{key.relative(self.home)}"
 			if len(test) < len(s):
 				s = test
 		return s4key(s)
@@ -1334,14 +1331,11 @@ class Project(dict):
 		elif data is None:
 			return s4data("None")
 		elif isinstance(data, bytes):
-			return s4data("bytes ({:,}b)".format(len(data)))
+			return s4data(f"bytes ({len(data):,}b)")
 		elif isinstance(data, str):
-			return s4data("chars ({:,}c)".format(len(data)))
+			return s4data(f"chars ({len(data):,}c)")
 		else:
-			dataclass = data.__class__
-			fmt = "{0.__module__}.{0.__name__} @ {1:#x}" if dataclass.__module__ != "__builtin__" else "{0.__name__} @ {1:#x}"
-			text = fmt.format(dataclass, id(data))
-			return s4data(text)
+			return s4data(f"{misc.format_class(data)} @ {id(data):#x}")
 
 	def __setitem__(self, key, target):
 		"""
@@ -1619,17 +1613,17 @@ class Project(dict):
 	def notifyfinish(self, duration, success):
 		msgs = []
 		if self.stepsexecuted:
-			msgs.append("{:,} steps".format(self.stepsexecuted))
+			msgs.append(f"{self.stepsexecuted:,} steps")
 		if self.fileswritten:
-			msgs.append("{:,} files".format(self.fileswritten))
+			msgs.append(f"{self.fileswritten:,} files")
 		if self.byteswritten:
-			msgs.append("{:,} bytes".format(self.byteswritten))
+			msgs.append(f"{self.byteswritten:,} bytes")
 		if not msgs:
 			msgs.append("nothing to do")
 
 		misc.notifyfinish(
 			self.name,
-			"{} after {}".format("finished" if success else "failed", self.strtimedelta(duration)),
+			f"{'finished' if success else 'failed'} after {self.strtimedelta(duration)}"
 			"; ".join(msgs),
 		)
 

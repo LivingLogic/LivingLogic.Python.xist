@@ -49,7 +49,7 @@ except ImportError:
 			string = string.replace("'", "&#39;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#{};".format(ord(c)))
+				string = string.replace(c, f"&#{ord(c)};")
 			return string
 
 	def xmlescape_text(string):
@@ -65,7 +65,7 @@ except ImportError:
 			string = string.replace("<", "&lt;")
 			string = string.replace(">", "&gt;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#{};".format(ord(c)))
+				string = string.replace(c, f"&#{ord(c)};")
 			return string
 
 	def xmlescape_attr(string):
@@ -82,7 +82,7 @@ except ImportError:
 			string = string.replace(">", "&gt;")
 			string = string.replace('"', "&quot;")
 			for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-				string = string.replace(c, "&#{};".format(ord(c)))
+				string = string.replace(c, f"&#{ord(c)};")
 			return string
 
 
@@ -164,7 +164,7 @@ def notimplemented(function):
 	"""
 	@functools.wraps(function)
 	def wrapper(self, *args, **kwargs):
-		raise NotImplementedError("method {}() not implemented in {!r}".format(function.__name__, self.__class__))
+		raise NotImplementedError(f"method {function.__name__}() not implemented in {format_class(self)}")
 	return wrapper
 
 
@@ -232,10 +232,9 @@ def format_class(obj):
 		'_io.BufferedReader'
 	"""
 	if obj.__class__.__module__ not in ("builtins", "exceptions"):
-		fmt = "{0.__class__.__module__}.{0.__class__.__qualname__}"
+		return f"{obj.__class__.__module__}.{obj.__class__.__qualname__}"
 	else:
-		fmt = "{0.__class__.__qualname__}"
-	return fmt.format(obj)
+		return obj.__class__.__qualname__
 
 
 def format_exception(exc):
@@ -247,12 +246,12 @@ def format_exception(exc):
 	"""
 	try:
 		strexc = str(exc).strip()
+		if strexc:
+			return f"{format_class(exc)}: {strexc}"
+		else:
+			return format_class(exc)
 	except UnicodeError:
-		strexc = "?"
-	fmt = "{}"
-	if strexc:
-		fmt += ": {}"
-	return fmt.format(format_class(exc), strexc)
+		return f"{format_class(exc)}: /"
 
 
 def exception_chain(exc):
@@ -339,7 +338,7 @@ class Pool:
 		return copy
 
 	def __repr__(self):
-		return "<{}.{} object with {} items at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, len(self._attrs), id(self))
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object with {len(self._attrs):,} items at {id(self):#x}>"
 
 
 def iterone(item):
@@ -383,7 +382,7 @@ class Iterator:
 		return False
 
 	def get(self, index, default=None):
-		r"""
+		"""
 		Return the :obj:`index`'th item from the iterator (or :obj:`default` if
 		there's no such item).
 		"""
@@ -431,7 +430,7 @@ class Const:
 		self._module = module
 
 	def __repr__(self):
-		return "{}.{}".format(self._module or self.__module__, self._name)
+		return f"{self._module or self.__module__}.{self._name}"
 
 
 class FlagAction(argparse.Action):
@@ -458,7 +457,8 @@ class FlagAction(argparse.Action):
 		elif value in self.false_choices:
 			return False
 		else:
-			raise argparse.ArgumentTypeError("invalid flag value: {!r} (use any of {})".format(value, ", ".join(self.true_choices + self.false_choices)))
+			choices = ", ".join(self.true_choices + self.false_choices)
+			raise argparse.ArgumentTypeError(f"invalid flag value: {value!r} (use any of {choices})")
 
 	def __call__(self, parser, namespace, values, option_string=None):
 		setattr(namespace, self.dest, values)
@@ -531,6 +531,7 @@ def module(source, filename="unnamed.py", name=None):
 	will be used as the filename for the module and :obj:`name` as the module
 	name (defaulting to the filename part of :obj:`filename`).
 	"""
+	print(source)
 	if name is None:
 		name = os.path.splitext(os.path.basename(filename))[0]
 	mod = types.ModuleType(name)
@@ -558,7 +559,8 @@ def javaexpr(obj):
 		return "false"
 	elif isinstance(obj, str):
 		if len(obj) > 10000: # Otherwise javac complains about ``constant string too long`` (the upper limit is 65535 UTF-8 bytes)
-			return "new StringBuilder({}){}.toString()".format(len(obj), "".join(".append({})".format(javaexpr(obj[i:i+10000])) for i in range(0, len(obj), 10000)))
+			parts = "".join(f".append({javaexpr(obj[i:i+10000])})" for i in range(0, len(obj), 10000))
+			return f"new StringBuilder({len(obj)}){parts}.toString()"
 		else:
 			v = []
 			specialchars = {"\r": "\\r", "\n": "\\n", "\t": "\\t", "\f": "\\f", "\b": "\\b", '"': '\\"', "\\": "\\\\"}
@@ -567,18 +569,19 @@ def javaexpr(obj):
 					v.append(specialchars[c])
 				except KeyError:
 					oc = ord(c)
-					v.append(c if 32 <= oc < 128 else "\\u{:04x}".format(oc))
-			return '"{}"'.format("".join(v))
+					v.append(c if 32 <= oc < 128 else f"\\u{oc:04x}")
+			string = "".join(v)
+			return f'"{string}"'
 	elif isinstance(obj, datetime.datetime): # check ``datetime`` before ``date``, as ``datetime`` is a subclass of ``date``
-		return "com.livinglogic.ul4.FunctionDate.call({0.year}, {0.month}, {0.day}, {0.hour}, {0.minute}, {0.second}, {0.microsecond})".format(obj)
+		return f"com.livinglogic.ul4.FunctionDate.call({obj.year}, {obj.month}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond})"
 	elif isinstance(obj, datetime.date):
-		return "com.livinglogic.ul4.FunctionDate.call({0.year}, {0.month}, {0.day})".format(obj)
+		return f"com.livinglogic.ul4.FunctionDate.call({obj.year}, {obj.month}, {obj.day})"
 	elif isinstance(obj, datetime.timedelta):
-		return "com.livinglogic.ul4.FunctionTimeDelta.call({0.days}, {0.seconds}, {0.microseconds})".format(obj)
+		return f"com.livinglogic.ul4.FunctionTimeDelta.call({obj.days}, {obj.seconds}, {obj.microseconds})"
 	elif isinstance(obj, monthdelta):
-		return "com.livinglogic.ul4.FunctionMonthDelta.call({0})".format(obj.months())
+		return f"com.livinglogic.ul4.FunctionMonthDelta.call({obj.months()})"
 	elif isinstance(obj, color.Color):
-		return "new com.livinglogic.ul4.Color({}, {}, {}, {})".format(*obj)
+		return "new com.livinglogic.ul4.Color({obj[0]}, {obj[1]}, {obj[2]}, {obj[3]})"
 	elif isinstance(obj, float):
 		return repr(obj)
 	elif isinstance(obj, int):
@@ -587,24 +590,27 @@ def javaexpr(obj):
 		elif -0x8000000000000000 <= obj <= 0x7fffffffffffffff:
 			return repr(obj) + "L"
 		else:
-			return 'new java.math.BigInteger("{}")'.format(obj)
+			return f'new java.math.BigInteger("{obj}")'
 		return repr(obj)
 	elif isinstance(obj, collections.Sequence):
-		return "java.util.Arrays.asList({})".format(", ".join(javaexpr(item) for item in obj))
+		items = ", ".join(javaexpr(item) for item in obj)
+		return f"java.util.Arrays.asList({items})"
 	elif isinstance(obj, collections.Mapping):
-		return "com.livinglogic.utils.MapUtils.makeMap({})".format(", ".join("{}, {}".format(javaexpr(key), javaexpr(value)) for (key, value) in obj.items()))
+		items = ", ".join(f"{javaexpr(key)}, {javaexpr(value)}" for (key, value) in obj.items())
+		return f"com.livinglogic.utils.MapUtils.makeMap({items})"
 	elif isinstance(obj, collections.Set):
-		return "com.livinglogic.utils.SetUtils.makeSet({})".format(", ".join(javaexpr(item) for item in obj))
+		items = ", ".join(javaexpr(item) for item in obj)
+		return f"com.livinglogic.utils.SetUtils.makeSet({items})"
 	elif isinstance(obj, ul4c.UndefinedKey):
-		return "new com.livinglogic.ul4.UndefinedKey({})".format(javaexpr(obj._key))
+		return f"new com.livinglogic.ul4.UndefinedKey({javaexpr(obj._key)})"
 	elif isinstance(obj, ul4c.UndefinedVariable):
-		return "new com.livinglogic.ul4.UndefinedVariable({})".format(javaexpr(obj._name))
+		return f"new com.livinglogic.ul4.UndefinedVariable({javaexpr(obj._name)})"
 	elif isinstance(obj, ul4c.UndefinedIndex):
-		return "new com.livinglogic.ul4.UndefinedIndex({})".format(javaexpr(obj._index))
+		return f"new com.livinglogic.ul4.UndefinedIndex({javaexpr(obj._index)})"
 	elif isinstance(obj, ul4c.Template):
 		return obj.javasource()
 	else:
-		raise TypeError("can't handle object of type {}".format(type(obj)))
+		raise TypeError(f"can't handle object of type {type(obj)}")
 
 
 class SysInfo:
@@ -744,7 +750,13 @@ class SysInfo:
 
 	@property
 	def python_version(self):
-		return ("{}.{}.{}" if sys.version_info.micro else "{}.{}").format(*sys.version_info)
+		v = sys.version_info
+		if v.releaselevel != 'final':
+			return f"{v.major}.{v.minor}.{v.micro} {v.releaselevel}"
+		elif v.micro:
+			return f"{v.major}.{v.minor}.{v.micro}"
+		else:
+			return f"{v.major}.{v.minor}"
 
 	@property
 	def pid(self):
@@ -827,22 +839,22 @@ class monthdelta:
 
 	def __lt__(self, other):
 		if not isinstance(other, monthdelta):
-			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() < {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+			raise TypeError(f"unorderable types: {format_class(self)}() < {format_class(other)}()")
 		return self._months < other._months
 
 	def __le__(self, other):
 		if not isinstance(other, monthdelta):
-			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() <= {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+			raise TypeError(f"unorderable types: {format_class(self)}() <= {format_class(other)}()")
 		return self._months <= other._months
 
 	def __gt__(self, other):
 		if not isinstance(other, monthdelta):
-			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() > {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+			raise TypeError(f"unorderable types: {format_class(self)}() > {format_class(other)}()")
 		return self._months > other._months
 
 	def __ge__(self, other):
 		if not isinstance(other, monthdelta):
-			raise TypeError("unorderable types: {0.__class__.__module__}.{0.__class__.__qualname__}() >= {1.__class__.__module__}.{1.__class__.__qualname__}()".format(self, other))
+			raise TypeError(f"unorderable types: {format_class(self)}() >= {format_class(other)}()")
 		return self._months >= other._months
 
 	def __add__(self, other):
@@ -908,14 +920,14 @@ class monthdelta:
 
 	def __str__(self):
 		m = self._months
-		return "{} month{}".format(m, "s" if m != 1 and m != -1 else "")
+		return f"{m} month{'s' if m != 1 and m != -1 else ''}"
 
 	def __repr__(self):
 		m = self._months
 		if m:
-			return "monthdelta({})".format(m)
+			return f"monthdelta({m!r})"
 		else:
-			return "monthdelta()"
+			return f"monthdelta()"
 
 	def months(self):
 		return self._months
@@ -929,7 +941,7 @@ class Timeout(Exception):
 		self.seconds = seconds
 
 	def __str__(self):
-		return "timed out after {} seconds".format(self.seconds)
+		return f"timed out after {self.seconds} seconds"
 
 
 @contextlib.contextmanager
@@ -998,7 +1010,7 @@ def prettycsv(rows, padding="   "):
 			if i == lasti:
 				f = f.rstrip() # don't add padding to the last column
 			else:
-				f = "{0:<{1}}".format(f, w)
+				f = f"{f:<{w}}"
 			yield f
 		yield "\n"
 

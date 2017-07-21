@@ -47,15 +47,16 @@ class XML(xsc.ProcInst):
 
 	def __init__(self, version="1.0", encoding="utf-8", standalone=None):
 		v = []
-		v.append('version="{}"'.format(version)) # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
+		v.append(f'version="{version}"') # According to http://www.w3.org/TR/2000/REC-xml-20001006#NT-XMLDecl version is required
 		if encoding is not None:
-			v.append('encoding="{}"'.format(encoding))
+			v.append(f'encoding="{encoding}"')
 		if standalone is not None:
-			v.append('standalone="{}"'.format("yes" if standalone else "no"))
+			standalone = "yes" if standalone else "no"
+			v.append(f'standalone="{standalone}"')
 		xsc.ProcInst.__init__(self, " ".join(v))
 
 	def publish(self, publisher):
-		xml = "<?xml {}?>".format(self.content)
+		xml = f"<?xml {self.content}?>"
 		if publisher.encoding is not None:
 			xml = xml_codec._fixencoding(xml, str(publisher.encoding))
 		yield publisher.encode(xml)

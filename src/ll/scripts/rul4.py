@@ -295,7 +295,7 @@ class Connection:
 		vars = {}
 		for (i, part) in enumerate(queryparts):
 			if i % 2:
-				name = "value{}".format((i+1)//2)
+				name = f"value{(i+1)//2}"
 				if isinstance(part, Var):
 					params[name] = part.makevar(cursor)
 					vars[name] = part
@@ -427,8 +427,8 @@ class OracleConnection(Connection):
 			return var
 
 	def __repr__(self):
-		connectstring = "{}@{}".format(self.connection.username, self.connection.tnsentry)
-		return "<{}.{} schema={!r} at {:#x}>".format(self.__class__.__module__, self.__class__.__qualname__, connectstring, id(self))
+		connectstring = f"{self.connection.username}@{self.connection.tnsentry}"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} schema={connectstring!r} at {id(self):#x}>"
 
 	def str(self, value=None):
 		return self.StrVar(value)
@@ -745,7 +745,7 @@ class Globals:
 		(name, _, value) = arg.partition("=")
 		(name, _, type) = name.partition(":")
 		if any(c != "_" and not (c.isalnum() if i else c.isalpha()) for (i, c) in enumerate(name)):
-			raise argparse.ArgumentTypeError("{!r} is not a legal variable name".format(name))
+			raise argparse.ArgumentTypeError(f"{name!r} is not a legal variable name")
 
 		if type == "int":
 			if not value:
@@ -753,20 +753,20 @@ class Globals:
 			try:
 				return (name,  int(value))
 			except ValueError:
-				raise argparse.ArgumentTypeError("{!r} is not a legal integer value".format(value))
+				raise argparse.ArgumentTypeError(f"{value!r} is not a legal integer value")
 		elif type == "float":
 			if not value:
 				return (name, 0.)
 			try:
 				return (name, float(value))
 			except ValueError:
-				raise argparse.ArgumentTypeError("{!r} is not a legal float value".format(value))
+				raise argparse.ArgumentTypeError(f"{value!r} is not a legal float value")
 		elif type == "bool":
 			if value in ("", "0", "no", "false", "False"):
 				return (name, False)
 			if value in ("1", "yes", "true", "True"):
 				return (name, True)
-			raise argparse.ArgumentTypeError("{!r} is not a legal bool value".format(value))
+			raise argparse.ArgumentTypeError(f"{value!r} is not a legal bool value")
 		elif type == "oracle":
 			return (name, self.oracle(value))
 		elif type == "sqlite":
@@ -776,7 +776,7 @@ class Globals:
 		elif type == "redis":
 			return (name, self.redis(value))
 		elif type and type != "str":
-			raise argparse.ArgumentTypeError("{!r} is not a legal type".format(type))
+			raise argparse.ArgumentTypeError(f"{type!r} is not a legal type")
 		return (name, value)
 
 

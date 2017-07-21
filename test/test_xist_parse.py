@@ -40,7 +40,7 @@ class bar(xsc.CharRef):
 
 def test_parsingmethods():
 	t = "abc\U00012345\u3042xyz"
-	s = '<?xml version="1.0" encoding="utf-8"?><a title="{0}">{0}</a>'.format(t)
+	s = f'<?xml version="1.0" encoding="utf-8"?><a title="{t}">{t}</a>'
 	b = s.encode("utf-8")
 
 	def check(*pipeline):
@@ -167,7 +167,7 @@ def test_multipleparsecalls():
 
 def test_parseentities_sgmlop():
 	def check(input, output):
-		node = parse.tree('<a title="{0}">{0}</a>'.format(input).encode("utf-8"), parse.SGMLOP(), parse.NS(a.xmlns), parse.Node(pool=xsc.Pool(a, bar, foo, chars)), validate=True)
+		node = parse.tree(f'<a title="{input}">{input}</a>'.encode("utf-8"), parse.SGMLOP(), parse.NS(a.xmlns), parse.Node(pool=xsc.Pool(a, bar, foo, chars)), validate=True)
 		node = node.walknodes(a)[0]
 		assert str(node) == output
 		assert str(node.attrs.title) == output
@@ -214,18 +214,18 @@ def test_parsestringurl():
 
 
 def test_xmlns():
-	s = "<z xmlns={!r}><rb xmlns={!r}/><z/></z>".format(doc.xmlns, ruby.xmlns).encode("utf-8")
+	s = f"<z xmlns={doc.xmlns!r}><rb xmlns={ruby.xmlns!r}/><z/></z>".encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc, ruby)), validate=True)
 
 	assert e[0].xmlns == doc.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
 
-	s = "<a xmlns={!r}><a xmlns={!r}/></a>".format(html.xmlns, ihtml.xmlns).encode("utf-8")
+	s = f"<a xmlns={html.xmlns!r}><a xmlns={ihtml.xmlns!r}/></a>".encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html, ihtml)), validate=True)
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
-	s = "<a><a xmlns={!r}/></a>".format(ihtml.xmlns).encode("utf-8")
+	s = f"<a><a xmlns={ihtml.xmlns!r}/></a>".encode("utf-8")
 	with warnings.catch_warnings(record=True) as ws:
 		e  = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)), validate=True)
 	assert e[0].__class__ is xsc.Element
@@ -239,7 +239,7 @@ def test_xmlns():
 	assert isinstance(e[0], html.a)
 	assert isinstance(e[0][0], ihtml.a)
 
-	s = "<z xmlns={!r}/>".format(doc.xmlns).encode("utf-8")
+	s = f"<z xmlns={doc.xmlns!r}/>".encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)), validate=True)
 	assert isinstance(e[0], doc.z)
 
@@ -367,9 +367,9 @@ def test_urlsource():
 
 def test_itertree_large():
 	def xml():
-		yield "<ul xmlns='{}'>".format(html.xmlns).encode("utf-8")
+		yield f"<ul xmlns='{html.xmlns}'>".encode("utf-8")
 		for i in range(1000):
-			yield "<li>{}</li>".format(i).encode("utf-8")
+			yield f"<li>{i}</li>".encode("utf-8")
 		yield "</ul>".encode("utf-8")
 
 	for (i, c) in enumerate(parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), selector=html.li, validate=True)):
@@ -379,9 +379,9 @@ def test_itertree_large():
 
 def test_itertree_skip():
 	def xml():
-		yield "<ul xmlns='{}'>".format(html.xmlns).encode("utf-8")
+		yield f"<ul xmlns='{html.xmlns}'>".encode("utf-8")
 		for i in range(10):
-			yield "<li>{}</li>".format(i).encode("utf-8")
+			yield f"<li>{i}</li>".encode("utf-8")
 		yield "</ul>".encode("utf-8")
 
 	for c in parse.itertree(parse.Iter(xml()), parse.Expat(ns=True), parse.Node(), enterelementnode=True, validate=True):

@@ -184,7 +184,7 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 				from lxml import etree
 				node = etree.parse(u).getroot()
 			else:
-				raise ValueError("unknown parser {!r}".format(parser))
+				raise ValueError(f"unknown parser {parser!r}")
 			addetree2xnd(ns, node, elements)
 
 	# Put sims info into the element definitions
@@ -212,7 +212,7 @@ def makexnd(urls, parser="etree", shareattrs="dupes", model="simple", defaultxml
 						element.modeltype = "sims.Elements"
 					element.modelargs = elements
 	else:
-		raise ValueError("unknown sims mode {!r}".format(model))
+		raise ValueError(f"unknown sims mode {model!r}")
 
 	if shareattrs=="dupes":
 		ns.shareattrs(False)

@@ -164,7 +164,7 @@ class directive_page(directive):
 				options["charset"] = encoding
 				node = self.__class__(
 					self.attrs,
-					contentType=(contenttype, "; ", "; ".join("{}={}".format(*option) for option in options.items())),
+					contentType=(contenttype, "; ", "; ".join(f"{name}={value}" for (name, value) in options.items())),
 					pageEncoding=encoding
 				)
 				return node.publish(publisher) # return a generator-iterator

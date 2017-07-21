@@ -10,10 +10,9 @@
 
 
 '''
-It can be used for generating Oracle or SQL
-server functions that return XML strings. This is done by embedding processing
-instructions containing SQL code into XML files and transforming those files
-with XIST.
+This module can be used for generating Oracle or SQL server functions that
+return XML strings. This is done by embedding processing instructions containing
+SQL code into XML files and transforming those files with XIST.
 
 An Oracle example that generates an HTML table containing the result of a search
 for names in a ``person`` table might look like this::
@@ -177,27 +176,30 @@ def _stringifyoracle(string, nchar=False):
 	for c in string:
 		if ord(c) < 32:
 			if current:
+				current = "".join(current)
 				if nchar:
-					yield "N'{}'".format("".join(current))
+					yield f"N'{current}'"
 				else:
-					yield "'{}'".format("".join(current))
+					yield f"'{current}'"
 				current = []
-			yield "chr({})".format(ord(c))
+			yield f"chr({ord(c)})"
 		else:
 			if c == "'":
 				c = "''"
 			current.append(c)
 			if len(current) > 1000:
+				current = "".join(current)
 				if nchar:
-					yield "N'{}'".format("".join(current))
+					yield f"N'{current}'"
 				else:
-					yield "'{}'".format("".join(current))
+					yield f"'{current}'"
 				current = []
 	if current:
+		current = "".join(current)
 		if nchar:
-			yield "N'{}'".format("".join(current))
+			yield f"N'{current}'"
 		else:
-			yield "'{}'".format("".join(current))
+			yield f"'{current}'"
 
 
 def _compile_oracle(string):
@@ -227,26 +229,29 @@ def _compile_oracle(string):
 			foundproc = True
 		else:
 			# Treat unknown PIs as text
-			foundsql.append((-1, "<?{} {}?>".format(t, s)))
+			foundsql.append((-1, f"<?{t} {s}?>"))
 
 	result = []
 	if foundargs:
-		result.append("(\n\t{}\n)\n".format(",\n\t".join(foundargs)))
+		foundargs = ",\n\t".join(foundargs)
+		result.append(f"(\n\t{foundargs}\n)\n")
 	plaintype = foundtype
 	if "(" in plaintype:
 		plaintype = plaintype[:plaintype.find("(")]
 	isclob = plaintype.lower() in ("clob", "nclob")
 	if not foundproc:
-		result.append("return {}\n".format(plaintype))
+		result.append(f"return {plaintype}\n")
 	result.append("as\n")
 	if not foundproc:
-		result.append("\tc_out {};\n".format(foundtype))
+		result.append(f"\tc_out {foundtype};\n")
 	if foundvars:
-		result.append("\t{}\n".format("".join(foundvars)))
+		foundvars = "".join(foundvars)
+		result.append("\t{foundvars}\n")
 	nchar = foundtype.lower().startswith("n")
 	if isclob:
+		argtype = plaintype.rstrip("clob")
 		for arg in ("clob", "varchar2"):
-			result.append("\tprocedure write(p_text in {}{})\n".format(plaintype.rstrip("clob"), arg))
+			result.append(f"\tprocedure write(p_text in {argtype}{arg})\n")
 			result.append("\tas\n")
 			result.append("\t\tbegin\n")
 			if arg == "clob":
@@ -264,17 +269,17 @@ def _compile_oracle(string):
 		if mode == -1:
 			for s in _stringifyoracle(string, nchar):
 				if isclob:
-					result.append("\twrite({});\n".format(s))
+					result.append(f"\twrite({s});\n")
 				else:
-					result.append("\tc_out := c_out || {};\n".format(s))
+					result.append(f"\tc_out := c_out || {s};\n")
 		elif mode == 0:
 			result.append(string)
 			result.append("\n")
 		else: # mode == 1
 			if isclob:
-				result.append("\twrite({});\n".format(string))
+				result.append(f"\twrite({string});\n")
 			else:
-				result.append("\tc_out := c_out || {};\n".format(string))
+				result.append(f"\tc_out := c_out || {string};\n")
 	if not foundproc:
 		result.append("\treturn c_out;\n")
 	result.append("end;\n")
@@ -308,29 +313,32 @@ def _compile_sqlserver(string):
 			foundproc = True
 		else:
 			# Treat unknown PIs as text
-			foundsql.append((-1, "<?{} {}?>".format(t, s)))
+			foundsql.append((-1, f"<?{t} {s}?>"))
 
 	result = []
 	if foundargs:
-		result.append("(\n\t{}\n)\n".format(",\n\t".join(foundargs)))
+		foundargs = ",\n\t".join(foundargs)
+		result.append(f"(\n\t{foundargs}\n)\n")
 	if not foundproc:
-		result.append("returns {}\n".format(foundtype))
+		result.append(f"returns {foundtype}\n")
 	result.append("as\n")
 	result.append("begin\n")
 	if not foundproc:
-		result.append("\tdeclare @c_out {};\n".format(foundtype))
+		result.append(f"\tdeclare @c_out {foundtype};\n")
 		result.append("\tset @c_out = '';\n")
 	if foundvars:
-		result.append("\t{}\n".format("".join(foundvars)))
+		foundvars = "".join(foundvars)
+		result.append(f"\t{foundvars}\n")
 	for (mode, string) in foundsql:
 		if mode == -1:
-			string = "'{}'" .format(string.replace("'", "''"))
-			result.append("\tset @c_out = @c_out + {};\n".format(string))
+			string = string.replace("'", "''")
+			string = f"'{string}'"
+			result.append(f"\tset @c_out = @c_out + {string};\n")
 		elif mode == 0:
 			result.append(string)
 			result.append("\n")
 		else: # mode == 1
-			result.append("\tset @c_out = @c_out + set @c_out = @c_out + convert(varchar, isnull({}, ''));\n".format(string))
+			result.append(f"\tset @c_out = @c_out + set @c_out = @c_out + convert(varchar, isnull({string}, ''));\n")
 	if not foundproc:
 		result.append("\treturn @c_out;\n")
 	result.append("end;\n")
@@ -348,7 +356,7 @@ def compile(string, mode="oracle"):
 		return _compile_oracle(string)
 	elif mode == "sqlserver":
 		return _compile_sqlserver(string)
-	raise ValueError("unknown mode {!r}".format(mode))
+	raise ValueError(f"unknown mode {mode!r}")
 
 
 def prettify(string, mode="oracle"):
@@ -386,7 +394,7 @@ def prettify(string, mode="oracle"):
 			"end": (-1, 0),
 		}
 	else:
-		raise ValueError("unknown mode {!r}".format(mode))
+		raise ValueError(f"unknown mode {mode!r}")
 	indent = 0
 	firstafteras = False
 	for line in lines:
