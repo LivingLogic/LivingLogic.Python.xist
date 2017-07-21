@@ -34,7 +34,7 @@ def test_remove():
 
 	check(__file__.rstrip("c"))
 	check(url.URL(__file__.rstrip("c")))
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
 @pytest.mark.net
@@ -53,7 +53,7 @@ def test_link():
 			assert not u2.exists()
 
 	check(__file__.rstrip("c"))
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py")
 
 
 @pytest.mark.net
@@ -71,7 +71,7 @@ def test_symlink():
 			assert not u2.exists()
 
 	check(__file__.rstrip("c"))
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py")
 
 
 @pytest.mark.net
@@ -91,7 +91,7 @@ def test_chmod():
 				u.remove()
 
 	check("~/foo")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/foo")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/foo")
 
 
 @pytest.mark.net
@@ -127,7 +127,7 @@ def test_chown():
 			finally:
 				u1.remove()
 
-	check("ssh://livpython@www.livinglogic.de/~/foo", "ssh://livpython@www.livinglogic.de/~/bar", "livpython", "livpython")
+	check("ssh://livpython@python.livinglogic.de/~/foo", "ssh://livpython@python.livinglogic.de/~/bar", "livpython", "livpython")
 
 
 @pytest.mark.net
@@ -138,7 +138,7 @@ def test_size():
 			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 601
 
 	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
 	check("http://www.livinglogic.de/Python/static/favicon.gif")
 
 
@@ -150,7 +150,7 @@ def test_imagesize():
 			assert u.imagesize() == (16, 16)
 
 	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
 	check("http://www.livinglogic.de/Python/static/favicon.gif")
 
 
@@ -162,7 +162,7 @@ def test_mimetype():
 			assert u.mimetype() == u.open().mimetype() == mt
 
 	check(__file__.rstrip("c"), "text/x-python")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python")
 	check("http://www.livinglogic.de/Python/xist/", "text/html")
 
 
@@ -194,7 +194,7 @@ def test_readline():
 			assert r.read().startswith(firstline)
 
 	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
 	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
@@ -208,7 +208,7 @@ def test_iter():
 			list(r)
 
 	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
 	check("http://www.livinglogic.de/Python/_static/css/overwrite.css", b'@import url("theme.css");\n')
 
 
@@ -225,7 +225,7 @@ def test_autocreate_dir():
 				u.withoutfile().rmdir()
 
 	check("gurk/hurz.txt")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt")
 
 
 @pytest.mark.net
@@ -249,7 +249,7 @@ def test_seek_tell():
 			assert r.read() == b""
 
 	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
 
 
 @pytest.mark.net
@@ -268,7 +268,7 @@ def test_truncate():
 				u.remove()
 
 	check(__file__)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
 @pytest.mark.net
@@ -281,7 +281,7 @@ def test_owner():
 
 	check(__file__, "walter")
 	check("/", "root")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython")
 
 
 @pytest.mark.net
@@ -294,7 +294,7 @@ def test_stat():
 			assert stat.st_mode & 0o600 == 0o600
 
 	check(url.File(__file__)/"../README.rst")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst")
 
 
 @pytest.mark.net
@@ -307,7 +307,7 @@ def test_group():
 
 	check(__file__, "users", "staff", "walter")
 	check("/", "root", "admin", "wheel")
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "livpython")
 
 
 @pytest.mark.net
@@ -317,7 +317,7 @@ def test_cdate():
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
 
 
 @pytest.mark.net
@@ -328,7 +328,7 @@ def test_mdate():
 			assert u.mdate() == u.open().mdate() >= datetime.datetime(*args)
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
 	check("http://www.livinglogic.de/Python/xist", 2006, 10, 3)
 
 
@@ -339,7 +339,7 @@ def test_adate():
 			assert url.URL(u).adate() >= datetime.datetime(*args)
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
 
 
 @pytest.mark.net
@@ -352,8 +352,8 @@ def test_exists():
 	check(__file__, True)
 	check(__file__ + "no", False)
 	check("/", True)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", False)
 
 
 @pytest.mark.net
@@ -366,8 +366,8 @@ def test_isfile():
 	check(__file__, True)
 	check(__file__ + "no", False)
 	check("/", False)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", True)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
 	check("ssh://root@www.livinglogic.de/~livpython", False)
 	check("ssh://root@www.livinglogic.de/", False)
 
@@ -382,8 +382,8 @@ def test_isdir():
 	check(__file__, False)
 	check(__file__ + "no", False)
 	check("/", True)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
 	check("ssh://root@www.livinglogic.de/~livpython", True)
 	check("ssh://root@www.livinglogic.de/", True)
 
@@ -397,8 +397,8 @@ def test_islink():
 
 	check(__file__, False)
 	check("/", False)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
 
 
 @pytest.mark.net
@@ -410,8 +410,8 @@ def test_ismount():
 
 	check(__file__, False)
 	check("/", True)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", False)
 	check("ssh://root@www.livinglogic.de/~livpython", False)
 	check("ssh://root@www.livinglogic.de/", True)
 
@@ -425,8 +425,8 @@ def test_access():
 
 	check(__file__, os.F_OK, True)
 	check(__file__ + "no", os.F_OK, False)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", os.F_OK, True)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", os.F_OK, False)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", os.F_OK, True)
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", os.F_OK, False)
 
 
 @pytest.mark.net
@@ -439,7 +439,7 @@ def test_resheaders():
 				assert realheaders[k] == v
 
 	check(url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"})
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
 	check("http://www.livinglogic.de/Python/xist/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"})
 
 
@@ -467,7 +467,7 @@ def test_mkdir_rmdir():
 				u.rmdir()
 
 	check(__file__)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
 @pytest.mark.net
@@ -484,7 +484,7 @@ def test_makedirs():
 				(u/"../").rmdir()
 
 	check(__file__)
-	check("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 
 
 @pytest.mark.net
@@ -503,8 +503,8 @@ def test_dir():
 
 	check(os.path.basename(__file__), os.path.dirname(__file__), True)
 	check("lib/", "/usr/", False)
-	check("README.rst", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
-	check("LivingLogic/", "ssh://livpython@www.livinglogic.de/~/", False)
+	check("README.rst", "ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True)
+	check("LivingLogic/", "ssh://livpython@python.livinglogic.de/~/", False)
 	check("lib/", "/usr/", False, "lib")
 	check("lib/", "/usr/", False, None, "nolib")
 
@@ -525,13 +525,13 @@ def test_walk():
 
 	check(os.path.basename(__file__), os.path.dirname(__file__), True)
 	check("src/ll/xist/", url.Dir("~/checkouts/LivingLogic.Python.xist/"), False)
-	check("ll/xist/ns/html.py", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", True)
-	check("ll/xist/ns/", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False)
+	check("ll/xist/ns/html.py", "ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", True)
+	check("ll/xist/ns/", "ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/src/", False)
 
 
 @pytest.mark.net
 def test_ssh_params():
 	with url.Context():
-		u = url.URL("ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
+		u = url.URL("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/")
 		assert u.isdir(python="/usr/local/bin/python3.2") is True
 		assert u.isdir(nice=20) is True
