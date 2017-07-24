@@ -84,18 +84,18 @@ def test_nsparse():
 	xml = b"""
 		<x:a>
 			<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
-				<x:a xmlns:x='http://www.nttdocomo.co.jp/imode'>gurk</x:a>
+				<x:a xmlns:x='http://xmlns.livinglogic.de/xist/ns/doc'>gurk</x:a>
 			</x:a>
 		</x:a>
 	"""
-	check = ihtml.a(
+	check = doc.a(
 		html.a(
-			ihtml.a(
+			doc.a(
 				"gurk"
 			)
 		)
 	)
-	node = parse.tree(xml, parse.Expat(), parse.NS(x=ihtml), parse.Node(), validate=True)
+	node = parse.tree(xml, parse.Expat(), parse.NS(x=doc), parse.Node(), validate=True)
 	node = node.walknodes(xsc.Element)[0].compacted() # get rid of the Frag and whitespace
 	assert node == check
 
