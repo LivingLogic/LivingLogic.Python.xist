@@ -292,7 +292,6 @@ def test_javaexpr():
 	# undefined
 	assert 'new com.livinglogic.ul4.UndefinedKey("foo")' == misc.javaexpr(ul4c.UndefinedKey("foo"))
 	assert 'new com.livinglogic.ul4.UndefinedVariable("foo")' == misc.javaexpr(ul4c.UndefinedVariable("foo"))
-	assert 'new com.livinglogic.ul4.UndefinedIndex(42)' == misc.javaexpr(ul4c.UndefinedIndex(42))
 
 
 def test_sysinfo():

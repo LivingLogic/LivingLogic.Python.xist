@@ -605,8 +605,6 @@ def javaexpr(obj):
 		return f"new com.livinglogic.ul4.UndefinedKey({javaexpr(obj._key)})"
 	elif isinstance(obj, ul4c.UndefinedVariable):
 		return f"new com.livinglogic.ul4.UndefinedVariable({javaexpr(obj._name)})"
-	elif isinstance(obj, ul4c.UndefinedIndex):
-		return f"new com.livinglogic.ul4.UndefinedIndex({javaexpr(obj._index)})"
 	elif isinstance(obj, ul4c.Template):
 		return obj.javasource()
 	else:
