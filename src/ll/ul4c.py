@@ -731,16 +731,6 @@ class ExceptionProto(Proto):
 	def microseconds(obj):
 		return obj.microseconds
 
-		if attrname == "cause":
-			if obj.__cause__ is not None:
-				return obj.__cause__
-			elif obj.__context__ is not None and not obj.__suppress_context__:
-				return obj.__context__
-			return None
-		else:
-			result = UndefinedKey(attrname)
-		return result
-
 
 @functools.singledispatch
 def proto(obj):
