@@ -450,8 +450,8 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	# java_compiled_by_python=TemplateJavaCompiledByPython,
-	# java_compiled_by_java=TemplateJavaCompiledByJava,
+	java_compiled_by_python=TemplateJavaCompiledByPython,
+	java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
 	js_spidermonkey=TemplateJavascriptSpidermonkey,
 	# php=TemplatePHP,
@@ -531,6 +531,17 @@ subscriptablemessage = [
 	"com.livinglogic.ul4.ArgumentTypeMismatchException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
 ]
 subscriptablemessage = "({})".format("|".join(subscriptablemessage))
+
+
+indexmessage = [
+	# Python
+	"index out of range",
+	# Javascript
+	"index -?\\d+ out of range",
+	# Java
+	"IndexOutOfBoundsException"
+]
+indexmessage = "({})".format("|".join(indexmessage))
 
 
 class raises:
@@ -1771,12 +1782,40 @@ def test_ifexpr(T):
 def test_getitem(T):
 	assert "u" == T("<?print 'gurk'[1]?>").renders()
 	assert "u" == T("<?print x[1]?>").renders(x="gurk")
+	assert "u" == T("<?print x[1]?>").renders(x=list("gurk"))
 	assert "u" == T("<?print 'gurk'[-3]?>").renders()
 	assert "u" == T("<?print x[-3]?>").renders(x="gurk")
-	assert "" == T("<?print 'gurk'[4]?>").renders()
-	assert "" == T("<?print x[4]?>").renders(x="gurk")
-	assert "" == T("<?print 'gurk'[-5]?>").renders()
-	assert "" == T("<?print x[-5]?>").renders(x="gurk")
+	assert "u" == T("<?print x[-3]?>").renders(x=list("gurk"))
+
+	with raises(indexmessage):
+		T("<?print 'gurk'[4]?>").renders()
+
+	with raises(indexmessage):
+		T("<?print x[4]?>").renders(x="gurk")
+
+	with raises(indexmessage):
+		T("<?print x[4]?>").renders(x=list("gurk"))
+
+	with raises(indexmessage):
+		T("<?print 'gurk'[-5]?>").renders()
+
+	with raises(indexmessage):
+		T("<?print x[-5]?>").renders(x="gurk")
+
+	with raises(indexmessage):
+		T("<?print x[-5]?>").renders(x=list("gurk"))
+
+
+@pytest.mark.ul4
+def test_setitem(T):
+	assert "gark" == T("<?code x = list('gurk')?><?code x[1] = 'a'?><?print ''.join(x)?>").renders()
+	assert "gark" == T("<?code x = list('gurk')?><?code x[-3] = 'a'?><?print ''.join(x)?>").renders()
+
+	with raises(indexmessage):
+		T("<?code x = list('gurk')?><?code x[4] = 'a'?><?print ''.join(x)?>").renders()
+
+	with raises(indexmessage):
+		T("<?code x = list('gurk')?><?code x[-5] = 'a'?><?print ''.join(x)?>").renders()
 
 
 @pytest.mark.ul4

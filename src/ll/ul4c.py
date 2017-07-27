@@ -216,14 +216,6 @@ class UndefinedVariable(Undefined):
 		return f"UndefinedVariable({self._name!r})"
 
 
-class UndefinedIndex(Undefined):
-	def __init__(self, index):
-		self._index = index
-
-	def __repr__(self):
-		return f"UndefinedIndex({self._index!r})"
-
-
 class Context:
 	"""
 	A :class:`Context` object stores the context of a call to a template. This
@@ -2683,8 +2675,6 @@ class Item(Binary):
 			return obj1[obj2]
 		except KeyError:
 			return UndefinedKey(obj2)
-		except IndexError:
-			return UndefinedIndex(obj2)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
