@@ -387,18 +387,18 @@ class Job:
 			<?print " :: "?>
 			<?code desc = [task.type, task.name]?>
 			<?code desc = " ".join(str(d) for d in desc if d)?>
-			<?print desc?>
 			<?if not isnone(task.index)?>
+				[
+					<?print task.index+1?>
+					<?if not isnone(task.count)?>
+						/<?print task.count?>
+					<?end if?>
+				]
 				<?if desc?> <?end if?>
-				(
-				<?print task.index+1?>
-				<?if not isnone(task.count)?>
-					/<?print task.count?>
-				<?end if?>
-				)
 			<?elif not desc?>
 				?
 			<?end if?>
+			<?print desc?>
 		<?end for?>
 		<?if tags?>
 			<?print " :: "?>
@@ -428,16 +428,17 @@ class Job:
 			<?code desc = " ".join(str(part) for part in [task.type, task.name] if part)?>
 			<?print desc?>
 			<?if not isnone(task.index)?>
+				[
+					<?print task.index+1?>
+					<?if not isnone(task.count)?>
+						/<?print task.count?>
+					<?end if?>
+				]
 				<?if desc?> <?end if?>
-				(
-				<?print task.index+1?>
-				<?if not isnone(task.count)?>
-					/<?print task.count?>
-				<?end if?>
-				)
 			<?elif not desc?>
 				?
 			<?end if?>
+			<?print desc?>
 			<?print "\n@"?>
 			<?print task.starttime?>
 		<?end def?>
