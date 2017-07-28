@@ -777,7 +777,7 @@ class CallAction(Action):
 			argsmsg = " without args"
 		if kwargs:
 			kwargsstr = ", ".join(kwargs)
-			kwargsmsg = f" and keyword {kwargsstr}" if len(kwargs) == 1 f" and keywords {kwargsstr}"
+			kwargsmsg = f" and keyword {kwargsstr}" if len(kwargs) == 1 else f" and keywords {kwargsstr}"
 		else:
 			kwargsmsg = ""
 		project.writestep(self, f"Calling {func!r}", argsmsg, kwargsmsg)
