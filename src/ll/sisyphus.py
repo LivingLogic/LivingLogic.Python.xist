@@ -1027,14 +1027,16 @@ class Task:
 		self.job.setproctitle("child")
 
 	def __str__(self):
-		v = " ".join(str(d) for d in (self.type, self.name) if d)
 		if self.index is not None:
+			v += f"[{self.index+1:,}"
+			if self.count is not None:
+				v += f"/{self.count:,}"
+			v += "]"
+		d = " ".join(str(d) for d in (self.type, self.name) if d)
+		if d:
 			if v:
 				v += " "
-			v += f"({self.index+1}"
-			if self.count is not None:
-				v += f"/{self.count}"
-			v += ")"
+			v += d
 		return v or "?"
 
 	def asjson(self):
