@@ -352,7 +352,7 @@ class TreePresenter(Presenter):
 
 	def presentAttrs(self, node):
 		if self._inattr:
-			for attrvalue in sorted(node.values(), key=xsc.Attrs._sortorder):
+			for attrvalue in node.values():
 				yield " "
 				if attrvalue.xmlns is None:
 					yield s4attrname(attrvalue.xmlname)
@@ -372,7 +372,7 @@ class TreePresenter(Presenter):
 				s4attrs(indent, "<", ns, name, ">"),
 			)
 			self._path.append(None)
-			for attrvalue in sorted(node.values(), key=xsc.Attrs._sortorder):
+			for attrvalue in node.values():
 				self._path[-1] = (attrvalue.xmlns, attrvalue.xmlname)
 				yield from attrvalue.present(self)
 			self._path.pop()
@@ -665,7 +665,7 @@ class CodePresenter(Presenter):
 
 			pyattrs = []
 			otherattrs = []
-			for attrvalue in sorted(node.attrs.values(), key=xsc.Attrs._sortorder):
+			for attrvalue in node.attrs.values():
 				if node.attrs.isdeclared(attrvalue):
 					pyattrs.append((attrvalue.__class__.__name__, attrvalue))
 				elif attrvalue.__class__ is xsc.Attr:

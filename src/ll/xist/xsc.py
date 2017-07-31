@@ -2695,12 +2695,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			loc = ""
 		return f"<attributes {self.__class__.__module__}.{self.__class__.__qualname__} ({attrcount}){loc} at {id(self):#x}>"
 
-	@staticmethod
-	def _sortorder(attrvalue):
-		return (getattr(attrvalue, "xmlorder", "\U0010ffff"), nsclark(attrvalue.xmlns) + attrvalue.xmlname)
-
 	def _repr_pretty_content_(self, p):
-		for attr in sorted(self.values(), key=self._sortorder):
+		for attr in self.values():
 			p.breakable()
 			p.pretty(attr)
 
@@ -2881,7 +2877,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 			yield UndeclaredAttrWarning(self.__class__, node)
 
 	def publish(self, publisher):
-		for value in sorted(self.values(), key=self._sortorder):
+		for value in self.values():
 			yield from value.publish(publisher)
 
 	@classmethod

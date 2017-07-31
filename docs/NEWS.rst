@@ -13,6 +13,10 @@ Changes in 5.28 (released ??/??/2017)
 
 *	XIST requires Python 3.6 now.
 
+*	As dicts are ordered in Python 3.6 the :class:`Attrs` attribute ``xmlorder``
+	is gone. Attributes will always be serialized in the same order they have
+	been parsed/created.
+
 *	Fixed an UL4ON bug: Strings containing line feed can now be deserialized
 	properly.
 

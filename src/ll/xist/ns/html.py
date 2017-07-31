@@ -582,32 +582,26 @@ class meta(xsc.Element):
 	model = sims.Empty()
 	class Attrs(GlobalAttrs):
 		class id(GlobalAttrs.id):
-			# Overwritten to specify an order
-			xmlorder = "a"
+			pass
 		class http_equiv(xsc.TextAttr):
 			"""
 			The name of the pragma directive.
 			"""
 			xmlname = "http-equiv"
-			xmlorder = "b"
 		class name(xsc.TextAttr):
 			"""
 			The name of the metadata element.
 			"""
-			xmlorder = "c"
 		class content(xsc.TextAttr):
 			"""
 			The value of the document metadata or pragma directive.
 			"""
-			xmlorder = "d"
 		class charset(xsc.TextAttr):
 			"""
 			The character encoding used by the document.
 			"""
-			xmlorder = "e"
 		class scheme(xsc.TextAttr):
 			deprecated = True
-			xmlorder = "f"
 
 	def publish(self, publisher):
 		if "http-equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
