@@ -1623,7 +1623,7 @@ class Project(dict):
 
 		misc.notifyfinish(
 			self.name,
-			f"{'finished' if success else 'failed'} after {self.strtimedelta(duration)}"
+			f"{'finished' if success else 'failed'} after {self.strtimedelta(duration)}",
 			"; ".join(msgs),
 		)
 
