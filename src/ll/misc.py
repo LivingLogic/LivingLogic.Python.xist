@@ -531,7 +531,6 @@ def module(source, filename="unnamed.py", name=None):
 	will be used as the filename for the module and :obj:`name` as the module
 	name (defaulting to the filename part of :obj:`filename`).
 	"""
-	print(source)
 	if name is None:
 		name = os.path.splitext(os.path.basename(filename))[0]
 	mod = types.ModuleType(name)
