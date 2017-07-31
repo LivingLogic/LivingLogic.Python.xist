@@ -180,7 +180,7 @@ def test_doctype_in_attr():
 
 def test_attribute_order():
 	node = html.div(xml.Attrs(lang="de"), id="id42", align="right", class_="foo")
-	assert node.bytes() == b"""<div xml:lang="de" align="right" class="foo" id="id42"></div>"""
+	assert node.bytes() == b"""<div xml:lang="de" id="id42" align="right" class="foo"></div>"""
 
 
 def test_allowschemerelurls():
