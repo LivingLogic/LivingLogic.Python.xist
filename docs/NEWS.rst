@@ -17,7 +17,7 @@ Changes in 5.28 (released ??/??/2017)
 	is gone. Attributes will always be serialized in the same order they have
 	been parsed/created.
 
-*	Fixed an UL4ON bug: Strings containing line feed can now be deserialized
+*	Fixed an UL4ON bug: Strings containing line feeds can now be deserialized
 	properly.
 
 
