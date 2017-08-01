@@ -299,7 +299,7 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("]")
-			elif isinstance(obj, (dict, collections.OrderedMapping)):
+			elif isinstance(obj, (dict, collections.OrderedDict)):
 				self._record(obj)
 				self._line("E")
 				self._level += 1
