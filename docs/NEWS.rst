@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.28 (released ??/??/2017)
+Changes in 5.28 (released 08/01/2017)
 -------------------------------------
 
 *	XIST requires Python 3.6 now.
