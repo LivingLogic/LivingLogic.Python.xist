@@ -12,7 +12,7 @@ Migrating to version 5.22
 =========================
 
 Changes to ``pysql``
------------------------
+--------------------
 
 *	The values for the option ``-v``/``--verbose`` has changed: ``-v1`` now is
 	``-vdot``, ``-v2`` is ``-vtype`` and ``-v3`` is ``-vfull``.
