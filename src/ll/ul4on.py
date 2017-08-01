@@ -187,12 +187,6 @@ __docformat__ = "reStructuredText"
 _registry = {}
 
 
-if sys.version_info >= (3, 6):
-	ordereddict = dict
-else:
-	ordereddict = collections.OrderedDict
-
-
 def register(name):
 	"""
 	This decorator can be used to register the decorated class with the
@@ -305,9 +299,18 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("]")
+			elif isinstance(obj, (dict, collections.OrderedMapping)):
+				self._record(obj)
+				self._line("E")
+				self._level += 1
+				for (key, item) in obj.items():
+					self.dump(key)
+					self.dump(item)
+				self._level -= 1
+				self._line("}")
 			elif isinstance(obj, collections.Mapping):
 				self._record(obj)
-				self._line("E" if isinstance(obj, ordereddict) else "D")
+				self._line("D")
 				self._level += 1
 				for (key, item) in obj.items():
 					self.dump(key)
@@ -526,7 +529,7 @@ class Decoder:
 					item = self._load(typecode)
 					value.append(item)
 		elif typecode in "dDeE":
-			value = {} if typecode in "dD" else ordereddict()
+			value = {} # Load all dicts as a standard Python 3.6 ordered dict
 			if typecode in "DE":
 				self._loading(value)
 			while True:
