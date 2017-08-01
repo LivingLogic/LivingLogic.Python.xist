@@ -8,6 +8,22 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.28
+=========================
+
+Changes to UL4
+--------------
+
+*	UL4 now longer tries a disguise objects as dictionaries. I.e. for objects
+	with an ``ul4attrs`` class attribute the methods ``items``, ``keys``,
+	``values`` and ``get`` are no longer synthesized. This also means that
+	``len``, ``list``, item access and containment tests no longer work on
+	objects. However iterating over the attribute names of an object can now be
+	done with the new function ``dir``. To get, set and test attributes, if the
+	name of the attribute is a variable the new functions ``getattr``,
+	``setattr`` and ``hasattr`` can be used.
+
+
 Migrating to version 5.22
 =========================
 
