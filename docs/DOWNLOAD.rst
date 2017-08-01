@@ -14,7 +14,18 @@ or choose one of the following archives:
 5.28 (released 08/01/2017)
 --------------------------
 
-(no files for this version)
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+======================================================================================================================================================== ====================== ====
+File                                                                                                                                                     Type                   Size
+======================================================================================================================================================== ====================== ====
+`ll-xist-5.28.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.28.tar.bz2>`_                                                       Source                 550K
+`ll-xist-5.28.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.28.tar.gz>`_                                                         Source                 662K
+`ll-xist-5.28.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.28.zip>`_                                                               Source                 778K
+`ll_xist-5.28-cp36-cp36m-macosx_10_12_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.28-cp36-cp36m-macosx_10_12_x86_64.whl>`_ Mac wheel (Python 3.6) 522K
+======================================================================================================================================================== ====================== ====
 
 
 5.27 (released 03/21/2017)
@@ -27,9 +38,7 @@ or choose one of the following archives:
 ====================================================================================================================================================== ========================== ====
 File                                                                                                                                                   Type                       Size
 ====================================================================================================================================================== ========================== ====
-`ll-xist-5.27.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.27.tar.bz2>`_                                                     Source                     548K
 `ll-xist-5.27.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.27.tar.gz>`_                                                       Source                     660K
-`ll-xist-5.27.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.27.zip>`_                                                             Source                     777K
 `ll_xist-5.27-cp35-none-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.27-cp35-none-win32.whl>`_                             Windows wheel (Python 3.5) 527K
 `ll_xist-5.27-cp35-none-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.27-cp35-none-win_amd64.whl>`_                     Windows wheel (Python 3.5) 530K
 `ll_xist-5.27-cp36-cp36m-macosx_10_9_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.27-cp36-cp36m-macosx_10_9_x86_64.whl>`_ Mac wheel (Python 3.6)     523K
