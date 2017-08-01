@@ -16,13 +16,6 @@ import codecs
 
 from ll import xml_codec # registers the codec
 
-try:
-	codecs.lookup("utf-32")
-except LookupError:
-	haveutf32 = False
-else:
-	haveutf32 = True
-
 
 def test_detectencoding_str():
 	assert xml_codec._detectencoding(b"") is None
@@ -130,18 +123,17 @@ def test_partial():
 	decoder.reset()
 
 	# UTF-32
-	if haveutf32:
-		result = ("", "", "", "", "", "", "", "\u1234", "", "", "", "a")
-		check_partial(decoder, "\u1234a".encode("utf-32"), *result)
-		decoder.reset()
+	result = ("", "", "", "", "", "", "", "\u1234", "", "", "", "a")
+	check_partial(decoder, "\u1234a".encode("utf-32"), *result)
+	decoder.reset()
 
-		# Fake utf-32 stored big endian
-		check_partial(decoder, "\ufeff\u1234a".encode("utf-32-be"), *result)
-		decoder.reset()
+	# Fake utf-32 stored big endian
+	check_partial(decoder, "\ufeff\u1234a".encode("utf-32-be"), *result)
+	decoder.reset()
 
-		# Fake utf-32 stored little endian
-		check_partial(decoder, "\ufeff\u1234a".encode("utf-32-le"), *result)
-		decoder.reset()
+	# Fake utf-32 stored little endian
+	check_partial(decoder, "\ufeff\u1234a".encode("utf-32-le"), *result)
+	decoder.reset()
 
 	# UTF-8-Sig
 	check_partial(decoder, "\u1234a".encode("utf-8-sig"), "", "", "", "", "", "\u1234", "a")
@@ -173,10 +165,9 @@ def test_decoder():
 	checkauto("utf-16")
 	checkauto("utf-16-le")
 	checkauto("utf-16-be")
-	if haveutf32:
-		checkauto("utf-32")
-		checkauto("utf-32-le")
-		checkauto("utf-32-be")
+	checkauto("utf-32")
+	checkauto("utf-32-le")
+	checkauto("utf-32-be")
 
 	def checkdecl(encoding, input="<?xml version='1.0' encoding={encoding!r}?><gürk>\u20ac</gürk>"):
 		# Check stateless decoder with encoding autodetection
@@ -229,10 +220,9 @@ def test_encoder():
 	check("utf-16")
 	check("utf-16-le")
 	check("utf-16-be")
-	if haveutf32:
-		check("utf-32")
-		check("utf-32-le")
-		check("utf-32-be")
+	check("utf-32")
+	check("utf-32-le")
+	check("utf-32-be")
 	check("utf-8")
 	check("iso-8859-1", "<?xml version='1.0' encoding='x'?><gürk/>")
 	check("iso-8859-15")
