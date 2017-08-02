@@ -1027,6 +1027,7 @@ class Task:
 		self.job.setproctitle("child")
 
 	def __str__(self):
+		v = ""
 		if self.index is not None:
 			v += f"[{self.index+1:,}"
 			if self.count is not None:
