@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.28.1 (released 08/02/2017)
+---------------------------------------
+
+*	Fixed a bug in :meth:`ll.sisyphus.Task.__str__`.
+
+*	The UL4 function ``asjson`` now escapes ``<`` as ``\u003c`` to help
+	XSS prevention.
+
+
 Changes in 5.28 (released 08/01/2017)
 -------------------------------------
 
