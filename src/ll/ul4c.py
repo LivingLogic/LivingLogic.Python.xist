@@ -933,7 +933,7 @@ def _asjson(obj):
 	elif isinstance(obj, (bool, int, float)):
 		return json.dumps(obj)
 	elif isinstance(obj, str):
-		return json.dumps(obj).replace("<", "\\u003c") # Prevent XSS (e.g. when the value is embedded literally in a ``<script>`` tag)
+		return json.dumps(obj).replace("<", "\\u003c") # Prevent XSS (when the value is embedded literally in a ``<script>`` tag)
 	elif isinstance(obj, datetime.datetime):
 		return f"new Date({obj.year}, {obj.month-1}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond//1000})"
 	elif isinstance(obj, datetime.date):
