@@ -272,7 +272,8 @@ class Encoder:
 				self._line(f"f{obj!r}")
 			elif isinstance(obj, str):
 				self._record(obj)
-				self._line(f"S{obj!r}")
+				dump = repr(obj).replace("<", "\\x3c") # Prevent XSS (when the value is embedded literally in a ``<script>`` tag)
+				self._line(f"S{dump}")
 			elif isinstance(obj, slice):
 				self._record(obj)
 				self._line("R", obj.start, obj.stop)
