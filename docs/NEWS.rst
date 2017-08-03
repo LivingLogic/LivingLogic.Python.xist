@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.28.2 (released 08/03/2017)
+---------------------------------------
+
+*	The character ``<`` is now escaped as ``\x3c`` in UL4ON dumps to help XSS
+	prevention.
+
+
 Changes in 5.28.1 (released 08/02/2017)
 ---------------------------------------
 
