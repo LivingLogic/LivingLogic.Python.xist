@@ -781,7 +781,7 @@ def _offset(pos):
 		offset.append(f"{pos.start:,}")
 	offset.append(":")
 	if pos.stop is not None:
-		offset.append("{pos.stop:,}")
+		offset.append(f"{pos.stop:,}")
 	offset.append("]")
 	return "".join(offset)
 
