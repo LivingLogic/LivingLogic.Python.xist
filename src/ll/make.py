@@ -1344,6 +1344,7 @@ class Project(dict):
 		"""
 		if isinstance(key, url.URL) and key.islocal():
 			key = key.abs(scheme="file")
+
 		if key in self:
 			self.warn(RedefinedTargetWarning(key), 5)
 		target.key = key
