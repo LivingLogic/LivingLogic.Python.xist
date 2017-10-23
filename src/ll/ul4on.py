@@ -357,6 +357,7 @@ class Decoder:
 		self._objects = []
 		self._keycache = {} # Used for "interning" dictionary keys
 		self.registry = registry
+		self._stack = [] # A stack of types that are currently in the process of being decoded (used in exception messages)
 
 	def load(self):
 		"""
@@ -384,6 +385,9 @@ class Decoder:
 					return nextchar
 			else:
 				raise EOFError()
+
+	def _path(self):
+		return "/".join(self._stack)
 
 	def _beginfakeloading(self):
 		# For loading custom object or immutable objects that have attributes we have a problem:
@@ -519,23 +523,27 @@ class Decoder:
 				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "lL":
+			self._stack.append("list")
 			value = []
 			if typecode == "L":
 				self._loading(value)
 			while True:
 				typecode = self._nextchar()
 				if typecode == "]":
+					self._stack.pop()
 					return value
 				else:
 					item = self._load(typecode)
 					value.append(item)
 		elif typecode in "dDeE":
+			self._stack.append("dict" if typecode in "dD" else "odict")
 			value = {} # Load all dicts as a standard Python 3.6 ordered dict
 			if typecode in "DE":
 				self._loading(value)
 			while True:
 				typecode = self._nextchar()
 				if typecode == "}":
+					self._stack.pop()
 					return value
 				else:
 					key = self._load(typecode)
@@ -547,12 +555,14 @@ class Decoder:
 					item = self._load(None)
 					value[key] = item
 		elif typecode in "yY":
+			self._stack.append("set")
 			value = set()
 			if typecode == "Y":
 				self._loading(value)
 			while True:
 				typecode = self._nextchar()
 				if typecode == "}":
+					self._stack.pop()
 					return value
 				else:
 					item = self._load(typecode)
@@ -561,23 +571,25 @@ class Decoder:
 			if typecode == "O":
 				oldpos = self._beginfakeloading()
 			name = self._load(None)
+			self._stack.append(name)
 			cls = None
 			if self.registry is not None:
 				cls = self.registry.get(name)
 			if cls is None:
 				cls = _registry.get(name)
 			if cls is None:
-				raise TypeError(f"can't decode object of type {name!r}")
+				raise TypeError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): can't decode object of type {name!r}")
 			value = cls()
 			if typecode == "O":
 				self._endfakeloading(oldpos, value)
 			value.ul4onload(self)
 			typecode = self._nextchar()
 			if typecode != ")":
-				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,}: object terminator ')' expected, got {typecode!r}")
+				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): object terminator ')' expected, got {typecode!r}")
+			self._stack.pop()
 			return value
 		else:
-			raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,}: unknown typecode {typecode!r}")
+			raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): unknown typecode {typecode!r}")
 
 
 class StreamBuffer:
