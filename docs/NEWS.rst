@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.29 (released ??/??/2017)
+-------------------------------------
+
+*	When an exception happens during decoding of an UL4ON stream the stack of
+	types that is currently being decoded is include in the exception message
+	now.
 Changes in 5.28.2 (released 08/03/2017)
 ---------------------------------------
 
