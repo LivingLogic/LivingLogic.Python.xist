@@ -191,6 +191,8 @@ class Connect:
 					if i < self.retry-1:
 						# Drop bad connection and retry
 						self._dropconnection(connection)
+					else:
+						raise
 				except orasql.DatabaseError as exc:
 					if i < self.retry-1 and self._isbadoracleexception(exc):
 						# Drop bad connection and retry
