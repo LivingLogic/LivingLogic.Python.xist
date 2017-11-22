@@ -17,6 +17,8 @@ import pytest
 from ll import ul4on, ul4c, color, misc
 
 
+home = os.environ["HOME"]
+
 if sys.version_info >= (3, 6):
 	ordereddict = dict
 else:
@@ -153,6 +155,48 @@ def transport_js_spidermonkey_pretty(obj):
 	return _transport_js_spidermonkey(obj, indent="\t")
 
 
+def _transport_js_node(obj, indent):
+	"""
+	Generate Javascript source that loads the dump done by Python, dumps it
+	again, and outputs this dump which is again loaded by Python.
+
+	(this requires an installed ``node`` command from Node
+	"""
+	dump = ul4on.dumps(obj, indent=indent)
+	js = f"""
+		const ll = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min');
+		const ul4on = ll.ul4on;
+		obj = ul4on.loads({ul4c._asjson(dump)});
+		console.log(JSON.stringify(ul4on.dumps(obj, {ul4c._asjson(indent)})));
+	"""
+	f = sys._getframe(1)
+	print(f"Testing UL4ON via Node ({f.f_code.co_filename}, line {f.f_lineno:,}):")
+	print(js)
+	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
+		f.write(js.encode("utf-8"))
+		f.flush()
+		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		cmd = f"node {f.name}"
+		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+	stdout = result.stdout.decode("utf-8")
+	stderr = result.stderr.decode("utf-8")
+	# Check if we have an exception
+	if result.returncode:
+		print(stdout, file=sys.stdout)
+		print(stderr, file=sys.stderr)
+		raise RuntimeError((stderr or stdout).splitlines()[0])
+	print(f"Got result {stdout!r}")
+	return ul4on.loads(json.loads(stdout))
+
+
+def transport_js_node(obj):
+	return _transport_js_node(obj, indent="")
+
+
+def transport_js_node_pretty(obj):
+	return _transport_js_node(obj, indent="\t")
+
+
 def java_findexception(output):
 	lines = output.splitlines()
 	msg = None
@@ -266,6 +310,8 @@ all_transports = [
 	("js_v8_pretty", transport_js_v8_pretty),
 	("js_spidermonkey", transport_js_spidermonkey),
 	("js_spidermonkey_pretty", transport_js_spidermonkey_pretty),
+	("js_node", transport_js_node),
+	("js_node_pretty", transport_js_node_pretty),
 	("java", transport_java),
 	("java_pretty", transport_java_pretty),
 ]
@@ -292,7 +338,7 @@ def test_int(t):
 
 def test_float(t):
 	assert -42.5 == t(-42.5)
-	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_spidermonkey, transport_js_spidermonkey_pretty):
+	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_spidermonkey, transport_js_spidermonkey_pretty, transport_js_node, transport_js_node_pretty):
 		assert 1e42 == t(1e42)
 	assert math.pi == t(math.pi)
 
@@ -406,7 +452,7 @@ def test_template_from_source():
 
 
 def test_recursion(t):
-	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_spidermonkey, transport_js_spidermonkey_pretty):
+	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_spidermonkey, transport_js_spidermonkey_pretty, transport_js_node, transport_js_node_pretty):
 		l1 = []
 		l1.append(l1)
 
