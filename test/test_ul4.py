@@ -18,6 +18,9 @@ from ll import ul4c, color, misc, ul4on
 from ll.xist.ns import html, ul4
 
 
+home = os.environ["HOME"]
+
+
 def passbytes(exc):
 	if isinstance(exc, UnicodeDecodeError):
 		return (exc.object[exc.start:exc.end].decode("iso-8859-1"), exc.end)
@@ -378,7 +381,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 {dir}/ul4.min.js {fn}", source)
+		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -400,7 +403,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 {dir}/ul4.min.js {fn}", source)
+		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
 
 
 class TemplateJavascriptSpidermonkey(TemplateJavascript):
@@ -421,7 +424,7 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("js -f {dir}/ul4.min.js -f {fn}", source)
+		return self.runcode("js -f {dir}/node_modules/blueimp-md5/js/md5.min.js -f {dir}/ul4.min.js -f {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -443,7 +446,58 @@ class TemplateJavascriptSpidermonkey(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("js -f {dir}/ul4.js -f {fn}", source)
+		return self.runcode("js -f {dir}/node_modules/blueimp-md5/js/md5.min.js -f {dir}/ul4.min.js -f {fn}", source)
+
+
+class TemplateJavascriptNode(TemplateJavascript):
+	def renders(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = f"""
+			const ll = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min');
+			const ul4 = ll.ul4;
+			const ul4on = ll.ul4on;
+
+			template = {self.template.jssource()};
+			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			try
+			{{
+				console.log(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
+			}}
+			catch (exc)
+			{{
+				console.log(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+			}}
+		"""
+
+		return self.runcode("node {fn}", source)
+
+	def render(self, *args, **kwargs):
+		return self.renders(*args, **kwargs)
+
+	def __call__(self, *args, **kwargs):
+		if args:
+			raise ValueError("*args not supported")
+
+		source = f"""
+			const ll = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min');
+			const ul4 = ll.ul4;
+			const ul4on = ll.ul4on;
+
+			template = {self.template.jssource()};
+			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			try
+			{{
+				console.log(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
+			}}
+			catch (exc)
+			{{
+				console.log(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+			}}
+		"""
+
+		return self.runcode("node {fn}", source)
 
 
 all_templates = dict(
@@ -454,6 +508,7 @@ all_templates = dict(
 	java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
 	js_spidermonkey=TemplateJavascriptSpidermonkey,
+	js_node=TemplateJavascriptNode,
 	# php=TemplatePHP,
 )
 
@@ -606,7 +661,7 @@ def test_true(T):
 @pytest.mark.ul4
 def test_int(T):
 	values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplatePHP):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode, TemplatePHP):
 		# Since Javascript has no real integers the following would lead to rounding errors
 		# And PHP doesn't have any support for big integers (except for some GMP wrappers, that may not be installed)
 		values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
@@ -901,7 +956,7 @@ def test_shiftleftvar(T):
 	assert "-256" == t.renders(x=-1, y=8)
 	assert "2147483648" == t.renders(x=1, y=31)
 	assert "4294967296" == t.renders(x=1, y=32)
-	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
 		# Javascript numbers don't have enough precision
 		assert "18014398509481984" == t.renders(x=1, y=54)
 	else:
@@ -1215,7 +1270,7 @@ def test_bitnot(T):
 	assert "-1" == t.renders(x=0)
 	assert "-256" == t.renders(x=255)
 	assert "-4294967297" == t.renders(x=1 << 32)
-	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
 		# Javascript numbers don't have enough precision
 		assert "-4503599627370497" == t.renders(x=1 << 52)
 	else:
@@ -1300,7 +1355,7 @@ def test_shiftleft(T):
 	assert "-256" == t.renders(x=-1, y=8)
 	assert "2147483648" == t.renders(x=1, y=31)
 	assert "4294967296" == t.renders(x=1, y=32)
-	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
 		# Javascript numbers don't have enough precision
 		assert "9007199254740992" == t.renders(x=1, y=53)
 	else:
@@ -1894,7 +1949,7 @@ def test_associativity(T):
 	assert "9" == T('<?print 2+3+4?>').renders()
 	assert "-5" == T('<?print 2-3-4?>').renders()
 	assert "24" == T('<?print 2*3*4?>').renders()
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
 		assert "2.0" == T('<?print 24/6/2?>').renders()
 		assert "2" == T('<?print 24//6//2?>').renders()
 	else:
@@ -2285,7 +2340,7 @@ def test_function_float(T):
 	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported"):
 		t.renders(data=None)
 	assert "4.2" == t.renders(data=4.2)
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
 		assert "0.0" == T("<?print float()?>").renders()
 		assert "1.0" == t.renders(data=True)
 		assert "0.0" == t.renders(data=False)
