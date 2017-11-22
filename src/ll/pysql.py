@@ -1730,10 +1730,9 @@ class loadbytes:
 
 	def execute(self, basefilename):
 		"""
-		Read the file and return the file content as a :class:`bytes` or
-		:class:`str` object. :obj:`basefilename` is the filename containing the
-		PySQL command with the :class:`load` object (i.e. this determines the
-		base directory).
+		Read the file and return the file content as a :class:`bytes` object.
+		:obj:`basefilename` is the filename containing the PySQL command with the
+		:class:`load` object (i.e. this determines the base directory).
 		"""
 		filename = os.path.join(os.path.dirname(basefilename), self.filename)
 		with open(filename, "rb") as f:
@@ -1768,10 +1767,9 @@ class loadstr:
 
 	def execute(self, basefilename):
 		"""
-		Read the file and return the file content as a :class:`bytes` or
-		:class:`str` object. :obj:`basefilename` is the filename containing the
-		PySQL command with the :class:`load` object (i.e. this determines the
-		base directory).
+		Read the file and return the file content as a :class:`str` object.
+		:obj:`basefilename` is the filename containing the PySQL command with the
+		:class:`load` object (i.e. this determines the base directory).
 		"""
 		filename = os.path.join(os.path.dirname(basefilename), self.filename)
 		with open(filename, "r", encoding=self.encoding, errors=self.errors) as f:
