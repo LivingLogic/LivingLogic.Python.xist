@@ -1398,7 +1398,7 @@ class FileCommand(Command):
 
 	``"content"``: bytes (required)
 		The content of the file to be created. This can also be a
-		:class:`load` object, to load the content from an external file.
+		:class:`loadbytes` object, to load the content from an external file.
 
 	``"mode"``: integer (optional)
 		The file mode for the new file. If the mode is specified :func:`os.chmod`
