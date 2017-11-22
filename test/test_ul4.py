@@ -3687,6 +3687,8 @@ def test_method_startswith(T):
 	assert "True" == T("<?print 'gurkhurz'.startswith('gurk')?>").renders()
 	assert "False" == T("<?print 'gurkhurz'.startswith('hurz')?>").renders()
 	assert "False" == T("<?code m = 'gurkhurz'.startswith?><?print m('hurz')?>").renders()
+	assert "True" == T("<?print 'gurkhurz'.startswith(['gu', 'hu'])?>").renders()
+	assert "False" == T("<?print 'gurkhurz'.startswith(['rk', 'rz'])?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "True" == T("<?print 'gurkhurz'.startswith(prefix='gurk')?>").renders()
@@ -3697,6 +3699,8 @@ def test_method_endswith(T):
 	assert "True" == T("<?print 'gurkhurz'.endswith('hurz')?>").renders()
 	assert "False" == T("<?print 'gurkhurz'.endswith('gurk')?>").renders()
 	assert "False" == T("<?code m = 'gurkhurz'.endswith?><?print m('gurk')?>").renders()
+	assert "False" == T("<?print 'gurkhurz'.endswith(['gu', 'hu'])?>").renders()
+	assert "True" == T("<?print 'gurkhurz'.endswith(['rk', 'rz'])?>").renders()
 
 	# Make sure that the parameters have the same name in all implementatiTns
 	assert "True" == T("<?print 'gurkhurz'.endswith(suffix='hurz')?>").renders()

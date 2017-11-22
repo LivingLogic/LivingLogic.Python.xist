@@ -500,10 +500,14 @@ class StrProto(Proto):
 
 	@staticmethod
 	def startswith(obj, prefix):
+		if isinstance(prefix, list):
+			prefix = tuple(prefix)
 		return obj.startswith(prefix)
 
 	@staticmethod
 	def endswith(obj, suffix):
+		if isinstance(suffix, list):
+			suffix = tuple(suffix)
 		return obj.endswith(suffix)
 
 	@staticmethod
