@@ -838,11 +838,11 @@ class _DatabaseCommand(Command):
 		``None`` can be specified explicitely to use the default connection.
 
 	``"connectstring"`` : string (optional)
-		If ``"connectstring"`` a new connection to this database will be created
-		just for this one command.
+		If a ``"connectstring"`` is given a new connection to this database will
+		be created  just for this one command.
 
 	If neither of these keys is given, the default connection is used (and
-	giving both is an error.
+	giving both is an error).
 
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
