@@ -14,8 +14,8 @@ Changes in 5.29 (released ??/??/2017)
 *	When an exception happens during decoding of an UL4ON stream the stack of
 	types that is currently being decoded is included in the exception message
 	now.
-*	The Javascript implementation of UL4 is now tested against Node.js (in
-	addition to V8 and Spidermonkey).
+*	The Javascript implementations of UL4 and UL4ON are now tested against
+	Node.js (in addition to V8 and Spidermonkey).
 
 
 Changes in 5.28.2 (released 08/03/2017)
