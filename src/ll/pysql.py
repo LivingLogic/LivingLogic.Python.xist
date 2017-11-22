@@ -837,7 +837,7 @@ class _DatabaseCommand(Command):
 		have been pushed by a :class:`PushConnectionCommand` previously). Also
 		``None`` can be specified explicitely to use the default connection.
 
-	``"connectstring"`` : string (optional) 
+	``"connectstring"`` : string (optional)
 		If ``"connectstring"`` a new connection to this database will be created
 		just for this one command.
 
