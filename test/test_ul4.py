@@ -2244,7 +2244,7 @@ def test_function_str(T):
 
 	assert "(x=17, y=@(2000-02-29))" == T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print str(f.signature)?>").renders()
 	# Javascript version doesn't have support for printing recursive data structures
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
 		assert "(bad=[...])" == T("<?code bad = []?><?code bad.append(bad)?><?def f(bad=bad)?><?end def?><?print str(f.signature)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
