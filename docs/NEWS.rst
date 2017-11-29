@@ -18,7 +18,7 @@ Changes in 5.29 (released 11/29/2017)
 *	The Javascript implementations of UL4 and UL4ON are now tested against
 	Node.js (in addition to V8 and Spidermonkey).
 
-*	The UL4 string methods ``startswith`` and ``endswith`` now support list of
+*	The UL4 string methods ``startswith`` and ``endswith`` now support lists of
 	strings as an argument.
 
 
