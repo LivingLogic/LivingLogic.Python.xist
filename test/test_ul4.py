@@ -4829,7 +4829,7 @@ def test_truedivlvalue(T):
 
 @pytest.mark.ul4
 def test_endless_recursion(T):
-	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|too much recursion|StackOverflowError"):
+	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|too much recursion|StackOverflowError|Allocation failed - process out of memory"):
 		T("""
 			<?def f?>
 				<?for child in container?>
