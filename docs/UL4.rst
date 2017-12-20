@@ -1696,7 +1696,7 @@ outputs::
 """""""""""
 
 The ``renders`` method of template objects renders the template and returns the
-output as a string. The parameter can be passed via keyword argument or via the
+output as a string. The parameters can be passed via keyword arguments or via the
 ``**`` syntax::
 
 	<?code output = template.renders(a=17, b=23)?>
