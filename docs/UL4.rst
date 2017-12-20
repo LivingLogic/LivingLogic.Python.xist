@@ -1523,7 +1523,7 @@ example::
 
 outputs::
 
-	%2F%C3%BC
+	%2F%C3%BF
 
 ``urlunquote``
 """"""""""""""
