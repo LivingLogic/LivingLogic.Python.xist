@@ -524,9 +524,7 @@ itself. This overwrites the name and signature specified in the
 	>>> t.name
 	'foo'
 	>>> t.signature
-	<inspect.Signature object at 0x108542d30>
-	>>> print(t.signature)
-	(x)
+	<Signature (x)>
 
 
 ``note``
