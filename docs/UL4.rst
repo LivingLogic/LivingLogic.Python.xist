@@ -1703,6 +1703,8 @@ output as a string. The parameters can be passed via keyword arguments or via th
 	<?code data = {'a': 17, 'b': 23)?>
 	<?code output = template.renders(**data)?>
 
+(Also if the template has a signature, positional arguments and the ``*`` syntax
+are supported.)
 
 ``isoformat``
 """""""""""""
