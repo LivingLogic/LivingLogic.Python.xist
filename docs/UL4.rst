@@ -1649,7 +1649,7 @@ given and true.
 ``count``
 """""""""
 
-This method counts non-overlapping occurrences of a substring in string or
+This method counts non-overlapping occurrences of a substring in a string or
 occurrences of an item in a list. For example ``"abababa".count("aba")``
 returns 2. The optional second and third argument specify the start and end
 position for the search.
