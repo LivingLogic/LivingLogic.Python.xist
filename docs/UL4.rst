@@ -1583,14 +1583,18 @@ letter capitalized.
 """"""""""""""
 
 ``x.startswith(y)`` returns ``True`` if the string ``x`` starts with the string
-``y`` and ``False`` otherwise.
+``y`` and ``False`` otherwise. ``y`` may also be a list of string. In this case
+``x.startswith(y)`` returns ``True`` if ``x`` starts with any of the strings in
+``y``.
 
 
 ``endswith``
 """"""""""""""
 
 ``x.endswith(y)`` returns ``True`` if the string ``x`` ends with the string
-``y`` and ``False`` otherwise.
+``y`` and ``False`` otherwise. ``y`` may also be a list of string. In this case
+``x.endswith(y)`` returns ``True`` if ``x`` ends with any of the strings in
+``y``.
 
 
 ``strip``
