@@ -434,6 +434,7 @@ For example the following template will output ``40``::
 
 
 ``render``
+----------
 
 The ``render`` tag allows one template to call other templates. The following
 Python code demonstrates this::
