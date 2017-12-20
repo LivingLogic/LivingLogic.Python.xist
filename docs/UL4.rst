@@ -1349,15 +1349,6 @@ iterable is empty the default value (which is the second parameter and defaults
 to ``None``) is returned.
 
 
-``sum``
-"""""""
-
-``sum`` returns the sum of the number from the iterable passed in. The second
-parameter is the start value (i.e. the value that will be added to the total sum)
-and defaults to 0. For example the template ``<?print sum(range(101))?>`` will
-output ``5050``.
-
-
 ``xmlescape``
 """""""""""""
 
@@ -1395,8 +1386,10 @@ maximum value of this argument.
 ``sum``
 """""""
 
-``sum`` returns the sum of the values in the passed in iterable. The second
-argument specifies the starting value (defaulting to ``0``).
+``sum`` returns the sum of the number from the iterable passed in. The second
+parameter is the start value (i.e. the value that will be added to the total sum)
+and defaults to 0. For example the template ``<?print sum(range(101))?>`` will
+output ``5050``.
 
 
 ``sorted``
