@@ -487,7 +487,7 @@ The ``def`` tag defines a new template as a variable. Usage looks like this::
 	<?end def?>
 
 This defines a local variable ``quote`` that is a template object. This template
-can be rendered like any other template, that has been passed to the outermost
+can be rendered like any other template that has been passed to the outermost
 template::
 
 	<?render quote(text="foo")?>
