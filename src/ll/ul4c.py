@@ -227,6 +227,7 @@ class Context:
 	def __init__(self):
 		self.vars = {}
 		self.indents = [] # Stack of additional indentations for the ``<?render?>`` tag
+		self.escapes = [] # Stack of functions for escaping the output
 		self.asts = [] # Call stack (of :class:`AST` objects)
 
 	@classmethod
@@ -254,6 +255,11 @@ class Context:
 			yield
 		finally:
 			self.vars = oldvars
+
+	def output(self, string):
+		for escape in self.escapes:
+			string = escape(string)
+		return string
 
 
 ###
@@ -1104,7 +1110,7 @@ class Text(AST):
 		yield f"text {self.text!r}"
 
 	def eval(self, context):
-		yield self.text
+		yield context.output(self.text)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -1150,8 +1156,9 @@ class Indent(Text):
 		self._text = decoder.load()
 
 	def eval(self, context):
-		yield from context.indents
-		yield self.text
+		for indent in context.indents:
+			yield context.output(indent)
+		yield context.output(self.text)
 
 
 @register("lineend")
@@ -2580,7 +2587,7 @@ class Print(Unary):
 
 	@_handleoutputeval
 	def eval(self, context):
-		yield _str(self.obj.eval(context))
+		yield context.output(_str(self.obj.eval(context)))
 
 
 @register("printx")
@@ -2597,7 +2604,7 @@ class PrintX(Unary):
 
 	@_handleoutputeval
 	def eval(self, context):
-		yield _xmlescape(self.obj.eval(context))
+		yield context.output(_xmlescape(self.obj.eval(context)))
 
 
 @register("return")
@@ -3451,7 +3458,8 @@ class Render(Call):
 			raise LocationError(self) from exc
 
 	def _str(self):
-		yield "render "
+		yield self.type
+		yield " "
 		yield from super()._str()
 		if self.indent is not None:
 			yield f" with indent {self.indent.text!r}"
@@ -3463,6 +3471,16 @@ class Render(Call):
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
 		self.indent = decoder.load()
+
+
+@register("renderx")
+class RenderX(Render):
+	def eval(self, context):
+		context.escapes.append(_xmlescape)
+		try:
+			yield from Render.eval(self, context)
+		finally:
+			context.escapes.pop()
 
 
 @register("template")
@@ -3488,7 +3506,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"signature", "doc", "source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
 
-	version = "43"
+	version = "44"
 
 	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
 
@@ -3889,7 +3907,7 @@ class Template(Block):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = f"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|render|note|doc)(\s*((.|\\n)*?)\s*)?{re.escape(enddelim)}"
+		pattern = f"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderx|render|note|doc)(\s*((.|\\n)*?)\s*)?{re.escape(enddelim)}"
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -4016,7 +4034,7 @@ class Template(Block):
 		newlines = []
 		for (i, line) in enumerate(lines):
 			linelen = len(line)
-			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render") and (linelen == 2 or isinstance(line[2], LineEnd)):
+			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and (linelen == 2 or isinstance(line[2], LineEnd)):
 				tag = line[1]
 				# Tags closing a block
 				if tag.tag in ("elif", "else", "end"):
@@ -4058,12 +4076,12 @@ class Template(Block):
 		for line in lines:
 			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], LineEnd):
 				del line[0]
-			elif len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render"):
+			elif len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx"):
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render") and isinstance(line[2], LineEnd):
+			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and isinstance(line[2], LineEnd):
 				del line[2]
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag == "render" and isinstance(line[2], LineEnd):
+			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag in ("render", "renderx") and isinstance(line[2], LineEnd):
 				del line[2]
 
 		# Step 5: Yield the individual :class:`Tag`/:class:`Text` objects
@@ -4121,7 +4139,7 @@ class Template(Block):
 			call = self._parser(tag, "render call required").expression()
 			if not isinstance(call, Call):
 				raise TypeError("render call required")
-			render = Render(tag=call.tag, pos=call.pos, obj=call.obj)
+			render = (Render if tag.tag == "render" else RenderX)(tag=call.tag, pos=call.pos, obj=call.obj)
 			render.obj = call.obj
 			render.args = call.args
 			return render
@@ -4252,7 +4270,7 @@ class Template(Block):
 					blockstack.append(block)
 				elif tag.tag == "return":
 					blockstack[-1].append(Return(tag, tag.codepos, parseexpr(tag)))
-				elif tag.tag == "render":
+				elif tag.tag in ("render", "renderx"):
 					render = parserender(tag)
 					# Find innermost block
 					innerblock = blockstack[-1]

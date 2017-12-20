@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.30 (released ??/??/2017)
+-------------------------------------
+
+*	UL4 gained a new tag: ``<?renderx?>`` works like ``<?render?>``, but the
+	output from the template will be XML escaped.
+
+
 Changes in 5.29 (released 11/29/2017)
 -------------------------------------
 

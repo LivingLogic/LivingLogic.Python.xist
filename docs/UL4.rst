@@ -477,6 +477,28 @@ the ``i`` variable, which will be available in the inner template under the
 name ``item``.
 
 
+``renderx``
+-----------
+
+The ``renderx`` tag works similar to the ``render`` tag, except that the output
+of the template called will be XML escaped (like ``printx`` does). The following
+Python code demonstrates this::
+
+	from ll import ul4c
+
+	# Template 1
+	tmpl1 = ul4c.Template("<&>")
+
+	# Template 2
+	tmpl2 = ul4c.Template("<?renderx tmpl()?>\n")
+
+	print(tmpl1.renders(tmpl=tmpl2))
+
+This will output::
+
+	&lt;&amp;&gt;
+
+
 ``def``
 -------
 

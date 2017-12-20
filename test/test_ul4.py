@@ -4230,8 +4230,15 @@ def test_def(T):
 def test_render(T):
 	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
 
-	assert '(f)(o)(o)' == T('<?for c in data?><?render t(data=c, prefix="(", suffix=")")?><?end for?>').renders(t=t, data='foo')
-	assert '(f)(o)(o)' == T('<?for c in data?><?render t(data=c, **{"prefix": "(", "suffix": ")"})?><?end for?>').renders(t=t, data='foo')
+	assert '<f><o><o>' == T('<?for c in data?><?render t(data=c, prefix="<", suffix=">")?><?end for?>').renders(t=t, data='foo')
+	assert '<f><o><o>' == T('<?for c in data?><?render t(data=c, **{"prefix": "<", "suffix": ">"})?><?end for?>').renders(t=t, data='foo')
+
+
+@pytest.mark.ul4
+def test_renderx(T):
+	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
+
+	assert '&lt;f&gt;&lt;&amp;&gt;&lt;o&gt;&lt;&amp;&gt;&lt;o&gt;' == T('<?for c in data?><?renderx t(data=c, prefix="<", suffix=">")?><?end for?>').renders(t=t, data='f&o&o')
 
 
 @pytest.mark.ul4
@@ -4885,8 +4892,9 @@ def test_smart_whitespace(T):
 	assert " 42\n" == T(" <?print 42?>\n", whitespace="smart").renders()
 	assert " 42\n" == T(" <?printx 42?>\n", whitespace="smart").renders()
 
-	# For <?render?> tags the line feed will be stripped, but the indentation will be reused for each line rendered by the call
+	# For <?render?> and <?renderx?> tags the line feed will be stripped, but the indentation will be reused for each line rendered by the call
 	assert "   x\r\n" == T("<?def x?>\nx\r\n<?end def?>\n   <?render x()?>\n", whitespace="smart").renders()
+	assert "\t&lt;\n\t&gt;\n" == T("<?def x?>\n<\n>\n<?end def?>\n\t<?renderx x()?>\n", whitespace="smart").renders()
 
 	# But of course "common" indentation will be ignored
 	assert "x\r\n" == T("<?if True?>\n   <?def x?>\n   x\r\n   <?end def?>\n   <?render x()?>\n<?end if?>\n", whitespace="smart").renders()
@@ -4904,6 +4912,10 @@ def test_smart_whitespace(T):
 	# Mixed indentation will not be recognized as indentation.
 	assert "\tTrue\n" == T(" <?if True?>\n\tTrue\n <?end if?>\n", whitespace="smart").renders()
 
+
+@pytest.mark.ul4
+def test_smart_whitespace_nesting(T):
+	assert "<x>\n\t<y>\n\t\t<z>0</z>\n\t</y>\n\t<y>\n\t\t<z>1</z>\n\t</y>\n</x>" == T("<?whitespace smart?>\n<x>\n\t<?for i in range(2)?>\n\t\t<y>\n\t\t\t<z><?printx i?></z>\n\t\t</y>\n\t<?end for?>\n</x>").renders()
 
 
 @pytest.mark.ul4
