@@ -1,4 +1,4 @@
-# $ANTLR 3.5 src/ll/UL4.g 2016-05-10 15:48:44
+# $ANTLR 3.5.2 src/ll/UL4.g 2017-12-20 16:34:16
 
 import sys
 from antlr3 import *
@@ -3383,7 +3383,7 @@ class UL4Lexer(Lexer):
         )
 
     DFA32_special = DFA.unpack(
-        "\46\uffff\1\1\1\0\111\uffff"
+        "\46\uffff\1\0\1\1\111\uffff"
         )
 
 
@@ -3524,18 +3524,6 @@ class UL4Lexer(Lexer):
             _s = s
 
             if s == 0: 
-                LA32_39 = input.LA(1)
-
-                s = -1
-                if (LA32_39 == 39):
-                    s = 82
-
-                elif ((0 <= LA32_39 <= 9) or (11 <= LA32_39 <= 12) or (14 <= LA32_39 <= 38) or (40 <= LA32_39 <= 65535)):
-                    s = 81
-
-                if s >= 0:
-                    return s
-            elif s == 1: 
                 LA32_38 = input.LA(1)
 
                 s = -1
@@ -3543,6 +3531,18 @@ class UL4Lexer(Lexer):
                     s = 80
 
                 elif ((0 <= LA32_38 <= 9) or (11 <= LA32_38 <= 12) or (14 <= LA32_38 <= 33) or (35 <= LA32_38 <= 65535)):
+                    s = 81
+
+                if s >= 0:
+                    return s
+            elif s == 1: 
+                LA32_39 = input.LA(1)
+
+                s = -1
+                if (LA32_39 == 39):
+                    s = 82
+
+                elif ((0 <= LA32_39 <= 9) or (11 <= LA32_39 <= 12) or (14 <= LA32_39 <= 38) or (40 <= LA32_39 <= 65535)):
                     s = 81
 
                 if s >= 0:
