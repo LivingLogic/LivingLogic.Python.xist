@@ -4898,10 +4898,12 @@ def test_smart_whitespace(T):
 
 	# But of course "common" indentation will be ignored
 	assert "x\r\n" == T("<?if True?>\n   <?def x?>\n   x\r\n   <?end def?>\n   <?render x()?>\n<?end if?>\n", whitespace="smart").renders()
+	assert "&amp;\r\n" == T("<?if True?>\n   <?def x?>\n   &\r\n   <?end def?>\n   <?renderx x()?>\n<?end if?>\n", whitespace="smart").renders()
 
 	# But not on the outermost level, which leads to an esoteric corner case:
 	# The indentation will be output twice (once by the text itself, and once by the render call).
 	assert "      x\r\n" == T("   <?def x?>\n   x\r\n   <?end def?>\n   <?render x()?>\n", whitespace="smart").renders()
+	assert "      &amp;\r\n" == T("   <?def x?>\n   &\r\n   <?end def?>\n   <?renderx x()?>\n", whitespace="smart").renders()
 
 	# Additional indentation in the block will be removed.
 	assert "True\n" == T("<?if True?>\n\tTrue\n<?end if?>\n", whitespace="smart").renders()
