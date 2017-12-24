@@ -3430,13 +3430,15 @@ class Render(Call):
 			p.breakable()
 			p.pretty(arg)
 
-	def eval(self, context):
+	def _evalobjargs(self, context):
 		obj = self.obj.eval(context)
 		args = []
 		kwargs = {}
 		for arg in self.args:
 			arg.eval_call(context, args, kwargs)
+		return (obj, args, kwargs)
 
+	def _renderobject(self, context, obj, args, kwargs):
 		try:
 			ul4render = getattr(obj, "ul4render", None)
 			if callable(ul4render):
@@ -3455,6 +3457,18 @@ class Render(Call):
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
 			raise LocationError(self) from exc
+
+	def eval(self, context):
+		(obj, args, kwargs) = self._evalobjargs(context)
+		yield from self._renderobject(context, obj, args, kwargs)
+
+	@_handleexpressioneval
+	def evalset(self, context, value):
+		raise TypeError("can't use = on call result")
+
+	@_handleexpressioneval
+	def evalmodify(self, context, operator, value):
+		raise TypeError("augmented assigment not allowed for call result")
 
 	def _str(self):
 		yield self.type
@@ -3482,8 +3496,55 @@ class RenderX(Render):
 			context.escapes.pop()
 
 
+@register("renderblock")
+class RenderBlock(Render):
+	"""
+	AST node for rendering a template and passing one additional argument that is
+	the anonymous template that is defined in the block.
+
+	The object to be called is stored in the attribute :obj:`obj`. The list of
+	arguments is found in :obj:`args`.
+	"""
+
+	ul4attrs = Render.ul4attrs.union({"content"})
+
+	def __init__(self, tag=None, pos=None, obj=None):
+		super().__init__(tag, pos, obj)
+		self.content = None
+
+	def eval(self, context):
+		(obj, args, kwargs) = self._evalobjargs(context)
+
+		# Check that the argument ``content`` hasn't been specified yet
+		if "content" in kwargs:
+			raise TypeError(f"multiple values for keyword argument 'content'")
+		kwargs["content"] = TemplateClosure(self.content, context, None)
+
+		yield from self._renderobject(context, obj, args, kwargs)
+
+	def _str(self):
+		yield self.type
+		yield " "
+		yield from Code._str(self)
+		if self.indent is not None:
+			yield f" with indent {self.indent.text!r}"
+		yield ":"
+		yield None
+		yield +1
+		yield from Block._str(self.content)
+		yield -1
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.content)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.content = decoder.load()
+
+
 @register("renderblocks")
-class RenderBlocks(Block):
+class RenderBlocks(Render):
 	"""
 	AST node for rendering a template and passing additional arguments via
 	nested variable definitions.
@@ -3492,21 +3553,24 @@ class RenderBlocks(Block):
 	arguments is found in :obj:`args`.
 	"""
 
-	output = True
-
-	ul4attrs = Code.ul4attrs.union({"obj", "args", "indent"})
+	ul4attrs = Render.ul4attrs.union({"endtag", "content"})
 
 	def __init__(self, tag=None, pos=None, obj=None):
-		super().__init__(tag, pos)
-		self.obj = obj
-		self.args = []
-		self.indent = None # The indentation before this ``<?renderblocks?>`` tag, i.e. the sibling AST node before ``self``
+		super().__init__(tag, pos, obj)
+		self.endtag = None
+		self.content = []
 
-	def _repr(self):
-		yield f"indent={self.indent!r}"
-		yield f"obj={self.obj!r}"
-		for arg in self.args:
-			yield from arg._repr()
+	def append(self, item):
+		self.content.append(item)
+
+	def _str(self):
+		yield "if "
+		yield from Code._str(self)
+		yield ":"
+		yield None
+		yield +1
+		yield from Block._str(self) # Note that :class:`Block` is *not* one of our base classes, but as long as be have the proper attributes...
+		yield -1
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -3518,46 +3582,38 @@ class RenderBlocks(Block):
 		for arg in self.args:
 			p.breakable()
 			p.pretty(arg)
+		p.breakable()
+		with p.group(4, "content=[", "]"):
+			for node in self.content:
+				p.breakable()
+				p.pretty(node)
+
+	def _repr(self):
+		yield f"indent={self.indent!r}"
+		yield f"obj={self.obj!r}"
+		for arg in self.args:
+			yield from arg._repr()
 
 	def eval(self, context):
-		obj = self.obj.eval(context)
-		args = []
-		kwargs = {}
-		for arg in self.args:
-			arg.eval_call(context, args, kwargs)
+		(obj, args, kwargs) = self._evalobjargs(context)
 
 		# Open a new chained variable dict, so we can collect all variables defined inside the block
 		with context.chainvars():
-			# Ignore output here
-			for output in super().eval(context):
+			# Evaluate the block content and ignore output
+			# (Note that we're not a subclass of :class:`Block`, but have the correct attributes)
+			for output in Block.eval(self, context):
 				pass
 
 			# Check that we have no duplicate arguments
-			for key in context.vars:
+			vars = context.vars.maps[0]
+			for key in vars:
 				if key in kwargs:
 					raise TypeError(f"multiple values for keyword argument {key!r}")
 
 			# Copy variables from the block into the keyword arguments (but only the outermost map from the chain)
-			kwargs.update(context.vars.maps[0])
+			kwargs.update(vars)
 
-		try:
-			ul4render = getattr(obj, "ul4render", None)
-			if callable(ul4render):
-				if self.indent is not None:
-					context.indents.append(self.indent.text)
-				needscontext = getattr(ul4render, "ul4context", False)
-				if needscontext:
-					yield from ul4render(context, *args, **kwargs)
-				else:
-					yield from ul4render(*args, **kwargs)
-				if self.indent is not None:
-					context.indents.pop()
-			else:
-				from ll import misc
-				raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
-		except Exception as exc:
-			# Wrap original exception in another exception that shows the location
-			raise LocationError(self) from exc
+		yield from self._renderobject(context, obj, args, kwargs)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -3581,16 +3637,13 @@ class RenderBlocks(Block):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.indent)
-		encoder.dump(self.obj)
-		encoder.dump(self.args)
+		encoder.dump(self.endtag)
+		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.indent = decoder.load()
-		self.obj = decoder.load()
-		self.args = decoder.load()
-
+		self.endtag = decoder.load()
+		self.content = decoder.load()
 
 
 @register("template")
@@ -4017,7 +4070,7 @@ class Template(Block):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = f"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderx|render|note|doc)(\s*((.|\\n)*?)\s*)?{re.escape(enddelim)}"
+		pattern = f"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\\n)*?)\s*)?{re.escape(enddelim)}"
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -4153,7 +4206,7 @@ class Template(Block):
 						stack.pop()
 				newlines.append((line, stack[:]))
 				# Tags opening a block
-				if tag.tag in ("for", "if", "def", "elif", "else", "renderblocks"):
+				if tag.tag in ("for", "if", "def", "elif", "else", "renderblock", "renderblocks"):
 					block = Block(i+1) # Block starts on the next line
 					stack.append(block)
 					blocks.append(block)
@@ -4249,9 +4302,12 @@ class Template(Block):
 			call = self._parser(tag, "render call required").expression()
 			if not isinstance(call, Call):
 				raise TypeError("render call required")
-			render = dict(render=Render, renderx=RenderX, renderblocks=RenderBlocks)[tag.tag](tag=call.tag, pos=call.pos, obj=call.obj)
+			tags = dict(render=Render, renderx=RenderX, renderblock=RenderBlock, renderblocks=RenderBlocks)
+			render = tags[tag.tag](tag=call.tag, pos=call.pos, obj=call.obj)
 			render.obj = call.obj
 			render.args = call.args
+			if tag.tag == "renderblock":
+				render.content = Template(None, name="content", whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim)
 			return render
 
 		tags = self._tokenize(source, startdelim, enddelim)
@@ -4336,6 +4392,9 @@ class Template(Block):
 							if not isinstance(blockstack[-1], Template):
 								raise BlockError("enddef doesn't match any def")
 							templatestack.pop()
+						elif code == "renderblock":
+							if len(blockstack) < 2 or not isinstance(blockstack[-2], RenderBlock):
+								raise BlockError("endrenderblock doesn't match any renderblock")
 						elif code == "renderblocks":
 							if not isinstance(blockstack[-1], RenderBlocks):
 								raise BlockError("endrenderblocks doesn't match any renderblocks")
@@ -4346,6 +4405,9 @@ class Template(Block):
 					last.endtag = tag
 					if isinstance(last, CondBlock):
 						last.content[-1].endtag = tag
+					elif blockstack and isinstance(blockstack[-1], RenderBlock):
+						last = blockstack.pop()
+						last.enttag = tag
 				elif tag.tag == "for":
 					block = parsefor(tag)
 					blockstack[-1].append(block)
@@ -4383,7 +4445,7 @@ class Template(Block):
 					blockstack.append(block)
 				elif tag.tag == "return":
 					blockstack[-1].append(Return(tag, tag.codepos, parseexpr(tag)))
-				elif tag.tag in ("render", "renderx", "renderblocks"):
+				elif tag.tag in ("render", "renderx", "renderblock", "renderblocks"):
 					render = parserender(tag)
 					# Find innermost block
 					innerblock = blockstack[-1]
@@ -4398,7 +4460,10 @@ class Template(Block):
 						render.indent = innerblock[-1]
 						innerblock.pop()
 					blockstack[-1].append(render)
-					if tag.tag == "renderblocks":
+					if tag.tag == "renderblock":
+						blockstack.append(render)
+						blockstack.append(render.content)
+					elif tag.tag == "renderblocks":
 						blockstack.append(render)
 				elif tag.tag in ("ul4", "whitespace", "note", "doc"):
 					# Don't copy declarations, whitespace specification, comments or docstrings over into the syntax tree
