@@ -3405,7 +3405,7 @@ class Render(Call):
 	of arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"indent"})
+	ul4attrs = Call.ul4attrs.union({"indent"})
 
 	def __init__(self, tag=None, pos=None, obj=None):
 		super().__init__(tag, pos, obj)
