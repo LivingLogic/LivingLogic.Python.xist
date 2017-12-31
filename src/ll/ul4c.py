@@ -3510,6 +3510,7 @@ class RenderBlock(Render):
 
 	def __init__(self, tag=None, pos=None, obj=None):
 		super().__init__(tag, pos, obj)
+		self.endtag = None
 		self.content = None
 
 	def eval(self, context):
@@ -3536,10 +3537,12 @@ class RenderBlock(Render):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
+		encoder.dump(self.endtag)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
+		self.endtag = decoder.load()
 		self.content = decoder.load()
 
 
