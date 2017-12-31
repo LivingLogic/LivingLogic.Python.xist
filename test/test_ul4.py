@@ -4236,9 +4236,24 @@ def test_render(T):
 
 @pytest.mark.ul4
 def test_renderx(T):
-	t = ul4c.Template('<?print prefix?><?print data?><?print suffix?>')
+	t = ul4c.Template("<?print prefix?><?print data?><?print suffix?>")
 
-	assert '&lt;f&gt;&lt;&amp;&gt;&lt;o&gt;&lt;&amp;&gt;&lt;o&gt;' == T('<?for c in data?><?renderx t(data=c, prefix="<", suffix=">")?><?end for?>').renders(t=t, data='f&o&o')
+	assert "&lt;f&gt;&lt;&amp;&gt;&lt;o&gt;&lt;&amp;&gt;&lt;o&gt;" == T('<?for c in data?><?renderx t(data=c, prefix="<", suffix=">")?><?end for?>').renders(t=t, data='f&o&o')
+
+
+@pytest.mark.ul4
+def test_renderblock(T):
+	t = T("""
+		<?whitespace strip?>
+		<?def bracket(content, prefix="(", suffix=")")?>
+			<?print prefix?><?render content()?><?print suffix?>
+		<?end def?>
+		<?renderblock bracket()?>
+			gurk
+		<?end renderblock?>
+	""")
+
+	assert '(gurk)' == t.renders()
 
 
 @pytest.mark.ul4
