@@ -4257,6 +4257,37 @@ def test_renderblock(T):
 
 
 @pytest.mark.ul4
+def test_renderblocks(T):
+	t = T("""
+		<?whitespace strip?>
+		<?def bracket(content, prefix, suffix)?>
+			<?if istemplate(prefix)?>
+				<?render prefix()?>
+			<?else?>
+				<?print prefix?>
+			<?end if?>
+			<?if istemplate(content)?>
+				<?render content()?>
+			<?else?>
+				<?print content?>
+			<?end if?>
+			<?if istemplate(suffix)?>
+				<?render suffix()?>
+			<?else?>
+				<?print suffix?>
+			<?end if?>
+		<?end def?>
+		<?renderblocks bracket()?>
+			<?def prefix?>(<?end def?>
+			<?def content?>gurk<?end def?>
+			<?def suffix?>)<?end def?>
+		<?end renderblocks?>
+	""")
+
+	assert '(gurk)' == t.renders()
+
+
+@pytest.mark.ul4
 def test_pass_function(T):
 	assert "&lt;" == T("<?def x?><?print xe('<')?><?end def?><?render x(xe=xmlescape)?>").renders()
 	assert "&lt;" == T("<?def xe?><?return xmlescape(s)?><?end def?><?def x?><?print xe(s='<')?><?end def?><?render x(xe=xe)?>").renders()
