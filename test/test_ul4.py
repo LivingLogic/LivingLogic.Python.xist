@@ -572,7 +572,9 @@ unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
 
 duplicatekeywordargument = [
 	# Python
+	"multiple values for keyword argument",
 	"duplicate keyword argument",
+	"keyword argument repeated",
 	# Java
 	"com.livinglogic.ul4.DuplicateArgumentException",
 ]
@@ -4243,7 +4245,7 @@ def test_renderx(T):
 
 @pytest.mark.ul4
 def test_renderblock(T):
-	t = T("""
+	t1 = T("""
 		<?whitespace strip?>
 		<?def bracket(content, prefix="(", suffix=")")?>
 			<?print prefix?><?render content()?><?print suffix?>
@@ -4253,7 +4255,34 @@ def test_renderblock(T):
 		<?end renderblock?>
 	""")
 
-	assert '(gurk)' == t.renders()
+	assert '(gurk)' == t1.renders()
+
+	# Check that the local template is named "content" and has no signatur
+	t2 = T("""
+		<?whitespace strip?>
+		<?def bracket(content)?>
+			(<?print content.name?>|<?print repr(content.signature)?>)
+		<?end def?>
+		<?renderblock bracket()?>
+			gurk
+		<?end renderblock?>
+	""")
+
+	assert '(content|None)' == t2.renders()
+
+	# Check that the call test for a duplicate "content" argument
+	t3 = T("""
+		<?whitespace strip?>
+		<?def bracket(content)?>
+			gurk
+		<?end def?>
+		<?renderblock bracket(content=42)?>
+			gurk
+		<?end renderblock?>
+	""")
+
+	with raises(duplicatekeywordargument):
+		t3.renders()
 
 
 @pytest.mark.ul4
@@ -4282,9 +4311,12 @@ def test_renderblocks(T):
 			<?def content?>gurk<?end def?>
 			<?def suffix?>)<?end def?>
 		<?end renderblocks?>
+		<?renderblocks bracket(prefix="(", suffix=")")?>
+			<?def content?>hurz<?end def?>
+		<?end renderblocks?>
 	""")
 
-	assert '(gurk)' == t.renders()
+	assert '(gurk)(hurz)' == t.renders()
 
 
 @pytest.mark.ul4
