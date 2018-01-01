@@ -3513,6 +3513,7 @@ class RenderBlock(Render):
 		self.endtag = None
 		self.content = None
 
+	@_handleoutputeval
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
 
@@ -3597,6 +3598,7 @@ class RenderBlocks(Render):
 		for arg in self.args:
 			yield from arg._repr()
 
+	@_handleoutputeval
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
 
