@@ -3506,7 +3506,7 @@ class RenderBlock(Render):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"content"})
+	ul4attrs = Render.ul4attrs.union({"endtag", "content"})
 
 	def __init__(self, tag=None, pos=None, obj=None):
 		super().__init__(tag, pos, obj)
