@@ -4270,7 +4270,7 @@ def test_renderblock(T):
 
 	assert '(content|None)' == t2.renders()
 
-	# Check that the call test for a duplicate "content" argument
+	# Check that the call tests for a duplicate "content" argument
 	t3 = T("""
 		<?whitespace strip?>
 		<?def bracket(content)?>
