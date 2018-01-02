@@ -4257,7 +4257,7 @@ def test_renderblock(T):
 
 	assert '(gurk)' == t1.renders()
 
-	# Check that the local template is named "content" and has no signatur
+	# Check that the local template is named "content" and has no signature
 	t2 = T("""
 		<?whitespace strip?>
 		<?def bracket(content)?>
