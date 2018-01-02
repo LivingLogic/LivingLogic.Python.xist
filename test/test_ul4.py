@@ -580,6 +580,24 @@ duplicatekeywordargument = [
 ]
 duplicatekeywordargument = "({})".format("|".join(duplicatekeywordargument))
 
+unknownkeywordargument = [
+	# Python
+	"got an unexpected keyword argument",
+	"doesn't support an argument named",
+	"an argument named [a-zA-Z_][a-zA-Z0-9_]* isn't supported",
+	"too many keyword arguments",
+]
+unknownkeywordargument = "({})".format("|".join(unknownkeywordargument))
+
+missingkeywordargument = [
+	# Python
+	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
+	"missing a required argument",
+	# Java
+	"com.livinglogic.ul4.MissingArgumentException",
+]
+missingkeywordargument = "({})".format("|".join(missingkeywordargument))
+
 subscriptablemessage = [
 	# Python
 	"object is not subscriptable",
@@ -588,7 +606,6 @@ subscriptablemessage = [
 	"com.livinglogic.ul4.ArgumentTypeMismatchException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
 ]
 subscriptablemessage = "({})".format("|".join(subscriptablemessage))
-
 
 indexmessage = [
 	# Python
@@ -4313,7 +4330,7 @@ def test_renderblock(T):
 
 @pytest.mark.ul4
 def test_renderblocks(T):
-	t = T("""
+	t1 = T("""
 		<?whitespace strip?>
 		<?def bracket(content, prefix, suffix)?>
 			<?if istemplate(prefix)?>
@@ -4342,7 +4359,81 @@ def test_renderblocks(T):
 		<?end renderblocks?>
 	""")
 
-	assert '(gurk)(hurz)' == t.renders()
+	assert '(gurk)(hurz)' == t1.renders()
+
+	# <?renderblocks?> should complain about unknown arguments
+	t2 = T("""
+		<?whitespace strip?>
+		<?def bracket(content, prefix, suffix)?>
+		<?end def?>
+		<?renderblocks bracket(wrong=42)?>
+			<?def prefix?>(<?end def?>
+			<?def content?>gurk<?end def?>
+			<?def suffix?>)<?end def?>
+		<?end renderblocks?>
+	""")
+
+	with raises(unknownkeywordargument):
+		t2.renders()
+
+	# Check that <?renderblocks?> complains about missing arguments
+	t3 = T("""
+		<?whitespace strip?>
+		<?def bracket(content, prefix, suffix)?>
+		<?end def?>
+		<?renderblocks bracket()?>
+		<?end renderblocks?>
+	""")
+
+	with raises(missingkeywordargument):
+		t3.renders()
+
+	# Check that <?renderblocks?> checks for duplicate arguments
+	t4 = T("""
+		<?whitespace strip?>
+		<?def bracket(content, prefix, suffix)?>
+		<?end def?>
+		<?renderblocks bracket(prefix="(", suffix=")")?>
+			<?def prefix?>(<?end def?>
+			<?def content?>gurk<?end def?>
+			<?def suffix?>)<?end def?>
+		<?end renderblocks?>
+	""")
+
+	with raises(duplicatekeywordargument):
+		t4.renders()
+
+	# Check that the template arguments are added to the end of the call
+	t5 = T("""
+		<?whitespace strip?>
+		<?def bracket(**kwargs)?>
+			<?print repr(list(kwargs))?>
+		<?end def?>
+		<?renderblocks bracket(a=17, b=23, c=42)?>
+			<?def prefix?>(<?end def?>
+			<?def content?>gurk<?end def?>
+			<?def suffix?>)<?end def?>
+		<?end renderblocks?>
+	""")
+
+	assert "['a', 'b', 'c', 'prefix', 'content', 'suffix']" == t5.renders()
+
+	# Check that the template arguments don't leak into the surrounding scope
+	t6 = T("""
+		<?whitespace strip?>
+		<?def bracket(**kwargs)?>
+		<?end def?>
+		<?renderblocks bracket()?>
+			<?def prefix?>(<?end def?>
+			<?def content?>gurk<?end def?>
+			<?def suffix?>)<?end def?>
+		<?end renderblocks?>
+		<?print type(prefix)?>
+		<?print type(content)?>
+		<?print type(suffix)?>
+	""")
+
+	assert "undefined" * 3 == t6.renders()
 
 
 @pytest.mark.ul4
