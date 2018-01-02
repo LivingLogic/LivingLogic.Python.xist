@@ -4284,6 +4284,19 @@ def test_renderblock(T):
 	with raises(duplicatekeywordargument):
 		t3.renders()
 
+	# Check that the content template doesn't leak into the surrounding scope
+	t4 = T("""
+		<?whitespace strip?>
+		<?def bracket(content)?>
+		<?end def?>
+		<?renderblock bracket()?>
+			gurk
+		<?end renderblock?>
+		<?print type(content)?>
+	""")
+
+	assert "undefined" == t4.renders()
+
 
 @pytest.mark.ul4
 def test_renderblocks(T):
