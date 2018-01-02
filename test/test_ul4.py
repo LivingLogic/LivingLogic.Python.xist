@@ -4284,8 +4284,21 @@ def test_renderblock(T):
 	with raises(duplicatekeywordargument):
 		t3.renders()
 
-	# Check that the content template doesn't leak into the surrounding scope
+	# Check that the "content" template is added to the end of the keyword arguments
 	t4 = T("""
+		<?whitespace strip?>
+		<?def bracket(**kwargs)?>
+			<?print repr(list(kwargs))?>
+		<?end def?>
+		<?renderblock bracket(a=17, b=23)?>
+			gurk
+		<?end renderblock?>
+	""")
+
+	assert "['a', 'b', 'content']" == t4.renders()
+
+	# Check that the content template doesn't leak into the surrounding scope
+	t5 = T("""
 		<?whitespace strip?>
 		<?def bracket(content)?>
 		<?end def?>
@@ -4295,7 +4308,7 @@ def test_renderblock(T):
 		<?print type(content)?>
 	""")
 
-	assert "undefined" == t4.renders()
+	assert "undefined" == t5.renders()
 
 
 @pytest.mark.ul4
