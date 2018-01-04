@@ -228,10 +228,6 @@ is equivalent to ::
 
 The ``**`` must be a dictonary or a list of key/value pairs.
 
-It is also possible to create a list with a list comprehension::
-
-	["(" + c.upper() + ")" for c in "hurz" if c < "u"]
-
 It is also possible to create a dictionary with a dictionary comprehension::
 
 	{ c.upper() : "(" + c + ")" for c in "hurz" if c < "u"}
