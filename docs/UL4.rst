@@ -80,11 +80,11 @@ The following object types can be created and used insided templates:
 *	UL4 templates
 
 Note that depending on the implementation language of the renderer additional
-types might be supported, e.g. a Python renderer will probably support tuples
-and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__` when
-the list is used in a loop) for lists, Java might support anything implementing
-the ``List`` interface (or the ``Collection`` interface if the list is used in a
-loop).
+types might be supported, e.g. a Python renderer will probably support both
+tuples and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__`
+when the list is used in a loop) for lists, Java might support anything
+implementing the ``List`` interface (or the ``Collection`` interface if the list
+is used in a loop).
 
 Objects of these types can either be passed to the template in the call to the
 render function, or the template can create objects of thoses types itself. The
