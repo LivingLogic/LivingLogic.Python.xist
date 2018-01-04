@@ -4410,9 +4410,9 @@ def test_renderblocks(T):
 			<?print repr(list(kwargs))?>
 		<?end def?>
 		<?renderblocks bracket(a=17, b=23, c=42)?>
-			<?def prefix?>(<?end def?>
+			<?code prefix = "("?>
 			<?def content?>gurk<?end def?>
-			<?def suffix?>)<?end def?>
+			<?code suffix = ")"?>
 		<?end renderblocks?>
 	""")
 
