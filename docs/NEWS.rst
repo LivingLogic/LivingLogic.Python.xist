@@ -11,8 +11,63 @@ see :ref:`MIGRATION`.
 Changes in 5.30 (released ??/??/2017)
 -------------------------------------
 
-*	UL4 gained a new tag: ``<?renderx?>`` works like ``<?render?>``, but the
+*	The new UL4 tag ``<?renderx?>`` works like ``<?render?>``, but the
 	output from the template will be XML escaped.
+
+*	The new tag ``<?renderblocks?>`` is syntactic sugar for rendering a template
+	and passing various other templates as keyword arguments, i.e. if we have a
+	template::
+
+		<?def page(head, body)?>
+			<html>
+				<head>
+					<?render head()?>
+				</head>
+				<body>
+					<?render body()?>
+				</body>
+			</html>
+		<?end def?>
+
+	then::
+
+		<?renderblock page()?>
+			<?def head?>
+				<title>Foo</title>
+			<?end def?>
+			<?def body?>
+				<h1>Bar!</h1>
+			<?end def?>
+		<?end renderblock?>
+
+	is syntactic sugar for::
+
+		<?def head?>
+			<title>Foo</title>
+		<?end def?>
+		<?def body?>
+			<h1>Bar!</h1>
+		<?end def?>
+
+		<?render page(head=head, body=body)?>
+
+	except that the templates ``head`` and ``body`` will not leak into the
+	surrounding namespace with ``<?renderblocks?>``.
+
+*	The new tag ``<?renderblock?>`` is similar to ``<?renderblocks?>``. However
+	the complete content of the ``<?renderblock?>`` call will be passed as the
+	``content`` keyword argument to the render call. I.e.::
+
+		<?renderblock foo()?>
+			bar
+		<?end renderblock?>
+
+	is syntactic sugar for::
+
+		<?def content?>
+			bar?>
+		<?end def?>
+		<?render foo(content=content)?>
 
 
 Changes in 5.29 (released 11/29/2017)
