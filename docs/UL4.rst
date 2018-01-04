@@ -66,7 +66,7 @@ a generator and returns the output piecewise.
 Builtin types
 =============
 
-The following object types can be created used insided templates:
+The following object types can be created and used insided templates:
 
 *	strings
 *	integers
