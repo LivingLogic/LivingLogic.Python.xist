@@ -242,7 +242,7 @@ The ``if`` condition is optional, i.e. ::
 
 will create the dictionary ::
 
-	{ "H": "(h)", "R": "(r)", "U": "(u)", "Z": "(z)"}
+	{ "H": "(h)", "U": "(u)", "R": "(r)", "Z": "(z)"}
 
 
 Sets
