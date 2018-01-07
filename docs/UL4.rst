@@ -305,10 +305,11 @@ Python statements. In some spots it also borrows Javascript semantics.
 The ``print`` tag outputs the value of a variable or any other expression. If
 the expression doesn't evaluate to a string it will be converted to a string
 first. The format of the string depends on the renderer, but should follow
-Python's ``str()`` output as much as possible (except that for ``None`` no
-output may be produced)::
+Python's ``str()`` output as much as possible::
 
 	<h1><?print person.lastname?>, <?print person.firstname?></h1>
+
+Printing ``None`` or undefined object produces no output.
 
 
 ``printx``
@@ -353,7 +354,7 @@ The ``break`` tag can be used to break out of the innermost running loop.
 ------------
 
 The ``continue`` tag can be used to skip the rest of the loop body of the
-innermost running loop.
+innermost running loop and continue with the next iteration of the loop.
 
 
 ``if``
