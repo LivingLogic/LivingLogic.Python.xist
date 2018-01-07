@@ -31,14 +31,14 @@ Changes in 5.30 (released ??/??/2017)
 
 	then::
 
-		<?renderblock page()?>
+		<?renderblocks page()?>
 			<?def head?>
 				<title>Foo</title>
 			<?end def?>
 			<?def body?>
 				<h1>Bar!</h1>
 			<?end def?>
-		<?end renderblock?>
+		<?end renderblocks?>
 
 	is syntactic sugar for::
 
