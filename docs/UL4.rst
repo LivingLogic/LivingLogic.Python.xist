@@ -532,6 +532,94 @@ This will output ``"foo" and "bar"``.
 This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 
 
+``renderblocks``
+---------------
+
+The ``renderblocks`` tag is syntactic sugar for rendering a template and
+passing other templates as arguments in the call. For example if we have the
+following template::
+
+	<?def page(head, body, lang="en", doctype=False)?>
+		<?if doctype?>
+			<!DOCTYPE html>
+		<?end if?>
+		<html lang="<?printx lang?>">
+			<head>
+				<?render head()?>
+			</head>
+			<body>
+				<?render body()?>
+			</body>
+		</html>
+	<?end def?>
+
+then we can render this template in the following way::
+
+	<?renderblocks page(lang="de", doctype=True)?>
+		<?def head?>
+			<title>Foo</title>
+		<?end def?>
+		<?def body?>
+			<h1>Bar!</h1>
+		<?end def?>
+	<?end renderblocks?>
+
+This is syntactic sugar for::
+
+	<?def head?>
+		<title>Foo</title>
+	<?end def?>
+	<?def body?>
+		<h1>Bar!</h1>
+	<?end def?>
+	<?render page(lang="de", doctype=True, head=head, body=body)?>
+
+In both cases the output will be::
+
+	<!DOCTYPE html>
+	<html lang="de">
+		<head>
+			<title>Foo</title>
+		</head>
+		<body>
+			<h1>Bar!</h1>
+		</body>
+	</html>
+
+All variables defined between ``<?renderblocks page(...)?>`` and
+``<?end renderblocks?>`` are passed as additional keyword arguments in the
+render call to ``page``. (But note that those variables will be local to the
+``<?renderblocks?>`` block, i.e. they will not leak into the surrounding
+code.)
+
+
+``renderblock``
+---------------
+
+The ``renderblock`` is a special version of ``renderblocks``. The complete
+content of the ``renderblock`` block will be wrapped in a parameterless template
+named ``content`` and this template will be passed as the keyword argument
+``content`` to the render call. With this we can define a generic template for
+HTML elements::
+
+	<?def tag(name, content, **attrs)?>
+		<<print name?><?for (name, value) in attrs.items() <?print name?>="<?printx value?>"<?end for?>>
+			<?render content()?>
+		</<print name?>>
+
+and then use it like this::
+
+	<?renderblock tag("a", class="extern", href="http://www.python.org/")?>
+		Link to the Python homepage
+	<?end renderblock?>
+
+The output will be::
+
+	<a class="extern" href="http://www.python.org/">
+		Link to the Python homepage
+	</a>
+
+
 ``ul4``
 -------
 
