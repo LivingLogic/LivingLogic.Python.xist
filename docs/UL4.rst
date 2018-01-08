@@ -600,17 +600,17 @@ The ``renderblock`` is a special version of ``renderblocks``. The complete
 content of the ``renderblock`` block will be wrapped in a parameterless template
 named ``content`` and this template will be passed as the keyword argument
 ``content`` to the render call. With this we can define a generic template for
-HTML elements::
+HTML links::
 
-	<?def tag(name, content, **attrs)?>
-		<<?print name?><?for (an, av) in attrs.items()?> <?print an?>="<?printx av?>"<?end for?>>
+	<?def a(content, **attrs)?>
+		<a<?for (an, av) in attrs.items()?> <?print an?>="<?printx av?>"<?end for?>>
 			<?render content()?>
-		</<?print name?>>
+		</a>
 	<?end def?>
 
 and then use it like this::
 
-	<?renderblock tag("a", class="extern", href="http://www.python.org/")?>
+	<?renderblock a(class="extern", href="http://www.python.org/")?>
 		Link to the Python homepage
 	<?end renderblock?>
 
