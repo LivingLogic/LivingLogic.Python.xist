@@ -606,6 +606,7 @@ HTML elements::
 		<<print name?><?for (name, value) in attrs.items() <?print name?>="<?printx value?>"<?end for?>>
 			<?render content()?>
 		</<print name?>>
+	<?end def?>
 
 and then use it like this::
 
