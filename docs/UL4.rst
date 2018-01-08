@@ -603,9 +603,9 @@ named ``content`` and this template will be passed as the keyword argument
 HTML elements::
 
 	<?def tag(name, content, **attrs)?>
-		<<print name?><?for (name, value) in attrs.items()?> <?print name?>="<?printx value?>"<?end for?>>
+		<<?print name?><?for (name, value) in attrs.items()?> <?print name?>="<?printx value?>"<?end for?>>
 			<?render content()?>
-		</<print name?>>
+		</<?print name?>>
 	<?end def?>
 
 and then use it like this::
