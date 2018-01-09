@@ -109,7 +109,7 @@ Changes in 5.28 (released 08/01/2017)
 	is gone. Attributes will always be serialized in the same order they have
 	been parsed/created.
 
-*	UL4 now longer tries a disguise objects as dictionaries. I.e. for objects
+*	UL4 no longer tries to disguise objects as dictionaries. I.e. for objects
 	with an ``ul4attrs`` class attribute the methods ``items``, ``keys``,
 	``values`` and ``get`` are no longer synthesized. This also means that
 	``len``, ``list``, item access and containment tests no longer work on
