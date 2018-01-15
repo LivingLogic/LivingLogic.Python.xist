@@ -2060,6 +2060,9 @@ class Block(Code):
 	def append(self, item):
 		self.content.append(item)
 
+	def finish(self, endtag):
+		self.endtag = endtag
+
 	def _str(self):
 		if self.content:
 			for node in self.content:
@@ -2110,6 +2113,10 @@ class CondBlock(Block):
 
 	def append(self, item):
 		self.content[-1].append(item)
+
+	def finish(self, endtag):
+		super().finish(endtag)
+		self.content[-1].endtag = endtag
 
 	def newblock(self, block):
 		if self.content:
@@ -3513,6 +3520,13 @@ class RenderBlock(Render):
 		self.endtag = None
 		self.content = None
 
+	def append(self, item):
+		self.content.content.append(item)
+
+	def finish(self, endtag):
+		self.endtag = endtag
+		self.content.endtag = endtag
+
 	@_handleoutputeval
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
@@ -3566,6 +3580,9 @@ class RenderBlocks(Render):
 
 	def append(self, item):
 		self.content.append(item)
+
+	def finish(self, endtag):
+		self.endtag = endtag
 
 	def _str(self):
 		yield "if "
@@ -4398,7 +4415,7 @@ class Template(Block):
 								raise BlockError("enddef doesn't match any def")
 							templatestack.pop()
 						elif code == "renderblock":
-							if len(blockstack) < 2 or not isinstance(blockstack[-2], RenderBlock):
+							if not isinstance(blockstack[-1], RenderBlock):
 								raise BlockError("endrenderblock doesn't match any renderblock")
 						elif code == "renderblocks":
 							if not isinstance(blockstack[-1], RenderBlocks):
@@ -4406,13 +4423,7 @@ class Template(Block):
 						else:
 							raise BlockError(f"illegal end value {code!r}")
 					last = blockstack.pop()
-					# Set ``endtag`` of block
-					last.endtag = tag
-					if isinstance(last, CondBlock):
-						last.content[-1].endtag = tag
-					elif blockstack and isinstance(blockstack[-1], RenderBlock):
-						last = blockstack.pop()
-						last.enttag = tag
+					last.finish(tag) # Set ``endtag`` of block
 				elif tag.tag == "for":
 					block = parsefor(tag)
 					blockstack[-1].append(block)
@@ -4450,7 +4461,7 @@ class Template(Block):
 					blockstack.append(block)
 				elif tag.tag == "return":
 					blockstack[-1].append(Return(tag, tag.codepos, parseexpr(tag)))
-				elif tag.tag in ("render", "renderx", "renderblock", "renderblocks"):
+				elif tag.tag in {"render", "renderx", "renderblock", "renderblocks"}:
 					render = parserender(tag)
 					# Find innermost block
 					innerblock = blockstack[-1]
@@ -4465,10 +4476,7 @@ class Template(Block):
 						render.indent = innerblock[-1]
 						innerblock.pop()
 					blockstack[-1].append(render)
-					if tag.tag == "renderblock":
-						blockstack.append(render)
-						blockstack.append(render.content)
-					elif tag.tag == "renderblocks":
+					if tag.tag in {"renderblock", "renderblocks"}:
 						blockstack.append(render)
 				elif tag.tag in ("ul4", "whitespace", "note", "doc"):
 					# Don't copy declarations, whitespace specification, comments or docstrings over into the syntax tree
