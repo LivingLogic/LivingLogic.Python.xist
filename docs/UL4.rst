@@ -533,7 +533,7 @@ This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 
 
 ``renderblocks``
----------------
+----------------
 
 The ``renderblocks`` tag is syntactic sugar for rendering a template and
 passing other templates as arguments in the call. For example if we have the
