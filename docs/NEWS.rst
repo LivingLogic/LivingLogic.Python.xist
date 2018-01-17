@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.30 (released ??/??/2017)
+Changes in 5.30 (released 01/17/2017)
 -------------------------------------
 
 *	The new UL4 tag ``<?renderx?>`` works like ``<?render?>``, but the
