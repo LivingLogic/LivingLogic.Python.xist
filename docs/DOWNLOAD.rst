@@ -14,7 +14,18 @@ or choose one of the following archives:
 5.30 (released 01/17/2018)
 --------------------------
 
-(no files for this version)
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+======================================================================================================================================================== ====================== ====
+File                                                                                                                                                     Type                   Size
+======================================================================================================================================================== ====================== ====
+`ll-xist-5.30.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.30.tar.bz2>`_                                                       Source                 554K
+`ll-xist-5.30.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.30.tar.gz>`_                                                         Source                 666K
+`ll-xist-5.30.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.30.zip>`_                                                               Source                 782K
+`ll_xist-5.30-cp36-cp36m-macosx_10_13_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.30-cp36-cp36m-macosx_10_13_x86_64.whl>`_ Mac wheel (Python 3.6) 524K
+======================================================================================================================================================== ====================== ====
 
 
 5.29 (released 11/29/2017)
