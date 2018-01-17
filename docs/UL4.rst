@@ -597,7 +597,7 @@ code.)
 ---------------
 
 The ``renderblock`` is a special version of ``renderblocks``. The complete
-content of the ``renderblock`` block will be wrapped in a parameterless template
+content of the ``renderblock`` block will be wrapped in a signatureless template
 named ``content`` and this template will be passed as the keyword argument
 ``content`` to the render call. With this we can define a generic template for
 HTML links::
