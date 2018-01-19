@@ -51,8 +51,8 @@ Changes in 5.30 (released 01/17/2018)
 
 		<?render page(head=head, body=body)?>
 
-	except that the templates ``head`` and ``body`` will not leak into the
-	surrounding namespace with ``<?renderblocks?>``.
+	except that with ``<?renderblocks?>`` the templates ``head`` and ``body``
+	will not leak into the surrounding namespace.
 
 *	The new tag ``<?renderblock?>`` is similar to ``<?renderblocks?>``. However
 	the complete content of the ``<?renderblock?>`` call will be passed as the
