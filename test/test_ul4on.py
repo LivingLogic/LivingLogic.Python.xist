@@ -478,18 +478,56 @@ def test_custom_class(t):
 				self.y = decoder.load()
 
 		p = t(Point(17, 23))
-
 		assert p.x == 17
 		assert p.y == 23
+		assert isinstance(p, Point)
 
 		class Point2(Point):
 			pass
 
 		p = t(Point(17, 23), registry={"de.livinglogic.ul4.test.point": Point2})
-
 		assert p.x == 17
 		assert p.y == 23
 		assert isinstance(p, Point2)
+
+		@ul4on.register("de.livinglogic.ul4.test.pointcontent")
+		class PointContent:
+			def __init__(self, x=None, y=None):
+				self.x = x
+				self.y = y
+
+			def ul4ondump(self, encoder):
+				if self.x != 0:
+					encoder.dump(self.x)
+					if self.y != 0:
+						encoder.dump(self.y)
+
+			def ul4onload(self, decoder):
+				i = -1
+				for (i, item) in enumerate(decoder.loadcontent()):
+					if i == 0:
+						self.x = item
+					elif i == 1:
+						self.y = item
+				if i < 1:
+					self.y = 0
+					if i < 0:
+						self.x = 0
+
+		p = t(PointContent(17, 23))
+		assert p.x == 17
+		assert p.y == 23
+		assert isinstance(p, PointContent)
+
+		p = t(PointContent(17, 0))
+		assert p.x == 17
+		assert p.y == 0
+		assert isinstance(p, PointContent)
+
+		p = t(PointContent(0, 0))
+		assert p.x == 0
+		assert p.y == 0
+		assert isinstance(p, PointContent)
 
 
 @pytest.mark.db

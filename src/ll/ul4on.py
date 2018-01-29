@@ -354,16 +354,11 @@ class Decoder:
 		registry (see :func:`register`).
 		"""
 		self.stream = stream
+		self._bufferedchar = None # Next character to be read by :meth:`_nextchar`
 		self._objects = []
 		self._keycache = {} # Used for "interning" dictionary keys
 		self.registry = registry
 		self._stack = [] # A stack of types that are currently in the process of being decoded (used in exception messages)
-
-	def load(self):
-		"""
-		Deserialize the next object in the stream and return it.
-		"""
-		return self._load(None)
 
 	def _readint(self):
 		buffer = []
@@ -377,14 +372,19 @@ class Decoder:
 	def _loading(self, obj):
 		self._objects.append(obj)
 
-	def _nextchar(self, nextchar=None):
-		while True:
-			nextchar = self.stream.read(1)
-			if nextchar:
-				if not nextchar.isspace():
-					return nextchar
-			else:
-				raise EOFError()
+	def _nextchar(self):
+		if self._bufferedchar is not None:
+			result = self._bufferedchar
+			self._bufferedchar = None
+			return result
+		else:
+			while True:
+				nextchar = self.stream.read(1)
+				if nextchar:
+					if not nextchar.isspace():
+						return nextchar
+				else:
+					raise EOFError()
 
 	def _path(self):
 		return "/".join(self._stack)
@@ -407,10 +407,12 @@ class Decoder:
 		# Fix backreference in object list
 		self._objects[oldpos] = value
 
-	def _load(self, typecode):
+	def load(self):
+		"""
+		Deserialize the next object in the stream and return it.
+		"""
 		from ll import misc
-		if typecode is None:
-			typecode = self._nextchar()
+		typecode = self._nextchar()
 		if typecode == "^":
 			position = self._readint()
 			return self._objects[position]
@@ -472,10 +474,10 @@ class Decoder:
 			from ll import color
 			if typecode == "C":
 				oldpos = self._beginfakeloading()
-			r = self._load(None)
-			g = self._load(None)
-			b = self._load(None)
-			a = self._load(None)
+			r = self.load()
+			g = self.load()
+			b = self.load()
+			a = self.load()
 			value = color.Color(r, g, b, a)
 			if typecode == "C":
 				self._endfakeloading(oldpos, value)
@@ -483,13 +485,13 @@ class Decoder:
 		elif typecode in "zZ":
 			if typecode == "Z":
 				oldpos = self._beginfakeloading()
-			year = self._load(None)
-			month = self._load(None)
-			day = self._load(None)
-			hour = self._load(None)
-			minute = self._load(None)
-			second = self._load(None)
-			microsecond = self._load(None)
+			year = self.load()
+			month = self.load()
+			day = self.load()
+			hour = self.load()
+			minute = self.load()
+			second = self.load()
+			microsecond = self.load()
 			value = datetime.datetime(year, month, day, hour, minute, second, microsecond)
 			if typecode == "Z":
 				self._endfakeloading(oldpos, value)
@@ -497,8 +499,8 @@ class Decoder:
 		elif typecode in "rR":
 			if typecode == "R":
 				oldpos = self._beginfakeloading()
-			start = self._load(None)
-			stop = self._load(None)
+			start = self.load()
+			stop = self.load()
 			value = slice(start, stop)
 			if typecode == "R":
 				self._endfakeloading(oldpos, value)
@@ -506,9 +508,9 @@ class Decoder:
 		elif typecode in "tT":
 			if typecode == "T":
 				oldpos = self._beginfakeloading()
-			days = self._load(None)
-			seconds = self._load(None)
-			microseconds = self._load(None)
+			days = self.load()
+			seconds = self.load()
+			microseconds = self.load()
 			value = datetime.timedelta(days, seconds, microseconds)
 			if typecode == "T":
 				self._endfakeloading(oldpos, value)
@@ -517,7 +519,7 @@ class Decoder:
 			from ll import misc
 			if typecode == "M":
 				oldpos = self._beginfakeloading()
-			months = self._load(None)
+			months = self.load()
 			value = misc.monthdelta(months)
 			if typecode == "M":
 				self._endfakeloading(oldpos, value)
@@ -533,7 +535,8 @@ class Decoder:
 					self._stack.pop()
 					return value
 				else:
-					item = self._load(typecode)
+					self._bufferedchar = typecode
+					item = self.load()
 					value.append(item)
 		elif typecode in "dDeE":
 			self._stack.append("dict" if typecode in "dD" else "odict")
@@ -546,13 +549,14 @@ class Decoder:
 					self._stack.pop()
 					return value
 				else:
-					key = self._load(typecode)
+					self._bufferedchar = typecode
+					key = self.load()
 					if isinstance(key, str):
 						if key in self._keycache:
 							key = self._keycache[key]
 						else:
 							self._keycache[key] = key
-					item = self._load(None)
+					item = self.load()
 					value[key] = item
 		elif typecode in "yY":
 			self._stack.append("set")
@@ -565,12 +569,13 @@ class Decoder:
 					self._stack.pop()
 					return value
 				else:
-					item = self._load(typecode)
+					self._bufferedchar = typecode
+					item = self.load()
 					value.add(item)
 		elif typecode in "oO":
 			if typecode == "O":
 				oldpos = self._beginfakeloading()
-			name = self._load(None)
+			name = self.load()
 			self._stack.append(name)
 			cls = None
 			if self.registry is not None:
@@ -590,6 +595,27 @@ class Decoder:
 			return value
 		else:
 			raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): unknown typecode {typecode!r}")
+
+	def loadcontent(self):
+		"""
+		Load the content of an object until the "object terminator" (``)``) is encountered.
+
+		The iterator should always be exhausted when it is read, otherwise the
+		stream will be in an undefined state.
+
+		The object terminator will not be read from the input.
+
+		:meth:`loadcontent` is a generator and might produce fewer or more items
+		than expected. The caller must be able to handle both cases (ignoring
+		additional items or initializing missing items with a default value).
+		"""
+
+		while True:
+			typecode = self._nextchar()
+			self._bufferedchar = typecode
+			if typecode == ")":
+				break
+			yield self.load()
 
 
 class StreamBuffer:
