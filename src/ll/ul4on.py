@@ -9,7 +9,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-"""
+'''
 This module provides functions for encoding and decoding a lightweight
 text-based format for serializing the object types supported by UL4.
 
@@ -176,7 +176,46 @@ global registry.
 .. note::
 	If a class isn't registered with the UL4ON serialization machinery, you have
 	to set the class attribute ``ul4onname`` yourself for serialization to work.
-"""
+
+In situations where an UL4ON API is updated frequently it makes sense to be able
+to update the writing side and the reading side independently. To support this
+:class:`Decoder` has a method :meth:`~Decoder.loadcontent` that is an generator
+that reads the content of an object from the input and yields those items.
+For our example class it could be used like this::
+
+	from ll import ul4on
+
+	class Person:
+		ul4onname = "com.example.person"
+
+		def __init__(self, firstname=None, lastname=None):
+			self.firstname = firstname
+			self.lastname = lastname
+
+		def __repr__(self):
+			return f"<Person firstname={self.firstname!r} lastname={self.lastname!r}>"
+
+		def ul4ondump(self, encoder):
+			encoder.dump(self.firstname)
+			encoder.dump(self.lastname)
+
+		def ul4onload(self, decoder):
+			index = -1
+			for (index, item) in enumerate(decoder.loadcontent()):
+				if index == 0:
+					self.firstname = item
+				elif index == 1:
+					self.lastname = item
+			# Initialize attributes that were not loaded by ``loadcontent``
+			if index < 1:
+				self.lastname = None
+				if index < 0:
+					self.firstname = None
+
+	output = """o s'com.example.person' s'John' )"""
+	j = ul4on.loads(output, {"com.example.person": Person})
+	print("Loaded:", j)
+'''
 
 import sys, datetime, collections, io, ast
 
