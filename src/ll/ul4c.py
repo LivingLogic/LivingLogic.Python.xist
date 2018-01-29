@@ -3693,7 +3693,7 @@ class Template(Block):
 
 	version = "44"
 
-	output = False # Evaluation a template doesn't produce output, but simply stores it in a local variable
+	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
 	def __init__(self, source=None, name=None, whitespace="keep", startdelim="<?", enddelim="?>", signature=None):
 		"""
