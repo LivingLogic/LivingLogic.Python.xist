@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.31 (released 01/29/2018)
+-------------------------------------
+
+*	The UL4ON decoder now has a new method :meth:`loadcontent` that can be used
+	to iteratively load the content of an object. This makes it possible to
+	handle object dumps where to writing side dumped a different number of items
+	than the reading side expects.
+
+
 Changes in 5.30 (released 01/17/2018)
 -------------------------------------
 
