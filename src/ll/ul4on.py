@@ -598,16 +598,14 @@ class Decoder:
 
 	def loadcontent(self):
 		"""
-		Load the content of an object until the "object terminator" (``)``) is encountered.
+		Load the content of an object until the "object terminator" is encountered.
+
+		This is a generator and might produce fewer or more items than expected.
+		The caller must be able to handle both cases (e.g. by ignoring additional
+		items or initializing missing items with a default value).
 
 		The iterator should always be exhausted when it is read, otherwise the
 		stream will be in an undefined state.
-
-		The object terminator will not be read from the input.
-
-		:meth:`loadcontent` is a generator and might produce fewer or more items
-		than expected. The caller must be able to handle both cases (ignoring
-		additional items or initializing missing items with a default value).
 		"""
 
 		while True:
