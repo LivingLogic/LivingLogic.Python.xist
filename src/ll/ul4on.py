@@ -298,7 +298,7 @@ class Encoder:
 			# Yes: Store a backreference to the object
 			self._line(f"^{self._id2index[id(obj)]}")
 		else:
-			from ll import ul4c, color, misc
+			from ll import color, misc
 			# No: Write the object itself
 			# We're not using backreferences if the object itself has a shorter dump
 			if obj is None:
