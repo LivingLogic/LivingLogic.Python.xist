@@ -291,7 +291,7 @@ class Encoder:
 
 	def dump(self, obj):
 		"""
-		Serialize :obj:`obj` into the tream as an UL4ON formatted dump.
+		Serialize :obj:`obj` into the stream as an UL4ON formatted dump.
 		"""
 		# Have we written this object already?
 		if id(obj) in self._id2index:
