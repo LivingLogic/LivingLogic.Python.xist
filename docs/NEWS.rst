@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.32 (released 02/20/2018)
+-------------------------------------
+
+*	:meth:`ll.orasql.Connection.objects` now makes sure that no objects from
+	other schema are returned when a specific schema owner is requested.
+
+
 Changes in 5.31 (released 01/29/2018)
 -------------------------------------
 

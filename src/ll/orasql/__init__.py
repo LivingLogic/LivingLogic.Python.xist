@@ -525,15 +525,29 @@ class Connection(Connection):
 
 		cursor = self.cursor()
 
+		def own(obj):
+			if owner is None:
+				if obj.owner is not None:
+					return False
+			elif owner is not ALL:
+				if obj.owner != owner:
+					return False
+			return True
+
 		def do(obj):
 			if mode == "create":
-				yield from obj.referencesall(self, done)
+				for subobj in obj.referencesall(self, done):
+					if own(subobj):
+						yield subobj
 			elif mode == "drop":
-				yield from obj.referencedbyall(self, done)
+				for subobj in obj.referencedbyall(self, done):
+					if own(subobj):
+						yield subobj
 			else:
 				if obj not in done:
 					done.add(obj)
-					yield obj
+					if own(obj):
+						yield obj
 
 		def dosequences():
 			for sequence in Sequence.objects(self, owner):
