@@ -8,6 +8,25 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.32
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+The default value for the ``owner`` parameter in various :mod:`ll.orasql`
+methods has changed from ``ALL`` to ``None`` (i.e. it now returns the objects
+from the current schema instead of all schemas).
+
+The changed methods are: :meth:`Connection.tables`,
+:meth:`Connection.sequences`, :meth:`Connection.fks`,
+:meth:`Connection.privileges`, :meth:`Connection.objects`, :meth:`Object.names`,
+:meth:`Object.objects` (and all subclasses of :class:`Object`) and
+:meth:`Privilege.objects`.
+
+To get the old behaviour back, simply pass ``owner=orasql.ALL`` to those methods.
+
+
 Migrating to version 5.28
 =========================
 
