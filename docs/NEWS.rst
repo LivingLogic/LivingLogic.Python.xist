@@ -12,7 +12,7 @@ Changes in 5.32 (released 02/20/2018)
 -------------------------------------
 
 *	:meth:`ll.orasql.Connection.objects` now makes sure that no objects from
-	other schema are returned when a specific schema owner is requested.
+	other schemas are returned when a specific schema owner is requested.
 
 *	The default value for the ``owner`` parameter in various :mod:`ll.orasql`
 	methods has changed from ``ALL`` to ``None`` (i.e. it now returns the objects
