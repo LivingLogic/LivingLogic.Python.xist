@@ -482,7 +482,7 @@ class Context:
 		if key in self.keys:
 			value = self.keys[key]
 			if value is not None and not isinstance(value, type):
-				raise TypeError("f{value!r} is not of type {format_class(type)}")
+				raise TypeError(f"{value!r} is not of type {format_class(type)}")
 			return value
 		else:
 			return var(key, type)
