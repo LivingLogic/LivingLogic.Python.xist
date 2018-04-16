@@ -1760,10 +1760,10 @@ class loadstr:
 	def __repr__(self):
 		result = f"{self.__class__.__qualname__}({self.filename!r}"
 		if self.encoding is not None:
-			text += f", encoding={self.encoding!r}"
+			result += f", encoding={self.encoding!r}"
 		if self.errors is not None:
-			text += f", errors={self.errors!r}"
-		return text + ")"
+			result += f", errors={self.errors!r}"
+		return result + ")"
 
 	def execute(self, basefilename):
 		"""
