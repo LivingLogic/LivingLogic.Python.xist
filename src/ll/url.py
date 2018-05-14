@@ -1011,8 +1011,6 @@ class SshConnection(Connection):
 				channel.send((True, pickle.dumps(exc)))
 			except Exception:
 				exc = sys.exc_info()[1]
-				if exc.__class__.__module__ != "builtins":
-					raise
 				channel.send((True, pickle.dumps(exc)))
 			else:
 				channel.send((False, data))
