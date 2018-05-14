@@ -251,7 +251,7 @@ def format_exception(exc):
 		else:
 			return format_class(exc)
 	except UnicodeError:
-		return f"{format_class(exc)}: /"
+		return f"{format_class(exc)}: ?"
 
 
 def exception_chain(exc):
