@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-"""
+r"""
 Purpose
 =======
 
