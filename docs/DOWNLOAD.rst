@@ -18,14 +18,16 @@ or choose one of the following archives:
 
 .. rst-class:: download
 
-======================================================================================================================================================== ====================== ====
-File                                                                                                                                                     Type                   Size
-======================================================================================================================================================== ====================== ====
-`ll-xist-5.32.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.32.tar.bz2>`_                                                       Source                 554K
-`ll-xist-5.32.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.32.tar.gz>`_                                                         Source                 666K
-`ll-xist-5.32.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.32.zip>`_                                                               Source                 783K
-`ll_xist-5.32-cp36-cp36m-macosx_10_13_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.32-cp36-cp36m-macosx_10_13_x86_64.whl>`_ Mac wheel (Python 3.6) 524K
-======================================================================================================================================================== ====================== ====
+======================================================================================================================================================== ========================== ====
+File                                                                                                                                                     Type                       Size
+======================================================================================================================================================== ========================== ====
+`ll-xist-5.32.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.32.tar.bz2>`_                                                       Source                     554K
+`ll-xist-5.32.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.32.tar.gz>`_                                                         Source                     666K
+`ll-xist-5.32.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.32.zip>`_                                                               Source                     783K
+`ll_xist-5.32-cp36-cp36m-macosx_10_13_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.32-cp36-cp36m-macosx_10_13_x86_64.whl>`_ Mac wheel (Python 3.6)     524K
+`ll_xist-5.32-cp36-cp36m-win32.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.32-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 528K
+`ll_xist-5.32-cp36-cp36m-win_amd64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.32-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 531K
+======================================================================================================================================================== ========================== ====
 
 
 5.31 (released 01/29/2018)
