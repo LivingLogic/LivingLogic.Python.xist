@@ -3514,6 +3514,14 @@ class Column(Object):
 	"""
 	type = "column"
 
+	@property
+	def tablename(self):
+		return self.name.partition(".")[0]
+
+	@property
+	def columnname(self):
+		return self.name.partition(".")[-1]
+
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		name = self.name.split(".")

@@ -16,6 +16,10 @@ Changes in 5.33 (released ??/??/2018)
 	from which they originated (so it is possible to call methods on them
 	without passing the database connection).
 
+*	:class:`ll.orasql.Column` has two new attributes: :attr:`tablename` is
+	the name of the table that the column belongs to and :attr:`columnname` is
+	the name of the column (without the table name).
+
 
 Changes in 5.32 (released 02/20/2018)
 -------------------------------------
