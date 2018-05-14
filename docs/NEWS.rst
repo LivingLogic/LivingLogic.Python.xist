@@ -20,9 +20,9 @@ Changes in 5.33 (released ??/??/2018)
 	the name of the table that the column belongs to and :attr:`columnname` is
 	the name of the column (without the table name).
 
-*	Exceptions from ``ssh`` URLs are checked wether they are from the correct
-	module. Instead they're always sent across the :mod:`execnet` channel, so
-	that the receiving side has to deal with them.
+*	Exceptions from ``ssh`` URLs are no longer checked whether they are from the
+	correct module. Instead they're always sent across the :mod:`execnet`
+	channel, so that the receiving side has to deal with them.
 
 
 Changes in 5.32 (released 02/20/2018)
