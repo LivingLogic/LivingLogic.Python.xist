@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.33 (released ??/??/2018)
+-------------------------------------
+
+*	:meth:`ll.orasql.PrimaryKey.columns` and :meth:`ll.orasql.ForeignKey.columns`
+	now yield :class:`ll.orasql.Column` objects that link back to the db schema
+	from which they originated (so it is possible to call methods on them
+	without passing the database connection).
+
+
 Changes in 5.32 (released 02/20/2018)
 -------------------------------------
 

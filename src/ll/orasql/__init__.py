@@ -2014,7 +2014,7 @@ class PrimaryKey(Constraint):
 				position
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Column(f"{tablename}.{rec.column_name}") for rec in cursor)
+		return (Column(f"{tablename}.{rec.column_name}", self.owner, connection) for rec in cursor)
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -2204,7 +2204,7 @@ class ForeignKey(Constraint):
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
 		for r in cursor:
-			yield Column(f"{r.table_name}.{r.column_name}", r.owner)
+			yield Column(f"{r.table_name}.{r.column_name}", r.owner, connection)
 
 
 class UniqueConstraint(Constraint):
