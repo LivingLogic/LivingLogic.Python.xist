@@ -175,11 +175,6 @@ build
 cron
 job
 
-# daemon
-daemon
-UNIX
-fork
-
 # url
 URL
 RFC 2396
@@ -200,9 +195,6 @@ XSLT
 HSC
 XSL-FO
 SVG
-WML
-iHTML
-Relax NG
 
 # TOXIC
 Oracle
