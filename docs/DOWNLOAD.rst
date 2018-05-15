@@ -11,6 +11,12 @@ or choose one of the following archives:
 .. autogenerate start
 
 
+5.33 (released 05/14/2018)
+--------------------------
+
+(no files for this version)
+
+
 5.32 (released 02/20/2018)
 --------------------------
 

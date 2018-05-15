@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.33 (released ??/??/2018)
+Changes in 5.33 (released 05/15/2018)
 -------------------------------------
 
 *	:meth:`ll.orasql.PrimaryKey.columns` and :meth:`ll.orasql.ForeignKey.columns`
