@@ -24,6 +24,11 @@ Changes in 5.33 (released ??/??/2018)
 	correct module. Instead they're always sent across the :mod:`execnet`
 	channel, so that the receiving side has to deal with them.
 
+*	Since UL4 relies on ordered dictionaries (i.e. ordinary dictionaries in
+	Python 3.6) and Javascript doesn't guarantee iteration order of objects and
+	Spidermonkey doesn't support sets and maps, testing UL4 with Spidermonkey
+	has been dropped.
+
 
 Changes in 5.32 (released 02/20/2018)
 -------------------------------------

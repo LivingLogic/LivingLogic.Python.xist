@@ -406,49 +406,6 @@ class TemplateJavascriptV8(TemplateJavascript):
 		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
 
 
-class TemplateJavascriptSpidermonkey(TemplateJavascript):
-	def renders(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-
-		source = f"""
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
-			try
-			{{
-				print(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
-			}}
-			catch (exc)
-			{{
-				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
-			}}
-		"""
-
-		return self.runcode("js -f {dir}/node_modules/blueimp-md5/js/md5.min.js -f {dir}/ul4.min.js -f {fn}", source)
-
-	def render(self, *args, **kwargs):
-		return self.renders(*args, **kwargs)
-
-	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-
-		source = f"""
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
-			try
-			{{
-				print(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
-			}}
-			catch (exc)
-			{{
-				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
-			}}
-		"""
-
-		return self.runcode("js -f {dir}/node_modules/blueimp-md5/js/md5.min.js -f {dir}/ul4.min.js -f {fn}", source)
-
-
 class TemplateJavascriptNode(TemplateJavascript):
 	def renders(self, *args, **kwargs):
 		if args:
@@ -504,10 +461,9 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	java_compiled_by_python=TemplateJavaCompiledByPython,
-	java_compiled_by_java=TemplateJavaCompiledByJava,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
-	js_spidermonkey=TemplateJavascriptSpidermonkey,
 	js_node=TemplateJavascriptNode,
 	# php=TemplatePHP,
 )
@@ -519,8 +475,8 @@ def T(request):
 	A parameterized fixture that returns each of the testing classes
 	:class:`TemplatePython`, :class:`TemplatePythonDumpS`,
 	:class:`TemplatePythonDump`, :class:`TemplateJavaCompiledByPython`,
-	:class:`TemplateJavaCompiledByJava`, :class:`TemplateJavascriptV8`,
-	:class:`TemplateJavascriptSpidermonkey` and :class:`TemplatePHP`.
+	:class:`TemplateJavaCompiledByJava`, :class:`TemplateJavascriptV8`
+	and :class:`TemplatePHP`.
 
 	Each of these classes has methods :meth:`render`, :meth:`renders` and
 	:meth:`__call__` to render/call the template with the appropriate  backend.
@@ -680,7 +636,7 @@ def test_true(T):
 @pytest.mark.ul4
 def test_int(T):
 	values = (0, 42, -42, 0x7ffffff, 0x8000000, -0x8000000, -0x8000001)
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode, TemplatePHP):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptNode, TemplatePHP):
 		# Since Javascript has no real integers the following would lead to rounding errors
 		# And PHP doesn't have any support for big integers (except for some GMP wrappers, that may not be installed)
 		values += (0x7ffffffffffffff, 0x800000000000000, -0x800000000000000, -0x800000000000001, 9999999999, -9999999999, 99999999999999999999, -99999999999999999999)
@@ -975,7 +931,7 @@ def test_shiftleftvar(T):
 	assert "-256" == t.renders(x=-1, y=8)
 	assert "2147483648" == t.renders(x=1, y=31)
 	assert "4294967296" == t.renders(x=1, y=32)
-	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
+	if T in (TemplateJavascriptV8, TemplateJavascriptNode):
 		# Javascript numbers don't have enough precision
 		assert "18014398509481984" == t.renders(x=1, y=54)
 	else:
@@ -1289,7 +1245,7 @@ def test_bitnot(T):
 	assert "-1" == t.renders(x=0)
 	assert "-256" == t.renders(x=255)
 	assert "-4294967297" == t.renders(x=1 << 32)
-	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
+	if T in (TemplateJavascriptV8, TemplateJavascriptNode):
 		# Javascript numbers don't have enough precision
 		assert "-4503599627370497" == t.renders(x=1 << 52)
 	else:
@@ -1374,7 +1330,7 @@ def test_shiftleft(T):
 	assert "-256" == t.renders(x=-1, y=8)
 	assert "2147483648" == t.renders(x=1, y=31)
 	assert "4294967296" == t.renders(x=1, y=32)
-	if T in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
+	if T in (TemplateJavascriptV8, TemplateJavascriptNode):
 		# Javascript numbers don't have enough precision
 		assert "9007199254740992" == t.renders(x=1, y=53)
 	else:
@@ -1968,7 +1924,7 @@ def test_associativity(T):
 	assert "9" == T('<?print 2+3+4?>').renders()
 	assert "-5" == T('<?print 2-3-4?>').renders()
 	assert "24" == T('<?print 2*3*4?>').renders()
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptNode):
 		assert "2.0" == T('<?print 24/6/2?>').renders()
 		assert "2" == T('<?print 24//6//2?>').renders()
 	else:
@@ -2263,7 +2219,7 @@ def test_function_str(T):
 
 	assert "(x=17, y=@(2000-02-29))" == T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print str(f.signature)?>").renders()
 	# Javascript version doesn't have support for printing recursive data structures
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptNode):
 		assert "(bad=[...])" == T("<?code bad = []?><?code bad.append(bad)?><?def f(bad=bad)?><?end def?><?print str(f.signature)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
@@ -2359,7 +2315,7 @@ def test_function_float(T):
 	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported"):
 		t.renders(data=None)
 	assert "4.2" == t.renders(data=4.2)
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey, TemplateJavascriptNode):
+	if T not in (TemplateJavascriptV8, TemplateJavascriptNode):
 		assert "0.0" == T("<?print float()?>").renders()
 		assert "1.0" == t.renders(data=True)
 		assert "0.0" == t.renders(data=False)
@@ -3149,7 +3105,7 @@ def repr_ascii(T, ascii):
 	assert "'\\uffff'" == t.renders(data="\uffff")
 
 	assert [1, 2, 3] == eval(t.renders(data=[1, 2, 3]))
-	if T not in (TemplateJavascriptV8, TemplateJavascriptSpidermonkey):
+	if T is not TemplateJavascriptV8:
 		assert [1, 2, 3] == eval(t.renders(data=(1, 2, 3)))
 	assert "{/}" == t.renders(data=set())
 	assert "{'1'}" == t.renders(data={"1"})
