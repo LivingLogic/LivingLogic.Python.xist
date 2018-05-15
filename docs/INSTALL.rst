@@ -6,7 +6,7 @@ Requirements
 
 To use XIST you need the following software packages:
 
-	*	`Python 3.5`_;
+	*	`Python 3.6`_;
 
 	*	`cssutils`_;
 
@@ -23,7 +23,7 @@ To use XIST you need the following software packages:
 	*	and a C compiler supported by pip, if you want to install the
 		source distribution.
 
-	.. _Python 3.5: http://www.python.org/
+	.. _Python 3.6: http://www.python.org/
 	.. _cssutils: http://cthedot.de/cssutils/
 	.. _Pillow: http://python-pillow.org/
 	.. _lxml: http://lxml.de/
