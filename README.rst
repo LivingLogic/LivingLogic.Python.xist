@@ -15,7 +15,7 @@ XIST also includes the following modules and packages:
 	template renderers in other languages and makes the template code "secure"
 	(i.e. template code can't open or delete files).
 
-	__ https://docs.djangoproject.com/en/1.10/ref/templates/language/
+	__ https://docs.djangoproject.com/en/2.0/ref/templates/language/
 
 	There are implementations for Python, Java and Javascript.
 
