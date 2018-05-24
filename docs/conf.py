@@ -66,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'XIST'
-copyright = '1999-2017, Walter Dörwald'
+copyright = '1999-2018, Walter Dörwald'
 author = 'Walter Dörwald'
 
 # The version info for the project you're documenting, acts as replacement for
