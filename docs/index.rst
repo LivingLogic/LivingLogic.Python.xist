@@ -34,6 +34,8 @@ Content
    MIGRATION
    Old
    Source
+   Imprint <imprint>
+   Privacy <privacy>
 
 
 .. only:: html
