@@ -1,42 +1,41 @@
-Impressum der LivingLogic AG aus Bayreuth in Oberfranken
-========================================================
+About us
+========
 
-Verantwortlich für den Inhalt
------------------------------
+Responsibility for contents
+---------------------------
 
 LivingLogic AG
 Handelsregister Bayreuth HRB 3274
-Ust-IdNr.: DE208246480
-Vorstand: Alois Kastner-Maresch
+VAT number: DE208246480
+Executive board: Dr. Alois Kastner-Maresch
 
-Postanschrift:
+Postal address:
 Markgrafenallee 44
 95448 Bayreuth
 
-Urheberrecht und Markenschutz
------------------------------
 
-© LivingLogic AG 2017.
-Alle Rechte vorbehalten.
+Copyright and trademark protection
+----------------------------------
 
-Alle Texte, Bilder, Grafiken, Multimediadateien sowie das Layout der Website
-von LivingLogic unterliegen den Gesetzen zum Schutz geistigen Eigentums,
-insbesondere dem Urheberrecht. Eine Weiterverwertung in welcher Form auch immer
-bedarf der ausdrücklichen Zustimmung der LivingLogic AG.
+© LivingLogic AG 1999-2018.
+All rights reserved.
 
-Haftung für die Inhalte
------------------------
+All texts, images, graphics, multimedia databases and design of the LivingLogic
+website are subject to copyright and other intellectual property protection.
+Further use in any form requires the explicit approval from the LivingLogic AG.
 
-Die Webseiten der LivingLogic AG werden permanent gepflegt. Sie werden mit
-größtmöglicher Sorgfalt erstellt. Die LivingLogic AG übernimmt jedoch keine
-Haftung für die Richtigkeit und Vollständigkeit der Angaben.
+Liability for contents
+----------------------
 
-Distanzierungserklärung
------------------------
+The websites of the LivingLogic AG are maintained constantly and have been
+prepared with utmost care. LivingLogic AG will however not assume liability for
+accuracy and completeness of the information.
 
-Die auf Web-Seiten der LivingLogic AG zu findenden Hyperlinks sind nicht als
-Empfehlung zu verstehen. Die Genauigkeit und Richtigkeit der auf den verlinkten
-Seiten enthaltenen Informationen wird von der LivingLogic AG nicht überprüft.
-Die LivingLogic AG ist nicht für die Inhalte der verlinkten Seiten
-verantwortlich. Für Schäden, die aus der Verwendung dieser Informationen
-entstehen, übernimmt die LivingLogic AG keinerlei Verantwortung.
+Disassociation
+--------------
+
+They hyperlinks found on the websites of the LivingLogic AG are not to be
+regarded as recommendations. The accuracy and correctness of the information on
+the linked pages is not monitored by the LivingLogic AG. The LivingLogic AG is
+not responsible for the contents of the linked websites and accepts no liability
+for damages that might arise from the use of such information.
