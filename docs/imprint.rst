@@ -35,7 +35,7 @@ accuracy and completeness of the information.
 Disassociation
 --------------
 
-They hyperlinks found on the websites of the LivingLogic AG are not to be
+The hyperlinks found on the websites of the LivingLogic AG are not to be
 regarded as recommendations. The accuracy and correctness of the information on
 the linked pages is not monitored by the LivingLogic AG. The LivingLogic AG is
 not responsible for the contents of the linked websites and accepts no liability
