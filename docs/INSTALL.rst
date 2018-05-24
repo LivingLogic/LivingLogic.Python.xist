@@ -28,7 +28,7 @@ To use XIST you need the following software packages:
 	.. _Pillow: http://python-pillow.org/
 	.. _lxml: http://lxml.de/
 	.. _links: http://links.twibright.com/
-	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
+	.. _cx_Oracle: https://oracle.github.io/python-cx_Oracle/
 	.. _pytest: http://pytest.org/latest/
 	.. _execnet: http://codespeak.net/execnet/
 

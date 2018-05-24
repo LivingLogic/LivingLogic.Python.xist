@@ -29,7 +29,7 @@
 		oracle://user:pwd@db/view/USER_TABLES.sql
 		oracle://sys:pwd:sysdba@db/
 
-__ http://cx-oracle.sourceforge.net/
+__ https://oracle.github.io/python-cx_Oracle/
 """
 
 

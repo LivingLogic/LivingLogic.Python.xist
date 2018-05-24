@@ -62,7 +62,7 @@ XIST also includes the following modules and packages:
 	-	Importing the modules adds support for URLs with the scheme ``oracle`` to
 		:mod:`ll.url`.
 
-	.. _cx_Oracle: http://cx-oracle.sourceforge.net/
+	.. _cx_Oracle: https://oracle.github.io/python-cx_Oracle/
 
 *	:mod:`ll.make` is an object oriented make replacement. Like make it allows
 	you to specify dependencies between files and actions to be executed
