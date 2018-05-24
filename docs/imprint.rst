@@ -9,7 +9,8 @@ Responsibility for contents
 |	VAT number: DE208246480
 |	Executive board: Dr. Alois Kastner-Maresch
 
-Postal address:
+Postal address
+~~~~~~~~~~~~~~
 
 |	Markgrafenallee 44
 |	95448 Bayreuth
