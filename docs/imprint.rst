@@ -4,14 +4,15 @@ About us
 Responsibility for contents
 ---------------------------
 
-LivingLogic AG
-Handelsregister Bayreuth HRB 3274
-VAT number: DE208246480
-Executive board: Dr. Alois Kastner-Maresch
+|	LivingLogic AG
+|	Handelsregister Bayreuth HRB 3274
+|	VAT number: DE208246480
+|	Executive board: Dr. Alois Kastner-Maresch
 
 Postal address:
-Markgrafenallee 44
-95448 Bayreuth
+
+|	Markgrafenallee 44
+|	95448 Bayreuth
 
 
 Copyright and trademark protection
