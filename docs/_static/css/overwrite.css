@@ -105,9 +105,15 @@ h1, h2, h3, h4, h5, h6
 	line-height: 166%;
 }
 
+.document .line-block
+{
+	margin-bottom: 0.8rem;
+}
+
 .document .line-block .line
 {
 	font-size: 16px;
+	line-height: 166%;
 }
 
 div[class^='highlight'] pre
