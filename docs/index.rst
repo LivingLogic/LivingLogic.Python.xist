@@ -43,12 +43,11 @@ Content
    Cheeseshop info
    ---------------
 
-   |version| |pythonversion| |format| |downloads| |license|
+   |version| |pythonversion| |format| |license|
 
    .. |version|        image:: https://img.shields.io/pypi/v/ll-xist.svg
    .. |pythonversion|  image:: https://img.shields.io/pypi/pyversions/ll-xist.svg
    .. |format|         image:: https://img.shields.io/pypi/format/ll-xist.svg
-   .. |downloads|      image:: https://img.shields.io/pypi/dm/ll-xist.svg
    .. |license|        image:: https://img.shields.io/pypi/l/ll-xist.svg
 
 
