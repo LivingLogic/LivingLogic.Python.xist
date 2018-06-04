@@ -1274,6 +1274,28 @@ could be used to recreate the object.
 non-ASCII characters in the output for strings will be escaped.
 
 
+``format``
+""""""""""
+
+``format`` formats a value. Its signature is ``format(value, spec, lang="en")``.
+Currently ``format`` supports the following types for ``value``: ``date``,
+``int`` and ``float`` (``float`` is only supported in the Python version).
+
+The second argument ``spec`` is a format specification string (whose format is
+specific to the type of ``value``).
+
+The third (optional) argument ``lang`` is the target language.
+
+So for example ``format(@(2000-02-29), "%a, %d. %b. %Y", "de")`` outputs
+``Di, 29. Feb. 2000`` and ``format(42, "08b")`` outputs ``00101010``.
+
+UL4 tries to follow Pythons convention for the format string specification,
+so for more information see the documentation for Pythons :func:`format`
+function.
+
+
+
+
 ``list``
 """"""""
 
