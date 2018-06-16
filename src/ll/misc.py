@@ -17,7 +17,7 @@ LivingLogic modules and packages.
 
 import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
 
-from ll import ul4c, color
+from ll import color
 
 
 __docformat__ = "reStructuredText"
@@ -549,6 +549,8 @@ def javaexpr(obj):
 		>>> print(misc.javaexpr([1, 2, 3]))
 		java.util.Arrays.asList(1, 2, 3)
 	"""
+
+	from ll import ul4c
 
 	if obj is None:
 		return "null"
