@@ -4113,17 +4113,265 @@ def test_method_weekday(T):
 
 
 @pytest.mark.ul4
-def test_method_week(T):
-	assert '0' == T('<?print @(2012-01-01).week()?>').renders()
-	assert '0' == T('<?print @(2012-01-01).week(0)?>').renders()
-	assert '1' == T('<?print @(2012-01-01).week(6)?>').renders()
-	assert '1' == T('<?print @(2012-01-02).week()?>').renders()
-	assert '1' == T('<?print @(2012-01-02).week(0)?>').renders()
-	assert '1' == T('<?print @(2012-01-02).week(6)?>').renders()
-	assert '0' == T('<?code m = @(2012-01-01).week?><?print m()?>').renders()
+def test_method_yearweek(T):
+	# 1996: Non-leap year, starting on Monday
+	assert '[1996, 1]' == T('<?print repr(@(1996-01-01).yearweek())?>').renders()
+	assert '[1996, 1]' == T('<?print repr(@(1996-01-01).yearweek(6, 1))?>').renders()
+	assert '[1996, 1]' == T('<?print repr(@(1996-01-01).yearweek(0, 7))?>').renders()
+	assert '[1996, 1]' == T('<?print repr(@(1996-01-07).yearweek())?>').renders()
+	assert '[1996, 2]' == T('<?print repr(@(1996-01-08).yearweek())?>').renders()
+	assert '[1996, 22]' == T('<?print repr(@(1996-05-28).yearweek())?>').renders()
+	assert '[1997, 1]' == T('<?print repr(@(1996-12-30).yearweek())?>').renders()
+	assert '[1996, 52]' == T('<?print repr(@(1996-12-29).yearweek())?>').renders()
+
+	# 2018: Leap year, starting on Monday
+	assert '[2018, 1]' == T('<?print repr(@(2018-01-01).yearweek())?>').renders()
+	assert '[2018, 1]' == T('<?print repr(@(2018-01-01).yearweek(6, 1))?>').renders()
+	assert '[2018, 1]' == T('<?print repr(@(2018-01-01).yearweek(0, 7))?>').renders()
+	assert '[2018, 1]' == T('<?print repr(@(2018-01-07).yearweek())?>').renders()
+	assert '[2018, 2]' == T('<?print repr(@(2018-01-08).yearweek())?>').renders()
+	assert '[2018, 52]' == T('<?print repr(@(2018-12-30).yearweek())?>').renders()
+	assert '[2019, 1]' == T('<?print repr(@(2018-12-31).yearweek())?>').renders()
+
+	# 2013: Non-leap year, starting on Tuesday
+	assert '[2013, 1]' == T('<?print repr(@(2013-01-01).yearweek())?>').renders()
+	assert '[2013, 1]' == T('<?print repr(@(2013-01-01).yearweek(6, 1))?>').renders()
+	assert '[2012, 53]' == T('<?print repr(@(2013-01-01).yearweek(0, 7))?>').renders()
+	assert '[2013, 1]' == T('<?print repr(@(2013-01-06).yearweek())?>').renders()
+	assert '[2013, 2]' == T('<?print repr(@(2013-01-07).yearweek())?>').renders()
+	assert '[2013, 52]' == T('<?print repr(@(2013-12-29).yearweek())?>').renders()
+	assert '[2014, 1]' == T('<?print repr(@(2013-12-30).yearweek())?>').renders()
+
+	# 2008: Leap year, starting on Tuesday
+	assert '[2008, 1]' == T('<?print repr(@(2008-01-01).yearweek())?>').renders()
+	assert '[2008, 1]' == T('<?print repr(@(2008-01-01).yearweek(6, 1))?>').renders()
+	assert '[2007, 53]' == T('<?print repr(@(2008-01-01).yearweek(0, 7))?>').renders()
+	assert '[2008, 1]' == T('<?print repr(@(2008-01-06).yearweek())?>').renders()
+	assert '[2008, 2]' == T('<?print repr(@(2008-01-07).yearweek())?>').renders()
+	assert '[2008, 52]' == T('<?print repr(@(2008-12-28).yearweek())?>').renders()
+	assert '[2009, 1]' == T('<?print repr(@(2008-12-29).yearweek())?>').renders()
+
+	# 2014: Non-leap year, starting on Wednesday
+	assert '[2014, 1]' == T('<?print repr(@(2014-01-01).yearweek())?>').renders()
+	assert '[2014, 1]' == T('<?print repr(@(2014-01-01).yearweek(6, 1))?>').renders()
+	assert '[2013, 52]' == T('<?print repr(@(2014-01-01).yearweek(0, 7))?>').renders()
+	assert '[2014, 1]' == T('<?print repr(@(2014-01-05).yearweek())?>').renders()
+	assert '[2014, 2]' == T('<?print repr(@(2014-01-06).yearweek())?>').renders()
+	assert '[2014, 52]' == T('<?print repr(@(2014-12-28).yearweek())?>').renders()
+	assert '[2015, 1]' == T('<?print repr(@(2014-12-29).yearweek())?>').renders()
+
+	# 1992: Leap year, starting on Wednesday
+	assert '[1992, 1]' == T('<?print repr(@(1992-01-01).yearweek())?>').renders()
+	assert '[1992, 1]' == T('<?print repr(@(1992-01-01).yearweek(6, 1))?>').renders()
+	assert '[1991, 52]' == T('<?print repr(@(1992-01-01).yearweek(0, 7))?>').renders()
+	assert '[1992, 1]' == T('<?print repr(@(1992-01-05).yearweek())?>').renders()
+	assert '[1992, 2]' == T('<?print repr(@(1992-01-06).yearweek())?>').renders()
+	assert '[1992, 52]' == T('<?print repr(@(1992-12-27).yearweek())?>').renders()
+	assert '[1992, 53]' == T('<?print repr(@(1992-12-28).yearweek())?>').renders()
+
+	# 2015: Non-leap year, starting on Thursday
+	assert '[2015, 1]' == T('<?print repr(@(2015-01-01).yearweek())?>').renders()
+	assert '[2015, 1]' == T('<?print repr(@(2015-01-01).yearweek(6, 1))?>').renders()
+	assert '[2014, 52]' == T('<?print repr(@(2015-01-01).yearweek(0, 7))?>').renders()
+	assert '[2015, 1]' == T('<?print repr(@(2015-01-04).yearweek())?>').renders()
+	assert '[2015, 2]' == T('<?print repr(@(2015-01-05).yearweek())?>').renders()
+	assert '[2015, 52]' == T('<?print repr(@(2015-12-27).yearweek())?>').renders()
+	assert '[2015, 53]' == T('<?print repr(@(2015-12-28).yearweek())?>').renders()
+
+	# 2004: Leap year, starting on Thursday
+	assert '[2004, 1]' == T('<?print repr(@(2004-01-01).yearweek())?>').renders()
+	assert '[2004, 1]' == T('<?print repr(@(2004-01-01).yearweek(6, 1))?>').renders()
+	assert '[2003, 52]' == T('<?print repr(@(2004-01-01).yearweek(0, 7))?>').renders()
+	assert '[2004, 1]' == T('<?print repr(@(2004-01-04).yearweek())?>').renders()
+	assert '[2004, 2]' == T('<?print repr(@(2004-01-05).yearweek())?>').renders()
+	assert '[2004, 52]' == T('<?print repr(@(2004-12-26).yearweek())?>').renders()
+	assert '[2004, 53]' == T('<?print repr(@(2004-12-27).yearweek())?>').renders()
+
+	# 2010: Non-leap year, starting on Friday
+	assert '[2009, 53]' == T('<?print repr(@(2010-01-01).yearweek())?>').renders()
+	assert '[2010, 1]' == T('<?print repr(@(2010-01-01).yearweek(6, 1))?>').renders()
+	assert '[2009, 52]' == T('<?print repr(@(2010-01-01).yearweek(0, 7))?>').renders()
+	assert '[2009, 53]' == T('<?print repr(@(2010-01-03).yearweek())?>').renders()
+	assert '[2010, 1]' == T('<?print repr(@(2010-01-04).yearweek())?>').renders()
+	assert '[2010, 51]' == T('<?print repr(@(2010-12-26).yearweek())?>').renders()
+	assert '[2010, 52]' == T('<?print repr(@(2010-12-27).yearweek())?>').renders()
+
+	# 2016: Leap year, starting on Friday
+	assert '[2015, 53]' == T('<?print repr(@(2016-01-01).yearweek())?>').renders()
+	assert '[2016, 1]' == T('<?print repr(@(2016-01-01).yearweek(6, 1))?>').renders()
+	assert '[2015, 52]' == T('<?print repr(@(2016-01-01).yearweek(0, 7))?>').renders()
+	assert '[2015, 53]' == T('<?print repr(@(2016-01-03).yearweek())?>').renders()
+	assert '[2016, 1]' == T('<?print repr(@(2016-01-04).yearweek())?>').renders()
+	assert '[2016, 51]' == T('<?print repr(@(2016-12-25).yearweek())?>').renders()
+	assert '[2016, 52]' == T('<?print repr(@(2016-12-26).yearweek())?>').renders()
+
+	# 2011: Non-leap year, starting on Saturday
+	assert '[2010, 52]' == T('<?print repr(@(2011-01-01).yearweek())?>').renders()
+	assert '[2011, 1]' == T('<?print repr(@(2011-01-01).yearweek(6, 1))?>').renders()
+	assert '[2010, 52]' == T('<?print repr(@(2011-01-01).yearweek(0, 7))?>').renders()
+	assert '[2010, 52]' == T('<?print repr(@(2011-01-02).yearweek())?>').renders()
+	assert '[2011, 1]' == T('<?print repr(@(2011-01-03).yearweek())?>').renders()
+	assert '[2011, 51]' == T('<?print repr(@(2011-12-25).yearweek())?>').renders()
+	assert '[2011, 52]' == T('<?print repr(@(2011-12-26).yearweek())?>').renders()
+
+	# 2000: Leap year, starting on Saturday
+	assert '[1999, 52]' == T('<?print repr(@(2000-01-01).yearweek())?>').renders()
+	assert '[2000, 1]' == T('<?print repr(@(2000-01-01).yearweek(6, 1))?>').renders()
+	assert '[1999, 52]' == T('<?print repr(@(2000-01-01).yearweek(0, 7))?>').renders()
+	assert '[1999, 52]' == T('<?print repr(@(2000-01-02).yearweek())?>').renders()
+	assert '[2000, 1]' == T('<?print repr(@(2000-01-03).yearweek())?>').renders()
+	assert '[2000, 51]' == T('<?print repr(@(2000-12-24).yearweek())?>').renders()
+	assert '[2000, 52]' == T('<?print repr(@(2000-12-25).yearweek())?>').renders()
+
+	# 2017: Non-leap year, starting on Sunday
+	assert '[2016, 52]' == T('<?print repr(@(2017-01-01).yearweek())?>').renders()
+	assert '[2017, 1]' == T('<?print repr(@(2017-01-01).yearweek(6, 1))?>').renders()
+	assert '[2016, 52]' == T('<?print repr(@(2017-01-01).yearweek(0, 7))?>').renders()
+	assert '[2017, 1]' == T('<?print repr(@(2017-01-02).yearweek())?>').renders()
+	assert '[2017, 51]' == T('<?print repr(@(2017-12-24).yearweek())?>').renders()
+	assert '[2017, 52]' == T('<?print repr(@(2017-12-25).yearweek())?>').renders()
+
+	# 2012: Leap year, starting on Sunday
+	assert '[2011, 52]' == T('<?print repr(@(2012-01-01).yearweek())?>').renders()
+	assert '[2012, 1]' == T('<?print repr(@(2012-01-01).yearweek(6, 1))?>').renders()
+	assert '[2011, 52]' == T('<?print repr(@(2012-01-01).yearweek(0, 7))?>').renders()
+	assert '[2012, 1]' == T('<?print repr(@(2012-01-02).yearweek())?>').renders()
+	assert '[2012, 52]' == T('<?print repr(@(2012-12-30).yearweek())?>').renders()
+	assert '[2013, 1]' == T('<?print repr(@(2012-12-31).yearweek())?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '1' == T('<?print @(2012-01-02).week(firstweekday=0)?>').renders()
+	assert '[2018, 1]' == T('<?print @(2018-01-01).yearweek(firstweekday=0, mindaysinfirstweek=4)?>').renders()
+
+
+@pytest.mark.ul4
+def test_method_week(T):
+	# 1996: Non-leap year, starting on Monday
+	assert '1' == T('<?print repr(@(1996-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(1996-01-01).week(6, 1))?>').renders()
+	assert '1' == T('<?print repr(@(1996-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(1996-01-07).week())?>').renders()
+	assert '2' == T('<?print repr(@(1996-01-08).week())?>').renders()
+	assert '22' == T('<?print repr(@(1996-05-28).week())?>').renders()
+	assert '1' == T('<?print repr(@(1996-12-30).week())?>').renders()
+	assert '52' == T('<?print repr(@(1996-12-29).week())?>').renders()
+
+	# 2018: Leap year, starting on Monday
+	assert '1' == T('<?print repr(@(2018-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2018-01-01).week(6, 1))?>').renders()
+	assert '1' == T('<?print repr(@(2018-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2018-01-07).week())?>').renders()
+	assert '2' == T('<?print repr(@(2018-01-08).week())?>').renders()
+	assert '52' == T('<?print repr(@(2018-12-30).week())?>').renders()
+	assert '1' == T('<?print repr(@(2018-12-31).week())?>').renders()
+
+	# 2013: Non-leap year, starting on Tuesday
+	assert '1' == T('<?print repr(@(2013-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2013-01-01).week(6, 1))?>').renders()
+	assert '53' == T('<?print repr(@(2013-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2013-01-06).week())?>').renders()
+	assert '2' == T('<?print repr(@(2013-01-07).week())?>').renders()
+	assert '52' == T('<?print repr(@(2013-12-29).week())?>').renders()
+	assert '1' == T('<?print repr(@(2013-12-30).week())?>').renders()
+
+	# 2008: Leap year, starting on Tuesday
+	assert '1' == T('<?print repr(@(2008-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2008-01-01).week(6, 1))?>').renders()
+	assert '53' == T('<?print repr(@(2008-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2008-01-06).week())?>').renders()
+	assert '2' == T('<?print repr(@(2008-01-07).week())?>').renders()
+	assert '52' == T('<?print repr(@(2008-12-28).week())?>').renders()
+	assert '1' == T('<?print repr(@(2008-12-29).week())?>').renders()
+
+	# 2014: Non-leap year, starting on Wednesday
+	assert '1' == T('<?print repr(@(2014-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2014-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2014-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2014-01-05).week())?>').renders()
+	assert '2' == T('<?print repr(@(2014-01-06).week())?>').renders()
+	assert '52' == T('<?print repr(@(2014-12-28).week())?>').renders()
+	assert '1' == T('<?print repr(@(2014-12-29).week())?>').renders()
+
+	# 1992: Leap year, starting on Wednesday
+	assert '1' == T('<?print repr(@(1992-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(1992-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(1992-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(1992-01-05).week())?>').renders()
+	assert '2' == T('<?print repr(@(1992-01-06).week())?>').renders()
+	assert '52' == T('<?print repr(@(1992-12-27).week())?>').renders()
+	assert '53' == T('<?print repr(@(1992-12-28).week())?>').renders()
+
+	# 2015: Non-leap year, starting on Thursday
+	assert '1' == T('<?print repr(@(2015-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2015-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2015-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2015-01-04).week())?>').renders()
+	assert '2' == T('<?print repr(@(2015-01-05).week())?>').renders()
+	assert '52' == T('<?print repr(@(2015-12-27).week())?>').renders()
+	assert '53' == T('<?print repr(@(2015-12-28).week())?>').renders()
+
+	# 2004: Leap year, starting on Thursday
+	assert '1' == T('<?print repr(@(2004-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2004-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2004-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2004-01-04).week())?>').renders()
+	assert '2' == T('<?print repr(@(2004-01-05).week())?>').renders()
+	assert '52' == T('<?print repr(@(2004-12-26).week())?>').renders()
+	assert '53' == T('<?print repr(@(2004-12-27).week())?>').renders()
+
+	# 2010: Non-leap year, starting on Friday
+	assert '53' == T('<?print repr(@(2010-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2010-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2010-01-01).week(0, 7))?>').renders()
+	assert '53' == T('<?print repr(@(2010-01-03).week())?>').renders()
+	assert '1' == T('<?print repr(@(2010-01-04).week())?>').renders()
+	assert '51' == T('<?print repr(@(2010-12-26).week())?>').renders()
+	assert '52' == T('<?print repr(@(2010-12-27).week())?>').renders()
+
+	# 2016: Leap year, starting on Friday
+	assert '53' == T('<?print repr(@(2016-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2016-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2016-01-01).week(0, 7))?>').renders()
+	assert '53' == T('<?print repr(@(2016-01-03).week())?>').renders()
+	assert '1' == T('<?print repr(@(2016-01-04).week())?>').renders()
+	assert '51' == T('<?print repr(@(2016-12-25).week())?>').renders()
+	assert '52' == T('<?print repr(@(2016-12-26).week())?>').renders()
+
+	# 2011: Non-leap year, starting on Saturday
+	assert '52' == T('<?print repr(@(2011-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2011-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2011-01-01).week(0, 7))?>').renders()
+	assert '52' == T('<?print repr(@(2011-01-02).week())?>').renders()
+	assert '1' == T('<?print repr(@(2011-01-03).week())?>').renders()
+	assert '51' == T('<?print repr(@(2011-12-25).week())?>').renders()
+	assert '52' == T('<?print repr(@(2011-12-26).week())?>').renders()
+
+	# 2000: Leap year, starting on Saturday
+	assert '52' == T('<?print repr(@(2000-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2000-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2000-01-01).week(0, 7))?>').renders()
+	assert '52' == T('<?print repr(@(2000-01-02).week())?>').renders()
+	assert '1' == T('<?print repr(@(2000-01-03).week())?>').renders()
+	assert '51' == T('<?print repr(@(2000-12-24).week())?>').renders()
+	assert '52' == T('<?print repr(@(2000-12-25).week())?>').renders()
+
+	# 2017: Non-leap year, starting on Sunday
+	assert '52' == T('<?print repr(@(2017-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2017-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2017-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2017-01-02).week())?>').renders()
+	assert '51' == T('<?print repr(@(2017-12-24).week())?>').renders()
+	assert '52' == T('<?print repr(@(2017-12-25).week())?>').renders()
+
+	# 2012: Leap year, starting on Sunday
+	assert '52' == T('<?print repr(@(2012-01-01).week())?>').renders()
+	assert '1' == T('<?print repr(@(2012-01-01).week(6, 1))?>').renders()
+	assert '52' == T('<?print repr(@(2012-01-01).week(0, 7))?>').renders()
+	assert '1' == T('<?print repr(@(2012-01-02).week())?>').renders()
+	assert '52' == T('<?print repr(@(2012-12-30).week())?>').renders()
+	assert '1' == T('<?print repr(@(2012-12-31).week())?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '1' == T('<?print @(2018-01-01).week(firstweekday=0, mindaysinfirstweek=4)?>').renders()
 
 
 @pytest.mark.ul4

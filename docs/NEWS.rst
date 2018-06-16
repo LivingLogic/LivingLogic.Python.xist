@@ -8,6 +8,20 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.34 (released ??/??/2018)
+-------------------------------------
+
+*	The UL4 method ``week`` for date objects now by default returns the ISO
+	calendar week number. The day that should be considered the first day of the
+	week and how many days the first week of the year has to have can be passed
+	as parameters.
+
+*	A new UL4 method ``yearweek`` has been added that returns the ISO calendar
+	year and the ISO calendar week. Similar to ``week`` the day that should be
+	considered the first day of the week and how many days the first week of the
+	year has to have can be passed as parameters.
+
+
 Changes in 5.33 (released 05/15/2018)
 -------------------------------------
 

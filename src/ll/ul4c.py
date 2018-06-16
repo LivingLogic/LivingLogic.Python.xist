@@ -626,27 +626,64 @@ class SliceProto(Proto):
 
 class DateProto(Proto):
 	name = "date"
-	wrappedmethattrs = {"weekday", "week", "day", "month", "year", "hour", "minute", "second", "microsecond", "mimeformat", "isoformat", "yearday"}
+	wrappedmethattrs = {"weekday", "week", "yearweek", "day", "month", "year", "hour", "minute", "second", "microsecond", "mimeformat", "isoformat", "yearday"}
 
 	@staticmethod
 	def weekday(obj):
 		return obj.weekday()
 
 	@staticmethod
-	def week(obj, firstweekday=None):
-		if firstweekday is None:
-			firstweekday = 0
-		else:
-			firstweekday %= 7
-		jan1 = obj.__class__(obj.year, 1, 1)
-		yearday = (obj - jan1).days+7
-		jan1weekday = jan1.weekday()
-		while jan1weekday != firstweekday:
-			yearday -= 1
-			jan1weekday += 1
-			if jan1weekday == 7:
-				jan1weekday = 0
-		return yearday//7
+	def yearweek(obj, firstweekday=0, mindaysinfirstweek=4):
+		"""
+		Return the calendar week number of the date :obj:`obj` and the calendar
+		year it belongs to. (A day might belong to a different calender year,
+		if it is in week 1 but before January 1, or if belongs to week 1 of the
+		following year).
+
+		:obj:`firstweekday` defines what a week is (i.e. which weekday is
+		considered the start of the week, ``0`` is Monday and ``6`` is Sunday).
+		:obj:`mindaysinfirstweek` defines how many days must be in a week to be
+		considered the first week in the year.
+
+		For example for the ISO week number (according to
+		https://en.wikipedia.org/wiki/ISO_week_date) the week starts on Monday
+		(i.e. ``firstweekday == 0``) and a week is considered the first week if
+		it's the first week that contains a Thursday (which means that this week
+		contains at least four days in January, so ``mindaysinfirstweek == 4``).
+		This is also the default for both parameters.
+
+		For the US ``firstweekday == 6`` and ``mindaysinfirstweek == 1``, i.e.
+		the week starts on Sunday and January the first is always in week 1.
+
+		There's also the convention that the week 1 is the first complete week
+		in January. For this ``mindaysinfirstweek == 7``.
+		"""
+
+		# Normalize parameters
+		firstweekday %= 7
+		mindaysinfirstweek = max(1, min(mindaysinfirstweek, 7))
+
+		# :obj:`obj` might be in the last week of the previous year, so we might
+		# have to try that too.
+		for year in (obj.year+1, obj.year, obj.year-1):
+			# :obj:`refdate` will always be in week 1
+			refdate = obj.__class__(year, 1, mindaysinfirstweek)
+			# Go back to the start of :obj:`refdate`\s week (i.e. day 1 of week 1)
+			weekstartdate = refdate - datetime.timedelta((refdate.weekday() - firstweekday) % 7)
+			# Is our date :obj:`obj` at or after day 1 of week 1?
+			# (if not we have to calculate its week number based on the year before)
+			if obj >= weekstartdate:
+				# Add 1, because the first week is week 1, not week 0
+				return (year, (obj - weekstartdate).days//7 + 1)
+
+	@staticmethod
+	def week(obj, firstweekday=0, mindaysinfirstweek=4):
+		"""
+		Return the week number of the date :obj:`obj`. For more info see
+		:meth:`yearweek`.
+		"""
+
+		return DateProto.yearweek(obj, firstweekday, mindaysinfirstweek)[1]
 
 	@staticmethod
 	def day(obj):

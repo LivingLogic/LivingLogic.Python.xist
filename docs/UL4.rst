@@ -1883,14 +1883,38 @@ above (except for the linefeeds of course)::
 	<?print format(t.microsecond(), '06')?> GMT
 
 
+``yearweek``
+""""""""""""
+
+``yearweek`` is a date method. The signature is
+``yearweek(day, firstweekday=0, mindaysinfirstweek=4)``. It returns the calendar
+week number of the date ``day`` and the calendar year it belongs to. (A day
+might belong to a different calender year, if it is in week 1 but before
+January 1, or if belongs to week 1 of the following year).
+
+``firstweekday`` defines what a week is (i.e. which weekday is considered
+the start of the week, ``0`` is Monday and ``6`` is Sunday).
+``mindaysinfirstweek`` defines how many days must be in a week to be
+considered the first week in the year.
+
+For example for the ISO week number (according to
+https://en.wikipedia.org/wiki/ISO_week_date) the week starts on Monday
+(i.e. ``firstweekday == 0``) and a week is considered the first week if
+it's the first week that contains a Thursday (which means that this week
+contains at least four days in January, so ``mindaysinfirstweek == 4``).
+
+For the US ``firstweekday == 6`` and ``mindaysinfirstweek == 1``, i.e.
+the week starts on Sunday and January the first is always in week 1.
+
+There's also the convention that the week 1 is the first complete week
+in January. For this ``mindaysinfirstweek == 7``.
+
 ``week``
 """"""""
 
-``week`` is a date method. This method returns the week number of the year.
-It supports one argument: the weekday number that should be considered the start
-day of the week (0 for Monday, ... 6 for Sunday). All days in a new year
-preceding the first week start day are considered to be in week 0. The week
-start day defaults to 0 (Monday).
+``week`` is a date method. The signature is
+``week(day, firstweekday=0, mindaysinfirstweek=4)``. It returns the calendar
+week number of the date ``day`. For more information see the method ``yearweek``.
 
 
 ``yearday``
