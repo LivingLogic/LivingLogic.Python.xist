@@ -663,8 +663,8 @@ class DateProto(Proto):
 		firstweekday %= 7
 		mindaysinfirstweek = max(1, min(mindaysinfirstweek, 7))
 
-		# :obj:`obj` might be in the last week of the previous year, so we might
-		# have to try that too.
+		# :obj:`obj` might be in the first week of the next year, or last week of
+		# the previous year, so we might have to try those too.
 		for year in (obj.year+1, obj.year, obj.year-1):
 			# :obj:`refdate` will always be in week 1
 			refdate = obj.__class__(year, 1, mindaysinfirstweek)
