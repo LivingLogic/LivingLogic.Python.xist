@@ -104,7 +104,10 @@ TIME
 	: DIGIT DIGIT ':' DIGIT DIGIT ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT)?)?;
 
 DATE
-	: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ('T' TIME?)? ')';
+	: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ')';
+
+DATETIME
+	: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 'T' TIME? ')';
 
 COLOR
 	: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT
@@ -188,7 +191,11 @@ string returns [node]
 	;
 
 date returns [node]
-	: DATE { $node = ul4c.Const(self.tag, slice(self.startpos($DATE), self.stoppos($DATE)), datetime.datetime(*map(int, [f for f in ul4c._datesplitter.split($DATE.text[2:-1]) if f]))) }
+	: DATE { $node = ul4c.Const(self.tag, slice(self.startpos($DATE), self.stoppos($DATE)), datetime.date(*map(int, [f for f in ul4c._datesplitter.split($DATE.text[2:-1]) if f]))) }
+	;
+
+datetime returns [node]
+	: DATETIME { $node = ul4c.Const(self.tag, slice(self.startpos($DATETIME), self.stoppos($DATETIME)), datetime.datetime(*map(int, [f for f in ul4c._datesplitter.split($DATETIME.text[2:-1]) if f]))) }
 	;
 
 color returns [node]
@@ -207,6 +214,7 @@ literal returns [node]
 	| e_float=float_ { $node = $e_float.node; }
 	| e_string=string { $node = $e_string.node; }
 	| e_date=date { $node = $e_date.node; }
+	| e_datetime=datetime { $node = $e_datetime.node; }
 	| e_color=color { $node = $e_color.node; }
 	| e_name=name { $node = $e_name.node; }
 	;

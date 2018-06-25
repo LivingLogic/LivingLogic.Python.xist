@@ -52,11 +52,15 @@ supports most builtin Python types::
 	>>> ul4on.loads("S'foo'")
 	'foo'
 
-:class:`datetime` and :class:`timedelta` objects are supported too::
+:class:`date`, :class:`datetime` and :class:`timedelta` objects are supported too::
 
 	>>> import datetime
+	>>> ul4on.dumps(datetime.date.today())
+	'X i2014 i11 i3'
 	>>> ul4on.dumps(datetime.datetime.now())
 	'Z i2014 i11 i3 i18 i16 i45 i314157'
+	>>> ul4on.loads('X i2014 i11 i3')
+	datetime.date(2014, 11, 3)
 	>>> ul4on.loads('Z i2014 i11 i3 i18 i16 i45 i314157')
 	datetime.datetime(2014, 11, 3, 18, 16, 45, 314157)
 	>>> ul4on.dumps(datetime.timedelta(days=1))
@@ -324,7 +328,7 @@ class Encoder:
 				self._line("Z", obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond)
 			elif isinstance(obj, datetime.date):
 				self._record(obj)
-				self._line("Z", obj.year, obj.month, obj.day, 0, 0, 0, 0)
+				self._line("X", obj.year, obj.month, obj.day)
 			elif isinstance(obj, datetime.timedelta):
 				self._record(obj)
 				self._line("T", obj.days, obj.seconds, obj.microseconds)
@@ -491,17 +495,16 @@ class Decoder:
 			delimiter = self.stream.read(1)
 			if not delimiter:
 				raise EOFError()
-			buffer = [delimiter]
+			buffer = []
 			while True:
 				c = self.stream.read(1)
 				if not c:
 					raise EOFError()
-				buffer.append(c)
 				if c == delimiter:
-					# Create a triple quoted string literal so that linefeeds in the string work
-					value = ast.literal_eval(f"{delimiter}{delimiter}{''.join(buffer)}{delimiter}{delimiter}")
+					value = "".join(buffer).encode("ascii", "backslashreplace").decode("unicode_escape")
 					break
-				elif c == "\\":
+				buffer.append(c)
+				if c == "\\":
 					c2 = self.stream.read(1)
 					if not c2:
 						raise EOFError()
@@ -533,6 +536,16 @@ class Decoder:
 			microsecond = self.load()
 			value = datetime.datetime(year, month, day, hour, minute, second, microsecond)
 			if typecode == "Z":
+				self._endfakeloading(oldpos, value)
+			return value
+		elif typecode in "xX":
+			if typecode == "X":
+				oldpos = self._beginfakeloading()
+			year = self.load()
+			month = self.load()
+			day = self.load()
+			value = datetime.date(year, month, day)
+			if typecode == "X":
 				self._endfakeloading(oldpos, value)
 			return value
 		elif typecode in "rR":

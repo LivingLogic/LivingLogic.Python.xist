@@ -33,16 +33,17 @@ else:
 def oracle(request):
 	"""
 	A callable fixture that will execute the PL/SQL code passed in as a parameter.
-	This PL/SQL must use the ``ul4on_pkg`` package to output an UL4ON dump into
-	the PL/SQL variable ``c_out``. ``oracle`` returns the deserialized object
-	dump as a Python object. For example::
+	This PL/SQL code must output an UL4ON dump into the PL/SQL variable ``c_out``.
+	``oracle`` returns the deserialized object dump as a Python object.
+
+	For example::
 
 		oracle('''
 			ul4on_pkg.begindict(c_out);
 			ul4on_pkg.enddict(c_out);
 		''')
 
-	should return a empty string.
+	should return a empty dictionary.
 	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
@@ -288,8 +289,8 @@ def test_none(t):
 
 
 def test_bool(t):
-	assert False == t(False)
-	assert True == t(True)
+	assert False is t(False)
+	assert True is t(True)
 
 
 def test_int(t):
@@ -307,15 +308,28 @@ def test_float(t):
 def test_string(t):
 	assert "gurk" == t("gurk")
 
+	# This should make sure that all characters roundtrip properly
+	# (except maybe those outside the BMP, as JS and Java don't support them properly)
+	chars = "".join(chr(c) for c in range(0x1000))
+	assert chars == t(chars)
+
 
 def test_color(t):
 	c = color.Color(0x66, 0x99, 0xcc, 0xff)
 	assert c == t(c)
 
 
-def test_datetime(t):
-	d = datetime.datetime(2012, 10, 29, 16, 44, 55, 987000)
+def test_date(t):
+	d = datetime.date(2012, 10, 29)
 	assert d == t(d)
+
+
+def test_datetime(t):
+	d1 = datetime.datetime(2012, 10, 29)
+	assert d1 == t(d1)
+
+	d2 = datetime.datetime(2012, 10, 29, 16, 44, 55, 987000)
+	assert d2 == t(d2)
 
 
 def test_timedelta(t):
@@ -531,11 +545,31 @@ def test_oracle_str(oracle):
 		assert "\xa0äöüÄÖÜß€" == oracle("ul4on_pkg.str(c_out, '\xa0äöüÄÖÜß\u20ac');")
 		assert "foo" == oracle("ul4on_pkg.str(c_out, to_clob('foo'));")
 
+		# Check every BMP character (in blocks of 64)
+		size = 0x40
+		for offset in range(0, 0x1000, size):
+			chars = "".join(chr(c) for c in range(offset, offset + size))
+
+			oraclechars = "".join(f"\\{ord(c):04x}" for c in chars)
+			oraclechars = f"unistr('{oraclechars}')"
+
+			assert chars == oracle(f"""
+				ul4onbuffer_pkg.init(c_out);
+				ul4onbuffer_pkg.str(c_out, {oraclechars});
+				ul4onbuffer_pkg.flush(c_out);
+			""")
+
 
 @pytest.mark.db
 def test_oracle_color(oracle):
 	if oracle:
 		assert color.Color(0x66, 0x99, 0xcc, 0xff) == oracle("ul4on_pkg.color(c_out, 102, 153, 204, 255);")
+
+
+@pytest.mark.db
+def test_oracle_date(oracle):
+	if oracle:
+		assert datetime.date(2014, 11, 6) == oracle("ul4on_pkg.date_(c_out, to_date('2014-11-06', 'YYYY-MM-DD'));")
 
 
 @pytest.mark.db

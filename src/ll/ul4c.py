@@ -626,17 +626,17 @@ class SliceProto(Proto):
 
 class DateProto(Proto):
 	name = "date"
-	wrappedmethattrs = {"weekday", "week", "yearweek", "day", "month", "year", "hour", "minute", "second", "microsecond", "mimeformat", "isoformat", "yearday"}
+	wrappedmethattrs = {"weekday", "week", "yearweek", "day", "month", "year", "mimeformat", "isoformat", "calendar"}
 
 	@staticmethod
 	def weekday(obj):
 		return obj.weekday()
 
 	@staticmethod
-	def yearweek(obj, firstweekday=0, mindaysinfirstweek=4):
+	def calendar(obj, firstweekday=0, mindaysinfirstweek=4):
 		"""
-		Return the calendar week number of the date :obj:`obj` and the calendar
-		year it belongs to. (A day might belong to a different calender year,
+		Return the calendar year the date :obj:`obj` belongs to, the calendar week
+		number and the week dayy. (A day might belong to a different calender year,
 		if it is in week 1 but before January 1, or if belongs to week 1 of the
 		following year).
 
@@ -657,6 +657,9 @@ class DateProto(Proto):
 
 		There's also the convention that the week 1 is the first complete week
 		in January. For this ``mindaysinfirstweek == 7``.
+
+		For example ``<?print repr(@(2000-02-29).calendar()?>`` prints
+		``[2000, 9, 1]``, i.e. this day is the Tuesday in week 9 of the year 2000.
 		"""
 
 		# Normalize parameters
@@ -671,19 +674,18 @@ class DateProto(Proto):
 			# Go back to the start of :obj:`refdate`\s week (i.e. day 1 of week 1)
 			weekstartdate = refdate - datetime.timedelta((refdate.weekday() - firstweekday) % 7)
 			# Is our date :obj:`obj` at or after day 1 of week 1?
-			# (if not we have to calculate its week number based on the year before)
+			# (if not we have to recalculate based on the year before in the next loop iteration)
 			if obj >= weekstartdate:
 				# Add 1, because the first week is week 1, not week 0
-				return (year, (obj - weekstartdate).days//7 + 1)
+				return (year, (obj - weekstartdate).days//7 + 1, obj.weekday())
 
 	@staticmethod
 	def week(obj, firstweekday=0, mindaysinfirstweek=4):
 		"""
 		Return the week number of the date :obj:`obj`. For more info see
-		:meth:`yearweek`.
+		:meth:`calendar`.
 		"""
-
-		return DateProto.yearweek(obj, firstweekday, mindaysinfirstweek)[1]
+		return DateProto.calendar(obj, firstweekday, mindaysinfirstweek)[1]
 
 	@staticmethod
 	def day(obj):
@@ -696,6 +698,25 @@ class DateProto(Proto):
 	@staticmethod
 	def year(obj):
 		return obj.year
+
+	@staticmethod
+	def mimeformat(obj):
+		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4}"
+
+	@staticmethod
+	def isoformat(obj):
+		return obj.isoformat()
+
+	@staticmethod
+	def yearday(obj):
+		return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+
+class DatetimeProto(DateProto):
+	name = "datetime"
+	wrappedmethattrs = DateProto.wrappedmethattrs.union({"hour", "minute", "second", "microsecond"})
 
 	@staticmethod
 	def hour(obj):
@@ -719,23 +740,10 @@ class DateProto(Proto):
 		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4} {obj.hour:02}:{obj.minute:02}:{obj.second:02} GMT"
 
-	@staticmethod
-	def isoformat(obj):
-		result = obj.isoformat()
-		suffix = "T00:00:00"
-		if result.endswith(suffix):
-			return result[:-len(suffix)]
-		return result
-
-	@staticmethod
-	def yearday(obj):
-		return (obj - obj.__class__(obj.year, 1, 1)).days+1
-
 
 class TimeDeltaProto(Proto):
 	name = "timedelta"
 	wrappedmethattrs = {"days", "seconds", "microseconds"}
-
 
 	@staticmethod
 	def days(obj):
@@ -807,9 +815,13 @@ def proto_slice(obj):
 
 
 @proto.register(datetime.date)
-@proto.register(datetime.datetime)
 def proto_date(obj):
 	return DateProto
+
+
+@proto.register(datetime.datetime)
+def proto_datetime(obj):
+	return DatetimeProto
 
 
 @proto.register(datetime.timedelta)
@@ -880,6 +892,8 @@ def _repr_helper(obj, seen, forceascii):
 		s = str(obj.isoformat())
 		if s.endswith("T00:00:00"):
 			s = s[:-9]
+		elif s.endswith(":00"):
+			s = s[:-3]
 		yield f"@({s})"
 	elif isinstance(obj, datetime.date):
 		yield f"@({obj.isoformat()})"
@@ -4637,11 +4651,21 @@ def function_now():
 	return datetime.datetime.now()
 
 
+@Context.makefunction
+def function_today():
+	return datetime.datetime.today()
+
+
 Context.makefunction(datetime.datetime.utcnow)
 
 
 @Context.makefunction
-def function_date(year, month, day, hour=0, minute=0, second=0, microsecond=0):
+def function_date(year, month, day):
+	return datetime.date(year, month, day)
+
+
+@Context.makefunction
+def function_datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0):
 	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
 
 
@@ -4856,7 +4880,12 @@ def function_isbool(obj):
 
 @Context.makefunction
 def function_isdate(obj):
-	return isinstance(obj, (datetime.datetime, datetime.date))
+	return isinstance(obj, datetime.date) and not isinstance(obj, datetime.datetime)
+
+
+@Context.makefunction
+def function_isdatetime(obj):
+	return isinstance(obj, datetime.datetime)
 
 
 @Context.makefunction

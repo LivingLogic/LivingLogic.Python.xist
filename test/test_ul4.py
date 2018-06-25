@@ -463,8 +463,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	java_compiled_by_python=TemplateJavaCompiledByPython,
 	java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_node=TemplateJavascriptNode,
+	# js_v8=TemplateJavascriptV8,
+	# js_node=TemplateJavascriptNode,
 	# php=TemplatePHP,
 )
 
@@ -711,12 +711,15 @@ def test_string(T):
 
 @pytest.mark.ul4
 def test_date(T):
-	assert '2000-02-29' == T('<?print @(2000-02-29).isoformat()?>').renders()
-	assert '2000-02-29' == T('<?print @(2000-02-29T).isoformat()?>').renders()
-	assert '2000-02-29T12:34:00' == T('<?print @(2000-02-29T12:34).isoformat()?>').renders()
-	assert '2000-02-29T12:34:56' == T('<?print @(2000-02-29T12:34:56).isoformat()?>').renders()
-	if T is not TemplatePHP:
-		assert '2000-02-29T12:34:56.987000' == T('<?print @(2000-02-29T12:34:56.987000).isoformat()?>').renders() # JS and Java only supports milliseconds
+	assert 'yes' == T('<?if @(2000-02-29)?>yes<?else?>no<?end if?>').renders()
+
+
+@pytest.mark.ul4
+def test_datetime(T):
+	if issubclass(T, (TemplatePHP, TemplateJavascript)):
+		assert '2000-02-29T12:34:56.987000' == T('<?print @(2000-02-29T12:34:56.987000).isoformat()?>').renders() # JS only supports milliseconds
+	else:
+		assert '2000-02-29T12:34:56.987654' == T('<?print @(2000-02-29T12:34:56.987654).isoformat()?>').renders()
 	assert 'yes' == T('<?if @(2000-02-29T12:34:56.987654)?>yes<?else?>no<?end if?>').renders()
 
 
@@ -1978,6 +1981,19 @@ def test_function_now(T):
 
 
 @pytest.mark.ul4
+def test_function_today(T):
+	today = str(datetime.date.today())
+
+	with raises(argumentmismatchmessage):
+		T("<?print today(1)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print today(1, 2)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print today(foo=1)?>").renders()
+	assert today <= T("<?print today()?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_utcnow(T):
 	utcnow = str(datetime.datetime.utcnow())
 
@@ -2557,6 +2573,7 @@ def test_function_isundefined(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2587,6 +2604,7 @@ def test_function_isdefined(T):
 	assert "True" == t.renders(data=42)
 	assert "True" == t.renders(data=4.2)
 	assert "True" == t.renders(data="foo")
+	assert "True" == t.renders(data=datetime.date.today())
 	assert "True" == t.renders(data=datetime.datetime.now())
 	assert "True" == t.renders(data=datetime.timedelta(1))
 	assert "True" == t.renders(data=misc.monthdelta(1))
@@ -2617,6 +2635,7 @@ def test_function_isnone(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2647,6 +2666,7 @@ def test_function_isbool(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2677,6 +2697,7 @@ def test_function_isint(T):
 	assert "True" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2707,6 +2728,7 @@ def test_function_isfloat(T):
 	assert "False" == t.renders(data=42)
 	assert "True" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2737,6 +2759,7 @@ def test_function_isstr(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "True" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2767,6 +2790,38 @@ def test_function_isdate(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "True" == t.renders(data=datetime.date.today())
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print isdate(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "False" == T("<?print isdate(obj=data)?>").renders(data=None)
+
+
+@pytest.mark.ul4
+def test_function_isdatetime(T):
+	t = T("<?print isdatetime(data)?>")
+
+	with raises(argumentmismatchmessage):
+		T("<?print isdate()?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print isdate(1, 2)?>").renders()
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "True" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2797,6 +2852,7 @@ def test_function_islist(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2829,6 +2885,7 @@ def test_function_isset(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2861,6 +2918,7 @@ def test_function_isdict(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2893,6 +2951,7 @@ def test_function_istemplate(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2923,6 +2982,7 @@ def test_function_isfunction(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2954,6 +3014,7 @@ def test_function_iscolor(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -2984,6 +3045,7 @@ def test_function_istimedelta(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "True" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -3014,6 +3076,7 @@ def test_function_ismonthdelta(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "True" == t.renders(data=misc.monthdelta(1))
@@ -3044,6 +3107,7 @@ def test_function_isexception(T):
 	assert "False" == t.renders(data=42)
 	assert "False" == t.renders(data=4.2)
 	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
 	assert "False" == t.renders(data=datetime.datetime.now())
 	assert "False" == t.renders(data=datetime.timedelta(1))
 	assert "False" == t.renders(data=misc.monthdelta(1))
@@ -3116,7 +3180,8 @@ def repr_ascii(T, ascii):
 	if T is not TemplatePHP:
 		assert "@(2011-02-07T12:34:56.123000)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
 	assert "@(2011-02-07T12:34:56)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56))
-	assert "@(2011-02-07)" == t.renders(data=datetime.datetime(2011, 2, 7))
+	assert "@(2011-02-07T12:34)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34))
+	assert "@(2011-02-07T)" == t.renders(data=datetime.datetime(2011, 2, 7))
 	assert "@(2011-02-07)" == t.renders(data=datetime.date(2011, 2, 7))
 	assert "timedelta(1)" == t.renders(data=datetime.timedelta(1))
 	assert "timedelta(0, 1)" == t.renders(data=datetime.timedelta(0, 1))
@@ -3696,20 +3761,20 @@ def test_function_dir(T):
 
 @pytest.mark.ul4
 def test_method_upper(T):
-	assert "GURK" == T("<?print 'gurk'.upper()?>").renders()
-	assert "GURK" == T("<?code m = 'gurk'.upper?><?print m()?>").renders()
+	assert 'GURK' == T('<?print "gurk".upper()?>').renders()
+	assert 'GURK' == T('<?code m = "gurk".upper?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
 def test_method_lower(T):
-	assert "gurk" == T("<?print 'GURK'.lower()?>").renders()
-	assert "gurk" == T("<?code m = 'GURK'.lower?><?print m()?>").renders()
+	assert 'gurk' == T('<?print "GURK".lower()?>').renders()
+	assert 'gurk' == T('<?code m = "GURK".lower?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
 def test_method_capitalize(T):
-	assert "Gurk" == T("<?print 'gURK'.capitalize()?>").renders()
-	assert "Gurk" == T("<?code m = 'gURK'.capitalize?><?print m()?>").renders()
+	assert 'Gurk' == T('<?print "gURK".capitalize()?>').renders()
+	assert 'Gurk' == T('<?code m = "gURK".capitalize?><?print m()?>').renders()
 
 
 @pytest.mark.ul4
@@ -3840,8 +3905,21 @@ def test_method_renders(T):
 
 
 @pytest.mark.ul4
+def test_method_isoformat(T):
+	assert '2000-02-29' == T('<?print @(2000-02-29).isoformat()?>').renders()
+	assert '2000-02-29T00:00:00' == T('<?print @(2000-02-29T).isoformat()?>').renders()
+	assert '2000-02-29T12:34:00' == T('<?print @(2000-02-29T12:34).isoformat()?>').renders()
+	assert '2000-02-29T12:34:56' == T('<?print @(2000-02-29T12:34:56).isoformat()?>').renders()
+
+
+@pytest.mark.ul4
 def test_method_mimeformat(T):
-	t = datetime.datetime(2010, 2, 22, 12, 34, 56)
+	t2 = datetime.date(2010, 2, 22)
+
+	assert 'Mon, 22 Feb 2010' == T("<?print data.mimeformat()?>").renders(data=t)
+	assert 'Mon, 22 Feb 2010' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t)
+
+	t2 = datetime.datetime(2010, 2, 22, 12, 34, 56)
 
 	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?print data.mimeformat()?>").renders(data=t)
 	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t)
@@ -3954,46 +4032,46 @@ def test_method_join(T):
 def test_method_count(T):
 	source = "<?ul4 f(haystack, needle, start=None, end=None)?><?print haystack.count(needle, start, end)?>"
 
-	assert "3" == T(source).renders(haystack='aaa', needle='a')
-	assert "0" == T(source).renders(haystack='aaa', needle='b')
-	assert "3" == T(source).renders(haystack='aaa', needle='a')
-	assert "0" == T(source).renders(haystack='aaa', needle='b')
-	assert "3" == T(source).renders(haystack='aaa', needle='a')
-	assert "0" == T(source).renders(haystack='aaa', needle='b')
-	assert "0" == T(source).renders(haystack='aaa', needle='b')
-	assert "2" == T(source).renders(haystack='aaa', needle='a', start=1)
-	assert "0" == T(source).renders(haystack='aaa', needle='a', start=10)
-	assert "1" == T(source).renders(haystack='aaa', needle='a', start=-1)
-	assert "3" == T(source).renders(haystack='aaa', needle='a', start=-10)
-	assert "1" == T(source).renders(haystack='aaa', needle='a', start=0, end=1)
-	assert "3" == T(source).renders(haystack='aaa', needle='a', start=0, end=10)
-	assert "2" == T(source).renders(haystack='aaa', needle='a', start=0, end=-1)
-	assert "0" == T(source).renders(haystack='aaa', needle='a', start=0, end=-10)
-	assert "3" == T(source).renders(haystack='aaa', needle='', start=1)
-	assert "1" == T(source).renders(haystack='aaa', needle='', start=3)
-	assert "0" == T(source).renders(haystack='aaa', needle='', start=10)
-	assert "2" == T(source).renders(haystack='aaa', needle='', start=-1)
-	assert "4" == T(source).renders(haystack='aaa', needle='', start=-10)
+	assert '3' == T(source).renders(haystack='aaa', needle='a')
+	assert '0' == T(source).renders(haystack='aaa', needle='b')
+	assert '3' == T(source).renders(haystack='aaa', needle='a')
+	assert '0' == T(source).renders(haystack='aaa', needle='b')
+	assert '3' == T(source).renders(haystack='aaa', needle='a')
+	assert '0' == T(source).renders(haystack='aaa', needle='b')
+	assert '0' == T(source).renders(haystack='aaa', needle='b')
+	assert '2' == T(source).renders(haystack='aaa', needle='a', start=1)
+	assert '0' == T(source).renders(haystack='aaa', needle='a', start=10)
+	assert '1' == T(source).renders(haystack='aaa', needle='a', start=-1)
+	assert '3' == T(source).renders(haystack='aaa', needle='a', start=-10)
+	assert '1' == T(source).renders(haystack='aaa', needle='a', start=0, end=1)
+	assert '3' == T(source).renders(haystack='aaa', needle='a', start=0, end=10)
+	assert '2' == T(source).renders(haystack='aaa', needle='a', start=0, end=-1)
+	assert '0' == T(source).renders(haystack='aaa', needle='a', start=0, end=-10)
+	assert '3' == T(source).renders(haystack='aaa', needle='', start=1)
+	assert '1' == T(source).renders(haystack='aaa', needle='', start=3)
+	assert '0' == T(source).renders(haystack='aaa', needle='', start=10)
+	assert '2' == T(source).renders(haystack='aaa', needle='', start=-1)
+	assert '4' == T(source).renders(haystack='aaa', needle='', start=-10)
 
-	assert "1" == T(source).renders(haystack='',  needle='')
-	assert "0" == T(source).renders(haystack='',  needle='', start=1, end=1)
-	assert "0" == T(source).renders(haystack='',  needle='', start=0x7fffffff, end=0)
+	assert '1' == T(source).renders(haystack='',  needle='')
+	assert '0' == T(source).renders(haystack='',  needle='', start=1, end=1)
+	assert '0' == T(source).renders(haystack='',  needle='', start=0x7fffffff, end=0)
 
-	assert "0" == T(source).renders(haystack='',  needle='xx')
-	assert "0" == T(source).renders(haystack='',  needle='xx', start=1, end=1)
-	assert "0" == T(source).renders(haystack='',  needle='xx', start=0x7fffffff, end=0)
+	assert '0' == T(source).renders(haystack='',  needle='xx')
+	assert '0' == T(source).renders(haystack='',  needle='xx', start=1, end=1)
+	assert '0' == T(source).renders(haystack='',  needle='xx', start=0x7fffffff, end=0)
 
-	assert "1" == T(source).renders(haystack='aba', needle='ab', start=None, end=2)
-	assert "0" == T(source).renders(haystack='aba', needle='ab', start=None, end=1)
+	assert '1' == T(source).renders(haystack='aba', needle='ab', start=None, end=2)
+	assert '0' == T(source).renders(haystack='aba', needle='ab', start=None, end=1)
 
 	# Matches are non overlapping
-	assert "1" == T(source).renders(haystack='aaa', needle='aa')
+	assert '1' == T(source).renders(haystack='aaa', needle='aa')
 
 	# Test the list version
-	assert "0" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle='a')
-	assert "3" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2)
-	assert "2" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2)
-	assert "1" == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2, end=7)
+	assert '0' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle='a')
+	assert '3' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2)
+	assert '2' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2)
+	assert '1' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2, end=7)
 
 
 @pytest.mark.ul4
@@ -4113,134 +4191,134 @@ def test_method_weekday(T):
 
 
 @pytest.mark.ul4
-def test_method_yearweek(T):
+def test_method_calendar(T):
 	# 1996: Non-leap year, starting on Monday
-	assert '[1996, 1]' == T('<?print repr(@(1996-01-01).yearweek())?>').renders()
-	assert '[1996, 1]' == T('<?print repr(@(1996-01-01).yearweek(6, 1))?>').renders()
-	assert '[1996, 1]' == T('<?print repr(@(1996-01-01).yearweek(0, 7))?>').renders()
-	assert '[1996, 1]' == T('<?print repr(@(1996-01-07).yearweek())?>').renders()
-	assert '[1996, 2]' == T('<?print repr(@(1996-01-08).yearweek())?>').renders()
-	assert '[1996, 22]' == T('<?print repr(@(1996-05-28).yearweek())?>').renders()
-	assert '[1997, 1]' == T('<?print repr(@(1996-12-30).yearweek())?>').renders()
-	assert '[1996, 52]' == T('<?print repr(@(1996-12-29).yearweek())?>').renders()
+	assert '[1996, 1, 0]' == T('<?print repr(@(1996-01-01).calendar())?>').renders()
+	assert '[1996, 1, 0]' == T('<?print repr(@(1996-01-01).calendar(6, 1))?>').renders()
+	assert '[1996, 1, 0]' == T('<?print repr(@(1996-01-01).calendar(0, 7))?>').renders()
+	assert '[1996, 1, 6]' == T('<?print repr(@(1996-01-07).calendar())?>').renders()
+	assert '[1996, 2, 0]' == T('<?print repr(@(1996-01-08).calendar())?>').renders()
+	assert '[1996, 52, 6]' == T('<?print repr(@(1996-12-29).calendar())?>').renders()
+	assert '[1997, 1, 0]' == T('<?print repr(@(1996-12-30).calendar())?>').renders()
 
 	# 2018: Leap year, starting on Monday
-	assert '[2018, 1]' == T('<?print repr(@(2018-01-01).yearweek())?>').renders()
-	assert '[2018, 1]' == T('<?print repr(@(2018-01-01).yearweek(6, 1))?>').renders()
-	assert '[2018, 1]' == T('<?print repr(@(2018-01-01).yearweek(0, 7))?>').renders()
-	assert '[2018, 1]' == T('<?print repr(@(2018-01-07).yearweek())?>').renders()
-	assert '[2018, 2]' == T('<?print repr(@(2018-01-08).yearweek())?>').renders()
-	assert '[2018, 52]' == T('<?print repr(@(2018-12-30).yearweek())?>').renders()
-	assert '[2019, 1]' == T('<?print repr(@(2018-12-31).yearweek())?>').renders()
+	assert '[2018, 1, 0]' == T('<?print repr(@(2018-01-01).calendar())?>').renders()
+	assert '[2018, 1, 0]' == T('<?print repr(@(2018-01-01).calendar(6, 1))?>').renders()
+	assert '[2018, 1, 0]' == T('<?print repr(@(2018-01-01).calendar(0, 7))?>').renders()
+	assert '[2018, 1, 6]' == T('<?print repr(@(2018-01-07).calendar())?>').renders()
+	assert '[2018, 2, 0]' == T('<?print repr(@(2018-01-08).calendar())?>').renders()
+	assert '[2018, 22, 0]' == T('<?print repr(@(2018-05-28).calendar())?>').renders()
+	assert '[2018, 52, 6]' == T('<?print repr(@(2018-12-30).calendar())?>').renders()
+	assert '[2019, 1, 0]' == T('<?print repr(@(2018-12-31).calendar())?>').renders()
 
 	# 2013: Non-leap year, starting on Tuesday
-	assert '[2013, 1]' == T('<?print repr(@(2013-01-01).yearweek())?>').renders()
-	assert '[2013, 1]' == T('<?print repr(@(2013-01-01).yearweek(6, 1))?>').renders()
-	assert '[2012, 53]' == T('<?print repr(@(2013-01-01).yearweek(0, 7))?>').renders()
-	assert '[2013, 1]' == T('<?print repr(@(2013-01-06).yearweek())?>').renders()
-	assert '[2013, 2]' == T('<?print repr(@(2013-01-07).yearweek())?>').renders()
-	assert '[2013, 52]' == T('<?print repr(@(2013-12-29).yearweek())?>').renders()
-	assert '[2014, 1]' == T('<?print repr(@(2013-12-30).yearweek())?>').renders()
+	assert '[2013, 1, 1]' == T('<?print repr(@(2013-01-01).calendar())?>').renders()
+	assert '[2013, 1, 1]' == T('<?print repr(@(2013-01-01).calendar(6, 1))?>').renders()
+	assert '[2012, 53, 1]' == T('<?print repr(@(2013-01-01).calendar(0, 7))?>').renders()
+	assert '[2013, 1, 6]' == T('<?print repr(@(2013-01-06).calendar())?>').renders()
+	assert '[2013, 2, 0]' == T('<?print repr(@(2013-01-07).calendar())?>').renders()
+	assert '[2013, 52, 6]' == T('<?print repr(@(2013-12-29).calendar())?>').renders()
+	assert '[2014, 1, 0]' == T('<?print repr(@(2013-12-30).calendar())?>').renders()
 
 	# 2008: Leap year, starting on Tuesday
-	assert '[2008, 1]' == T('<?print repr(@(2008-01-01).yearweek())?>').renders()
-	assert '[2008, 1]' == T('<?print repr(@(2008-01-01).yearweek(6, 1))?>').renders()
-	assert '[2007, 53]' == T('<?print repr(@(2008-01-01).yearweek(0, 7))?>').renders()
-	assert '[2008, 1]' == T('<?print repr(@(2008-01-06).yearweek())?>').renders()
-	assert '[2008, 2]' == T('<?print repr(@(2008-01-07).yearweek())?>').renders()
-	assert '[2008, 52]' == T('<?print repr(@(2008-12-28).yearweek())?>').renders()
-	assert '[2009, 1]' == T('<?print repr(@(2008-12-29).yearweek())?>').renders()
+	assert '[2008, 1, 1]' == T('<?print repr(@(2008-01-01).calendar())?>').renders()
+	assert '[2008, 1, 1]' == T('<?print repr(@(2008-01-01).calendar(6, 1))?>').renders()
+	assert '[2007, 53, 1]' == T('<?print repr(@(2008-01-01).calendar(0, 7))?>').renders()
+	assert '[2008, 1, 6]' == T('<?print repr(@(2008-01-06).calendar())?>').renders()
+	assert '[2008, 2, 0]' == T('<?print repr(@(2008-01-07).calendar())?>').renders()
+	assert '[2008, 52, 6]' == T('<?print repr(@(2008-12-28).calendar())?>').renders()
+	assert '[2009, 1, 0]' == T('<?print repr(@(2008-12-29).calendar())?>').renders()
 
 	# 2014: Non-leap year, starting on Wednesday
-	assert '[2014, 1]' == T('<?print repr(@(2014-01-01).yearweek())?>').renders()
-	assert '[2014, 1]' == T('<?print repr(@(2014-01-01).yearweek(6, 1))?>').renders()
-	assert '[2013, 52]' == T('<?print repr(@(2014-01-01).yearweek(0, 7))?>').renders()
-	assert '[2014, 1]' == T('<?print repr(@(2014-01-05).yearweek())?>').renders()
-	assert '[2014, 2]' == T('<?print repr(@(2014-01-06).yearweek())?>').renders()
-	assert '[2014, 52]' == T('<?print repr(@(2014-12-28).yearweek())?>').renders()
-	assert '[2015, 1]' == T('<?print repr(@(2014-12-29).yearweek())?>').renders()
+	assert '[2014, 1, 2]' == T('<?print repr(@(2014-01-01).calendar())?>').renders()
+	assert '[2014, 1, 2]' == T('<?print repr(@(2014-01-01).calendar(6, 1))?>').renders()
+	assert '[2013, 52, 2]' == T('<?print repr(@(2014-01-01).calendar(0, 7))?>').renders()
+	assert '[2014, 1, 6]' == T('<?print repr(@(2014-01-05).calendar())?>').renders()
+	assert '[2014, 2, 0]' == T('<?print repr(@(2014-01-06).calendar())?>').renders()
+	assert '[2014, 52, 6]' == T('<?print repr(@(2014-12-28).calendar())?>').renders()
+	assert '[2015, 1, 0]' == T('<?print repr(@(2014-12-29).calendar())?>').renders()
 
 	# 1992: Leap year, starting on Wednesday
-	assert '[1992, 1]' == T('<?print repr(@(1992-01-01).yearweek())?>').renders()
-	assert '[1992, 1]' == T('<?print repr(@(1992-01-01).yearweek(6, 1))?>').renders()
-	assert '[1991, 52]' == T('<?print repr(@(1992-01-01).yearweek(0, 7))?>').renders()
-	assert '[1992, 1]' == T('<?print repr(@(1992-01-05).yearweek())?>').renders()
-	assert '[1992, 2]' == T('<?print repr(@(1992-01-06).yearweek())?>').renders()
-	assert '[1992, 52]' == T('<?print repr(@(1992-12-27).yearweek())?>').renders()
-	assert '[1992, 53]' == T('<?print repr(@(1992-12-28).yearweek())?>').renders()
+	assert '[1992, 1, 2]' == T('<?print repr(@(1992-01-01).calendar())?>').renders()
+	assert '[1992, 1, 2]' == T('<?print repr(@(1992-01-01).calendar(6, 1))?>').renders()
+	assert '[1991, 52, 2]' == T('<?print repr(@(1992-01-01).calendar(0, 7))?>').renders()
+	assert '[1992, 1, 6]' == T('<?print repr(@(1992-01-05).calendar())?>').renders()
+	assert '[1992, 2, 0]' == T('<?print repr(@(1992-01-06).calendar())?>').renders()
+	assert '[1992, 52, 6]' == T('<?print repr(@(1992-12-27).calendar())?>').renders()
+	assert '[1992, 53, 0]' == T('<?print repr(@(1992-12-28).calendar())?>').renders()
 
 	# 2015: Non-leap year, starting on Thursday
-	assert '[2015, 1]' == T('<?print repr(@(2015-01-01).yearweek())?>').renders()
-	assert '[2015, 1]' == T('<?print repr(@(2015-01-01).yearweek(6, 1))?>').renders()
-	assert '[2014, 52]' == T('<?print repr(@(2015-01-01).yearweek(0, 7))?>').renders()
-	assert '[2015, 1]' == T('<?print repr(@(2015-01-04).yearweek())?>').renders()
-	assert '[2015, 2]' == T('<?print repr(@(2015-01-05).yearweek())?>').renders()
-	assert '[2015, 52]' == T('<?print repr(@(2015-12-27).yearweek())?>').renders()
-	assert '[2015, 53]' == T('<?print repr(@(2015-12-28).yearweek())?>').renders()
+	assert '[2015, 1, 3]' == T('<?print repr(@(2015-01-01).calendar())?>').renders()
+	assert '[2015, 1, 3]' == T('<?print repr(@(2015-01-01).calendar(6, 1))?>').renders()
+	assert '[2014, 52, 3]' == T('<?print repr(@(2015-01-01).calendar(0, 7))?>').renders()
+	assert '[2015, 1, 6]' == T('<?print repr(@(2015-01-04).calendar())?>').renders()
+	assert '[2015, 2, 0]' == T('<?print repr(@(2015-01-05).calendar())?>').renders()
+	assert '[2015, 52, 6]' == T('<?print repr(@(2015-12-27).calendar())?>').renders()
+	assert '[2015, 53, 0]' == T('<?print repr(@(2015-12-28).calendar())?>').renders()
 
 	# 2004: Leap year, starting on Thursday
-	assert '[2004, 1]' == T('<?print repr(@(2004-01-01).yearweek())?>').renders()
-	assert '[2004, 1]' == T('<?print repr(@(2004-01-01).yearweek(6, 1))?>').renders()
-	assert '[2003, 52]' == T('<?print repr(@(2004-01-01).yearweek(0, 7))?>').renders()
-	assert '[2004, 1]' == T('<?print repr(@(2004-01-04).yearweek())?>').renders()
-	assert '[2004, 2]' == T('<?print repr(@(2004-01-05).yearweek())?>').renders()
-	assert '[2004, 52]' == T('<?print repr(@(2004-12-26).yearweek())?>').renders()
-	assert '[2004, 53]' == T('<?print repr(@(2004-12-27).yearweek())?>').renders()
+	assert '[2004, 1, 3]' == T('<?print repr(@(2004-01-01).calendar())?>').renders()
+	assert '[2004, 1, 3]' == T('<?print repr(@(2004-01-01).calendar(6, 1))?>').renders()
+	assert '[2003, 52, 3]' == T('<?print repr(@(2004-01-01).calendar(0, 7))?>').renders()
+	assert '[2004, 1, 6]' == T('<?print repr(@(2004-01-04).calendar())?>').renders()
+	assert '[2004, 2, 0]' == T('<?print repr(@(2004-01-05).calendar())?>').renders()
+	assert '[2004, 52, 6]' == T('<?print repr(@(2004-12-26).calendar())?>').renders()
+	assert '[2004, 53, 0]' == T('<?print repr(@(2004-12-27).calendar())?>').renders()
 
 	# 2010: Non-leap year, starting on Friday
-	assert '[2009, 53]' == T('<?print repr(@(2010-01-01).yearweek())?>').renders()
-	assert '[2010, 1]' == T('<?print repr(@(2010-01-01).yearweek(6, 1))?>').renders()
-	assert '[2009, 52]' == T('<?print repr(@(2010-01-01).yearweek(0, 7))?>').renders()
-	assert '[2009, 53]' == T('<?print repr(@(2010-01-03).yearweek())?>').renders()
-	assert '[2010, 1]' == T('<?print repr(@(2010-01-04).yearweek())?>').renders()
-	assert '[2010, 51]' == T('<?print repr(@(2010-12-26).yearweek())?>').renders()
-	assert '[2010, 52]' == T('<?print repr(@(2010-12-27).yearweek())?>').renders()
+	assert '[2009, 53, 4]' == T('<?print repr(@(2010-01-01).calendar())?>').renders()
+	assert '[2010, 1, 4]' == T('<?print repr(@(2010-01-01).calendar(6, 1))?>').renders()
+	assert '[2009, 52, 4]' == T('<?print repr(@(2010-01-01).calendar(0, 7))?>').renders()
+	assert '[2009, 53, 6]' == T('<?print repr(@(2010-01-03).calendar())?>').renders()
+	assert '[2010, 1, 0]' == T('<?print repr(@(2010-01-04).calendar())?>').renders()
+	assert '[2010, 51, 6]' == T('<?print repr(@(2010-12-26).calendar())?>').renders()
+	assert '[2010, 52, 0]' == T('<?print repr(@(2010-12-27).calendar())?>').renders()
 
 	# 2016: Leap year, starting on Friday
-	assert '[2015, 53]' == T('<?print repr(@(2016-01-01).yearweek())?>').renders()
-	assert '[2016, 1]' == T('<?print repr(@(2016-01-01).yearweek(6, 1))?>').renders()
-	assert '[2015, 52]' == T('<?print repr(@(2016-01-01).yearweek(0, 7))?>').renders()
-	assert '[2015, 53]' == T('<?print repr(@(2016-01-03).yearweek())?>').renders()
-	assert '[2016, 1]' == T('<?print repr(@(2016-01-04).yearweek())?>').renders()
-	assert '[2016, 51]' == T('<?print repr(@(2016-12-25).yearweek())?>').renders()
-	assert '[2016, 52]' == T('<?print repr(@(2016-12-26).yearweek())?>').renders()
+	assert '[2015, 53, 4]' == T('<?print repr(@(2016-01-01).calendar())?>').renders()
+	assert '[2016, 1, 4]' == T('<?print repr(@(2016-01-01).calendar(6, 1))?>').renders()
+	assert '[2015, 52, 4]' == T('<?print repr(@(2016-01-01).calendar(0, 7))?>').renders()
+	assert '[2015, 53, 6]' == T('<?print repr(@(2016-01-03).calendar())?>').renders()
+	assert '[2016, 1, 0]' == T('<?print repr(@(2016-01-04).calendar())?>').renders()
+	assert '[2016, 51, 6]' == T('<?print repr(@(2016-12-25).calendar())?>').renders()
+	assert '[2016, 52, 0]' == T('<?print repr(@(2016-12-26).calendar())?>').renders()
 
 	# 2011: Non-leap year, starting on Saturday
-	assert '[2010, 52]' == T('<?print repr(@(2011-01-01).yearweek())?>').renders()
-	assert '[2011, 1]' == T('<?print repr(@(2011-01-01).yearweek(6, 1))?>').renders()
-	assert '[2010, 52]' == T('<?print repr(@(2011-01-01).yearweek(0, 7))?>').renders()
-	assert '[2010, 52]' == T('<?print repr(@(2011-01-02).yearweek())?>').renders()
-	assert '[2011, 1]' == T('<?print repr(@(2011-01-03).yearweek())?>').renders()
-	assert '[2011, 51]' == T('<?print repr(@(2011-12-25).yearweek())?>').renders()
-	assert '[2011, 52]' == T('<?print repr(@(2011-12-26).yearweek())?>').renders()
+	assert '[2010, 52, 5]' == T('<?print repr(@(2011-01-01).calendar())?>').renders()
+	assert '[2011, 1, 5]' == T('<?print repr(@(2011-01-01).calendar(6, 1))?>').renders()
+	assert '[2010, 52, 5]' == T('<?print repr(@(2011-01-01).calendar(0, 7))?>').renders()
+	assert '[2010, 52, 6]' == T('<?print repr(@(2011-01-02).calendar())?>').renders()
+	assert '[2011, 1, 0]' == T('<?print repr(@(2011-01-03).calendar())?>').renders()
+	assert '[2011, 51, 6]' == T('<?print repr(@(2011-12-25).calendar())?>').renders()
+	assert '[2011, 52, 0]' == T('<?print repr(@(2011-12-26).calendar())?>').renders()
 
 	# 2000: Leap year, starting on Saturday
-	assert '[1999, 52]' == T('<?print repr(@(2000-01-01).yearweek())?>').renders()
-	assert '[2000, 1]' == T('<?print repr(@(2000-01-01).yearweek(6, 1))?>').renders()
-	assert '[1999, 52]' == T('<?print repr(@(2000-01-01).yearweek(0, 7))?>').renders()
-	assert '[1999, 52]' == T('<?print repr(@(2000-01-02).yearweek())?>').renders()
-	assert '[2000, 1]' == T('<?print repr(@(2000-01-03).yearweek())?>').renders()
-	assert '[2000, 51]' == T('<?print repr(@(2000-12-24).yearweek())?>').renders()
-	assert '[2000, 52]' == T('<?print repr(@(2000-12-25).yearweek())?>').renders()
+	assert '[1999, 52, 5]' == T('<?print repr(@(2000-01-01).calendar())?>').renders()
+	assert '[2000, 1, 5]' == T('<?print repr(@(2000-01-01).calendar(6, 1))?>').renders()
+	assert '[1999, 52, 5]' == T('<?print repr(@(2000-01-01).calendar(0, 7))?>').renders()
+	assert '[1999, 52, 6]' == T('<?print repr(@(2000-01-02).calendar())?>').renders()
+	assert '[2000, 1, 0]' == T('<?print repr(@(2000-01-03).calendar())?>').renders()
+	assert '[2000, 51, 6]' == T('<?print repr(@(2000-12-24).calendar())?>').renders()
+	assert '[2000, 52, 0]' == T('<?print repr(@(2000-12-25).calendar())?>').renders()
 
 	# 2017: Non-leap year, starting on Sunday
-	assert '[2016, 52]' == T('<?print repr(@(2017-01-01).yearweek())?>').renders()
-	assert '[2017, 1]' == T('<?print repr(@(2017-01-01).yearweek(6, 1))?>').renders()
-	assert '[2016, 52]' == T('<?print repr(@(2017-01-01).yearweek(0, 7))?>').renders()
-	assert '[2017, 1]' == T('<?print repr(@(2017-01-02).yearweek())?>').renders()
-	assert '[2017, 51]' == T('<?print repr(@(2017-12-24).yearweek())?>').renders()
-	assert '[2017, 52]' == T('<?print repr(@(2017-12-25).yearweek())?>').renders()
+	assert '[2016, 52, 6]' == T('<?print repr(@(2017-01-01).calendar())?>').renders()
+	assert '[2017, 1, 6]' == T('<?print repr(@(2017-01-01).calendar(6, 1))?>').renders()
+	assert '[2016, 52, 6]' == T('<?print repr(@(2017-01-01).calendar(0, 7))?>').renders()
+	assert '[2017, 1, 0]' == T('<?print repr(@(2017-01-02).calendar())?>').renders()
+	assert '[2017, 51, 6]' == T('<?print repr(@(2017-12-24).calendar())?>').renders()
+	assert '[2017, 52, 0]' == T('<?print repr(@(2017-12-25).calendar())?>').renders()
 
 	# 2012: Leap year, starting on Sunday
-	assert '[2011, 52]' == T('<?print repr(@(2012-01-01).yearweek())?>').renders()
-	assert '[2012, 1]' == T('<?print repr(@(2012-01-01).yearweek(6, 1))?>').renders()
-	assert '[2011, 52]' == T('<?print repr(@(2012-01-01).yearweek(0, 7))?>').renders()
-	assert '[2012, 1]' == T('<?print repr(@(2012-01-02).yearweek())?>').renders()
-	assert '[2012, 52]' == T('<?print repr(@(2012-12-30).yearweek())?>').renders()
-	assert '[2013, 1]' == T('<?print repr(@(2012-12-31).yearweek())?>').renders()
+	assert '[2011, 52, 6]' == T('<?print repr(@(2012-01-01).calendar())?>').renders()
+	assert '[2012, 1, 6]' == T('<?print repr(@(2012-01-01).calendar(6, 1))?>').renders()
+	assert '[2011, 52, 6]' == T('<?print repr(@(2012-01-01).calendar(0, 7))?>').renders()
+	assert '[2012, 1, 0]' == T('<?print repr(@(2012-01-02).calendar())?>').renders()
+	assert '[2012, 52, 6]' == T('<?print repr(@(2012-12-30).calendar())?>').renders()
+	assert '[2013, 1, 0]' == T('<?print repr(@(2012-12-31).calendar())?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '[2018, 1]' == T('<?print @(2018-01-01).yearweek(firstweekday=0, mindaysinfirstweek=4)?>').renders()
+	assert '[2018, 1, 0]' == T('<?print @(2018-01-01).calendar(firstweekday=0, mindaysinfirstweek=4)?>').renders()
 
 
 @pytest.mark.ul4
