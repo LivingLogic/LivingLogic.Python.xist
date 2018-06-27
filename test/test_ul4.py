@@ -479,7 +479,7 @@ def T(request):
 	and :class:`TemplatePHP`.
 
 	Each of these classes has methods :meth:`render`, :meth:`renders` and
-	:meth:`__call__` to render/call the template with the appropriate  backend.
+	:meth:`__call__` to render/call the template with the appropriate backend.
 	"""
 	return all_templates[request.param]
 
