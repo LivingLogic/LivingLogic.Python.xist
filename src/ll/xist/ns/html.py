@@ -657,10 +657,12 @@ class script(xsc.Element):
 			"""
 			If specified, gives the address of the external script resource to use.
 			"""
-		class async(xsc.BoolAttr):
+		class async_(xsc.BoolAttr):
 			"""
 			If present, the script will be executed asynchronously.
 			"""
+			xmlname = "async"
+
 		class defer(xsc.BoolAttr):
 			"""
 			If present, the script is executed when the page has finished parsing.
