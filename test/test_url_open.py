@@ -135,11 +135,11 @@ def test_size():
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
-			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 601
+			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 1479
 
-	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("http://python.livinglogic.de/static/favicon.gif")
+	check("~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("http://python.livinglogic.de/_static/favicon.png")
 
 
 @pytest.mark.net
@@ -147,11 +147,11 @@ def test_imagesize():
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
-			assert u.imagesize() == (16, 16)
+			assert u.imagesize() == (32, 32)
 
-	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("http://python.livinglogic.de/static/favicon.gif")
+	check("~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("http://python.livinglogic.de/_static/favicon.png")
 
 
 @pytest.mark.net
@@ -235,21 +235,21 @@ def test_seek_tell():
 			u = url.URL(u)
 			r = u.open("rb")
 			r.read()
-			assert r.tell() == 601
+			assert r.tell() == 1479
 			r.seek(0)
 			assert r.tell() == 0
 			r.seek(100, os.SEEK_SET)
 			assert r.tell() == 100
 			r.seek(0, os.SEEK_END)
-			assert r.tell() == 601
-			r.seek(-101, os.SEEK_END)
-			assert r.tell() == 500
-			r.seek(101, os.SEEK_CUR)
-			assert r.tell() == 601
+			assert r.tell() == 1479
+			r.seek(-479, os.SEEK_END)
+			assert r.tell() == 1000
+			r.seek(479, os.SEEK_CUR)
+			assert r.tell() == 1479
 			assert r.read() == b""
 
-	check("~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
-	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.WWW/site/static/favicon.gif")
+	check("~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
 
 
 @pytest.mark.net
@@ -436,7 +436,7 @@ def test_resheaders():
 
 	check(url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"})
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
-	check("http://python.livinglogic.de/XIST.html", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"})
+	check("http://python.livinglogic.de/XIST.html", {"Content-type": "text/html", "Connection": "close", "Server": "nginx/1.10.3"})
 
 
 @pytest.mark.net
