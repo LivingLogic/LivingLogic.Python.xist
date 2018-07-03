@@ -8,6 +8,16 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.34
+=========================
+
+Changes to XIST
+---------------
+
+The class :class:`ll.xist.ns.html.script.Attrs.async` has beend renamed to
+``async_``, because ``async`` is a keyword in Python 3.7.
+
+
 Migrating to version 5.32
 =========================
 

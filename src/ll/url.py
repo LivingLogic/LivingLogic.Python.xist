@@ -41,10 +41,6 @@ import datetime, cgi, re, fnmatch, pickle, errno, threading
 import email
 from email import utils
 
-# Fix for unpickling exceptions pickled by Python 2 (should be fixed since Python 3.3)
-import _compat_pickle
-_compat_pickle.IMPORT_MAPPING["exceptions"] = "builtins"
-
 default_ssh_python = os.environ.get("LL_URL_SSH_PYTHON")
 
 # don't fail when :mod:`pwd` or :mod:`grp` can't be imported, because if this
@@ -68,9 +64,6 @@ from ll import misc
 
 
 __docformat__ = "reStructuredText"
-
-
-os.stat_float_times(True)
 
 
 def mime2dt(s):

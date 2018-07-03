@@ -1,4 +1,4 @@
-.PHONY: develop install test dist register upload windist livinglogic
+.PHONY: develop install test dist upload windist livinglogic
 
 
 install:
@@ -20,14 +20,19 @@ test: install
 
 dist:
 	rm -rf dist/*
-	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip bdist_wheel
-	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.tar.bz2 dist/*.zip  dist/*.whl ssh://root@isar.livinglogic.de/~ftp/pub/livinglogic/xist/
+	python$(PYVERSION) setup.py sdist --formats=gztar bdist_wheel
+	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.whl ssh://root@isar.livinglogic.de/~ftp/pub/livinglogic/xist/
 
 
+<<<<<<< HEAD
 upload:
 	python$(PYVERSION) setup.py sdist --formats=gztar bdist_wheel
 	python$(PYVERSION) -mtwine upload dist/*
 
+=======
+upload: dist
+	twine upload dist/*
+>>>>>>> rel-5-33-maint
 
 
 livinglogic:
