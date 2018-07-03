@@ -105,6 +105,7 @@ Programming Language :: Python
 Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
 Topic :: Software Development :: Libraries :: Python Modules
 
 # ansistyle
@@ -250,7 +251,7 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.33",
+	version="5.34",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",

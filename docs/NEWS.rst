@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.34 (released 06/03/2018)
+-------------------------------------
+
+*	Renamed the class :class:`ll.xist.ns.html.script.Attrs.async` because
+	``async`` is a keyword in Python 3.7.
+
+*	XIST is Python 3.7 compatible now.
+
+
 Changes in 5.33 (released 05/15/2018)
 -------------------------------------
 
