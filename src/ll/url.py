@@ -70,9 +70,6 @@ from ll import misc
 __docformat__ = "reStructuredText"
 
 
-os.stat_float_times(True)
-
-
 def mime2dt(s):
 	return datetime.datetime(*utils.parsedate(s)[:7])
 
