@@ -11,6 +11,23 @@ or choose one of the following archives:
 .. autogenerate start
 
 
+5.34 (released 06/03/2018)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+======================================================================================================================================================== ====================== ====
+File                                                                                                                                                     Type                   Size
+======================================================================================================================================================== ====================== ====
+`ll-xist-5.34.tar.bz2 <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.34.tar.bz2>`_                                                       Source                 551K
+`ll-xist-5.34.tar.gz <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.34.tar.gz>`_                                                         Source                 661K
+`ll-xist-5.34.zip <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll-xist-5.34.zip>`_                                                               Source                 778K
+`ll_xist-5.34-cp37-cp37m-macosx_10_13_x86_64.whl <http://ftp.livinglogic.de/~ftp/pub/livinglogic/xist/ll_xist-5.34-cp37-cp37m-macosx_10_13_x86_64.whl>`_ Mac wheel (Python 3.7) 515K
+======================================================================================================================================================== ====================== ====
+
+
 5.33 (released 05/14/2018)
 --------------------------
 
