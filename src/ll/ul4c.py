@@ -899,7 +899,7 @@ def _repr_helper(obj, seen, forceascii):
 	elif isinstance(obj, datetime.datetime):
 		s = obj.isoformat()
 		if s.endswith("T00:00:00"):
-			s = s[:-9]
+			s = s[:-8]
 		elif s.endswith(":00"):
 			s = s[:-3]
 		yield f"@({s})"
