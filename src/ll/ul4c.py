@@ -629,7 +629,7 @@ class SliceProto(Proto):
 
 class DateProto(Proto):
 	name = "date"
-	wrappedmethattrs = {"weekday", "week", "yearweek", "day", "month", "year", "mimeformat", "isoformat", "calendar"}
+	wrappedmethattrs = {"weekday", "week", "calendar", "day", "month", "year", "mimeformat", "isoformat"}
 
 	@staticmethod
 	def weekday(obj):
