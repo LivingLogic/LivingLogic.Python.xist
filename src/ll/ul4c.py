@@ -1006,7 +1006,7 @@ def _asjson(obj):
 	elif isinstance(obj, datetime.datetime):
 		return f"new Date({obj.year}, {obj.month-1}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond//1000})"
 	elif isinstance(obj, datetime.date):
-		return f"new Date({obj.year}, {obj.month-1}, {obj.day})"
+		return f"ul4.Date.create({obj.year}, {obj.month}, {obj.day})"
 	elif isinstance(obj, datetime.timedelta):
 		return f"ul4.TimeDelta.create({obj.days}, {obj.seconds}, {obj.microseconds})"
 	elif isinstance(obj, misc.monthdelta):
