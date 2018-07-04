@@ -19,24 +19,26 @@ from ll import ul4on, ul4c, color, misc
 
 home = os.environ["HOME"]
 
-
 # For the Oracle tests to work the environment variable ``LL_ORASQL_TEST_CONNECT``
 # must point to an Oracle schema where the packages ``UL4ON_PKG`` and
 # ``UL4ONBUFFER_PKG`` from https://github.com/LivingLogic/LivingLogic.Oracle.ul4
 # are installed
 
-@pytest.fixture(scope="module")
-def oracle(request):
+
+def oracle_ul4on(code):
 	"""
-	A callable fixture that will execute the PL/SQL code passed in as a parameter.
-	This PL/SQL code must output an UL4ON dump into the PL/SQL variable ``c_out``.
-	``oracle`` returns the deserialized object dump as a Python object.
+	A test fixture that will execute the PL/SQL code passed in as a parameter.
+	This PL/SQL code must output an UL4ON dump into the PL/SQL variable ``c_out``
+	by using the ``UL4ON_PKG`` package. The package name is available as the
+	function attribute ``pkg``.
+
+	:func:`oracle_ul4on` returns the deserialized object dump as a Python object.
 
 	For example::
 
 		oracle('''
-			ul4on_pkg.begindict(c_out);
-			ul4on_pkg.enddict(c_out);
+			{oracle.pkg}.begindict(c_out);
+			{oracle.pkg}.enddict(c_out);
 		''')
 
 	should return a empty dictionary.
@@ -46,23 +48,79 @@ def oracle(request):
 		from ll import orasql
 		db = orasql.connect(connectstring, readlobs=True)
 		cursor = db.cursor()
-		def run(code):
-			cursor.execute(f"""
-				create or replace function ul4ontest
-				return clob
-				as
-					c_out clob;
-				begin
-					{code}
-					return c_out;
-				end;
-			""")
-			cursor.execute("select ul4ontest from dual")
-			dump = cursor.fetchone().ul4ontest
-			return ul4on.loads(dump)
-		return run
+		print(code)
+		cursor.execute(f"""
+			create or replace function ul4ontest
+			return clob
+			as
+				c_out clob;
+			begin
+				{code}
+				return c_out;
+			end;
+		""")
+		cursor.execute("select ul4ontest from dual")
+		dump = cursor.fetchone().ul4ontest
+		return ul4on.loads(dump)
 	else:
 		return None
+
+oracle_ul4on.pkg = "ul4on_pkg"
+
+
+def oracle_ul4onbuffer(code):
+	"""
+	A test fixture that will execute the PL/SQL code passed in as a parameter.
+	This PL/SQL code must output an UL4ON dump into the PL/SQL variable ``c_out``
+	by using the ``UL4ONBUFFER_PKG`` package. The package name is available as
+	the function attribute ``pkg``.
+
+	:func:`oracle_ul4onbuffer` returns the deserialized object dump as a Python
+	object.
+
+	For example::
+
+		oracle('''
+			{oracle.pkg}.begindict(c_out);
+			{oracle.pkg}.enddict(c_out);
+		''')
+
+	should return a empty dictionary.
+
+	Note that call to ``UL4ONBUFFER_PKG.INIT()`` and ``UL4ONBUFFER_PKG.FLUSH()``
+	are not required in the code passed in (this makes it possible to call
+	:func:`oracle_ul4on` and :func:`oracle_ul4onbuffer` with the code).
+	"""
+	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
+	if connectstring:
+		from ll import orasql
+		db = orasql.connect(connectstring, readlobs=True)
+		cursor = db.cursor()
+		cursor.execute(f"""
+			create or replace function ul4ontest
+			return clob
+			as
+				c_out clob;
+			begin
+				ul4onbuffer_pkg.init(c_out);
+				{code}
+				ul4onbuffer_pkg.flush(c_out);
+				return c_out;
+			end;
+		""")
+		cursor.execute("select ul4ontest from dual")
+		dump = cursor.fetchone().ul4ontest
+		return ul4on.loads(dump)
+	else:
+		return None
+
+oracle_ul4onbuffer.pkg = "ul4onbuffer_pkg"
+
+
+all_oracles = [
+	("oracle_ul4on", oracle_ul4on),
+	("oracle_ul4onbuffer", oracle_ul4onbuffer),
+]
 
 
 def _transport_python(obj, indent, registry):
@@ -278,6 +336,8 @@ all_transports = [
 def pytest_generate_tests(metafunc):
 	if "t" in metafunc.funcargnames:
 		metafunc.parametrize("t", [t for (id, t) in all_transports], ids=[id for (id, t) in all_transports])
+	if "oracle" in metafunc.funcargnames:
+		metafunc.parametrize("oracle", [oracle for (id, oracle) in all_oracles], ids=[id for (id, oracle) in all_oracles])
 
 
 def test_none(t):
@@ -504,42 +564,42 @@ def test_custom_class(t):
 @pytest.mark.db
 def test_oracle_none(oracle):
 	if oracle:
-		assert None is oracle("ul4on_pkg.none(c_out);")
+		assert None is oracle(f"{oracle.pkg}.none(c_out);")
 
 
 @pytest.mark.db
 def test_oracle_bool(oracle):
 	if oracle:
-		assert None is oracle("ul4on_pkg.bool(c_out, null);")
-		assert False is oracle("ul4on_pkg.bool(c_out, 0);")
-		assert True is oracle("ul4on_pkg.bool(c_out, 1);")
+		assert None is oracle(f"{oracle.pkg}.bool(c_out, null);")
+		assert False is oracle(f"{oracle.pkg}.bool(c_out, 0);")
+		assert True is oracle(f"{oracle.pkg}.bool(c_out, 1);")
 
 
 @pytest.mark.db
 def test_oracle_int(oracle):
 	if oracle:
-		assert None is oracle("ul4on_pkg.int(c_out, null);")
-		assert 42 == oracle("ul4on_pkg.int(c_out, 42);")
-		assert 0 == oracle("ul4on_pkg.int(c_out, 0);")
-		assert -42 == oracle("ul4on_pkg.int(c_out, -42);")
+		assert None is oracle(f"{oracle.pkg}.int(c_out, null);")
+		assert 42 == oracle(f"{oracle.pkg}.int(c_out, 42);")
+		assert 0 == oracle(f"{oracle.pkg}.int(c_out, 0);")
+		assert -42 == oracle(f"{oracle.pkg}.int(c_out, -42);")
 
 
 @pytest.mark.db
 def test_oracle_float(oracle):
 	if oracle:
-		assert None is oracle("ul4on_pkg.float(c_out, null);")
-		assert 42.5 == oracle("ul4on_pkg.float(c_out, 42.5);")
-		assert 0.0 == oracle("ul4on_pkg.float(c_out, 0);")
-		assert -42.5 == oracle("ul4on_pkg.float(c_out, -42.5);")
+		assert None is oracle(f"{oracle.pkg}.float(c_out, null);")
+		assert 42.5 == oracle(f"{oracle.pkg}.float(c_out, 42.5);")
+		assert 0.0 == oracle(f"{oracle.pkg}.float(c_out, 0);")
+		assert -42.5 == oracle(f"{oracle.pkg}.float(c_out, -42.5);")
 
 
 @pytest.mark.db
 def test_oracle_str(oracle):
 	if oracle:
-		assert "foo" == oracle("ul4on_pkg.str(c_out, 'foo');")
-		assert "\x00\a\b\t\n\r\x1b" == oracle("ul4on_pkg.str(c_out, chr(0) || chr(7) || chr(8) || chr(9) || chr(10) || chr(13) || chr(27));")
-		assert "\xa0äöüÄÖÜß€" == oracle("ul4on_pkg.str(c_out, '\xa0äöüÄÖÜß\u20ac');")
-		assert "foo" == oracle("ul4on_pkg.str(c_out, to_clob('foo'));")
+		assert "foo" == oracle(f"{oracle.pkg}.str(c_out, 'foo');")
+		assert "\x00\a\b\t\n\r\x1b" == oracle(f"{oracle.pkg}.str(c_out, chr(0) || chr(7) || chr(8) || chr(9) || chr(10) || chr(13) || chr(27));")
+		assert "\xa0äöüÄÖÜß€" == oracle(f"{oracle.pkg}.str(c_out, '\xa0äöüÄÖÜß\u20ac');")
+		assert "foo" == oracle(f"{oracle.pkg}.str(c_out, to_clob('foo'));")
 
 		# Check every BMP character (in blocks of 64)
 		size = 0x40
@@ -549,108 +609,147 @@ def test_oracle_str(oracle):
 			oraclechars = "".join(f"\\{ord(c):04x}" for c in chars)
 			oraclechars = f"unistr('{oraclechars}')"
 
-			assert chars == oracle(f"""
-				ul4onbuffer_pkg.init(c_out);
-				ul4onbuffer_pkg.str(c_out, {oraclechars});
-				ul4onbuffer_pkg.flush(c_out);
-			""")
+			assert chars == oracle(f"{oracle.pkg}.str(c_out, {oraclechars});")
 
 
 @pytest.mark.db
 def test_oracle_color(oracle):
 	if oracle:
-		assert color.Color(0x66, 0x99, 0xcc, 0xff) == oracle("ul4on_pkg.color(c_out, 102, 153, 204, 255);")
+		expected = color.Color(0x66, 0x99, 0xcc, 0xff)
+		got = oracle(f"{oracle.pkg}.color(c_out, 102, 153, 204, 255);")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_date(oracle):
 	if oracle:
-		assert datetime.date(2014, 11, 6) == oracle("ul4on_pkg.date_(c_out, to_date('2014-11-06', 'YYYY-MM-DD'));")
+		expected = datetime.date(2014, 11, 6)
+		got = oracle(f"{oracle.pkg}.date_(c_out, to_date('2014-11-06', 'YYYY-MM-DD'));")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_datetime(oracle):
 	if oracle:
-		assert datetime.datetime(2014, 11, 6, 12, 34, 56) == oracle("ul4on_pkg.datetime(c_out, to_date('2014-11-06 12:34:56', 'YYYY-MM-DD HH24:MI:SS'));")
-		assert datetime.datetime(2014, 11, 6, 12, 34, 56, 987654) == oracle("ul4on_pkg.datetime(c_out, to_timestamp('2014-11-06 12:34:56,987654', 'YYYY-MM-DD HH24:MI:SS,FF6'));")
+		expected = datetime.datetime(2014, 11, 6, 12, 34, 56)
+		got = oracle(f"{oracle.pkg}.datetime(c_out, to_date('2014-11-06 12:34:56', 'YYYY-MM-DD HH24:MI:SS'));")
+		assert expected == got
+
+		expected = datetime.datetime(2014, 11, 6, 12, 34, 56, 987654)
+		got = oracle(f"{oracle.pkg}.datetime(c_out, to_timestamp('2014-11-06 12:34:56,987654', 'YYYY-MM-DD HH24:MI:SS,FF6'));")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_timedelta(oracle):
 	if oracle:
-		assert datetime.timedelta(days=42) == oracle("ul4on_pkg.timedelta(c_out, 42);")
-		assert datetime.timedelta(days=1, seconds=2, microseconds=3) == oracle("ul4on_pkg.timedelta(c_out, 1, 2, 3);")
+		expected = datetime.timedelta(days=42)
+		got = oracle(f"{oracle.pkg}.timedelta(c_out, 42);")
+		assert expected == got
+
+		expected = datetime.timedelta(days=1, seconds=2, microseconds=3)
+		got = oracle(f"{oracle.pkg}.timedelta(c_out, 1, 2, 3);")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_monthdelta(oracle):
 	if oracle:
-		assert misc.monthdelta(42) == oracle("ul4on_pkg.monthdelta(c_out, 42);")
-		assert misc.monthdelta(-42) == oracle("ul4on_pkg.monthdelta(c_out, -42);")
+		expected = misc.monthdelta(42)
+		got = oracle(f"{oracle.pkg}.monthdelta(c_out, 42);")
+		assert expected == got
+
+		expected = misc.monthdelta(-42)
+		got = oracle(f"{oracle.pkg}.monthdelta(c_out, -42);")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_slice(oracle):
 	if oracle:
-		assert slice(None, None) == oracle("ul4on_pkg.slice(c_out, null, null);")
-		assert slice(1, None) == oracle("ul4on_pkg.slice(c_out, 1, null);")
-		assert slice(None, 3) == oracle("ul4on_pkg.slice(c_out, null, 3);")
-		assert slice(1, 3) == oracle("ul4on_pkg.slice(c_out, 1, 3);")
+		expected = slice(None, None)
+		got = oracle(f"{oracle.pkg}.slice(c_out, null, null);")
+		assert expected == got
+
+		expected = slice(1, None)
+		got = oracle(f"{oracle.pkg}.slice(c_out, 1, null);")
+		assert expected == got
+
+		expected = slice(None, 3)
+		got = oracle(f"{oracle.pkg}.slice(c_out, null, 3);")
+		assert expected == got
+
+		expected = slice(1, 3)
+		got = oracle(f"{oracle.pkg}.slice(c_out, 1, 3);")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_list(oracle):
 	if oracle:
-		assert [] == oracle("""
-			ul4on_pkg.beginlist(c_out);
-			ul4on_pkg.endlist(c_out);
+		expected = []
+		got = oracle(f"""
+			{oracle.pkg}.beginlist(c_out);
+			{oracle.pkg}.endlist(c_out);
 		""")
+		assert expected == got
 
-		assert [None, 42, "foo"] == oracle("""
-			ul4on_pkg.beginlist(c_out);
-				ul4on_pkg.none(c_out);
-				ul4on_pkg.int(c_out, 42);
-				ul4on_pkg.str(c_out, 'foo');
-			ul4on_pkg.endlist(c_out);
+		expected = [None, 42, "foo"]
+		got = oracle(f"""
+			{oracle.pkg}.beginlist(c_out);
+				{oracle.pkg}.none(c_out);
+				{oracle.pkg}.int(c_out, 42);
+				{oracle.pkg}.str(c_out, 'foo');
+			{oracle.pkg}.endlist(c_out);
 		""")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_set(oracle):
 	if oracle:
-		assert set() == oracle("""
-			ul4on_pkg.beginset(c_out);
-			ul4on_pkg.endset(c_out);
+		expected = set()
+		got = oracle(f"""
+			{oracle.pkg}.beginset(c_out);
+			{oracle.pkg}.endset(c_out);
 		""")
+		assert expected == got
 
-		assert {None, 42, "foo"} == oracle("""
-			ul4on_pkg.beginset(c_out);
-				ul4on_pkg.none(c_out);
-				ul4on_pkg.int(c_out, 42);
-				ul4on_pkg.str(c_out, 'foo');
-			ul4on_pkg.endset(c_out);
+		expected = {None, 42, "foo"}
+		got = oracle(f"""
+			{oracle.pkg}.beginset(c_out);
+				{oracle.pkg}.none(c_out);
+				{oracle.pkg}.int(c_out, 42);
+				{oracle.pkg}.str(c_out, 'foo');
+			{oracle.pkg}.endset(c_out);
 		""")
+		assert expected == got
 
 
 @pytest.mark.db
 def test_oracle_dict(oracle):
 	if oracle:
-		assert {} == oracle("""
-			ul4on_pkg.begindict(c_out);
-			ul4on_pkg.enddict(c_out);
+		expected = {}
+		got = oracle(f"""
+			{oracle.pkg}.begindict(c_out);
+			{oracle.pkg}.enddict(c_out);
 		""")
-		assert {"foo": None, "bar": 42, 42: [1, 2, 3]} == oracle("""
-			ul4on_pkg.begindict(c_out);
-				ul4on_pkg.keynone(c_out, 'foo');
-				ul4on_pkg.keyint(c_out, 'bar', 42);
-				ul4on_pkg.int(c_out, 42);
-				ul4on_pkg.beginlist(c_out);
-					ul4on_pkg.int(c_out, 1);
-					ul4on_pkg.int(c_out, 2);
-					ul4on_pkg.int(c_out, 3);
-				ul4on_pkg.endlist(c_out);
-			ul4on_pkg.enddict(c_out);
+		assert expected == got
+
+		expected = {"foo": None, "bar": 42, 42: [1, 2, 3]}
+		got = oracle(f"""
+			{oracle.pkg}.begindict(c_out);
+				{oracle.pkg}.keynone(c_out, 'foo');
+				{oracle.pkg}.keyint(c_out, 'bar', 42);
+				{oracle.pkg}.int(c_out, 42);
+				{oracle.pkg}.beginlist(c_out);
+					{oracle.pkg}.int(c_out, 1);
+					{oracle.pkg}.int(c_out, 2);
+					{oracle.pkg}.int(c_out, 3);
+				{oracle.pkg}.endlist(c_out);
+			{oracle.pkg}.enddict(c_out);
 		""")
+		assert expected == got
 
 
 @pytest.mark.db
@@ -670,11 +769,11 @@ def test_oracle_object(oracle):
 				self.firstname = decoder.load()
 				self.lastname = decoder.load()
 
-		p = oracle("""
-			ul4on_pkg.beginobject(c_out, 'de.livinglogic.xist.ul4on.test.person');
-				ul4on_pkg.str(c_out, 'Otto');
-				ul4on_pkg.str(c_out, 'Normalverbraucher');
-			ul4on_pkg.endobject(c_out);
+		p = oracle(f"""
+			{oracle.pkg}.beginobject(c_out, 'de.livinglogic.xist.ul4on.test.person');
+				{oracle.pkg}.str(c_out, 'Otto');
+				{oracle.pkg}.str(c_out, 'Normalverbraucher');
+			{oracle.pkg}.endobject(c_out);
 		""")
 
 		assert isinstance(p, Person)
