@@ -4653,7 +4653,7 @@ def function_now():
 
 @Context.makefunction
 def function_today():
-	return datetime.datetime.today()
+	return datetime.date.today()
 
 
 Context.makefunction(datetime.datetime.utcnow)
