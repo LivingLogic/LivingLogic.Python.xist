@@ -609,6 +609,7 @@ def test_oracle_list(oracle):
 			ul4on_pkg.beginlist(c_out);
 			ul4on_pkg.endlist(c_out);
 		""")
+
 		assert [None, 42, "foo"] == oracle("""
 			ul4on_pkg.beginlist(c_out);
 				ul4on_pkg.none(c_out);
@@ -625,6 +626,7 @@ def test_oracle_set(oracle):
 			ul4on_pkg.beginset(c_out);
 			ul4on_pkg.endset(c_out);
 		""")
+
 		assert {None, 42, "foo"} == oracle("""
 			ul4on_pkg.beginset(c_out);
 				ul4on_pkg.none(c_out);
