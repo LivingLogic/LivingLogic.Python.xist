@@ -5017,6 +5017,14 @@ def function_type(obj):
 		return "undefined"
 	elif isinstance(obj, collections.Mapping):
 		return "dict"
+	elif isinstance(obj, datetime.datetime):
+		return "datetime"
+	elif isinstance(obj, datetime.date):
+		return "date"
+	elif isinstance(obj, datetime.timedelta):
+		return "timedelta"
+	elif isinstance(obj, misc.monthdelta):
+		return "monthdelta"
 	elif isinstance(obj, collections.Sequence) and not isinstance(obj, (str, color.Color)):
 		return "list"
 	elif callable(obj) and not isinstance(obj, (Template, TemplateClosure)):
