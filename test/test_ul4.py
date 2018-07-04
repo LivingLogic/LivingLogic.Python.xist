@@ -1145,9 +1145,9 @@ def test_add(T):
 	assert 'foobar' == T('<?code x="foo"?><?code y="bar"?><?print x+y?>').renders()
 	assert '[1, 2, 3, 4]' == t.renders(x=[1, 2], y=[3, 4])
 	assert '(f)(o)(o)(b)(a)(r)' == T('<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>').renders(data=dict(foo="foo", bar="bar"))
-	assert "2012-10-18 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
-	assert "2013-10-17 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
-	assert "2012-10-17 12:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
+	assert "2012-10-18 00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
+	assert "2013-10-17 00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(365))
+	assert "2012-10-17 12:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
 	assert "2012-10-17 00:00:01" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
 	if T is not TemplatePHP:
 		assert "2012-10-17 00:00:00.500000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
@@ -1156,11 +1156,11 @@ def test_add(T):
 	assert "1 day, 0:00:01" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 1))
 	assert "1 day, 0:00:00.000001" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
 	assert "2 months" == t.renders(x=misc.monthdelta(1), y=misc.monthdelta(1))
-	assert "2000-02-01 00:00:00" == t.renders(x=datetime.datetime(2000, 1, 1), y=misc.monthdelta(1))
-	assert "1999-11-30 00:00:00" == t.renders(x=datetime.datetime(2000, 1, 31), y=misc.monthdelta(-2))
-	assert "2000-03-29 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(1))
-	assert "2001-02-28 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
-	assert "2001-02-28 00:00:00" == t.renders(x=misc.monthdelta(12), y=datetime.datetime(2000, 2, 29))
+	assert "2000-02-01 00:00" == t.renders(x=datetime.datetime(2000, 1, 1), y=misc.monthdelta(1))
+	assert "1999-11-30 00:00" == t.renders(x=datetime.datetime(2000, 1, 31), y=misc.monthdelta(-2))
+	assert "2000-03-29 00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(1))
+	assert "2001-02-28 00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
+	assert "2001-02-28 00:00" == t.renders(x=misc.monthdelta(12), y=datetime.datetime(2000, 2, 29))
 
 
 @pytest.mark.ul4
@@ -1173,9 +1173,9 @@ def test_sub(T):
 		for y in values:
 			assert x - y == eval(t.renders(x=x, y=y))
 
-	assert "2012-10-16 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
-	assert "2011-10-17 00:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(366))
-	assert "2012-10-16 12:00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
+	assert "2012-10-16 00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(1))
+	assert "2011-10-17 00:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(366))
+	assert "2012-10-16 12:00" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 12*60*60))
 	assert "2012-10-16 23:59:59" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 1))
 	if T is not TemplatePHP:
 		assert "2012-10-16 23:59:59.500000" == t.renders(x=datetime.datetime(2012, 10, 17), y=datetime.timedelta(0, 0, 500000))
@@ -1188,10 +1188,10 @@ def test_sub(T):
 	assert "23:59:59.999999" == t.renders(x=datetime.timedelta(1), y=datetime.timedelta(0, 0, 1))
 	assert "-1 day, 23:59:59" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 1))
 	assert "-1 day, 23:59:59.999999" == t.renders(x=datetime.timedelta(0), y=datetime.timedelta(0, 0, 1))
-	assert "2000-01-01 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 1), y=misc.monthdelta(1))
-	assert "2000-02-29 00:00:00" == t.renders(x=datetime.datetime(1999, 12, 31), y=misc.monthdelta(-2))
-	assert "2000-02-29 00:00:00" == t.renders(x=datetime.datetime(2000, 3, 29), y=misc.monthdelta(1))
-	assert "1999-02-28 00:00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
+	assert "2000-01-01 00:00" == t.renders(x=datetime.datetime(2000, 2, 1), y=misc.monthdelta(1))
+	assert "2000-02-29 00:00" == t.renders(x=datetime.datetime(1999, 12, 31), y=misc.monthdelta(-2))
+	assert "2000-02-29 00:00" == t.renders(x=datetime.datetime(2000, 3, 29), y=misc.monthdelta(1))
+	assert "1999-02-28 00:00" == t.renders(x=datetime.datetime(2000, 2, 29), y=misc.monthdelta(12))
 	assert "-1 month" == t.renders(x=misc.monthdelta(2), y=misc.monthdelta(3))
 	assert "365 days, 0:00:00" == t.renders(x=datetime.datetime(2015, 1, 1), y=datetime.datetime(2014, 1, 1))
 	assert "-365 days, 0:00:00" == t.renders(x=datetime.datetime(2014, 1, 1), y=datetime.datetime(2015, 1, 1))
@@ -1990,7 +1990,9 @@ def test_function_today(T):
 		T("<?print today(1, 2)?>").renders()
 	with raises(argumentmismatchmessage):
 		T("<?print today(foo=1)?>").renders()
-	assert today <= T("<?print today()?>").renders()
+	result = T("<?print today()?>").renders()
+	assert today <= result
+	assert len(result) == 10
 
 
 @pytest.mark.ul4
@@ -2010,17 +2012,28 @@ def test_function_utcnow(T):
 @pytest.mark.ul4
 def test_function_date(T):
 	assert "@(2012-10-06)" == T("<?print repr(date(2012, 10, 6))?>").renders()
-	assert "@(2012-10-06T12:00:00)" == T("<?print repr(date(2012, 10, 6, 12))?>").renders()
-	assert "@(2012-10-06T12:34:00)" == T("<?print repr(date(2012, 10, 6, 12, 34))?>").renders()
-	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(2012, 10, 6, 12, 34, 56))?>").renders()
-	if T is not TemplatePHP:
-		assert "@(2012-10-06T12:34:56.987000)" == T("<?print repr(date(2012, 10, 6, 12, 34, 56, 987000))?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(year=2012, month=10, day=6, hour=12, minute=34, second=56, microsecond=0))?>").renders()
+	assert "@(2012-10-06)" == T("<?print repr(date(year=2012, month=10, day=6))?>").renders()
 
 	# Test mixed argument passing
-	assert "@(2012-10-06T12:34:56)" == T("<?print repr(date(2012, *[10], *[6], hour=12, **{'minute': 34}, **{'second': 56}))?>").renders()
+	assert "@(2012-10-06)" == T("<?print repr(date(2012, *[10], **{'day': 6}))?>").renders()
+
+
+@pytest.mark.ul4
+def test_function_datetime(T):
+	assert "@(2012-10-06T)" == T("<?print repr(datetime(2012, 10, 6))?>").renders()
+	assert "@(2012-10-06T12:00)" == T("<?print repr(datetime(2012, 10, 6, 12))?>").renders()
+	assert "@(2012-10-06T12:34)" == T("<?print repr(datetime(2012, 10, 6, 12, 34))?>").renders()
+	assert "@(2012-10-06T12:34:56)" == T("<?print repr(datetime(2012, 10, 6, 12, 34, 56))?>").renders()
+	if T is not TemplatePHP:
+		assert "@(2012-10-06T12:34:56.987000)" == T("<?print repr(datetime(2012, 10, 6, 12, 34, 56, 987000))?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "@(2012-10-06T12:34:56)" == T("<?print repr(datetime(year=2012, month=10, day=6, hour=12, minute=34, second=56, microsecond=0))?>").renders()
+
+	# Test mixed argument passing
+	assert "@(2012-10-06T12:34:56)" == T("<?print repr(datetime(2012, *[10], *[6], hour=12, **{'minute': 34}, **{'second': 56}))?>").renders()
 
 
 @pytest.mark.ul4
@@ -2151,6 +2164,8 @@ def test_function_asjson(T):
 	assert '[1, 2, 3]' == t.renders(data=PseudoList([1, 2, 3]))
 	assert '{"one": 1}' == t.renders(data={"one": 1})
 	assert '{"one": 1}' == t.renders(data=PseudoDict({"one": 1}))
+	assert 'ul4.Date.create(2000, 2, 29)' == t.renders(data=datetime.date(2000, 2, 29))
+	assert 'new Date(2000, 1, 29, 12, 34, 56, 987)' == t.renders(data=datetime.datetime(2000, 2, 29, 12, 34, 56, 987654))
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "42" == T("<?print asjson(obj=data)?>").renders(data=42)
@@ -2217,7 +2232,7 @@ def test_function_str(T):
 	assert "42" == t.renders(data=42)
 	assert "4.2" == t.renders(data=4.2)
 	assert "foo" == t.renders(data="foo")
-	assert "2011-02-09 00:00:00" == t.renders(data=datetime.datetime(2011, 2, 9))
+	assert "2011-02-09 00:00" == t.renders(data=datetime.datetime(2011, 2, 9))
 	assert "2011-02-09 12:34:56" == t.renders(data=datetime.datetime(2011, 2, 9, 12, 34, 56))
 	if T is not TemplatePHP:
 		assert "2011-02-09 12:34:56.987000" == t.renders(data=datetime.datetime(2011, 2, 9, 12, 34, 56, 987000))
@@ -3528,10 +3543,10 @@ def test_function_type(T):
 	assert "int" == t.renders(x=42)
 	assert "float" == t.renders(x=4.2)
 	assert "str" == t.renders(x="foo")
-	assert t.renders(x=datetime.datetime.now()).lower().endswith(("date", "datetime"))
-	assert t.renders(x=datetime.date.today()).lower().endswith(("date", "datetime"))
-	assert t.renders(x=datetime.timedelta()).lower().endswith("timedelta")
-	assert t.renders(x=misc.monthdelta()).lower().endswith("monthdelta")
+	assert "date" == t.renders(x=datetime.date.today())
+	assert "datetime" == t.renders(x=datetime.datetime.now())
+	assert "timedelta" == t.renders(x=datetime.timedelta())
+	assert "monthdelta" == t.renders(x=misc.monthdelta())
 	assert "list" == t.renders(x=(1, 2))
 	assert "list" == t.renders(x=[1, 2])
 	assert "list" == t.renders(x=PseudoList([1, 2]))
@@ -3910,19 +3925,20 @@ def test_method_isoformat(T):
 	assert '2000-02-29T00:00:00' == T('<?print @(2000-02-29T).isoformat()?>').renders()
 	assert '2000-02-29T12:34:00' == T('<?print @(2000-02-29T12:34).isoformat()?>').renders()
 	assert '2000-02-29T12:34:56' == T('<?print @(2000-02-29T12:34:56).isoformat()?>').renders()
+	assert '2000-02-29T12:34:56.987000' == T('<?print @(2000-02-29T12:34:56.987000).isoformat()?>').renders()
 
 
 @pytest.mark.ul4
 def test_method_mimeformat(T):
-	t2 = datetime.date(2010, 2, 22)
+	t1 = datetime.date(2010, 2, 22)
 
-	assert 'Mon, 22 Feb 2010' == T("<?print data.mimeformat()?>").renders(data=t)
-	assert 'Mon, 22 Feb 2010' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t)
+	assert 'Mon, 22 Feb 2010' == T("<?print data.mimeformat()?>").renders(data=t1)
+	assert 'Mon, 22 Feb 2010' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t1)
 
 	t2 = datetime.datetime(2010, 2, 22, 12, 34, 56)
 
-	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?print data.mimeformat()?>").renders(data=t)
-	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?print data.mimeformat()?>").renders(data=t2)
+	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t2)
 
 
 @pytest.mark.ul4
