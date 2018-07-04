@@ -28,6 +28,9 @@ import sys, re, os.path, types, datetime, urllib.parse as urlparse, json, collec
 import antlr3
 
 
+from ll import misc
+
+
 # Regular expression used for splitting dates in isoformat
 _datesplitter = re.compile("[-T:.]")
 
@@ -986,7 +989,7 @@ def _ascii(obj):
 
 
 def _asjson(obj):
-	from ll import color, misc
+	from ll import color
 	if obj is None:
 		return "null"
 	elif isinstance(obj, Undefined):
@@ -1023,8 +1026,7 @@ def _xmlescape(obj):
 	elif isinstance(obj, Undefined):
 		return ""
 	else:
-		from ll import misc
-		return misc.xmlescape(str(obj))
+		return misc.xmlescape(_str(obj))
 
 
 ###
@@ -3510,7 +3512,6 @@ class Render(Call):
 				if self.indent is not None:
 					context.indents.pop()
 			else:
-				from ll import misc
 				raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
 		except Exception as exc:
 			# Wrap original exception in another exception that shows the location
@@ -4131,7 +4132,6 @@ class Template(Block):
 		"""
 		Return the template as Java source code.
 		"""
-		from ll import misc
 		return f"com.livinglogic.ul4.InterpretedTemplate.loads({misc.javaexpr(self.dumps())})"
 
 	def _tokenize(self, source, startdelim, enddelim):
@@ -4676,7 +4676,6 @@ def function_timedelta(days=0, seconds=0, microseconds=0):
 
 @Context.makefunction
 def function_monthdelta(months=0):
-	from ll import misc
 	return misc.monthdelta(months)
 
 
@@ -4895,7 +4894,6 @@ def function_istimedelta(obj):
 
 @Context.makefunction
 def function_ismonthdelta(obj):
-	from ll import misc
 	return isinstance(obj, misc.monthdelta)
 
 
@@ -4974,13 +4972,11 @@ def function_max(*args):
 
 @Context.makefunction
 def function_first(iterable, default=None):
-	from ll import misc
 	return misc.first(iterable, default)
 
 
 @Context.makefunction
 def function_last(iterable, default=None):
-	from ll import misc
 	return misc.last(iterable, default)
 
 
@@ -5014,7 +5010,7 @@ def function_slice(*args):
 
 @Context.makefunction
 def function_type(obj):
-	from ll import color, misc
+	from ll import color
 	if obj is None:
 		return "none"
 	elif isinstance(obj, Undefined):
