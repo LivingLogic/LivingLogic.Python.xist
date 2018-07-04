@@ -860,6 +860,11 @@ def _str(obj=""):
 		return ""
 	elif isinstance(obj, str):
 		return obj
+	elif isinstance(obj, datetime.datetime):
+		if obj.microsecond or obj.second:
+			return str(obj)
+		else:
+			return str(obj)[:-3]
 	elif isinstance(obj, color.Color):
 		return str(obj)
 	elif isinstance(obj, (collections.Sequence, collections.Set, collections.Mapping)):
