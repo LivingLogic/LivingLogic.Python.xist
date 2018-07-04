@@ -674,22 +674,6 @@ def test_oracle_object(oracle):
 				self.firstname = decoder.load()
 				self.lastname = decoder.load()
 
-		assert {} == oracle("""
-			ul4on_pkg.begindict(c_out);
-			ul4on_pkg.enddict(c_out);
-		""")
-		assert {"foo": None, "bar": 42, 42: [1, 2, 3]} == oracle("""
-			ul4on_pkg.begindict(c_out);
-				ul4on_pkg.keynone(c_out, 'foo');
-				ul4on_pkg.keyint(c_out, 'bar', 42);
-				ul4on_pkg.int(c_out, 42);
-				ul4on_pkg.beginlist(c_out);
-					ul4on_pkg.int(c_out, 1);
-					ul4on_pkg.int(c_out, 2);
-					ul4on_pkg.int(c_out, 3);
-				ul4on_pkg.endlist(c_out);
-			ul4on_pkg.enddict(c_out);
-		""")
 		p = oracle("""
 			ul4on_pkg.beginobject(c_out, 'de.livinglogic.xist.ul4on.test.person');
 				ul4on_pkg.str(c_out, 'Otto');
