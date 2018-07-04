@@ -376,16 +376,22 @@ def test_color(t):
 
 
 def test_date(t):
-	d = datetime.date(2012, 10, 29)
-	assert d == t(d)
+	expected = datetime.date(2012, 10, 29)
+	got = t(expected)
+	assert isinstance(got, datetime.date) and not isinstance(got, datetime.datetime)
+	assert expected == got
 
 
 def test_datetime(t):
-	d1 = datetime.datetime(2012, 10, 29)
-	assert d1 == t(d1)
+	expected = datetime.datetime(2012, 10, 29)
+	got = t(expected)
+	assert isinstance(got, datetime.datetime)
+	assert expected == got
 
-	d2 = datetime.datetime(2012, 10, 29, 16, 44, 55, 987000)
-	assert d2 == t(d2)
+	expected = datetime.datetime(2012, 10, 29, 16, 44, 55, 987000)
+	got = t(expected)
+	assert isinstance(got, datetime.datetime)
+	assert expected == got
 
 
 def test_timedelta(t):
