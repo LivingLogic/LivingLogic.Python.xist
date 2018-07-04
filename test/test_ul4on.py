@@ -19,11 +19,6 @@ from ll import ul4on, ul4c, color, misc
 
 home = os.environ["HOME"]
 
-if sys.version_info >= (3, 6):
-	ordereddict = dict
-else:
-	ordereddict = collections.OrderedDict
-
 
 # For the Oracle tests to work the environment variable ``LL_ORASQL_TEST_CONNECT``
 # must point to an Oracle schema where the UL4ON package from
@@ -370,21 +365,21 @@ def test_dict(t):
 
 def test_ordereddict(t):
 	if t not in (transport_js_v8, transport_js_v8_pretty):
-		d = ordereddict()
+		d = {}
 		assert d == t(d)
 
-		assert isinstance(t(d), ordereddict)
+		assert isinstance(t(d), dict)
 
-		d = ordereddict({"gurk": "hurz"})
+		d = {"gurk": "hurz"}
 		assert d == t(d)
 
-		d1 = ordereddict()
+		d1 = {}
 		d1[1] = 'one'
 		d1[2] = 'two'
 		assert d1 == t(d1)
 		assert list(t(d1)) == [1, 2]
 
-		d2 = ordereddict()
+		d2 = {}
 		d2[2] = 'two'
 		d2[1] = 'one'
 		assert t(d1) == t(d2)
