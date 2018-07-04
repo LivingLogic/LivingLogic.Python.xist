@@ -407,10 +407,13 @@ def test_monthdelta(t):
 def test_slice(t):
 	d = slice(None, None)
 	assert d == t(d)
+
 	d = slice(1, None)
 	assert d == t(d)
+
 	d = slice(None, 3)
 	assert d == t(d)
+
 	d = slice(1, 3)
 	assert d == t(d)
 
