@@ -21,8 +21,9 @@ home = os.environ["HOME"]
 
 
 # For the Oracle tests to work the environment variable ``LL_ORASQL_TEST_CONNECT``
-# must point to an Oracle schema where the UL4ON package from
-# https://github.com/LivingLogic/LivingLogic.Oracle.ul4 is installed
+# must point to an Oracle schema where the packages ``UL4ON_PKG`` and
+# ``UL4ONBUFFER_PKG`` from https://github.com/LivingLogic/LivingLogic.Oracle.ul4
+# are installed
 
 @pytest.fixture(scope="module")
 def oracle(request):
