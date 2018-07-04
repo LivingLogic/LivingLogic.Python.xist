@@ -663,8 +663,8 @@ class Decoder:
 		while True:
 			typecode = self._nextchar()
 			# We always "push back" the typecode we've read so that :meth:`load`
-			# can treat both cases (i.e. :meth:`ul4onload` uses :meth:`load` or
-			# :meth:`loadcontent`) the same way.
+			# can treat both cases (i.e. whether :meth:`ul4onload` uses
+			# :meth:`load` or :meth:`loadcontent`) the same way.
 			self._bufferedchar = typecode
 			if typecode == ")":
 				break
