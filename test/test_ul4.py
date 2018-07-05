@@ -484,6 +484,12 @@ def T(request):
 	return all_templates[request.param]
 
 
+def pytest_generate_tests(metafunc):
+	if "reprfunc" in metafunc.funcargnames:
+		values = ["repr", "ascii"]
+		metafunc.parametrize("reprfunc", values, ids=values)
+
+
 argumentmismatchmessage = [
 	# Python argument mismatch exception messages
 	"takes exactly \\d+ (positional )?arguments?", # < 3.3
@@ -3142,19 +3148,24 @@ def test_function_isexception(T):
 	assert "False" == T("<?print isexception(obj=data)?>").renders(data=None)
 
 
-def repr_ascii(T, ascii):
-	name = "ascii" if ascii else "repr"
-	t = T(f"<?print {name}(data)?>")
+@pytest.mark.ul4
+def test_function_reprascii(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T(f"<?print {name}()?>").renders()
-	with raises(argumentmismatchmessage):
-		T(f"<?print {name}(1, 2)?>").renders()
+	# None
 	assert "None" == t.renders(data=None)
+
+	# bool
 	assert "True" == t.renders(data=True)
 	assert "False" == t.renders(data=False)
+
+	# int
 	assert "42" == t.renders(data=42)
+
+	# float
 	assert 42.5 == eval(t.renders(data=42.5))
+
+	# str
 	assert "'foo'" == t.renders(data="foo")
 	assert "\"'\"" == t.renders(data="'")
 	assert "'\"'" == t.renders(data="\"")
@@ -3168,7 +3179,7 @@ def repr_ascii(T, ascii):
 	assert "'\\x9f'" == t.renders(data="\x9f")
 	assert "'\\xa0'" == t.renders(data="\xa0") # category Zs
 	assert "'\\xad'" == t.renders(data="\xad") # category Cf
-	if ascii:
+	if reprfunc == "ascii":
 		assert "'\\xff'" == t.renders(data="\xff")
 		assert "'\\u0100'" == t.renders(data="\u0100")
 	else:
@@ -3179,53 +3190,70 @@ def repr_ascii(T, ascii):
 	assert "'\\u2029'" == t.renders(data="\u2029") # category Zp
 	assert "'\\ud800'" == t.renders(data="\ud800") # category Cs
 	assert "'\\ue000'" == t.renders(data="\ue000") # category Co
-	if ascii:
+	if reprfunc == "ascii":
 		assert "'\\u3042'" == t.renders(data="\u3042")
 	else:
 		assert "'\u3042'" == t.renders(data="\u3042")
 	assert "'\\uffff'" == t.renders(data="\uffff")
 
+	# list
 	assert [1, 2, 3] == eval(t.renders(data=[1, 2, 3]))
 	if T is not TemplateJavascriptV8:
 		assert [1, 2, 3] == eval(t.renders(data=(1, 2, 3)))
+
+	# set
 	assert "{/}" == t.renders(data=set())
 	assert "{'1'}" == t.renders(data={"1"})
 	if T is not TemplateJavascriptV8:
 		assert "{1}" == t.renders(data={1})
+
+	# dict
 	assert "{}" == t.renders(data={})
 	assert {"a": 1, "b": 2} == eval(t.renders(data={"a": 1, "b": 2}))
+
+	# date
+	assert "@(2011-02-07)" == t.renders(data=datetime.date(2011, 2, 7))
+
+	# datetime
 	if T is not TemplatePHP:
 		assert "@(2011-02-07T12:34:56.123000)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
 	assert "@(2011-02-07T12:34:56)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56))
 	assert "@(2011-02-07T12:34)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34))
 	assert "@(2011-02-07T)" == t.renders(data=datetime.datetime(2011, 2, 7))
-	assert "@(2011-02-07)" == t.renders(data=datetime.date(2011, 2, 7))
-	assert "timedelta(1)" == t.renders(data=datetime.timedelta(1))
-	assert "timedelta(0, 1)" == t.renders(data=datetime.timedelta(0, 1))
-	assert "timedelta(0, 0, 1)" == t.renders(data=datetime.timedelta(0, 0, 1))
-	assert "timedelta(-1)" == t.renders(data=datetime.timedelta(-1))
-	assert "timedelta(-1, 86399)" == t.renders(data=datetime.timedelta(0, -1))
-	assert "timedelta(-1, 86399, 999999)" == t.renders(data=datetime.timedelta(0, 0, -1))
-	assert "timedelta(0, 43200)" == t.renders(data=datetime.timedelta(0.5))
-	assert "timedelta(0, 0, 500000)" == t.renders(data=datetime.timedelta(0, 0.5))
-	assert "timedelta(-1, 43200)" == t.renders(data=datetime.timedelta(-0.5))
-	assert "timedelta(-1, 86399, 500000)" == t.renders(data=datetime.timedelta(0, -0.5))
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "None" == T(f"<?print {name}(obj=data)?>").renders(data=None)
+	# timedelta
+	assert t.renders(data=datetime.timedelta(1)) in {"timedelta(1)", "timedelta(days=1)"}
+	assert t.renders(data=datetime.timedelta(0, 1)) in {"timedelta(0, 1)", "timedelta(seconds=1)"}
+	assert t.renders(data=datetime.timedelta(0, 0, 1)) in {"timedelta(0, 0, 1)", "timedelta(microseconds=1)"}
+	assert t.renders(data=datetime.timedelta(-1)) in {"timedelta(-1)", "timedelta(days=-1)"}
+	assert t.renders(data=datetime.timedelta(0, -1)) in {"timedelta(-1, 86399)", "timedelta(days=-1, seconds=86399)"}
+	assert t.renders(data=datetime.timedelta(0, 0, -1)) in {"timedelta(-1, 86399, 999999)", "timedelta(days=-1, seconds=86399, microseconds=999999)"}
+	assert t.renders(data=datetime.timedelta(0.5)) in {"timedelta(0, 43200)", "timedelta(seconds=43200)"}
+	assert t.renders(data=datetime.timedelta(0, 0.5)) in {"timedelta(0, 0, 500000)", "timedelta(microseconds=500000)"}
+	assert t.renders(data=datetime.timedelta(-0.5)) in {"timedelta(-1, 43200)", "timedelta(days=-1, seconds=43200)"}
+	assert t.renders(data=datetime.timedelta(0, -0.5)) in {"timedelta(-1, 86399, 500000)", "timedelta(days=-1, seconds=86399, microseconds=500000)"}
 
-
-@pytest.mark.ul4
-def test_function_repr(T):
-	repr_ascii(T, False)
-
+	# signature
 	output = T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print repr(f.signature)?>").renders()
 	assert output.endswith("Signature (x=17, y=@(2000-02-29))>")
 
 
 @pytest.mark.ul4
-def test_function_ascii(T):
-	repr_ascii(T, True)
+def text_function_reprascii_kwargs(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "None" == T(f"<?print {reprfunc}(obj=data)?>").renders(data=None)
+
+
+@pytest.mark.ul4
+def text_function_reprascii_badargs(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
+	with raises(argumentmismatchmessage):
+		T(f"<?print {reprfunc}()?>").renders()
+	with raises(argumentmismatchmessage):
+		T(f"<?print {reprfunc}(1, 2)?>").renders()
 
 
 @pytest.mark.ul4
