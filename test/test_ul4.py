@@ -5362,13 +5362,13 @@ def test_truedivlvalue(T):
 def test_endless_recursion(T):
 	with raises("maximum recursion depth exceeded|Maximum call stack size exceeded|too much recursion|StackOverflowError|Allocation failed - process out of memory"):
 		T("""
-			<?def f?>
+			<?def f(container)?>
 				<?for child in container?>
-					<?code f(f=f, container=container)?>
+					<?code f(child)?>
 				<?end for?>
 			<?end def?>
 			<?code x = []?>
-			<?code x.append(x)?><?code f(f=f, container=x)?>
+			<?code x.append(x)?><?code f(x)?>
 		""").renders()
 
 
