@@ -381,7 +381,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
+		return self.runcode("d8 --stack_size=100 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
