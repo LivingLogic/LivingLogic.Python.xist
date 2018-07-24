@@ -2835,9 +2835,9 @@ def test_function_isdatetime(T):
 	t = T("<?print isdatetime(data)?>")
 
 	with raises(argumentmismatchmessage):
-		T("<?print isdate()?>").renders()
+		T("<?print isdatetime()?>").renders()
 	with raises(argumentmismatchmessage):
-		T("<?print isdate(1, 2)?>").renders()
+		T("<?print isdatetime(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
