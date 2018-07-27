@@ -1006,13 +1006,13 @@ def _asjson(obj):
 	elif isinstance(obj, datetime.datetime):
 		return f"new Date({obj.year}, {obj.month-1}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond//1000})"
 	elif isinstance(obj, datetime.date):
-		return f"ul4.Date.create({obj.year}, {obj.month}, {obj.day})"
+		return f"new ul4.Date({obj.year}, {obj.month}, {obj.day})"
 	elif isinstance(obj, datetime.timedelta):
-		return f"ul4.TimeDelta.create({obj.days}, {obj.seconds}, {obj.microseconds})"
+		return f"new ul4.TimeDelta({obj.days}, {obj.seconds}, {obj.microseconds})"
 	elif isinstance(obj, misc.monthdelta):
-		return f"ul4.MonthDelta.create({obj.months()})"
+		return f"new ul4.MonthDelta({obj.months()})"
 	elif isinstance(obj, color.Color):
-		return f"ul4.Color.create({obj[0]}, {obj[1]}, {obj[2]}, {obj[3]})"
+		return f"new ul4.Color({obj[0]}, {obj[1]}, {obj[2]}, {obj[3]})"
 	elif isinstance(obj, collections.Mapping):
 		items = ", ".join(f"{_asjson(key)}: {_asjson(value)}" for (key, value) in obj.items())
 		return f"{{{items}}}"
@@ -4131,7 +4131,7 @@ class Template(Block):
 		"""
 		Return the template as the source code of a Javascript function.
 		"""
-		return f"ul4.Template.loads({_asjson(self.dumps())})"
+		return f"ul4on.loads({_asjson(self.dumps())})"
 
 	def javasource(self):
 		"""
