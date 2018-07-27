@@ -4917,7 +4917,7 @@ def test_templateattributes(T):
 	assert "?>" == T("<?print template.enddelim?>").renders(template=t1)
 	assert s1 == T("<?print template.source?>").renders(template=t1)
 	assert "2" == T("<?print len(template.content)?>").renders(template=t1) # The template AST always contains an :class:`Indent` node at the start
-	assert "indent print" == T("<?print ' '.join(ast.type for ast in template.content)?>").renders(template=t1)
+	assert "(indent) (print)" == T("<?print ' '.join('(' + ast.type + ')' for ast in template.content)?>").renders(template=t1)
 	assert "t1" == T("<?print template.content[0].template.name?>").renders(template=t1)
 	assert "t1" == T("<?print template.content[1].tag.template.name?>").renders(template=t1)
 	assert s1 == T("<?print template.content[1].tag.text?>").renders(template=t1)
