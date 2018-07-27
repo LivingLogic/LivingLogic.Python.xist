@@ -2173,7 +2173,10 @@ def test_function_asjson(T):
 	assert '[1, 2, 3]' == t.renders(data=PseudoList([1, 2, 3]))
 	assert '{"one": 1}' == t.renders(data={"one": 1})
 	assert '{"one": 1}' == t.renders(data=PseudoDict({"one": 1}))
-	assert 'ul4.Date.create(2000, 2, 29)' == t.renders(data=datetime.date(2000, 2, 29))
+	assert 'new ul4.Date(2000, 2, 29)' == t.renders(data=datetime.date(2000, 2, 29))
+	assert 'new ul4.TimeDelta(1, 1, 1)' == t.renders(data=datetime.timedelta(1, 1, 1))
+	assert 'new ul4.MonthDelta(1)' == t.renders(data=misc.monthdelta(1))
+	assert 'new ul4.Color(1, 2, 3, 4)' == t.renders(data=color.Color(1, 2, 3, 4))
 	assert 'new Date(2000, 1, 29, 12, 34, 56, 987)' == t.renders(data=datetime.datetime(2000, 2, 29, 12, 34, 56, 987654))
 
 	# Make sure that the parameters have the same name in all implementations
