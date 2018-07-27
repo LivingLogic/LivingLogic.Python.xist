@@ -3153,23 +3153,38 @@ def test_function_isexception(T):
 
 
 @pytest.mark.ul4
-def test_function_reprascii(T, reprfunc):
+def test_function_reprascii_none(T, reprfunc):
 	t = T(f"<?print {reprfunc}(data)?>")
 
-	# None
 	assert "None" == t.renders(data=None)
 
-	# bool
+
+@pytest.mark.ul4
+def test_function_reprascii_bool(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert "True" == t.renders(data=True)
 	assert "False" == t.renders(data=False)
 
-	# int
+
+@pytest.mark.ul4
+def test_function_reprascii_int(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert "42" == t.renders(data=42)
 
-	# float
+
+@pytest.mark.ul4
+def test_function_reprascii_float(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert 42.5 == eval(t.renders(data=42.5))
 
-	# str
+
+@pytest.mark.ul4
+def test_function_reprascii_str(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert "'foo'" == t.renders(data="foo")
 	assert "\"'\"" == t.renders(data="'")
 	assert "'\"'" == t.renders(data="\"")
@@ -3200,32 +3215,56 @@ def test_function_reprascii(T, reprfunc):
 		assert "'\u3042'" == t.renders(data="\u3042")
 	assert "'\\uffff'" == t.renders(data="\uffff")
 
-	# list
+
+@pytest.mark.ul4
+def test_function_reprascii_list(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert [1, 2, 3] == eval(t.renders(data=[1, 2, 3]))
 	if T is not TemplateJavascriptV8:
 		assert [1, 2, 3] == eval(t.renders(data=(1, 2, 3)))
 
-	# set
+
+@pytest.mark.ul4
+def test_function_reprascii_set(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert "{/}" == t.renders(data=set())
 	assert "{'1'}" == t.renders(data={"1"})
 	if T is not TemplateJavascriptV8:
 		assert "{1}" == t.renders(data={1})
 
-	# dict
+
+@pytest.mark.ul4
+def test_function_reprascii_dict(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert "{}" == t.renders(data={})
 	assert {"a": 1, "b": 2} == eval(t.renders(data={"a": 1, "b": 2}))
 
-	# date
+
+@pytest.mark.ul4
+def test_function_reprascii_date(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert "@(2011-02-07)" == t.renders(data=datetime.date(2011, 2, 7))
 
-	# datetime
+
+@pytest.mark.ul4
+def test_function_reprascii_datetime(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	if T is not TemplatePHP:
 		assert "@(2011-02-07T12:34:56.123000)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56, 123000))
 	assert "@(2011-02-07T12:34:56)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34, 56))
 	assert "@(2011-02-07T12:34)" == t.renders(data=datetime.datetime(2011, 2, 7, 12, 34))
 	assert "@(2011-02-07T)" == t.renders(data=datetime.datetime(2011, 2, 7))
 
-	# timedelta
+
+@pytest.mark.ul4
+def test_function_reprascii_timedelta(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	assert t.renders(data=datetime.timedelta(1)) in {"timedelta(1)", "timedelta(days=1)"}
 	assert t.renders(data=datetime.timedelta(0, 1)) in {"timedelta(0, 1)", "timedelta(seconds=1)"}
 	assert t.renders(data=datetime.timedelta(0, 0, 1)) in {"timedelta(0, 0, 1)", "timedelta(microseconds=1)"}
@@ -3237,7 +3276,11 @@ def test_function_reprascii(T, reprfunc):
 	assert t.renders(data=datetime.timedelta(-0.5)) in {"timedelta(-1, 43200)", "timedelta(days=-1, seconds=43200)"}
 	assert t.renders(data=datetime.timedelta(0, -0.5)) in {"timedelta(-1, 86399, 500000)", "timedelta(days=-1, seconds=86399, microseconds=500000)"}
 
-	# signature
+
+@pytest.mark.ul4
+def test_function_reprascii_signature(T, reprfunc):
+	t = T(f"<?print {reprfunc}(data)?>")
+
 	output = T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print repr(f.signature)?>").renders()
 	assert output.endswith("Signature (x=17, y=@(2000-02-29))>")
 
@@ -3954,8 +3997,12 @@ def test_method_renders(T):
 
 
 @pytest.mark.ul4
-def test_method_isoformat(T):
+def test_method_isoformat_date(T):
 	assert '2000-02-29' == T('<?print @(2000-02-29).isoformat()?>').renders()
+
+
+@pytest.mark.ul4
+def test_method_isoformat_datetime(T):
 	assert '2000-02-29T00:00:00' == T('<?print @(2000-02-29T).isoformat()?>').renders()
 	assert '2000-02-29T12:34:00' == T('<?print @(2000-02-29T12:34).isoformat()?>').renders()
 	assert '2000-02-29T12:34:56' == T('<?print @(2000-02-29T12:34:56).isoformat()?>').renders()
@@ -3963,12 +4010,15 @@ def test_method_isoformat(T):
 
 
 @pytest.mark.ul4
-def test_method_mimeformat(T):
+def test_method_mimeformat_date(T):
 	t1 = datetime.date(2010, 2, 22)
 
 	assert 'Mon, 22 Feb 2010' == T("<?print data.mimeformat()?>").renders(data=t1)
 	assert 'Mon, 22 Feb 2010' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t1)
 
+
+@pytest.mark.ul4
+def test_method_mimeformat_datetime(T):
 	t2 = datetime.datetime(2010, 2, 22, 12, 34, 56)
 
 	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?print data.mimeformat()?>").renders(data=t2)
@@ -4078,8 +4128,9 @@ def test_method_join(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert '1,2,3,4' == T('<?print ",".join(iterable="1234")?>').renders()
 
+
 @pytest.mark.ul4
-def test_method_count(T):
+def test_method_count_string(T):
 	source = "<?ul4 f(haystack, needle, start=None, end=None)?><?print haystack.count(needle, start, end)?>"
 
 	assert '3' == T(source).renders(haystack='aaa', needle='a')
@@ -4117,7 +4168,11 @@ def test_method_count(T):
 	# Matches are non overlapping
 	assert '1' == T(source).renders(haystack='aaa', needle='aa')
 
-	# Test the list version
+
+@pytest.mark.ul4
+def test_method_count_list(T):
+	source = "<?ul4 f(haystack, needle, start=None, end=None)?><?print haystack.count(needle, start, end)?>"
+
 	assert '0' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle='a')
 	assert '3' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2)
 	assert '2' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2)
@@ -4125,7 +4180,7 @@ def test_method_count(T):
 
 
 @pytest.mark.ul4
-def test_method_find(T):
+def test_method_find_string(T):
 	s = "gurkgurk"
 	assert '-1' == T('<?print s.find("ks")?>').renders(s=s)
 	assert '2' == T('<?print s.find("rk")?>').renders(s=s)
@@ -4137,6 +4192,13 @@ def test_method_find(T):
 	assert '-1' == T('<?print s.find("rk", 2, 3)?>').renders(s=s)
 	assert '-1' == T('<?print s.find("rk", 7)?>').renders(s=s)
 	assert '-1' == T('<?code m = s.find?><?print m("rk", 7)?>').renders(s=s)
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '2' == T('<?print s.find(sub="rk", start=2, end=4)?>').renders(s=s)
+
+
+@pytest.mark.ul4
+def test_method_find_list(T):
 	l = list("gurkgurk")
 	assert '-1' == T('<?print l.find("x")?>').renders(l=l)
 	assert '2' == T('<?print l.find("r")?>').renders(l=l)
@@ -4150,12 +4212,9 @@ def test_method_find(T):
 	assert '1' == T('<?print l.find(None)?>').renders(l=[0, None, 1, None, 2, None, 3, None])
 	assert '-1' == T('<?code m = l.find?><?print m("r", 7)?>').renders(l=l)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert '2' == T('<?print s.find(sub="rk", start=2, end=4)?>').renders(s=s)
-
 
 @pytest.mark.ul4
-def test_method_rfind(T):
+def test_method_rfind_string(T):
 	s = "gurkgurk"
 	assert '-1' == T('<?print s.rfind("ks")?>').renders(s=s)
 	assert '6' == T('<?print s.rfind("rk")?>').renders(s=s)
@@ -4167,6 +4226,13 @@ def test_method_rfind(T):
 	assert '-1' == T('<?print s.rfind("rk", 2, 3)?>').renders(s=s)
 	assert '-1' == T('<?print s.rfind("rk", 7)?>').renders(s=s)
 	assert '-1' == T('<?code m = s.rfind?><?print m("rk", 7)?>').renders(s=s)
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '2' == T('<?print s.rfind(sub="rk", start=2, end=4)?>').renders(s=s)
+
+
+@pytest.mark.ul4
+def test_method_rfind_list(T):
 	l = list("gurkgurk")
 	assert '-1' == T('<?print l.rfind("x")?>').renders(l=l)
 	assert '6' == T('<?print l.rfind("r")?>').renders(l=l)
@@ -4178,9 +4244,6 @@ def test_method_rfind(T):
 	assert '-1' == T('<?print l.rfind("r", 7)?>').renders(l=l)
 	assert '7' == T('<?print l.rfind(None)?>').renders(l=[0, None, 1, None, 2, None, 3, None])
 	assert '-1' == T('<?code m = l.rfind?><?print m("r", 7)?>').renders(l=l)
-
-	# Make sure that the parameters have the same name in all implementations
-	assert '2' == T('<?print s.rfind(sub="rk", start=2, end=4)?>').renders(s=s)
 
 
 @pytest.mark.ul4
