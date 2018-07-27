@@ -1234,7 +1234,7 @@ class Tag(AST):
 	"""
 	A :class:`Tag` object is the location of a template tag in a template.
 	"""
-	ul4attrs = AST.ul4attrs.union({"template", "tag", "pos", "text", "code"})
+	ul4attrs = AST.ul4attrs.union({"template", "tag", "text", "code"})
 
 	def __init__(self, template=None, tag=None, tagpos=None, codepos=None):
 		super().__init__(tagpos)
