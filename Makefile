@@ -1,4 +1,4 @@
-.PHONY: develop build install test dist upload windist livinglogic
+.PHONY: install develop parser test build dist upload windist winupload livinglogic
 
 
 install:
