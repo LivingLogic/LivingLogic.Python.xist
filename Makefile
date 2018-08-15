@@ -1,4 +1,4 @@
-.PHONY: develop install test dist upload windist livinglogic
+.PHONY: develop build install test dist upload windist livinglogic
 
 
 install:
@@ -18,13 +18,15 @@ test: install
 	python$(PYVERSION) -mpytest
 
 
-dist:
+build:
 	rm -rf dist/*
 	python$(PYVERSION) setup.py sdist --formats=gztar bdist_wheel
+
+dist: build
 	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.whl ssh://root@isar.livinglogic.de/~ftp/pub/livinglogic/xist/
 
 
-upload: dist
+upload: build
 	twine upload dist/*
 
 
