@@ -23,6 +23,9 @@ Changes in 5.35 (released ??/??/2018)
 
 *	Speed up deserializing strings from UL4ON dumps.
 
+*	Fixed a bug in :meth:`ll.orasql.ForeignKey.refconstraint` for foreign keys
+	that reference a table in another schema.
+
 
 Changes in 5.34 (released 06/03/2018)
 -------------------------------------

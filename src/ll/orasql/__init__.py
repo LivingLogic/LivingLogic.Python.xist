@@ -2175,7 +2175,7 @@ class ForeignKey(Constraint):
 				c1.constraint_type = 'R' and
 				c1.owner = nvl(:owner, user) and
 				c1.constraint_name = :name and
-				c1.owner = c2.owner and
+				c1.r_owner = c2.owner and
 				c1.r_constraint_name = c2.constraint_name
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
