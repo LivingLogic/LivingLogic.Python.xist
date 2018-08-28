@@ -2669,7 +2669,7 @@ class _Attrs_Meta(type(Node)):
 
 class Attrs(Node, dict, metaclass=_Attrs_Meta):
 	"""
-	An attribute map. Predefined attribute can be declared through nested
+	An attribute map. Predefined attributes can be declared through nested
 	subclasses of :class:`Attr`.
 	"""
 
