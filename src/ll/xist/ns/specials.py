@@ -11,7 +11,7 @@
 
 """
 An XIST module that contains a collection of useful elements that can be used
-for all conversion target, because they only generate text.
+for all conversion targets, because they only generate text.
 """
 
 
