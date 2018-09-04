@@ -778,7 +778,7 @@ class Publisher:
 			if isinstance(node, Frag):
 				count = 0
 				for child in node:
-					if isinstance(node, Element) and node.xmlns not in self.hidexmlns:
+					if isinstance(child, Element) and child.xmlns not in self.hidexmlns:
 						count += 1
 				if count > 1:
 					raise MultipleRootsError()
