@@ -1039,7 +1039,7 @@ class Node(object, metaclass=_Node_Meta):
 	prettyindentafter = 0
 
 	def __repr__(self):
-		return f"<{self.__module__}:{self.__qualname_} object at {id(self):#x}>"
+		return f"<{self.__module__}:{self.__qualname__} object at {id(self):#x}>"
 
 	def __ne__(self, other):
 		return not self == other
