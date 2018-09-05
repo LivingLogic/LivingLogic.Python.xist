@@ -135,7 +135,7 @@ Changes in 5.30 (released 01/17/2018)
 	is syntactic sugar for::
 
 		<?def content?>
-			bar?>
+			bar
 		<?end def?>
 		<?render foo(content=content)?>
 
