@@ -5446,6 +5446,26 @@ def test_ul4_tag(T):
 
 
 @pytest.mark.ul4
+def test_ul4_tag_python():
+
+	t1 = ul4c.Template("<?ul4 foo?>")
+	assert t1.name == "foo"
+	assert t1.signature is None
+
+	t2 = ul4c.Template("<?ul4 foo2(bar)?>")
+	assert t2.name == "foo2"
+	assert str(t2.signature) == "(bar)"
+
+	t3 = ul4c.Template("<?ul4 foo3(bar=17, baz=23)?>")
+	assert t3.name == "foo3"
+	assert str(t3.signature) == "(bar=17, baz=23)"
+
+	t4 = ul4c.Template("<?ul4 foo4(bar=baz)?>")
+	assert t4.name == "foo4"
+	assert str(t4.signature) == "(bar=UndefinedVariable('baz'))"
+
+
+@pytest.mark.ul4
 def test_whitespace_tag():
 	t1 = ul4c.Template("<?whitespace keep?>")
 	assert t1.whitespace == "keep"
@@ -5505,25 +5525,6 @@ def test_smart_whitespace(T):
 @pytest.mark.ul4
 def test_smart_whitespace_nesting(T):
 	assert "<x>\n\t<y>\n\t\t<z>0</z>\n\t</y>\n\t<y>\n\t\t<z>1</z>\n\t</y>\n</x>" == T("<?whitespace smart?>\n<x>\n\t<?for i in range(2)?>\n\t\t<y>\n\t\t\t<z><?printx i?></z>\n\t\t</y>\n\t<?end for?>\n</x>").renders()
-
-
-@pytest.mark.ul4
-def test_ul4_tag():
-	t1 = ul4c.Template("<?ul4 foo?>")
-	assert t1.name == "foo"
-	assert t1.signature is None
-
-	t2 = ul4c.Template("<?ul4 foo2(bar)?>")
-	assert t2.name == "foo2"
-	assert str(t2.signature) == "(bar)"
-
-	t3 = ul4c.Template("<?ul4 foo3(bar=17, baz=23)?>")
-	assert t3.name == "foo3"
-	assert str(t3.signature) == "(bar=17, baz=23)"
-
-	t4 = ul4c.Template("<?ul4 foo4(bar=baz)?>")
-	assert t4.name == "foo4"
-	assert str(t4.signature) == "(bar=UndefinedVariable('baz'))"
 
 
 @pytest.mark.ul4
