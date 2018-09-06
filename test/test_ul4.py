@@ -5414,7 +5414,7 @@ def test_truedivlvalue(T):
 
 
 @pytest.mark.ul4
-def test_truedivlvalue(T):
+def test_modlvalue(T):
 	assert "1" == T("<?code d = {'foo': 5}?><?code d.foo %= 2?><?print d.foo?>").renders()
 	assert "1" == T("<?code d = {'foo': 5}?><?code d['foo'] %= 2?><?print d['foo']?>").renders()
 	assert "1" == T("<?code d = [5]?><?code d[0] %= 2?><?print d[0]?>").renders()
