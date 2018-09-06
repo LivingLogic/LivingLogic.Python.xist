@@ -5464,6 +5464,10 @@ def test_ul4_tag_python():
 	assert t4.name == "foo4"
 	assert str(t4.signature) == "(bar=UndefinedVariable('baz'))"
 
+	t5 = ul4c.Template("<?ul4 ()?>")
+	assert t5.name is None
+	assert str(t5.signature) == "()"
+
 
 @pytest.mark.ul4
 def test_whitespace_tag():
