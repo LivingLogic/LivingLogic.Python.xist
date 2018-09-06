@@ -3279,10 +3279,8 @@ def test_function_reprascii_timedelta(T, reprfunc):
 
 @pytest.mark.ul4
 def test_function_reprascii_signature(T, reprfunc):
-	t = T(f"<?print {reprfunc}(data)?>")
-
-	output = T("<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print repr(f.signature)?>").renders()
-	assert output.endswith("Signature (x=17, y=@(2000-02-29))>")
+	output = T(f"<?def f(x=17, y=@(2000-02-29))?><?return x+y?><?end def?><?print {reprfunc}(f.signature)?>").renders()
+	assert "(x=17, y=@(2000-02-29))" in output
 
 
 @pytest.mark.ul4
