@@ -23,6 +23,10 @@ Changes in 5.35 (released ??/??/2018)
 
 *	Speed up deserializing strings from UL4ON dumps.
 
+*	:mod:`ll.sisyphus` now uses :mod:`psutil` to terminate all child processes
+	when the maximum runtime is exceeded. If :mod:`psutil` is not available
+	only the forked child process itself will be terminated as before.
+
 *	Fixed a bug in :meth:`ll.orasql.ForeignKey.refconstraint` for foreign keys
 	that reference a table in another schema.
 

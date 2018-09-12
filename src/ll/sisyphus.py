@@ -171,6 +171,11 @@ from email.mime import text, application, multipart
 from email import encoders
 
 try:
+	import psutil
+except ImportError:
+	psutil = None
+
+try:
 	import setproctitle
 except ImportError:
 	setproctitle = None
@@ -702,8 +707,33 @@ class Job:
 		else:
 			return self.maxtime
 
+	def _kill_children(self):
+		if psutil is None:
+			os.kill(self.killpid, signal.SIGTERM) # Kill our child
+			return {self.killpid}
+		else:
+			pids = set()
+			procs = psutil.Process().children(recursive=True)
+
+			# Send SIGTERM
+			for p in procs:
+				print(f"Terminating {p}")
+				pids.add(p.pid)
+				p.terminate()
+			(gone, alive) = psutil.wait_procs(procs, timeout=3)
+
+			# Send SIGKILL
+			if alive:
+				for p in alive:
+					print(f"Killing {p}")
+					pids.add(p.pid)
+					p.kill()
+				(gone, alive) = psutil.wait_procs(alive, timeout=3)
+				# Ignore whether any processes remain in the ``alive`` list
+			return pids
+
 	def _alarm_fork(self, signum, frame):
-		os.kill(self.killpid, signal.SIGTERM) # Kill our child
+		pids = self._kill_children()
 		maxtime = self.getmaxtime()
 		self.endtime = datetime.datetime.now()
 		exc = RuntimeError(f"maximum runtime {maxtime} exceeded in forked child (pid {misc.sysinfo.pid})")
@@ -711,7 +741,12 @@ class Job:
 			self.log.email(exc)
 		else:
 			self.log(exc)
-		self.log.sisyphus.result.kill(f"Terminated child after {maxtime}")
+		if len(pids) == 1:
+			pid = misc.first(pids)
+			self.log.sisyphus.result.kill(f"Terminated child {pid} after {maxtime}")
+		else:
+			pids = ", ".join(str(pid) for pid in pids)
+			self.log.sisyphus.result.kill(f"Terminated children {pids} after {maxtime}")
 		for logger in self._loggers:
 			logger.close()
 		os._exit(1)
