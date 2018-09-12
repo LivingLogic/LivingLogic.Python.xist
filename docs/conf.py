@@ -318,7 +318,7 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-	'python': ('https://docs.python.org/3.6', None)
+	'python': ('https://docs.python.org/3.6', None),
 }
 
 autodoc_default_flags = ["members", "special-members", "show-inheritance"]
