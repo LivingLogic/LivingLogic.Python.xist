@@ -781,6 +781,7 @@ class Job:
 					except BaseException as exc:
 						pass
 					return # Exit normally
+				# Here we are in the child process
 				self.setproctitle("child")
 				self.log.sisyphus.init(f"forked worker child (child pid {os.getpid()})")
 			else: # We didn't fork
