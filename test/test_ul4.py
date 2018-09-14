@@ -3302,7 +3302,7 @@ def text_function_reprascii_badargs(T, reprfunc):
 
 
 @pytest.mark.ul4
-def test_function_format_date(T):
+def test_function_format_datetime(T):
 	dt = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 
 	t2 = T("<?print format(data, fmt)?>")
