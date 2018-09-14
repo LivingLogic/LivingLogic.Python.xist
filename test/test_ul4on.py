@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, io, os, json, datetime, math, tempfile, shutil, subprocess, collections
+import sys, io, os, json, datetime, math, tempfile, shutil, subprocess
 
 import pytest
 
