@@ -3302,6 +3302,59 @@ def text_function_reprascii_badargs(T, reprfunc):
 
 
 @pytest.mark.ul4
+def test_function_format_date(T):
+	dt = datetime.date(2018, 9, 14)
+
+	t2 = T("<?print format(data, fmt)?>")
+	t3 = T("<?print format(data, fmt, lang)?>")
+
+	assert "2018" == t2.renders(fmt="%Y", data=dt)
+	assert "09" == t2.renders(fmt="%m", data=dt)
+	assert "14" == t2.renders(fmt="%d", data=dt)
+	assert "00" == t2.renders(fmt="%H", data=dt)
+	assert "00" == t2.renders(fmt="%M", data=dt)
+	assert "00" == t2.renders(fmt="%S", data=dt)
+	assert "000000" == t2.renders(fmt="%f", data=dt)
+	assert "Fri" == t2.renders(fmt="%a", data=dt)
+	assert "Fri" == t3.renders(fmt="%a", data=dt, lang=None)
+	assert "Fri" == t3.renders(fmt="%a", data=dt, lang="en")
+	assert "Fr" == t3.renders(fmt="%a", data=dt, lang="de")
+	assert "Fr" == t3.renders(fmt="%a", data=dt, lang="de_DE")
+	assert "Friday" == t2.renders(fmt="%A", data=dt)
+	assert "Friday" == t3.renders(fmt="%A", data=dt, lang=None)
+	assert "Friday" == t3.renders(fmt="%A", data=dt, lang="en")
+	assert "Freitag" == t3.renders(fmt="%A", data=dt, lang="de")
+	assert "Freitag" == t3.renders(fmt="%A", data=dt, lang="de_DE")
+	assert "Sep" == t2.renders(fmt="%b", data=dt)
+	assert "Sep" == t3.renders(fmt="%b", data=dt, lang=None)
+	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="en")
+	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="de")
+	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="de_DE")
+	assert "September" == t2.renders(fmt="%B", data=dt)
+	assert "September" == t3.renders(fmt="%B", data=dt, lang=None)
+	assert "September" == t3.renders(fmt="%B", data=dt, lang="en")
+	assert "September" == t3.renders(fmt="%B", data=dt, lang="de")
+	assert "September" == t3.renders(fmt="%B", data=dt, lang="de_DE")
+	assert "257" == t2.renders(fmt="%j", data=dt)
+	assert "36" == t2.renders(fmt="%U", data=dt)
+	assert "5" == t2.renders(fmt="%w", data=dt)
+	assert "37" == t2.renders(fmt="%W", data=dt)
+	assert "18" == t2.renders(fmt="%y", data=dt)
+	assert t2.renders(fmt="%c", data=dt) in {"Fri Sep 14 00:00:00 2018", "Fri 14 Sep 2018 00:00:00", "Fri Sep 14 00:00:00 AM 2018", "Fri 14 Sep 2018 00:00:00 AM"}
+	assert "09/14/2018" == t2.renders(fmt="%x", data=dt)
+	assert "09/14/2018" == t3.renders(fmt="%x", data=dt, lang=None)
+	assert "09/14/2018" == t3.renders(fmt="%x", data=dt, lang="en")
+	assert "14.09.2018" == t3.renders(fmt="%x", data=dt, lang="de")
+	assert "14.09.2018" == t3.renders(fmt="%x", data=dt, lang="de_DE")
+	assert t2.renders(fmt="%X", data=dt) in {"00:00:00", "00:00:00 AM"}
+	assert t3.renders(fmt="%X", data=dt, lang=None) in {"00:00:00", "00:00:00 AM"}
+	assert t3.renders(fmt="%X", data=dt, lang="en") in {"00:00:00", "00:00:00 AM"}
+	assert "00:00:00" == t3.renders(fmt="%X", data=dt, lang="de")
+	assert "00:00:00" == t3.renders(fmt="%X", data=dt, lang="de_DE")
+	assert "%" == t2.renders(fmt="%%", data=dt)
+
+
+@pytest.mark.ul4
 def test_function_format_datetime(T):
 	dt = datetime.datetime(2011, 1, 25, 13, 34, 56, 987000)
 
