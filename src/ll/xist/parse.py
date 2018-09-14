@@ -1320,7 +1320,7 @@ class Node:
 		if self._inattr:
 			self._stack[-1].append(node)
 		elif not self._indoctype:
-		 	return ("textnode", node)
+			return ("textnode", node)
 
 	def enterstarttagns(self, data):
 		node = self.pool.element(*data)
