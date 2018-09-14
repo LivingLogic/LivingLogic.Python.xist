@@ -16,7 +16,7 @@ generated.
 """
 
 
-import sys, keyword, collections
+import sys, keyword
 
 
 __docformat__ = "reStructuredText"
@@ -146,10 +146,10 @@ class Module:
 		self.defaults = defaults
 		self.model = model
 		self.duplicates = duplicates
-		self.elements = collections.OrderedDict() # Maps (namespace name, element name) to :class:`xnd.Element`
-		self.procinsts = collections.OrderedDict() # Maps pi target to :class:`xnd.ProcInst`
-		self.entities = collections.OrderedDict() # Maps entity name to :class:`xnd.Entity`
-		self.charrefs = collections.OrderedDict() # Maps charref name to :class:`xnd.CharRef`
+		self.elements = {} # Maps (namespace name, element name) to :class:`xnd.Element`
+		self.procinsts = {} # Maps pi target to :class:`xnd.ProcInst`
+		self.entities = {} # Maps entity name to :class:`xnd.Entity`
+		self.charrefs = {} # Maps charref name to :class:`xnd.CharRef`
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} at {id(self):#x}>"
@@ -272,7 +272,7 @@ class Module:
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
-		identicalattrs = collections.OrderedDict()
+		identicalattrs = {}
 		for node in self.elements.values():
 			for attr in node.attrs.values():
 				if attr.shared is None: # skip attributes that are already shared
@@ -315,7 +315,7 @@ class Element(Named):
 	def __init__(self, xmlns, name, modeltype=None, modelargs=None, doc=None):
 		Named.__init__(self, name)
 		self.xmlns = xmlns
-		self.attrs = collections.OrderedDict()
+		self.attrs = {}
 		self.modeltype = modeltype
 		self.modelargs = modelargs
 		self.doc = doc

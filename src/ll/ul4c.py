@@ -38,12 +38,6 @@ _datesplitter = re.compile("[-T:.]")
 _defaultitem = object()
 
 
-if sys.version_info >= (3, 6):
-	ordereddict = dict
-else:
-	ordereddict = collections.OrderedDict
-
-
 def register(name):
 	from ll import ul4on
 
@@ -1897,7 +1891,7 @@ class Dict(Code):
 
 	@_handleexpressioneval
 	def eval(self, context):
-		result = ordereddict()
+		result = {}
 		for item in self.items:
 			item.eval_dict(context, result)
 		return result
@@ -1957,7 +1951,7 @@ class DictComp(Code):
 	def eval(self, context):
 		container = self.container.eval(context)
 		with context.chainvars(): # Don't let loop variables leak into the surrounding scope
-			result = ordereddict()
+			result = {}
 			for item in container:
 				for (lvalue, value) in _unpackvar(self.varname, item):
 					lvalue.evalset(context, value)

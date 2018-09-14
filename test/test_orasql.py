@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, datetime, collections, decimal
+import sys, os, datetime, decimal
 
 import pytest
 
@@ -35,7 +35,7 @@ class Data:
 		self._objects = None
 
 	def _make(self):
-		self._objects = collections.OrderedDict()
+		self._objects = {}
 		db = orasql.connect(self.dbname)
 		# get all definitions
 		# (this tests that :meth:`objects`, :meth:`references` and :meth:`referencedby` run to completion)
