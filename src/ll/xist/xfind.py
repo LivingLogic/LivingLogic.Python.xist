@@ -1106,7 +1106,7 @@ class NotCombinator(Combinator):
 		        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 		    })();
 		    </script>
-		<script>window.jQuery || document.write('&lt;script src="/static/js/libs/jquery-1.8.2.min.js"&gt;&lt;\/script&gt;')</script>
+		<script>window.jQuery || document.write('&lt;script src="/static/js/libs/jquery-1.8.2.min.js"&gt;&lt;\\/script&gt;')</script>
 	"""
 
 	def __init__(self, selector):

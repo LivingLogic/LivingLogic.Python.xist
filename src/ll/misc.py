@@ -281,7 +281,7 @@ class Pool:
 			self.register(object)
 
 	def register(self, object):
-		"""
+		r"""
 		Register :obj:`object` in the pool. :obj:`object` can be a module, a
 		dictionary or a :class:`Pool` objects (with registers the pool as a base
 		pool). If :obj:`object` is a module and has an attribute :attr:`__bases__`
