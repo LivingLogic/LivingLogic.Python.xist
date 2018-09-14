@@ -8,8 +8,11 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.35 (released ??/??/2018)
+Changes in 5.35 (released 09/14/2018)
 -------------------------------------
+
+*	UL4 now support both ``datetime`` and ``date`` objects. A function ``today``
+	has been added that returns the current day as a ``date`` object.
 
 *	The UL4 method ``week`` for date objects now by default returns the ISO
 	calendar week number. The day that should be considered the first day of the
