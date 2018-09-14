@@ -404,13 +404,13 @@ class Decoder:
 		self._stack = [] # A stack of types that are currently in the process of being decoded (used in exception messages)
 
 	def _readint(self):
-		buffer = []
+		buffer = io.StringIO()
 		while True:
 			c = self.stream.read(1)
 			if c and not c.isspace():
-				buffer.append(c)
+				buffer.write(c)
 			else:
-				return int("".join(buffer))
+				return int(buffer.getvalue())
 
 	def _loading(self, obj):
 		self._objects.append(obj)
