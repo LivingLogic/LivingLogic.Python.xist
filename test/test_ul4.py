@@ -3395,15 +3395,15 @@ def test_function_format_datetime(T):
 	assert "2" == t2.renders(fmt="%w", data=dt)
 	assert "04" == t2.renders(fmt="%W", data=dt)
 	assert "11" == t2.renders(fmt="%y", data=dt)
-	assert t2.renders(fmt="%c", data=dt) in ("Tue Jan 25 13:34:56 2011", "Tue 25 Jan 2011 01:34:56 PM", "Tue 25 Jan 2011 01:34:56 PM ")
+	assert t2.renders(fmt="%c", data=dt) in {"Tue Jan 25 13:34:56 2011", "Tue 25 Jan 2011 13:34:56", "Tue Jan 25 01:34:56 PM 2011", "Tue 25 Jan 2011 01:34:56 PM"}
 	assert "01/25/2011" == t2.renders(fmt="%x", data=dt)
 	assert "01/25/2011" == t3.renders(fmt="%x", data=dt, lang=None)
 	assert "01/25/2011" == t3.renders(fmt="%x", data=dt, lang="en")
 	assert "25.01.2011" == t3.renders(fmt="%x", data=dt, lang="de")
 	assert "25.01.2011" == t3.renders(fmt="%x", data=dt, lang="de_DE")
-	assert t2.renders(fmt="%X", data=dt) in ("13:34:56", "01:34:56 PM")
-	assert t3.renders(fmt="%X", data=dt, lang=None) in ("13:34:56", "01:34:56 PM")
-	assert t3.renders(fmt="%X", data=dt, lang="en") in ("13:34:56", "01:34:56 PM")
+	assert t2.renders(fmt="%X", data=dt) in {"13:34:56", "01:34:56 PM"}
+	assert t3.renders(fmt="%X", data=dt, lang=None) in {"13:34:56", "01:34:56 PM"}
+	assert t3.renders(fmt="%X", data=dt, lang="en") in {"13:34:56", "01:34:56 PM"}
 	assert "13:34:56" == t3.renders(fmt="%X", data=dt, lang="de")
 	assert "13:34:56" == t3.renders(fmt="%X", data=dt, lang="de_DE")
 	assert "%" == t2.renders(fmt="%%", data=dt)
