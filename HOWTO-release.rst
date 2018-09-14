@@ -62,7 +62,7 @@ Uploading the release to the cheeseshop
 
 Upload the release to the chesseshop via (do this in the root directory)::
 
-	make register upload
+	make upload
 
 
 Creating the Windows packages
