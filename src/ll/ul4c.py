@@ -4142,7 +4142,7 @@ class Template(Block):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = fr"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\\n)*?)\s*)?{re.escape(enddelim)}"
+		pattern = fr"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\n)*?)\s*)?{re.escape(enddelim)}"
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
