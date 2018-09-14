@@ -222,6 +222,7 @@ For our example class it could be used like this::
 '''
 
 import sys, datetime, collections, io, ast
+from collections import abc
 
 
 __docformat__ = "reStructuredText"
@@ -335,7 +336,7 @@ class Encoder:
 			elif isinstance(obj, misc.monthdelta):
 				self._record(obj)
 				self._line("M", obj.months())
-			elif isinstance(obj, collections.Sequence):
+			elif isinstance(obj, abc.Sequence):
 				self._record(obj)
 				self._line("L")
 				self._level += 1
@@ -352,7 +353,7 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("}")
-			elif isinstance(obj, collections.Mapping):
+			elif isinstance(obj, abc.Mapping):
 				self._record(obj)
 				self._line("D")
 				self._level += 1
@@ -361,7 +362,7 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("}")
-			elif isinstance(obj, collections.Set):
+			elif isinstance(obj, abc.Set):
 				self._record(obj)
 				self._line("Y")
 				self._level += 1

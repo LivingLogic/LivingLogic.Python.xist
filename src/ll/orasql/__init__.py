@@ -33,7 +33,8 @@ __ https://oracle.github.io/python-cx_Oracle/
 """
 
 
-import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, collections, decimal
+import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, decimal
+from collections import abc
 
 from cx_Oracle import *
 
@@ -242,7 +243,7 @@ class RecordMaker:
 		return value
 
 
-class Record(tuple, collections.Mapping):
+class Record(tuple, abc.Mapping):
 	"""
 	A :class:`Record` is a subclass of :class:`tuple` that is used for storing
 	results of database fetches and procedure and function calls. Both item and

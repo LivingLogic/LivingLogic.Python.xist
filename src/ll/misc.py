@@ -16,6 +16,7 @@ LivingLogic modules and packages.
 
 
 import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
+from collections import abc
 
 from ll import color
 
@@ -593,13 +594,13 @@ def javaexpr(obj):
 		else:
 			return f'new java.math.BigInteger("{obj}")'
 		return repr(obj)
-	elif isinstance(obj, collections.Sequence):
+	elif isinstance(obj, abc.Sequence):
 		items = ", ".join(javaexpr(item) for item in obj)
 		return f"java.util.Arrays.asList({items})"
-	elif isinstance(obj, collections.Mapping):
+	elif isinstance(obj, abc.Mapping):
 		items = ", ".join(f"{javaexpr(key)}, {javaexpr(value)}" for (key, value) in obj.items())
 		return f"com.livinglogic.utils.MapUtils.makeMap({items})"
-	elif isinstance(obj, collections.Set):
+	elif isinstance(obj, abc.Set):
 		items = ", ".join(javaexpr(item) for item in obj)
 		return f"com.livinglogic.utils.SetUtils.makeSet({items})"
 	elif isinstance(obj, ul4c.UndefinedKey):

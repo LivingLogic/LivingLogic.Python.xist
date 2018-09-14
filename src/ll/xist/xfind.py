@@ -23,7 +23,8 @@ __ http://www.w3.org/TR/xpath
 """
 
 
-import builtins, collections
+import builtins
+from collections import abc
 
 from ll import misc
 from ll.xist import xsc
@@ -110,7 +111,7 @@ def selector(*objs):
 			return selector(*obj)
 		elif isinstance(obj, xsc.Node):
 			return IsSelector(obj)
-		elif isinstance(obj, collections.Callable):
+		elif isinstance(obj, abc.Callable):
 			return CallableSelector(obj)
 		elif obj is None:
 			return any

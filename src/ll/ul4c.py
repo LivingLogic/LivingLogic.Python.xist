@@ -24,9 +24,9 @@ __docformat__ = "reStructuredText"
 
 
 import sys, re, os.path, types, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect, contextlib
+from collections import abc
 
 import antlr3
-
 
 from ll import misc
 
@@ -788,20 +788,20 @@ def proto_str(obj):
 
 @proto.register(list)
 @proto.register(tuple)
-@proto.register(collections.Sequence)
+@proto.register(abc.Sequence)
 def proto_list(obj):
 	return ListProto
 
 
 @proto.register(dict)
-@proto.register(collections.Mapping)
+@proto.register(abc.Mapping)
 def proto_dict(obj):
 	return DictProto
 
 
 @proto.register(set)
 @proto.register(frozenset)
-@proto.register(collections.Set)
+@proto.register(abc.Set)
 def proto_set(obj):
 	return SetProto
 
@@ -861,7 +861,7 @@ def _str(obj=""):
 			return str(obj)[:-3]
 	elif isinstance(obj, color.Color):
 		return str(obj)
-	elif isinstance(obj, (collections.Sequence, collections.Set, collections.Mapping)):
+	elif isinstance(obj, (abc.Sequence, abc.Set, abc.Mapping)):
 		return _repr(obj)
 	elif isinstance(obj, inspect.Signature):
 		v = []
@@ -912,7 +912,7 @@ def _repr_helper(obj, seen, forceascii):
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6] and s[7] == s[8]:
 				s = f"#{s[1]}{s[3]}{s[5]}{s[7]}"
 			yield s
-	elif isinstance(obj, collections.Sequence):
+	elif isinstance(obj, abc.Sequence):
 		if id(obj) in seen:
 			yield "..."
 		else:
@@ -924,7 +924,7 @@ def _repr_helper(obj, seen, forceascii):
 				yield from _repr_helper(item, seen, forceascii)
 			yield "]"
 			seen.discard(id(obj))
-	elif isinstance(obj, collections.Set):
+	elif isinstance(obj, abc.Set):
 		if id(obj) in seen:
 			yield "..."
 		else:
@@ -958,7 +958,7 @@ def _repr_helper(obj, seen, forceascii):
 					yield from _repr_helper(p.default, seen, forceascii)
 			yield ")>"
 			seen.discard(id(obj))
-	elif isinstance(obj, collections.Mapping):
+	elif isinstance(obj, abc.Mapping):
 		if id(obj) in seen:
 			yield "..."
 		else:
@@ -1007,10 +1007,10 @@ def _asjson(obj):
 		return f"new ul4.MonthDelta({obj.months()})"
 	elif isinstance(obj, color.Color):
 		return f"new ul4.Color({obj[0]}, {obj[1]}, {obj[2]}, {obj[3]})"
-	elif isinstance(obj, collections.Mapping):
+	elif isinstance(obj, abc.Mapping):
 		items = ", ".join(f"{_asjson(key)}: {_asjson(value)}" for (key, value) in obj.items())
 		return f"{{{items}}}"
-	elif isinstance(obj, collections.Sequence):
+	elif isinstance(obj, abc.Sequence):
 		items = ", ".join(_asjson(item) for item in obj)
 		return f"[{items}]"
 	elif isinstance(obj, Template):
@@ -4904,7 +4904,7 @@ def function_isexception(obj):
 @Context.makefunction
 def function_islist(obj):
 	from ll import color
-	return isinstance(obj, collections.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
+	return isinstance(obj, abc.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
 
 
 @Context.makefunction
@@ -4915,7 +4915,7 @@ def function_isset(obj):
 
 @Context.makefunction
 def function_isdict(obj):
-	return isinstance(obj, collections.Mapping) and not isinstance(obj, Template)
+	return isinstance(obj, abc.Mapping) and not isinstance(obj, Template)
 
 
 @Context.makefunction
@@ -5014,7 +5014,7 @@ def function_type(obj):
 		return "none"
 	elif isinstance(obj, Undefined):
 		return "undefined"
-	elif isinstance(obj, collections.Mapping):
+	elif isinstance(obj, abc.Mapping):
 		return "dict"
 	elif isinstance(obj, datetime.datetime):
 		return "datetime"
@@ -5024,7 +5024,7 @@ def function_type(obj):
 		return "timedelta"
 	elif isinstance(obj, misc.monthdelta):
 		return "monthdelta"
-	elif isinstance(obj, collections.Sequence) and not isinstance(obj, (str, color.Color)):
+	elif isinstance(obj, abc.Sequence) and not isinstance(obj, (str, color.Color)):
 		return "list"
 	elif callable(obj) and not isinstance(obj, (Template, TemplateClosure)):
 		return "function"

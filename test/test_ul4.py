@@ -10,7 +10,8 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, datetime, io, json, tempfile, collections, shutil, subprocess, inspect, datetime, codecs
+import sys, os, re, datetime, io, json, tempfile, shutil, subprocess, inspect, datetime, codecs
+from collections import abc
 
 import pytest
 
@@ -53,7 +54,7 @@ class Point:
 			raise AttributeError(name)
 
 
-class PseudoDict(collections.Mapping):
+class PseudoDict(abc.Mapping):
 	def __init__(self, dict):
 		self.dict = dict
 
@@ -67,7 +68,7 @@ class PseudoDict(collections.Mapping):
 		return len(self.dict)
 
 
-class PseudoList(collections.Sequence):
+class PseudoList(abc.Sequence):
 	def __init__(self, list):
 		self.list = list
 
@@ -275,10 +276,10 @@ class TemplatePHP:
 			return rf"new \com\livinglogic\ul4\Color({obj.r()}, {obj.g()}, {obj.b()}, {obj.a()})"
 		elif isinstance(obj, ul4c.Template):
 			return rf"\com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(obj.dumps())})"
-		elif isinstance(obj, collections.Mapping):
+		elif isinstance(obj, abc.Mapping):
 			items = ", ".join(f"{self.phpexpr(key)} => {self.phpexpr(value)}" for (key, value) in obj.items())
 			return f"array({items})"
-		elif isinstance(obj, collections.Sequence):
+		elif isinstance(obj, abc.Sequence):
 			items = ", ".join(self.phpexpr(item) for item in obj)
 			return f"array({items})"
 		else:
