@@ -491,7 +491,7 @@ class CollectAction(TransformAction):
 class PhonyAction(Action):
 	"""
 	A :class:`PhonyAction` doesn't do anything. It may depend on any number of
-	additonal input actions which will be updated when this action gets updated.
+	additional input actions which will be updated when this action gets updated.
 	If there's new data from any of these actions, a :class:`PhonyAction` will
 	return :const:`None` (and :const:`nodata` otherwise as usual).
 	"""
@@ -924,7 +924,7 @@ class ModuleAction(TransformAction):
 		Register all actions in :obj:`inputs` as modules used by this module.
 		These actions must be :class:`ModuleAction` objects too.
 
-		Normally it isn't neccessary to call the method directly. Instead
+		Normally it isn't necessary to call the method directly. Instead
 		fetch the required module inside your module like this::
 
 			from ll import make

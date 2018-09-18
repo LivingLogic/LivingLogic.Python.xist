@@ -51,7 +51,7 @@ class RecognizerSharedState(object):
     and recover from errors etc...  As a separate state object, it can be
     shared among multiple grammars; e.g., when one grammar imports another.
 
-    These fields are publically visible but the actual state pointer per
+    These fields are publicly visible but the actual state pointer per
     parser is protected.
     """
 

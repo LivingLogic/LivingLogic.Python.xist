@@ -182,7 +182,7 @@ class interleave(base):
 
 class list(base):
 	"""
-	Matches whitespace seperated values.
+	Matches whitespace separated values.
 	"""
 	xmlns = xmlns
 

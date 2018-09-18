@@ -62,7 +62,7 @@ Options
 
 .. option:: -x <flag>, --ignoreerrors <flag>
 
-	Ignores errors occuring during the copy process (otherwise the copy
+	Ignores errors occurring during the copy process (otherwise the copy
 	process is aborted).
 	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 

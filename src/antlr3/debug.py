@@ -528,7 +528,7 @@ class DebugEventListener(object):
 
     def recognitionException(self, e):
         """A recognition exception occurred such as NoViableAltException.  I made
-        this a generic event so that I can alter the exception hierachy later
+        this a generic event so that I can alter the exception hierarchy later
         without having to alter all the debug objects.
 
         Upon error, the stack of enter rule/subrule must be properly unwound.

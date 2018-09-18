@@ -113,7 +113,7 @@ class pyeval(_base):
 	The content of a :class:`pyeval` processing instruction will be executed
 	when the node is converted as if it was the body of a function, so you
 	can return an expression here. Although the content is used as a function
-	body no indentation is neccessary or allowed. The returned value will be
+	body no indentation is necessary or allowed. The returned value will be
 	converted to a node and this resulting node will be converted.
 
 	These processing instructions will be evaluated and executed in the
@@ -126,7 +126,7 @@ class pyeval(_base):
 
 	def convert(self, converter):
 		"""
-		Evaluates the code as if it was the body of a Python funtion. The
+		Evaluates the code as if it was the body of a Python function. The
 		:obj:`converter` argument will be available under the name
 		:obj:`converter` as an argument to the function.
 		"""

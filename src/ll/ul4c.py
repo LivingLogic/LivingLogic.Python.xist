@@ -2900,7 +2900,7 @@ class Add(Binary):
 @register("sub")
 class Sub(Binary):
 	"""
-	AST node for the binary substraction operator.
+	AST node for the binary subtraction operator.
 	"""
 
 	@classmethod
@@ -3246,7 +3246,7 @@ class AddVar(ChangeVar):
 @register("subvar")
 class SubVar(ChangeVar):
 	"""
-	AST node that substracts a value from a variable (i.e. the ``-=`` operator).
+	AST node that subtracts a value from a variable (i.e. the ``-=`` operator).
 	"""
 
 	@_handleexpressioneval
@@ -4284,7 +4284,7 @@ class Template(Block):
 					blocks.append(block)
 			else:
 				newlines.append((line, stack[:]))
-		# Close open blocks (shouldn't be neccessary for properly nested templates)
+		# Close open blocks (shouldn't be necessary for properly nested templates)
 		for block in stack:
 			block.stop = len(lines)
 
@@ -5120,8 +5120,8 @@ def function_round(x, digits=0):
 @Context.makefunction
 def function_floor(x, digits=0):
 	if digits:
-		threshhold = 10**digits
-		result = math.floor(x*threshhold)/threshhold
+		threshold = 10**digits
+		result = math.floor(x*threshold)/threshold
 		if digits < 0:
 			return int(result)
 		return result
@@ -5132,8 +5132,8 @@ def function_floor(x, digits=0):
 @Context.makefunction
 def function_ceil(x, digits=0):
 	if digits:
-		threshhold = 10**digits
-		result = math.ceil(x*threshhold)/threshhold
+		threshold = 10**digits
+		result = math.ceil(x*threshold)/threshold
 		if digits < 0:
 			return int(result)
 		return result

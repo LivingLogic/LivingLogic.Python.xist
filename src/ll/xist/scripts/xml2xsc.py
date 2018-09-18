@@ -18,8 +18,8 @@ Purpose
 or more XML files. :program:`xml2xsc` will output an XIST element class for each
 element it encounters in any of the XML files. The attributes and model
 information :program:`xml2xsc` assigns to an element will be collected from each
-occurence of the element in the XML files, so the XML files should cover as many
-different cases as possible.
+occurrence of the element in the XML files, so the XML files should cover as
+many different cases as possible.
 
 
 Options

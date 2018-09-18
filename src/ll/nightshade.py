@@ -232,7 +232,7 @@ class Call:
 		response headers. If :obj:`p_etag` is not specified a value is calculated.
 
 		If the procedure/function raised a PL/SQL exception with a code between
-		20200 and 20599, 20000 will be substracted from this value and the
+		20200 and 20599, 20000 will be subtracted from this value and the
 		resulting value will be used as the HTTP response code, i.e. 20404 will
 		give a "Not Found" response.
 		"""

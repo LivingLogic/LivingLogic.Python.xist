@@ -142,7 +142,7 @@ class addattr:
 def add(*args, **kwargs):
 	"""
 	:func:`add` appends items in :obj:`args` and sets attributes in
-	:obj:`kwargs` in the currenly active node in the :keyword:`with` stack.
+	:obj:`kwargs` in the currently active node in the :keyword:`with` stack.
 	"""
 	threadlocalnodehandler.handler.add(*args, **kwargs)
 

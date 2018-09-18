@@ -37,7 +37,7 @@ Options
 
 .. option:: -x <flag>, --ignoreerrors <flag>
 
-	Ignores file i/o errors occuring during the output process (otherwise
+	Ignores file i/o errors occurring during the output process (otherwise
 	the script will be aborted).
 	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 

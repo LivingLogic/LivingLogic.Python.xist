@@ -212,7 +212,7 @@ class taglib(xsc.Element):
 	``shortname``
 		A simple default short name that could be used by a JSP authoring tool
 		to create names with a mnemonic value; for example, the it may be used
-		as the prefered prefix value in taglib directives.
+		as the preferred prefix value in taglib directives.
 
 	``uri``
 		A URL uniquely identifying this taglib

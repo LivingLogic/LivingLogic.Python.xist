@@ -2447,7 +2447,7 @@ class input(xsc.Element):
 			"""
 			Provides user agents with a hint of what file types will be accepted.
 			A valid MIME type, or ``audio/*``, ``video/*``, ``image/*`` or a string
-			starting with ``.`` the specify an allowed file extention.
+			starting with ``.`` the specify an allowed file extension.
 			"""
 		class alt(xsc.TextAttr):
 			"""
@@ -3422,7 +3422,7 @@ class _PlainTextFormatter:
 		self.levels = collections.Counter()
 
 	def push(self, name, pos=None, last=None):
-		"""
+		r"""
 		Add an additional box around any further text. :obj:`name` is the name
 		of the box (normally the name of the HTML element itself (``"ul"``,
 		``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
@@ -3432,7 +3432,7 @@ class _PlainTextFormatter:
 		siblings (starting at 1) and :obj:`last` specifies the index of the last
 		``li`` (i.e. the total number of ``li``\s inside the ``ol``).
 
-		This additional box might also specify an additonal number of blank
+		This additional box might also specify an additional number of blank
 		lines before and after its content and it might also introduce a new
 		line wrapping mode and it might specify underlining (for ``h1``-``h6``
 		elements.)

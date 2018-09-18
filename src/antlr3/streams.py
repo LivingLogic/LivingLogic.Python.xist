@@ -384,7 +384,7 @@ class ANTLRStringStream(CharStream):
             self.p += 1
             
         except IndexError:
-            # happend when we reached EOF and self.data[self.p] fails
+            # happened when we reached EOF and self.data[self.p] fails
             # just do nothing
             pass
 

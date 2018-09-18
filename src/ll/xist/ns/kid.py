@@ -41,7 +41,7 @@ class Attrs(xsc.Attrs):
 	class if_(xsc.TextAttr):
 		"""
 		The :class:`if_` attribute may appear on any element to signify that
-		the element and its decendant items should be output only if the boolean
+		the element and its descendant items should be output only if the boolean
 		expression specified evaluates to true in Python.
 		"""
 		xmlns = xmlns
@@ -49,7 +49,7 @@ class Attrs(xsc.Attrs):
 
 	class content(xsc.TextAttr):
 		"""
-		This attribute may appear on any element to signify that the decendant
+		This attribute may appear on any element to signify that the descendant
 		items of the element are to be replaced with the result of evaluating
 		the attribute content as a Python expression.
 		"""

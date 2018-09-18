@@ -566,7 +566,7 @@ class Connection(Connection):
 
 				# Comments
 				for comment in table.comments():
-					# No dependency checks neccessary, but use ``do`` anyway
+					# No dependency checks necessary, but use ``do`` anyway
 					yield from do(comment)
 
 				if mode == "drop":
