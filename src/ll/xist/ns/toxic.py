@@ -42,7 +42,7 @@ class args(xsc.ProcInst):
 		?>
 
 	for SQL Server. If :class:`args` is used multiple times, the contents will
-	be concatenated with a ``,`` inbetween.
+	be concatenated with a ``,`` in between.
 	"""
 
 
