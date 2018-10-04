@@ -382,7 +382,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 --stack_size=100 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
+		return self.runcode("d8 --stack_size=100 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/dist/ul4.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -404,7 +404,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/ul4.min.js {fn}", source)
+		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/dist/ul4.js {fn}", source)
 
 
 class TemplateJavascriptNode(TemplateJavascript):
@@ -413,7 +413,7 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min').ul4;
+			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4').ul4;
 
 			template = {self.template.jssource()};
 			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
@@ -437,7 +437,7 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min').ul4;
+			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4').ul4;
 
 			template = {self.template.jssource()};
 			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
