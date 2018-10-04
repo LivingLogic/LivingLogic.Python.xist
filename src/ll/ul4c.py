@@ -4125,7 +4125,7 @@ class Template(Block):
 		"""
 		Return the template as the source code of a Javascript function.
 		"""
-		return f"ul4on.loads({_asjson(self.dumps())})"
+		return f"ul4.loads({_asjson(self.dumps())})"
 
 	def javasource(self):
 		"""

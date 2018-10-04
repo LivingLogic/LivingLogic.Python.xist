@@ -371,14 +371,14 @@ class TemplateJavascriptV8(TemplateJavascript):
 
 		source = f"""
 			template = {self.template.jssource()};
-			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
-				print(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
+				print(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
 			}}
 			catch (exc)
 			{{
-				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+				print(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
 		"""
 
@@ -393,14 +393,14 @@ class TemplateJavascriptV8(TemplateJavascript):
 
 		source = f"""
 			template = {self.template.jssource()};
-			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
-				print(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
+				print(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
 			}}
 			catch (exc)
 			{{
-				print(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+				print(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
 		"""
 
@@ -413,19 +413,17 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			const ll = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min');
-			const ul4 = ll.ul4;
-			const ul4on = ll.ul4on;
+			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min').ul4;
 
 			template = {self.template.jssource()};
-			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
-				console.log(ul4on.dumps({{"status": "ok", "result": template.renders(data)}}));
+				console.log(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
 			}}
 			catch (exc)
 			{{
-				console.log(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+				console.log(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
 		"""
 
@@ -439,19 +437,17 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			const ll = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min');
-			const ul4 = ll.ul4;
-			const ul4on = ll.ul4on;
+			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min').ul4;
 
 			template = {self.template.jssource()};
-			data = ul4._map2object(ul4on.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
-				console.log(ul4on.dumps({{"status": "ok", "result": template.call(data)}}));
+				console.log(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
 			}}
 			catch (exc)
 			{{
-				console.log(ul4on.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
+				console.log(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
 			}}
 		"""
 
@@ -462,8 +458,8 @@ all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
 	python_dump=TemplatePythonDump,
-	java_compiled_by_python=TemplateJavaCompiledByPython,
-	java_compiled_by_java=TemplateJavaCompiledByJava,
+	# java_compiled_by_python=TemplateJavaCompiledByPython,
+	# java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
 	js_node=TemplateJavascriptNode,
 	# php=TemplatePHP,
