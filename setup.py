@@ -308,7 +308,7 @@ args = dict(
 		"cssutils == 1.0.2",
 	],
 	extras_require={
-		"oracle": ["cx_Oracle >= 5.3, < 7.0"],
+		"oracle": ["cx_Oracle >= 5.3"],
 		"proctitle": ["setproctitle >= 1.1.8"],
 	},
 	zip_safe=False,
