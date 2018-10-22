@@ -309,7 +309,7 @@ Python's ``str()`` output as much as possible::
 
 	<h1><?print person.lastname?>, <?print person.firstname?></h1>
 
-Printing ``None`` or undefined object produces no output.
+Printing ``None`` or undefined objects produces no output.
 
 
 ``printx``
