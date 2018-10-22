@@ -324,8 +324,8 @@ character or entity references for XML or HTML output.
 -------
 
 The ``for`` tag can be used to loop over the items in a list, the characters in
-a string or the keys in a dictionary. The end of the loop body must be marked
-with an ``<?end for?>`` tag::
+a string, the keys in a dictionary or any other iterable object. The end of the
+loop body must be marked with an ``<?end for?>`` tag::
 
 	<ul>
 		<?for person in data.persons?>
