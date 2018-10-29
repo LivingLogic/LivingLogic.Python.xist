@@ -3424,7 +3424,7 @@ class Privilege:
 					owner = user
 				order by
 					table_name,
-				privilege
+					privilege
 			"""
 			cursor.execute(query)
 		elif owner is ALL:
