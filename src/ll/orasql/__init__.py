@@ -603,7 +603,7 @@ class Connection(Connection):
 		if rec is not None:
 			type = rec.object_type.lower()
 			try:
-				cls = Object.name2type[type]
+				cls = SchemaObject.name2type[type]
 			except KeyError:
 				raise TypeError(f"type {type} not supported")
 			else:
@@ -670,7 +670,7 @@ class Connection(Connection):
 		if rec is not None:
 			type = rec.object_type.lower()
 			try:
-				cls = Object.name2type[type]
+				cls = SchemaObject.name2type[type]
 			except KeyError:
 				raise TypeError(f"type {type} not supported")
 			else:
@@ -930,18 +930,18 @@ def getfullname(name, owner):
 	return ".".join(parts)
 
 
-class _Object_meta(type):
+class _SchemaObject_meta(type):
 	def __new__(mcl, name, bases, dict):
 		typename = None
-		if "type" in dict and name != "Object":
+		if "type" in dict and name != "SchemaObject":
 			typename = dict["type"]
 		cls = type.__new__(mcl, name, bases, dict)
 		if typename is not None:
-			Object.name2type[typename] = cls
+			SchemaObject.name2type[typename] = cls
 		return cls
 
 
-class Object(object, metaclass=_Object_meta):
+class SchemaObject(object, metaclass=_SchemaObject_meta):
 	"""
 	The base class for all Python classes modelling schema objects in the
 	database.
@@ -1055,7 +1055,7 @@ class Object(object, metaclass=_Object_meta):
 		cursor.execute(query, type=self.type, name=self.name, owner=self.owner)
 		for rec in cursor.fetchall():
 			try:
-				cls = Object.name2type[rec.referenced_type.lower()]
+				cls = SchemaObject.name2type[rec.referenced_type.lower()]
 			except KeyError:
 				pass # FIXME: Issue a warning?
 			else:
@@ -1104,7 +1104,7 @@ class Object(object, metaclass=_Object_meta):
 		cursor.execute(query, type=self.type.upper(), name=self.name, owner=self.owner)
 		for rec in cursor.fetchall():
 			try:
-				type = Object.name2type[rec.type.lower()]
+				type = SchemaObject.name2type[rec.type.lower()]
 			except KeyError:
 				pass # FIXME: Issue a warning?
 			else:
@@ -1234,7 +1234,7 @@ class Object(object, metaclass=_Object_meta):
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
 
 
-class Sequence(MixinNormalDates, Object):
+class Sequence(MixinNormalDates, SchemaObject):
 	"""
 	Models a sequence in the database.
 	"""
@@ -1364,7 +1364,7 @@ def _columndefault(rec):
 	return "null"
 
 
-class Table(MixinNormalDates, Object):
+class Table(MixinNormalDates, SchemaObject):
 	"""
 	Models a table in the database.
 	"""
@@ -1693,7 +1693,7 @@ class Table(MixinNormalDates, Object):
 				yield obj
 
 
-class Comment(Object):
+class Comment(SchemaObject):
 	"""
 	Models a column comment in the database.
 	"""
@@ -1775,7 +1775,7 @@ class Comment(Object):
 			yield None
 
 
-class Constraint(Object):
+class Constraint(SchemaObject):
 	"""
 	Base class of all constraints (primary key constraints, foreign key
 	constraints, unique constraints and check constraints).
@@ -2353,7 +2353,7 @@ class CheckConstraint(Constraint):
 			yield Table(rec.table_name, rec.owner, connection)
 
 
-class Index(MixinNormalDates, Object):
+class Index(MixinNormalDates, SchemaObject):
 	"""
 	Models an index in the database.
 	"""
@@ -2683,7 +2683,7 @@ class Index(MixinNormalDates, Object):
 			yield Column(f"{table.name}.{rec.column_name}", owner=table.owner)
 
 
-class Synonym(Object):
+class Synonym(SchemaObject):
 	"""
 	Models a synonym in the database.
 	"""
@@ -2799,7 +2799,7 @@ class Synonym(Object):
 		return connection._getobject(rec.table_name, rec.table_owner)
 
 
-class View(MixinNormalDates, Object):
+class View(MixinNormalDates, SchemaObject):
 	"""
 	Models a view in the database.
 	"""
@@ -2935,7 +2935,7 @@ class MaterializedView(View):
 		yield Table(self.name, self.owner, connection)
 
 
-class Library(Object):
+class Library(SchemaObject):
 	"""
 	Models a library in the database.
 	"""
@@ -3010,7 +3010,7 @@ class Argument:
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} position={self.position!r} datatype={self.datatype!r} at {id(self):#x}>"
 
 
-class Callable(MixinNormalDates, MixinCodeSQL, Object):
+class Callable(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	"""
 	Models a callable object in the database, i.e. functions and procedures.
 	"""
@@ -3026,7 +3026,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, Object):
 	}
 
 	def __init__(self, name, owner=None, connection=None):
-		Object.__init__(self, name, owner, connection)
+		SchemaObject.__init__(self, name, owner, connection)
 		self._argsbypos = None
 		self._argsbyname = None
 		self._returnvalue = None
@@ -3242,42 +3242,42 @@ class Function(Callable):
 		return (returnvalue, self._makerecord(cursor, queryargs))
 
 
-class Package(MixinNormalDates, MixinCodeSQL, Object):
+class Package(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	"""
 	Models a package in the database.
 	"""
 	type = "package"
 
 
-class PackageBody(MixinNormalDates, MixinCodeSQL, Object):
+class PackageBody(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	"""
 	Models a package body in the database.
 	"""
 	type = "package body"
 
 
-class Type(MixinNormalDates, MixinCodeSQL, Object):
+class Type(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	"""
 	Models a type definition in the database.
 	"""
 	type = "type"
 
 
-class TypeBody(MixinNormalDates, MixinCodeSQL, Object):
+class TypeBody(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	"""
 	Models a type body in the database.
 	"""
 	type = "type body"
 
 
-class Trigger(MixinNormalDates, MixinCodeSQL, Object):
+class Trigger(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	"""
 	Models a trigger in the database.
 	"""
 	type = "trigger"
 
 
-class JavaSource(MixinNormalDates, Object):
+class JavaSource(MixinNormalDates, SchemaObject):
 	"""
 	Models Java source code in the database.
 	"""
@@ -3406,7 +3406,7 @@ class Privilege:
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields object privileges. For the meaning of :obj:`owner`
-		see :meth:`Object.names`.
+		see :meth:`SchemaObject.names`.
 		"""
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
 
@@ -3508,7 +3508,7 @@ class Privilege:
 		return code
 
 
-class Column(Object):
+class Column(SchemaObject):
 	"""
 	Models a single column of a table in the database. This is used to output
 	``ALTER TABLE`` statements for adding, dropping and modifying columns.
@@ -3786,7 +3786,7 @@ class User:
 		return (cls(name[0], connection) for name in cls.names(connection))
 
 
-class Preference(Object):
+class Preference(SchemaObject):
 	"""
 	Models a preference in the database.
 	"""
@@ -3955,9 +3955,9 @@ class OracleURLConnection(url_.Connection):
 
 	def _objectfromurl(self, url):
 		(type, owner, objecttype, name) = self._infofromurl(url)
-		if objecttype not in Object.name2type:
+		if objecttype not in SchemaObject.name2type:
 			raise ValueError(f"don't know how to handle {url!r}")
-		return Object.name2type[objecttype](name, owner)
+		return SchemaObject.name2type[objecttype](name, owner)
 
 	def isdir(self, url):
 		return not self._type(url).endswith("object")
@@ -4036,14 +4036,14 @@ class OracleURLConnection(url_.Connection):
 		absurl = cursor.rooturl / url
 		type = self._type(absurl)
 		if type == "root": # directory of types for the current user
-			for childname in sorted(Object.name2type):
+			for childname in sorted(SchemaObject.name2type):
 				if childname not in ("comment", "column"):
 					yield from _dir(f"{childname}/")
 		elif type == "type": # directory of objects of the specified type for current user
 			path = absurl.path
 			type = path[0]
 			try:
-				class_ = Object.name2type[type]
+				class_ = SchemaObject.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
 			for (name, owner) in class_.names(self.dbconnection, None):
@@ -4056,14 +4056,14 @@ class OracleURLConnection(url_.Connection):
 				yield from _dir(f"{makeurl(name)}/")
 		elif type == "user": # directory of types for a specific user
 			path = absurl.path
-			for childname in sorted(Object.name2type):
+			for childname in sorted(SchemaObject.name2type):
 				if childname not in ("comment", "column"):
 					yield from _dir(f"{childname}/")
 		elif type == "usertype": # directory of objects of the specified type for a specific user
 			path = absurl.path
 			type = path[2]
 			try:
-				class_ = Object.name2type[type]
+				class_ = SchemaObject.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
 			for (name, owner) in class_.names(self.dbconnection, path[1]):
