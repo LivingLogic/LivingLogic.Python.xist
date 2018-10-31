@@ -16,9 +16,8 @@ Changes in 5.36 (released ??/??/2018)
 	:class:`SchemaObject`.
 
 *	:mod:`sisyphus` jobs can now run even if :func:`os.fork` and :mod:`fcntl`
-	are not available or :funct:`signal.signal` doesn't support :const:`SIGALRM`
-	(i.e. on Windows). In this case various feature ang guarantees will be
-	missing.
+	are not available or :func:`signal.signal` doesn't support :const:`SIGALRM`
+	(i.e. on Windows). In this case various features will be missing.
 
 
 Changes in 5.35 (released 09/14/2018)
