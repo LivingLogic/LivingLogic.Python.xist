@@ -11,8 +11,14 @@ see :ref:`MIGRATION`.
 Changes in 5.36 (released ??/??/2018)
 -------------------------------------
 
-*	As :mod:`cx_Oracle` provides its own :class:`Object` :class:`orasql.Object`
-	has been renamed to :class:`orasql.SchemaObject`.
+*	As :mod:`cx_Oracle` provides its own class :class:`Object`
+	:mod:`ll.orasql`\s class :class:`Object` has been renamed to
+	:class:`SchemaObject`.
+
+*	:mod:`sisyphus` jobs can now run even if :func:`os.fork` and :mod:`fcntl`
+	are not available or :funct:`signal.signal` doesn't support :const:`SIGALRM`
+	(i.e. on Windows). In this case various feature ang guarantees will be
+	missing.
 
 
 Changes in 5.35 (released 09/14/2018)

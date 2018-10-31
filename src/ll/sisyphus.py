@@ -147,10 +147,43 @@ runtime (and the option :option:`--noisykills` is set) or any of the calls
 to :meth:`~Job.log` include the tag ``email``, the email will be sent. This
 email includes the last 10 logging calls and the final exception (if there is
 any) in plain text and HTML format as well as as a JSON attachment.
+
+
+Requirements
+------------
+
+To reliably stop the job after the allowed maximum runtime, :mod:`sisyphus`
+forks the process and kills the child process after the maximum runtime is
+expired (via :func:`os.fork` and :func:`signal.signal`). This won't work on
+Windows. So on Windows the job will always run to completion without being
+killed after the maximum runtime.
+
+To make sure that only one job instance job runs concurrently, :mod:`sisyphus`
+uses :mod:`fcntl` to create an exclusive lock on the file of the running script.
+This won't work on Windows either. So on Windows you might have multiple
+running instances of the job.
+
+:mod:`sisyphus` uses the module :mod:`setproctitle` to change the process title
+during various phases of running the job. If :mod:`setproctitle` is not
+available the process title will not be changed.
+
+If the module :mod:`psutil` is available it will be used to kill the child
+process and any of its own child processes after the maximum runtime of the job
+is exceeded. If :mod:`psutil` isn't available just the child process will be
+killed (which is no problem as long as the child process doesn't spawn any
+other processes).
+
+For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
+:mod:`lzma` is required (which might not be part of your Python installation).
 """
 
 
-import sys, os, signal, fcntl, traceback, errno, pprint, datetime, argparse, tokenize, json, smtplib
+import sys, os, signal, traceback, errno, pprint, datetime, argparse, tokenize, json, smtplib
+
+try:
+	import fcntl
+except ImportError:
+	fcntl = None
 
 try:
 	import gzip
@@ -777,13 +810,14 @@ class Job:
 
 		# Obtain a lock on the script file to make sure we're the only one running
 		with open(misc.sysinfo.script_name, "rb") as f:
-			try:
-				fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-			except IOError as exc:
-				if exc.errno != errno.EWOULDBLOCK: # some other error
-					raise
-				# The previous invocation of the job is still running
-				return # Return without calling :meth:`execute`
+			if fcntl is not None:
+				try:
+					fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+				except IOError as exc:
+					if exc.errno != errno.EWOULDBLOCK: # some other error
+						raise
+					# The previous invocation of the job is still running
+					return # Return without calling :meth:`execute`
 
 			# we were able to obtain the lock, so we are the only one running
 			self.starttime = datetime.datetime.now()
@@ -801,6 +835,16 @@ class Job:
 
 			maxtime = self.getmaxtime()
 			self.log.sisyphus.init(f"{misc.sysinfo.script_name} (max time {maxtime}; pid {misc.sysinfo.pid})")
+
+			# Check for support of various thing we'd like to use
+			if fcntl is None:
+				self.log.sisyphus.init.warning("Can't lock script file (module fcntl not available)")
+			if self.fork and not hasattr(os, "fork"):
+				self.log.sisyphus.init.warning("Can't fork (function os.fork not available)")
+				self.fork = False
+			if not hasattr(signal, "SIGALRM"):
+				self.log.sisyphus.init.warning("Can't use signals (signal.SIGALRM not available)")
+				self.fork = False
 			if self.setproctitle and setproctitle is None:
 				self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available)")
 
@@ -811,8 +855,9 @@ class Job:
 					msg = f"logging to {self.logfileurl}" if self.logfileurl else "no logging"
 					self.setproctitle("parent", f"{msg} (max time {maxtime})")
 					# set a signal to kill the child process after the maximum runtime
-					signal.signal(signal.SIGALRM, self._alarm_fork)
-					signal.alarm(self.getmaxtime_seconds())
+					if hasattr(signal, "SIGALRM"):
+						signal.signal(signal.SIGALRM, self._alarm_fork)
+						signal.alarm(self.getmaxtime_seconds())
 					try:
 						os.waitpid(pid, 0) # Wait for the child process to terminate
 					except BaseException as exc:
@@ -823,8 +868,9 @@ class Job:
 				self.log.sisyphus.init(f"forked worker child (child pid {os.getpid()})")
 			else: # We didn't fork
 				# set a signal to kill ourselves after the maximum runtime
-				signal.signal(signal.SIGALRM, self._alarm_nofork)
-				signal.alarm(self.getmaxtime_seconds())
+				if hasattr(signal, "SIGALRM"):
+					signal.signal(signal.SIGALRM, self._alarm_nofork)
+					signal.alarm(self.getmaxtime_seconds())
 
 			self.setproctitle("child", "Setting up")
 			self.notifystart()
@@ -857,7 +903,8 @@ class Job:
 				for logger in self._loggers:
 					logger.close()
 				self.notifyfinish(result)
-				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+				if fcntl is not None:
+					fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 			if self.fork:
 				os._exit(0)
 
