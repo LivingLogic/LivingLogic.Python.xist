@@ -65,6 +65,12 @@ Upload the release to the chesseshop via (do this in the root directory)::
 	make upload
 
 
+Announcing the release
+----------------------
+
+Announce the release on the mailing list.
+
+
 Creating the Windows packages
 -----------------------------
 
