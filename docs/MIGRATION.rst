@@ -8,6 +8,15 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.36
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+As :mod:`cx_Oracle` provides its own :class:`Object` :class:`orasql.Object`
+has been renamed to :class:`orasql.SchemaObject`.
+
 Migrating to version 5.34
 =========================
 
