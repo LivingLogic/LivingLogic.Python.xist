@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.36 (released ??/??/2018)
+-------------------------------------
+
+*	As :mod:`cx_Oracle` provides its own :class:`Object` :class:`orasql.Object`
+	has been renamed to :class:`orasql.SchemaObject`.
+
+
 Changes in 5.35 (released 09/14/2018)
 -------------------------------------
 
