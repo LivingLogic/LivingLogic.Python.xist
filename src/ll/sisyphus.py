@@ -768,6 +768,8 @@ class Job:
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
+		if self.jobname is None:
+			self.jobname = self.__class__.__qualname__
 		self._tasks = []
 		self._loggers = []
 		self._exceptioncount = 0
