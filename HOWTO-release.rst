@@ -2,6 +2,15 @@ How to make an XIST release
 ===========================
 
 
+Requirements
+------------
+
+For the release process to work you need to install :mod:`wheel` and
+:mod:`twine`::
+
+	pip install wheel thwin
+
+
 Preparing for the release
 -------------------------
 
