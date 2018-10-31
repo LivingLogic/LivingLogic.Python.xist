@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.36 (released ??/??/2018)
+Changes in 5.36 (released 10/31/2018)
 -------------------------------------
 
 *	As :mod:`cx_Oracle` provides its own class :class:`Object`
