@@ -144,7 +144,7 @@ It is possible to send an email when a job fails. For this the options
 :option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
 set. If the job terminates because of an exception, or exceeds its maximum
 runtime (and the option :option:`--noisykills` is set) or any of the calls
-to :meth:`~Job.log`` include the tag ``email``, the email will be sent. This
+to :meth:`~Job.log` include the tag ``email``, the email will be sent. This
 email includes the last 10 logging calls and the final exception (if there is
 any) in plain text and HTML format as well as as a JSON attachment.
 """
