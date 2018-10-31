@@ -19,6 +19,9 @@ Changes in 5.36 (released ??/??/2018)
 	are not available or :func:`signal.signal` doesn't support :const:`SIGALRM`
 	(i.e. on Windows). In this case various features will be missing.
 
+*	It is now possible to pass instances of :mod:`cx_Oracle.Object` as arguments
+	when calling function or procedures in :mod:`orasql`.
+
 
 Changes in 5.35 (released 09/14/2018)
 -------------------------------------

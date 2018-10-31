@@ -3138,18 +3138,24 @@ class Callable(MixinNormalDates, MixinCodeSQL, SchemaObject):
 		return queryargs
 
 	def _wraparg(self, cursor, arginfo, arg):
+		typename = None
 		try:
 			if arg is None:
 				t = self._ora2cx[arginfo.datatype]
 			else:
 				t = type(arg)
+				if isinstance(arg, Object):
+					typename = f"{arg.type.schema}.{arg.type.name}"
 		except KeyError:
 			raise TypeError(f"can't handle parameter {arginfo.name} of type {arginfo.datatype} with value {arg!r} in {self!r}")
 		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``
 			t = BLOB
 		elif isinstance(arg, str) and len(arg) >= 2000:
 			t = CLOB
-		var = cursor.var(t)
+		if typename is None:
+			var = cursor.var(t)
+		else:
+			var = cursor.var(t, typename=typename)
 		var.setvalue(0, arg)
 		return var
 
