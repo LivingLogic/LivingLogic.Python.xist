@@ -2837,7 +2837,7 @@ class View(MixinNormalDates, SchemaObject):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		code = "\n".join(line.rstrip() for line in rec.text.strip().splitlines()) # Strip trailing whitespace
+		code = "\n".join(line.rstrip() for line in (rec.text or "").strip().splitlines()) # Strip trailing whitespace
 		code = f"create or replace force view {self.getfullname()} as\n\t{code}"
 		if term:
 			code += "\n/\n"
