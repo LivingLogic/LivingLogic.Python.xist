@@ -460,8 +460,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	# java_compiled_by_python=TemplateJavaCompiledByPython,
 	# java_compiled_by_java=TemplateJavaCompiledByJava,
-	js_v8=TemplateJavascriptV8,
-	js_node=TemplateJavascriptNode,
+	# js_v8=TemplateJavascriptV8,
+	# js_node=TemplateJavascriptNode,
 	# php=TemplatePHP,
 )
 
@@ -4919,35 +4919,35 @@ def test_doc(T):
 @pytest.mark.ul4
 def test_exception(T):
 	if T in (TemplatePython, TemplatePythonDumpS, TemplatePythonDump):
-		assert "None" == T("<?print repr(exc.cause)?>").renders(exc=ValueError("broken"))
+		assert "None" == T("<?print repr(exc.context)?>").renders(exc=ValueError("broken"))
 		exc = ValueError("broken")
 		exc.__cause__ = ValueError("because")
-		assert "ValueError" == T("<?print type(exc.cause)?>").renders(exc=exc)
-		assert "because" == T("<?print exc.cause?>").renders(exc=exc)
+		assert "ValueError" == T("<?print type(exc.context)?>").renders(exc=exc)
+		assert "because" == T("<?print exc.context?>").renders(exc=exc)
 
 		stacktrace = """
 			<?ul4 stacktrace(exc)?>
 			<?whitespace strip?>
 			<?while exc is not None?>
 				<?if exc.location?>
-					<?print type(exc)?>: <?print repr(exc.template.source[exc.outerpos])?>
+					<?print type(exc)?>: <?print repr(exc.location.source)?>
 				<?else?>
 					<?print type(exc)?>: <?print exc?>
 				<?end if?>
 				<?print "\\n"?>
-				<?code exc = exc.cause?>
+				<?code exc = exc.context?>
 			<?end while?>
 		"""
 
 		expected = [
-			"ll.ul4c.LocationError: '<?return outer(x)?>'",
-			"ll.ul4c.LocationError: '<?return inner(x)?>'",
-			"ll.ul4c.LocationError: '<?return x*x?>'",
 			"TypeError: unsupported operand type(s) for *: 'NoneType' and 'NoneType'",
+			"ll.ul4c.LocationError: 'x*x'",
+			"ll.ul4c.LocationError: 'inner(x)'",
+			"ll.ul4c.LocationError: 'outer(x)'",
 		]
 
 		try:
-			T("<?def outer(x)?><?def inner(x)?><?return x*x?><?end def?><?return inner(x)?><?end def?><?return outer(x)?>")(x=None)
+			T("<?def outer(x)?>\n<?def inner(x)?>\n<?return x*x?>\n<?end def?>\n<?return inner(x)?>\n<?end def?>\n<?return outer(x)?>\n")(x=None)
 		except Exception as exc:
 			assert expected == T(stacktrace).renders(exc=exc).splitlines()
 
@@ -4960,31 +4960,45 @@ def test_templateattributes(T):
 	s2 = "<?printx 42?>"
 	t2 = ul4c.Template(s2, name="t2")
 
+	assert "t1" == T("<?print template.template.name?>").renders(template=t1)
+	assert "None" == T("<?print repr(template.parenttemplate)?>").renders(template=t1)
 	assert "<?" == T("<?print template.startdelim?>").renders(template=t1)
 	assert "?>" == T("<?print template.enddelim?>").renders(template=t1)
 	assert s1 == T("<?print template.source?>").renders(template=t1)
 	assert "2" == T("<?print len(template.content)?>").renders(template=t1) # The template AST always contains an :class:`Indent` node at the start
 	assert "(indent) (print)" == T("<?print ' '.join('(' + ast.type + ')' for ast in template.content)?>").renders(template=t1)
 	assert "t1" == T("<?print template.content[0].template.name?>").renders(template=t1)
-	assert "t1" == T("<?print template.content[1].tag.template.name?>").renders(template=t1)
-	assert s1 == T("<?print template.content[1].tag.text?>").renders(template=t1)
-	assert "x" == T("<?print template.content[1].tag.code?>").renders(template=t1)
+	assert "t1" == T("<?print template.content[1].template.name?>").renders(template=t1)
+	assert "<?print x?>" == T("<?print template.content[1].source?>").renders(template=t1)
+	assert "x" == T("<?print template.content[1].obj.source?>").renders(template=t1)
 	assert "var" == T("<?print template.content[1].obj.type?>").renders(template=t1)
 	assert "x" == T("<?print template.content[1].obj.name?>").renders(template=t1)
 	assert "printx" == T("<?print template.content[1].type?>").renders(template=t2)
 	assert "const" == T("<?print template.content[1].obj.type?>").renders(template=t2)
 	assert "42" == T("<?print template.content[1].obj.value?>").renders(template=t2)
+	assert "inner" == T("<?def inner?><?end def?><?print inner.template.name?>", name="foo").renders()
 	assert "foo" == T("<?def inner?><?end def?><?print inner.parenttemplate.name?>", name="foo").renders()
 
+	s3 = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblock b()?>foo<?end renderblock?>"
+	t3 = ul4c.Template(s3, name="t3")
+
+	assert "<?renderblock b()?>foo<?end renderblock?>" == T("<?print template.content[-1].source?>", name="foo").renders(template=t3)
+	assert "foo" == T("<?print template.content[-1].content.source?>", name="foo").renders(template=t3)
+
+	s4 = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblocks b()?><?def content?>foo<?end def?><?end renderblocks?>"
+	t4 = ul4c.Template(s4, name="t4")
+
+	assert "<?def content?>foo<?end def?>" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t4)
 
 @pytest.mark.ul4
 def test_templateattributes_localtemplate(T):
 	# This checks that template attributes work on a closure
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
-	assert source + "<?print lower.source?>" == T(source + "<?print lower.source?>").renders()
-	assert source == T(source + "<?print lower.source[lower.tag.pos.start:lower.endtag.pos.stop]?>").renders()
-	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.tag.pos.stop:lower.endtag.pos.start]?>").renders()
+	assert source == T(source + "<?print lower.source?>").renders()
+	assert source == T(source + "<?print lower.template.source?>").renders()
+	assert source + "<?print lower.parenttemplate.source?>" == T(source + "<?print lower.parenttemplate.source?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.content[0].pos.start:lower.content[-1].pos.stop]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 

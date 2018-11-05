@@ -73,15 +73,28 @@ error_underline = os.environ.get("LL_UL4_ERRORUNDERLINE", "~")[:1] or "~"
 
 class LocationError(Exception):
 	"""
-	Exception class that wraps another exception and provides a location.
+	Exception class that provides a location inside an UL4 template.
+
+	If an exception happens inside an UL4 template, this exception will propagate
+	outwards and will be decorated with :class:`LocationError` instances which
+	will be chained via the ``__cause__`` attribute. Only the original exception
+	will be reraised again and again, so these :class:`LocationError` will never
+	have a traceback attached to them.
+
+	The first ``__cause__`` attribute marks the location in the UL4 source where
+	the exception happened and the last ``__cause__`` attribute at the end of the
+	exception chain marks the outermost call.
 	"""
 	def __init__(self, location):
 		self.location = location
 
-	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} in {self.location} at {id(self):#x}>"
+	_condensewhitespace = re.compile("[\t\n\r\f\v]+")
 
-	def _templateprefix(self, template):
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} in {self.location} offset {_offset(self.location.pos)} at {id(self):#x}>"
+
+	def strtemplate(self):
+		template = self.location.template
 		prefix = "in local template" if template.parenttemplate is not None else "in template"
 		out = []
 		while template is not None:
@@ -89,56 +102,73 @@ class LocationError(Exception):
 			template = template.parenttemplate
 		return f"{prefix} {' in '.join(out)}"
 
+	def strlocation(self):
+		(line, col) = self.location._linecol()
+		return f"offset {_offset(self.location.pos)}; line {line:,}; col {col:,}"
+
+	def strsourceprefix(self):
+		template = self.location.template
+		outerstartpos = innerstartpos = self.location.pos.start
+
+		preprefix = ""
+		maxprefix = 40
+		while maxprefix > 0:
+			# We arrived at the start of the source
+			if outerstartpos == 0:
+				break
+			# We arrived at the start of the line
+			if template._source[outerstartpos-1] == "\n":
+				break
+			maxprefix -= 1
+			outerstartpos -= 1
+		else:
+			# We've exhausted the length of the prefix
+			preprefix = "..."
+
+		return preprefix + template._source[outerstartpos:innerstartpos]
+
+	def strsource(self):
+		return self.location.template._source[self.location.pos]
+
+	def strsourcesuffix(self):
+		template = self.location.template
+		outerstoppos = innerstoppos = self.location.pos.stop
+
+		postsuffix = ""
+		maxsuffix = 40
+		while maxsuffix > 0:
+			# We arrived at the end of the source
+			if outerstoppos >= len(template._source):
+				break
+			# We arrived at the end of the line
+			if template._source[outerstoppos] == "\n":
+				break
+			maxsuffix -= 1
+			outerstoppos += 1
+		else:
+			# We've exhausted the length of the suffix
+			postsuffix = "..."
+
+		return template._source[innerstoppos:outerstoppos] + postsuffix
+
 	def __str__(self):
-		location = self.location
-		(line, col) = location._linecol()
-
-		template = self._template()
-		outerpos = self._outerpos()
-		innerpos = self._innerpos()
-
-		prefix = repr(template.source[outerpos.start:innerpos.start])[1:-1]
-		code = repr(template.source[innerpos])[1:-1]
-		suffix = repr(template.source[innerpos.stop:outerpos.stop])[1:-1]
+		prefix = repr(self._condensewhitespace.sub(" ", self.strsourceprefix()))[1:-1]
+		source = repr(self._condensewhitespace.sub(" ", self.strsource()))[1:-1]
+		suffix = repr(self._condensewhitespace.sub(" ", self.strsourcesuffix()))[1:-1]
 		indent = ' '*len(prefix)
-		underline = error_underline*len(code)
+		underline = error_underline*len(source)
 
-		return f"{self._templateprefix(template)}: offset {_offset(location.pos)}; line {line:,}; col {col:,}\n{prefix}{code}{suffix}\n{indent}{underline}"
-
-	def _template(self):
-		if isinstance(self.location, Tag):
-			return self.location.template
-		else:
-			return self.location.tag.template
-
-	def _outerpos(self):
-		if isinstance(self.location, Tag):
-			return self.location.pos
-		else:
-			tag = self.location.tag
-			if tag is None: # A top level template as no tag
-				return self.location.pos
-			else:
-				return tag.pos
-
-	def _innerpos(self):
-		return self.location.pos
+		return f"{self.strtemplate()}: {self.strlocation()}\n{prefix}{source}{suffix}\n{indent}{underline}"
 
 	def ul4getattr(self, name):
-		if name == "cause":
-			if self.__cause__ is not None:
-				return self.__cause__
-			elif self.__context__ is not None and not self.__suppress_context__:
+		if name == "context":
+			if self.__context__ is not None and not self.__suppress_context__:
 				return self.__context__
+			elif self.__cause__ is not None:
+				return self.__cause__
 			return None
 		elif name == "location":
 			return self.location
-		elif name == "template":
-			return self._template()
-		elif name == "outerpos":
-			return self._outerpos()
-		elif name == "innerpos":
-			return self._innerpos()
 		else:
 			raise AttributeError(name)
 
@@ -263,6 +293,15 @@ class Context:
 ### Helper functions
 ###
 
+def _decorateexception(exc, ast, obj=None):
+	# Find the end of the exception chain
+	while exc.__cause__:
+		exc = exc.__cause__
+	# Attach location to innermost exception
+	if not isinstance(exc, LocationError) or (isinstance(ast, Call) and isinstance(obj, (Template, TemplateClosure))):
+		exc.__cause__ = LocationError(ast)
+
+
 def _handleexpressioneval(f):
 	"""
 	Decorator for an implementation of the :meth:`eval` method that does not
@@ -280,11 +319,9 @@ def _handleexpressioneval(f):
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
-		except LocationError:
-			raise
 		except Exception as exc:
-			# Wrap original exception in another exception that shows the location
-			raise LocationError(self) from exc
+			_decorateexception(exc, self)
+			raise
 		finally:
 			context.asts.pop()
 	return wrapped
@@ -307,11 +344,9 @@ def _handleoutputeval(f):
 		except (BreakException, ContinueException, ReturnException):
 			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
 			raise
-		except LocationError:
-			raise
 		except Exception as exc:
-			# Wrap original exception in another exception that shows the location
-			raise LocationError(self) from exc
+			_decorateexception(exc, self)
+			raise
 		finally:
 			context.asts.pop()
 	return wrapped
@@ -757,23 +792,15 @@ class TimeDeltaProto(Proto):
 
 class ExceptionProto(Proto):
 	name = "exception"
-	wrappeddataattrs = {"cause"}
+	wrappeddataattrs = {"context"}
 
 	@staticmethod
-	def cause(obj):
+	def context(obj):
 		if obj.__cause__ is not None:
 			return obj.__cause__
 		elif obj.__context__ is not None and not obj.__suppress_context__:
 			return obj.__context__
 		return None
-
-	@staticmethod
-	def seconds(obj):
-		return obj.seconds
-
-	@staticmethod
-	def microseconds(obj):
-		return obj.microseconds
 
 
 @functools.singledispatch
@@ -829,6 +856,14 @@ def proto_timedelta(obj):
 @proto.register(BaseException)
 def proto_exception(obj):
 	return ExceptionProto
+
+
+def _linecol(source, pos):
+	lastlinefeed = source.rfind("\n", 0, pos.start)
+	if lastlinefeed >= 0:
+		return (source.count("\n", 0, pos.start)+1, pos.start-lastlinefeed)
+	else:
+		return (1, pos.start + 1)
 
 
 def _offset(pos):
@@ -1038,22 +1073,21 @@ class AST:
 	"""
 
 	# Set of attributes available to UL4 templates
-	ul4attrs = {"type", "pos"}
+	ul4attrs = {"type", "template", "pos", "source"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
 	output = False
 
-	def __init__(self, pos=None):
+	def __init__(self, template=None, pos=None):
+		# ``template`` references the :class:`Template` object of which
+		# ``self`` is a part. This mean that for a :class:`Template` object ``a``
+		# (which is an :class:`AST` object) ``a.template is a`` is true.
+		self.template = template
 		self.pos = pos
 
-	@staticmethod
-	def _linecol(source, pos):
-		lastlinefeed = source.rfind("\n", 0, pos.start)
-		if lastlinefeed >= 0:
-			return (source.count("\n", 0, pos.start)+1, pos.start-lastlinefeed)
-		else:
-			return (1, pos.start + 1)
+	def _linecol(self):
+		return _linecol(self.template._source, self.pos)
 
 	def __repr__(self):
 		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
@@ -1084,6 +1118,10 @@ class AST:
 
 	def _repr_pretty(self, p):
 		pass
+
+	@property
+	def source(self):
+		return self.template._source[self.pos]
 
 	def __str__(self):
 		# This uses :meth:`_str`, which is a generator and may output:
@@ -1123,9 +1161,11 @@ class AST:
 		pass
 
 	def ul4ondump(self, encoder):
+		encoder.dump(self.template)
 		encoder.dump(self.pos)
 
 	def ul4onload(self, decoder):
+		self.template = decoder.load()
 		self.pos = decoder.load()
 
 
@@ -1135,16 +1175,9 @@ class Text(AST):
 	AST node for literal text.
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"template", "text"})
+	ul4attrs = AST.ul4attrs.union({"text"})
 
 	output = True
-
-	def __init__(self, template=None, pos=None):
-		super().__init__(pos)
-		self.template = template
-
-	def _linecol(self):
-		return AST._linecol(self.template.source, self.pos)
 
 	def _repr(self):
 		yield repr(self.text)
@@ -1156,21 +1189,13 @@ class Text(AST):
 
 	@property
 	def text(self):
-		return self.template.source[self.pos]
+		return self.template._source[self.pos]
 
 	def _str(self):
 		yield f"text {self.text!r}"
 
 	def eval(self, context):
 		yield context.output(self.text)
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.template)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.template = decoder.load()
 
 
 @register("indent")
@@ -1186,7 +1211,7 @@ class Indent(Text):
 	@property
 	def text(self):
 		if self._text is None:
-			return self.template.source[self.pos]
+			return self.template._source[self.pos]
 		else:
 			return self._text
 
@@ -1194,7 +1219,7 @@ class Indent(Text):
 	# set this attribute. However the attribute *will* be set by the code
 	# compiling the template
 	def _settext(self, text):
-		self._text = text if text != self.template.source[self.pos] else None
+		self._text = text if text != self.template._source[self.pos] else None
 
 	def _str(self):
 		yield f"indent {self.text!r}"
@@ -1223,53 +1248,30 @@ class LineEnd(Text):
 		yield f"lineend {self.text!r}"
 
 
-@register("tag")
 class Tag(AST):
 	"""
 	A :class:`Tag` object is the location of a template tag in a template.
 	"""
-	ul4attrs = AST.ul4attrs.union({"template", "tag", "text", "code"})
-
 	def __init__(self, template=None, tag=None, tagpos=None, codepos=None):
-		super().__init__(tagpos)
-		self.template = template
+		super().__init__(template, tagpos)
 		self.tag = tag
 		self.codepos = codepos
 
 	def _repr(self):
-		yield repr(self.text)
+		yield repr(self.source)
 
 	def _repr_pretty(self, p):
 		p.breakable()
-		p.text("text=")
-		p.pretty(self.text)
-
-	def _linecol(self):
-		return AST._linecol(self.template.source, self.pos)
+		p.text("source=")
+		p.pretty(self.source)
 
 	def __str__(self):
 		(line, col) = self._linecol()
-		return f"{self.text!r} (offset {_offset(self.pos)}; line {line:,}; col {col:,})"
-
-	@property
-	def text(self):
-		return self.template.source[self.pos]
+		return f"{self.source!r} (offset {_offset(self.pos)}; line {line:,}; col {col:,})"
 
 	@property
 	def code(self):
-		return self.template.source[self.codepos]
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.template)
-		encoder.dump(self.tag)
-		encoder.dump(self.codepos)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.template = decoder.load()
-		self.tag = decoder.load()
-		self.codepos = decoder.load()
+		return self.template._source[self.codepos]
 
 
 class Code(AST):
@@ -1277,31 +1279,8 @@ class Code(AST):
 	The base class of all AST nodes that appear inside a :class:`Tag`.
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"tag"})
-
-	def __init__(self, tag=None, pos=None):
-		super().__init__(pos)
-		self.tag = tag
-
-	def _linecol(self):
-		if self.tag is None:
-			return (1, 1)
-		return AST._linecol(self.tag.template.source, self.pos)
-
-	@property
-	def text(self):
-		return self.tag.template.source[self.pos]
-
 	def _str(self):
-		yield " ".join(self.text.splitlines(False))
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self.tag)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self.tag = decoder.load()
+		yield " ".join(self.source.splitlines(False))
 
 
 @register("const")
@@ -1311,8 +1290,8 @@ class Const(Code):
 	"""
 	ul4attrs = Code.ul4attrs.union({"value"})
 
-	def __init__(self, tag=None, pos=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, value=None):
+		super().__init__(template, pos)
 		self.value = value
 
 	def eval(self, context):
@@ -1346,8 +1325,8 @@ class SeqItem(Code):
 
 	ul4attrs = Code.ul4attrs.union({"value"})
 
-	def __init__(self, tag=None, pos=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, value=None):
+		super().__init__(template, pos)
 		self.value = value
 
 	def _repr(self):
@@ -1383,8 +1362,8 @@ class UnpackSeqItem(Code):
 
 	ul4attrs = Code.ul4attrs.union({"value"})
 
-	def __init__(self, tag=None, pos=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, value=None):
+		super().__init__(template, pos)
 		self.value = value
 
 	def _repr(self):
@@ -1424,8 +1403,8 @@ class DictItem(Code):
 
 	ul4attrs = Code.ul4attrs.union({"key", "value"})
 
-	def __init__(self, tag=None, pos=None, key=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, key=None, value=None):
+		super().__init__(template, pos)
 		self.key = key
 		self.value = value
 
@@ -1465,8 +1444,8 @@ class UnpackDictItem(Code):
 
 	ul4attrs = Code.ul4attrs.union({"item"})
 
-	def __init__(self, tag=None, pos=None, item=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, item=None):
+		super().__init__(template, pos)
 		self.item = item
 
 	def _repr(self):
@@ -1500,8 +1479,8 @@ class PosArg(Code):
 
 	ul4attrs = Code.ul4attrs.union({"value"})
 
-	def __init__(self, tag=None, pos=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, value=None):
+		super().__init__(template, pos)
 		self.value = value
 
 	def _repr(self):
@@ -1541,8 +1520,8 @@ class KeywordArg(Code):
 
 	ul4attrs = Code.ul4attrs.union({"name", "value"})
 
-	def __init__(self, tag=None, pos=None, name=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, name=None, value=None):
+		super().__init__(template, pos)
 		self.name = name
 		self.value = value
 
@@ -1585,8 +1564,8 @@ class UnpackListArg(Code):
 
 	ul4attrs = Code.ul4attrs.union({"item"})
 
-	def __init__(self, tag=None, pos=None, item=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, item=None):
+		super().__init__(template, pos)
 		self.item = item
 
 	def _repr(self):
@@ -1625,8 +1604,8 @@ class UnpackDictArg(Code):
 
 	ul4attrs = Code.ul4attrs.union({"item"})
 
-	def __init__(self, tag=None, pos=None, item=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, item=None):
+		super().__init__(template, pos)
 		self.item = item
 
 	def _repr(self):
@@ -1671,8 +1650,8 @@ class List(Code):
 
 	ul4attrs = Code.ul4attrs.union({"items"})
 
-	def __init__(self, tag=None, pos=None, *items):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, *items):
+		super().__init__(template, pos)
 		self.items = list(items)
 
 	def _repr(self):
@@ -1707,8 +1686,8 @@ class ListComp(Code):
 
 	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, tag=None, pos=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(template, pos)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -1774,8 +1753,8 @@ class Set(Code):
 
 	ul4attrs = Code.ul4attrs.union({"items"})
 
-	def __init__(self, tag=None, pos=None, *items):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, *items):
+		super().__init__(template, pos)
 		self.items = list(items)
 
 	def _repr(self):
@@ -1810,8 +1789,8 @@ class SetComp(Code):
 
 	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, tag=None, pos=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(template, pos)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -1877,8 +1856,8 @@ class Dict(Code):
 
 	ul4attrs = Code.ul4attrs.union({"items"})
 
-	def __init__(self, tag=None, pos=None, *items):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, *items):
+		super().__init__(template, pos)
 		self.items = list(items)
 
 	def _repr(self):
@@ -1913,8 +1892,8 @@ class DictComp(Code):
 
 	ul4attrs = Code.ul4attrs.union({"key", "value", "varname", "container", "condition"})
 
-	def __init__(self, tag=None, pos=None, key=None, value=None, varname=None, container=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, key=None, value=None, varname=None, container=None, condition=None):
+		super().__init__(template, pos)
 		self.key = key
 		self.value = value
 		self.varname = varname
@@ -1984,8 +1963,8 @@ class GenExpr(Code):
 
 	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
 
-	def __init__(self, tag=None, pos=None, item=None, varname=None, container=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, item=None, varname=None, container=None, condition=None):
+		super().__init__(template, pos)
 		self.item = item
 		self.varname = varname
 		self.container = container
@@ -2026,8 +2005,8 @@ class GenExpr(Code):
 		except LocationError:
 			raise
 		except Exception as exc:
-			# Wrap original exception in another exception that shows the location
-			raise LocationError(self) from exc
+			_decorateexception(exc, self)
+			raise
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2052,8 +2031,8 @@ class Var(Code):
 
 	ul4attrs = Code.ul4attrs.union({"name"})
 
-	def __init__(self, tag=None, pos=None, name=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, name=None):
+		super().__init__(template, pos)
 		self.name = name
 
 	def _repr(self):
@@ -2102,18 +2081,17 @@ class Block(Code):
 
 	output = True
 
-	ul4attrs = Code.ul4attrs.union({"endtag", "content"})
+	ul4attrs = Code.ul4attrs.union({"content"})
 
-	def __init__(self, tag=None, pos=None):
-		super().__init__(tag, pos)
-		self.endtag = None
+	def __init__(self, template=None, pos=None):
+		super().__init__(template, pos)
 		self.content = []
 
 	def append(self, item):
 		self.content.append(item)
 
 	def finish(self, endtag):
-		self.endtag = endtag
+		self.pos = slice(self.pos.start, endtag.pos.stop)
 
 	def _str(self):
 		if self.content:
@@ -2133,12 +2111,10 @@ class Block(Code):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.endtag)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.endtag = decoder.load()
 		self.content = decoder.load()
 
 
@@ -2151,10 +2127,10 @@ class CondBlock(Block):
 	followed by zero or more :class:`ElIfBlock` blocks followed by zero or one
 	:class:`ElseBlock` block.
 	"""
-	def __init__(self, tag=None, pos=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, condition=None):
+		super().__init__(template, pos)
 		if condition is not None:
-			self.newblock(IfBlock(tag, pos, condition))
+			self.newblock(IfBlock(template, pos, condition))
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2168,11 +2144,11 @@ class CondBlock(Block):
 
 	def finish(self, endtag):
 		super().finish(endtag)
-		self.content[-1].endtag = endtag
+		self.content[-1].pos = slice(self.content[-1].pos.start, endtag.pos.start)
 
 	def newblock(self, block):
 		if self.content:
-			self.content[-1].endtag = block.tag
+			self.content[-1].pos = slice(self.content[-1].pos.start, block.pos.start)
 		self.content.append(block)
 
 	def _str(self):
@@ -2195,8 +2171,8 @@ class IfBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"condition"})
 
-	def __init__(self, tag=None, pos=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, condition=None):
+		super().__init__(template, pos)
 		self.condition = condition
 
 	def _repr(self):
@@ -2238,8 +2214,8 @@ class ElIfBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"condition"})
 
-	def __init__(self, tag=None, pos=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, condition=None):
+		super().__init__(template, pos)
 		self.condition = condition
 
 	def _repr(self):
@@ -2302,8 +2278,8 @@ class ForBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"varname", "container"})
 
-	def __init__(self, tag=None, pos=None, varname=None, container=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, varname=None, container=None):
+		super().__init__(template, pos)
 		self.varname = varname
 		self.container = container
 
@@ -2365,8 +2341,8 @@ class WhileBlock(Block):
 
 	ul4attrs = Block.ul4attrs.union({"condition"})
 
-	def __init__(self, tag=None, pos=None, condition=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, condition=None):
+		super().__init__(template, pos)
 		self.condition = condition
 
 	def _repr(self):
@@ -2451,8 +2427,8 @@ class Attr(Code):
 	"""
 	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
-	def __init__(self, tag=None, pos=None, obj=None, attrname=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, obj=None, attrname=None):
+		super().__init__(template, pos)
 		self.obj = obj
 		self.attrname = attrname
 
@@ -2514,8 +2490,8 @@ class Slice(Code):
 
 	ul4attrs = Code.ul4attrs.union({"index1", "index2"})
 
-	def __init__(self, tag=None, pos=None, index1=None, index2=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, index1=None, index2=None):
+		super().__init__(template, pos)
 		self.index1 = index1
 		self.index2 = index2
 
@@ -2563,8 +2539,8 @@ class Unary(Code):
 
 	ul4attrs = Code.ul4attrs.union({"obj"})
 
-	def __init__(self, tag=None, pos=None, obj=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, obj=None):
+		super().__init__(template, pos)
 		self.obj = obj
 
 	def _repr(self):
@@ -2689,8 +2665,8 @@ class Binary(Code):
 
 	ul4attrs = Code.ul4attrs.union({"obj1", "obj2"})
 
-	def __init__(self, tag=None, pos=None, obj1=None, obj2=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, obj1=None, obj2=None):
+		super().__init__(template, pos)
 		self.obj1 = obj1
 		self.obj2 = obj2
 
@@ -3133,8 +3109,8 @@ class If(Code):
 
 	ul4attrs = Code.ul4attrs.union({"objif", "objcond", "objelse"})
 
-	def __init__(self, tag=None, pos=None, objif=None, objcond=None, objelse=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, objif=None, objcond=None, objelse=None):
+		super().__init__(template, pos)
 		self.objif = objif
 		self.objcond = objcond
 		self.objelse = objelse
@@ -3189,8 +3165,8 @@ class ChangeVar(Code):
 
 	ul4attrs = Code.ul4attrs.union({"lvalue", "value"})
 
-	def __init__(self, tag=None, pos=None, lvalue=None, value=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, lvalue=None, value=None):
+		super().__init__(template, pos)
 		self.lvalue = lvalue
 		self.value = value
 
@@ -3385,8 +3361,8 @@ class Call(Code):
 
 	ul4attrs = Code.ul4attrs.union({"obj", "args"})
 
-	def __init__(self, tag=None, pos=None, obj=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None, obj=None):
+		super().__init__(template, pos)
 		self.obj = obj
 		self.args = []
 
@@ -3425,16 +3401,12 @@ class Call(Code):
 
 		try:
 			return self._call(context, obj, args, kwargs)
-		except LocationError as exc:
-			if isinstance(obj, (Template, TemplateClosure)):
-				raise LocationError(self) from exc
-			elif inspect.ismethod(obj) and isinstance(obj.__self__, (Template, TemplateClosure)):
-				raise LocationError(self) from exc
-			else:
-				raise
 		except Exception as exc:
-			# Always wrap the original exception in another exception so that we see the location of the call
-			raise LocationError(self) from exc
+			if inspect.ismethod(obj):
+				_decorateexception(exc, self, obj.__self__)
+			else:
+				_decorateexception(exc, self, obj)
+			raise
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -3466,8 +3438,8 @@ class Render(Call):
 
 	ul4attrs = Call.ul4attrs.union({"indent"})
 
-	def __init__(self, tag=None, pos=None, obj=None):
-		super().__init__(tag, pos, obj)
+	def __init__(self, template=None, pos=None, obj=None):
+		super().__init__(template, pos, obj)
 		self.indent = None # The indentation before this ``<?render?>``/``<?renderx?>`` tag, i.e. the sibling AST node before ``self``
 
 	output = True
@@ -3513,8 +3485,11 @@ class Render(Call):
 			else:
 				raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
 		except Exception as exc:
-			# Wrap original exception in another exception that shows the location
-			raise LocationError(self) from exc
+			if inspect.ismethod(obj):
+				_decorateexception(exc, self, obj.__self__)
+			else:
+				_decorateexception(exc, self, obj)
+			raise
 
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
@@ -3564,21 +3539,19 @@ class RenderBlock(Render):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"endtag", "content"})
+	ul4attrs = Render.ul4attrs.union({"content"})
 
-	def __init__(self, tag=None, pos=None, obj=None):
-		super().__init__(tag, pos, obj)
-		self.endtag = None
+	def __init__(self, template=None, pos=None, obj=None):
+		super().__init__(template, pos, obj)
 		self.content = None
 
 	def append(self, item):
 		self.content.content.append(item)
 
 	def finish(self, endtag):
-		self.endtag = endtag
-		self.content.endtag = endtag
+		self.pos = slice(self.pos.start, endtag.pos.stop)
+		self.content.pos = slice(self.content.pos.start, endtag.pos.start)
 
-	@_handleoutputeval
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
 
@@ -3603,12 +3576,10 @@ class RenderBlock(Render):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.endtag)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.endtag = decoder.load()
 		self.content = decoder.load()
 
 
@@ -3622,18 +3593,17 @@ class RenderBlocks(Render):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"endtag", "content"})
+	ul4attrs = Render.ul4attrs.union({"content"})
 
-	def __init__(self, tag=None, pos=None, obj=None):
-		super().__init__(tag, pos, obj)
-		self.endtag = None
+	def __init__(self, template=None, pos=None, obj=None):
+		super().__init__(template, pos, obj)
 		self.content = []
 
 	def append(self, item):
 		self.content.append(item)
 
 	def finish(self, endtag):
-		self.endtag = endtag
+		self.pos = slice(self.pos.start, endtag.pos.stop)
 
 	def _str(self):
 		yield "if "
@@ -3666,7 +3636,6 @@ class RenderBlocks(Render):
 		for arg in self.args:
 			yield from arg._repr()
 
-	@_handleoutputeval
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
 
@@ -3710,12 +3679,10 @@ class RenderBlocks(Render):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.endtag)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.endtag = decoder.load()
 		self.content = decoder.load()
 
 
@@ -3740,9 +3707,9 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"signature", "doc", "source", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
+	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
 
-	version = "45"
+	version = "46"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
@@ -3819,15 +3786,12 @@ class Template(Block):
 			This AST node will be evaluated at the point of definition of the
 			subtemplate to create the final signature of the subtemplate.
 		"""
-		# ``tag``/``endtag`` will remain ``None`` for a top level template
-		# For a subtemplate ``tag`` will be set to the ``<?def?>`` tag in :meth:`_compile`
-		# and ``endtag`` will be the ``<?end def?>`` tag
-		super().__init__(None, slice(None, None))
+		super().__init__(self, slice(None, None))
 		self.whitespace = whitespace
 		self.startdelim = startdelim or "<?"
 		self.enddelim = enddelim or "?>"
 		self.name = name
-		self.source = None
+		self._source = None
 		self.docpos = None
 		self.parenttemplate = None
 		if isinstance(signature, str):
@@ -3897,7 +3861,7 @@ class Template(Block):
 
 	@property
 	def doc(self):
-		return self.source[self.docpos] if self.docpos is not None else None
+		return self._source[self.docpos] if self.docpos is not None else None
 
 	def ul4getattr(self, name):
 		if name == "renders":
@@ -3909,7 +3873,7 @@ class Template(Block):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
 		encoder.dump(self.name)
-		encoder.dump(self.source)
+		encoder.dump(self._source)
 		encoder.dump(self.whitespace)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
@@ -3963,14 +3927,13 @@ class Template(Block):
 				source = f"{startdelim}ul4 {self.name or ''}({signature}){enddelim}{source}"
 			# Remove old content, before compiling the source
 			self.pos = slice(None, None)
-			self.tag = self.endtag = None
 			del self.content[:]
 			self._compile(source, startdelim, enddelim)
 		else: # dump is in compiled form
 			if version != self.version:
 				raise ValueError(f"invalid version, expected {self.version!r}, got {version!r}")
 			self.name = decoder.load()
-			self.source = decoder.load()
+			self._source = decoder.load()
 			self.whitespace = decoder.load()
 			self.startdelim = decoder.load()
 			self.enddelim = decoder.load()
@@ -4039,7 +4002,12 @@ class Template(Block):
 	def _renderbound(self, context):
 		# Helper method used by :meth:`render` and :meth:`TemplateClosure.render` where arguments have already been bound
 		try:
-			yield from super().eval(context) # Bypass ``self.eval()`` which simply stores the object as a local variable
+			# Bypass ``self.eval()`` which simply stores the object as a local variable
+			# Also bypass ``super().eval()`` as this would add additional stackframe in exception messages
+			for node in self.content:
+				result = node.eval(context)
+				if node.output:
+					yield from result
 		except ReturnException:
 			pass
 
@@ -4341,7 +4309,7 @@ class Template(Block):
 		Compile the template source code :obj:`source` into an AST.
 		:obj:`startdelim` and :obj:`enddelim` are used as the tag delimiters.
 		"""
-		self.source = source
+		self._source = source
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 
@@ -4356,7 +4324,8 @@ class Template(Block):
 			try:
 				return self._parser(tag, "declaration required").definition()
 			except Exception as exc:
-				raise LocationError(tag) from exc
+				_decorateexception(exc, template)
+				raise
 
 		def parseexpr(tag):
 			return self._parser(tag, "expression required").expression()
@@ -4375,11 +4344,15 @@ class Template(Block):
 			if not isinstance(call, Call):
 				raise TypeError("render call required")
 			tags = dict(render=Render, renderx=RenderX, renderblock=RenderBlock, renderblocks=RenderBlocks)
-			render = tags[tag.tag](tag=call.tag, pos=call.pos, obj=call.obj)
-			render.obj = call.obj
+			render = tags[tag.tag](template=tag.template, pos=tag.pos, obj=call.obj)
 			render.args = call.args
 			if tag.tag == "renderblock":
+				# We create the sub template without source so there won't be any compilation done ...
 				render.content = Template(None, name="content", whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim)
+				# ... but then we have to fix the ``source`` and ``pos`` attributes ourselves
+				render.content._source = self._source
+				# The stop position will be updated by :meth:`RenderBlock.finish`.
+				render.content.pos = slice(tag.pos.stop, tag.pos.stop)
 			return render
 
 		tags = self._tokenize(source, startdelim, enddelim)
@@ -4403,7 +4376,8 @@ class Template(Block):
 							try:
 								raise ValueError(f"whitespace mode {whitespace!r} unknown")
 							except Exception as exc:
-								raise LocationError(tag) from exc
+								_decorateexception(exc, tag)
+								raise
 
 		# Flatten lines and update whitespace according to the whitespace mode specified
 		if self.whitespace == "keep":
@@ -4425,13 +4399,13 @@ class Template(Block):
 					if templatestack[-1].docpos is None:
 						templatestack[-1].docpos = tag.codepos
 				elif tag.tag == "print":
-					blockstack[-1].append(Print(tag, tag.codepos, parseexpr(tag)))
+					blockstack[-1].append(Print(templatestack[-1], tag.pos, parseexpr(tag)))
 				elif tag.tag == "printx":
-					blockstack[-1].append(PrintX(tag, tag.codepos, parseexpr(tag)))
+					blockstack[-1].append(PrintX(templatestack[-1], tag.pos, parseexpr(tag)))
 				elif tag.tag == "code":
 					blockstack[-1].append(parsestmt(tag))
 				elif tag.tag == "if":
-					block = CondBlock(tag, tag.codepos, parseexpr(tag))
+					block = CondBlock(templatestack[-1], tag.pos, parseexpr(tag))
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "elif":
@@ -4439,13 +4413,13 @@ class Template(Block):
 						raise BlockError("elif doesn't match and if")
 					elif isinstance(blockstack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					blockstack[-1].newblock(ElIfBlock(tag, tag.codepos, parseexpr(tag)))
+					blockstack[-1].newblock(ElIfBlock(templatestack[-1], tag.pos, parseexpr(tag)))
 				elif tag.tag == "else":
 					if not isinstance(blockstack[-1], CondBlock):
 						raise BlockError("else doesn't match any if")
 					elif isinstance(blockstack[-1].content[-1], ElseBlock):
 						raise BlockError("else already seen in if")
-					blockstack[-1].newblock(ElseBlock(tag, tag.codepos))
+					blockstack[-1].newblock(ElseBlock(templatestack[-1], tag.pos))
 				elif tag.tag == "end":
 					if len(blockstack) <= 1:
 						raise BlockError("not in any block")
@@ -4473,13 +4447,13 @@ class Template(Block):
 						else:
 							raise BlockError(f"illegal end value {code!r}")
 					last = blockstack.pop()
-					last.finish(tag) # Set ``endtag`` of block
+					last.finish(tag) # Set end position of block
 				elif tag.tag == "for":
 					block = parsefor(tag)
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "while":
-					block = WhileBlock(tag, tag.codepos, parseexpr(tag))
+					block = WhileBlock(templatestack[-1], tag.pos, parseexpr(tag))
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "break":
@@ -4488,29 +4462,29 @@ class Template(Block):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
-					blockstack[-1].append(Break(tag, tag.codepos))
+					blockstack[-1].append(Break(templatestack[-1], tag.pos))
 				elif tag.tag == "continue":
 					for block in reversed(blockstack):
 						if isinstance(block, (ForBlock, WhileBlock)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
-					blockstack[-1].append(Continue(tag, tag.codepos))
+					blockstack[-1].append(Continue(templatestack[-1], tag.pos))
 				elif tag.tag == "def":
 					(name, signature) = parsedef(tag)
 					block = Template(None, name=name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
-					block.tag = tag # Set start ``tag`` of sub template
+					block.template = block
 					block.parenttemplate = templatestack[-1]
 					tag.template = block
 					templatestack.append(block)
 					# The source is always the complete source of the top level template
-					# (so that the offsets in all :class:`Text`/:class:`Tag` objects are correct)
-					block.source = self.source
-					block.pos = tag.codepos
+					# (so that the offsets in all :class:`AST` objects are correct)
+					block._source = self._source
+					block.pos = tag.pos
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "return":
-					blockstack[-1].append(Return(tag, tag.codepos, parseexpr(tag)))
+					blockstack[-1].append(Return(templatestack[-1], tag.pos, parseexpr(tag)))
 				elif tag.tag in {"render", "renderx", "renderblock", "renderblocks"}:
 					render = parserender(tag)
 					# Find innermost block
@@ -4535,11 +4509,14 @@ class Template(Block):
 					raise ValueError(f"unknown tag {tag.tag!r}")
 				lasttag = tag
 			except Exception as exc:
-				raise LocationError(tag) from exc
+				_decorateexception(exc, tag)
+				raise
 		if len(blockstack) > 1:
-			raise LocationError(blockstack[-1]) from BlockError("block unclosed")
+			exc = BlockError("block unclosed")
+			_decorateexception(exc, blockstack[-1])
+			raise exc
 
-	@_handleexpressioneval
+	# @_handleexpressioneval
 	def eval(self, context):
 		signature = self.signature
 		# If our signature is an AST, we have to evaluate it to get the final :class:`inspect.Signature` object
@@ -4558,8 +4535,8 @@ class Signature(Code):
 
 	ul4attrs = Code.ul4attrs.union({"params"})
 
-	def __init__(self, tag=None, pos=None):
-		super().__init__(tag, pos)
+	def __init__(self, template=None, pos=None):
+		super().__init__(template, pos)
 		self.params = []
 
 	def __repr__(self):

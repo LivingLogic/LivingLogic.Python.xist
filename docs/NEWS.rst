@@ -8,6 +8,24 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.37 (released ??/??/2018)
+-------------------------------------
+
+*	The chaining of UL4 exceptions has been inverted. This means that the
+	exception that will get raised from the UL4 template is the original
+	innermost exception. :class:`LocationError` instances will be added to the
+	``__cause`` attribute to specify the exact location in the UL4 source. Note
+	that this means that those :class:`LocationError` instances won't have a
+	traceback added, as they will never be raised.
+
+*	The structure of compiled UL4 templates has been simplified internally:
+	Each :class:`AST` instance has attributes ``template`` and ``pos`` that
+	directly reference the template and the source code location of the
+	:class:`AST` node. The :class:`Tag` objects are gone (they will only be used
+	internally during compilation). Also :class:`AST` nodes have gained a
+	``source`` property which returns the source code of the node.
+
+
 Changes in 5.36 (released 10/31/2018)
 -------------------------------------
 

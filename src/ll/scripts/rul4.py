@@ -497,7 +497,7 @@ def fixname(name):
 
 def print_exception_chain(exc):
 	print("UL4 traceback (most recent call last):", file=sys.stderr)
-	for exc in misc.exception_chain(exc):
+	for exc in reversed(list(misc.exception_chain(exc))):
 		print()
 		print(misc.format_exception(exc), file=sys.stderr)
 
