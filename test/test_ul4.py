@@ -460,8 +460,8 @@ all_templates = dict(
 	python_dump=TemplatePythonDump,
 	# java_compiled_by_python=TemplateJavaCompiledByPython,
 	# java_compiled_by_java=TemplateJavaCompiledByJava,
-	# js_v8=TemplateJavascriptV8,
-	# js_node=TemplateJavascriptNode,
+	js_v8=TemplateJavascriptV8,
+	js_node=TemplateJavascriptNode,
 	# php=TemplatePHP,
 )
 
