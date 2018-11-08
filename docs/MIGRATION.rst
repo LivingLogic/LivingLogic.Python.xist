@@ -8,6 +8,25 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.37
+=========================
+
+Changes to UL4
+--------------
+
+Exception chaining has changed, so the exception you get from calling/rendering
+an UL4 template now is the original exception. To get to the information about
+the location in the UL4 source code you have to iterate through the
+``__cause__`` chain.
+
+The interal structure of UL4 templates has been simplified, but that should
+only concern you if you've worked with the UL4 AST itself. Basically
+:class:`Tag` objects are gone now, and instead each :class:`AST` node has
+attributes ``template`` (referencing the outermost template) and ``pos`` (being
+the position of the nodes source code). This also means that blocks no longer
+have an ``endtag`` attribute.
+
+
 Migrating to version 5.36
 =========================
 
