@@ -1,4 +1,4 @@
-# $ANTLR 3.5.2 src/ll/UL4.g 2018-10-05 16:04:59
+# $ANTLR 3.5.2 src/ll/UL4.g 2018-11-06 18:08:29
 
 import sys
 from antlr3 import *
@@ -1220,8 +1220,8 @@ class UL4Lexer(Lexer):
             _type = NONE
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:48:2: ( 'None' )
-            # src/ll/UL4.g:48:4: 'None'
+            # src/ll/UL4.g:45:2: ( 'None' )
+            # src/ll/UL4.g:45:4: 'None'
             pass 
             self.match("None")
 
@@ -1243,8 +1243,8 @@ class UL4Lexer(Lexer):
             _type = TRUE
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:52:2: ( 'True' )
-            # src/ll/UL4.g:52:4: 'True'
+            # src/ll/UL4.g:49:2: ( 'True' )
+            # src/ll/UL4.g:49:4: 'True'
             pass 
             self.match("True")
 
@@ -1266,8 +1266,8 @@ class UL4Lexer(Lexer):
             _type = FALSE
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:56:2: ( 'False' )
-            # src/ll/UL4.g:56:4: 'False'
+            # src/ll/UL4.g:53:2: ( 'False' )
+            # src/ll/UL4.g:53:4: 'False'
             pass 
             self.match("False")
 
@@ -1289,8 +1289,8 @@ class UL4Lexer(Lexer):
             _type = NAME
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:60:2: ( ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )* )
-            # src/ll/UL4.g:60:4: ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
+            # src/ll/UL4.g:57:2: ( ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )* )
+            # src/ll/UL4.g:57:4: ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
             pass 
             if (65 <= self.input.LA(1) <= 90) or self.input.LA(1) == 95 or (97 <= self.input.LA(1) <= 122):
                 self.input.consume()
@@ -1301,7 +1301,7 @@ class UL4Lexer(Lexer):
 
 
 
-            # src/ll/UL4.g:60:28: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
+            # src/ll/UL4.g:57:28: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
             while True: #loop1
                 alt1 = 2
                 LA1_0 = self.input.LA(1)
@@ -1341,7 +1341,7 @@ class UL4Lexer(Lexer):
     # $ANTLR start "DIGIT"
     def mDIGIT(self, ):
         try:
-            # src/ll/UL4.g:66:2: ( '0' .. '9' )
+            # src/ll/UL4.g:63:2: ( '0' .. '9' )
             # src/ll/UL4.g:
             pass 
             if (48 <= self.input.LA(1) <= 57):
@@ -1366,7 +1366,7 @@ class UL4Lexer(Lexer):
     # $ANTLR start "BIN_DIGIT"
     def mBIN_DIGIT(self, ):
         try:
-            # src/ll/UL4.g:71:2: ( ( '0' | '1' ) )
+            # src/ll/UL4.g:68:2: ( ( '0' | '1' ) )
             # src/ll/UL4.g:
             pass 
             if (48 <= self.input.LA(1) <= 49):
@@ -1391,7 +1391,7 @@ class UL4Lexer(Lexer):
     # $ANTLR start "OCT_DIGIT"
     def mOCT_DIGIT(self, ):
         try:
-            # src/ll/UL4.g:76:2: ( '0' .. '7' )
+            # src/ll/UL4.g:73:2: ( '0' .. '7' )
             # src/ll/UL4.g:
             pass 
             if (48 <= self.input.LA(1) <= 55):
@@ -1416,7 +1416,7 @@ class UL4Lexer(Lexer):
     # $ANTLR start "HEX_DIGIT"
     def mHEX_DIGIT(self, ):
         try:
-            # src/ll/UL4.g:81:2: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
+            # src/ll/UL4.g:78:2: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
             # src/ll/UL4.g:
             pass 
             if (48 <= self.input.LA(1) <= 57) or (65 <= self.input.LA(1) <= 70) or (97 <= self.input.LA(1) <= 102):
@@ -1444,7 +1444,7 @@ class UL4Lexer(Lexer):
             _type = INT
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:85:2: ( ( DIGIT )+ | '0' ( 'b' | 'B' ) ( BIN_DIGIT )+ | '0' ( 'o' | 'O' ) ( OCT_DIGIT )+ | '0' ( 'x' | 'X' ) ( HEX_DIGIT )+ )
+            # src/ll/UL4.g:82:2: ( ( DIGIT )+ | '0' ( 'b' | 'B' ) ( BIN_DIGIT )+ | '0' ( 'o' | 'O' ) ( OCT_DIGIT )+ | '0' ( 'x' | 'X' ) ( HEX_DIGIT )+ )
             alt6 = 4
             LA6_0 = self.input.LA(1)
 
@@ -1468,9 +1468,9 @@ class UL4Lexer(Lexer):
 
 
             if alt6 == 1:
-                # src/ll/UL4.g:85:4: ( DIGIT )+
+                # src/ll/UL4.g:82:4: ( DIGIT )+
                 pass 
-                # src/ll/UL4.g:85:4: ( DIGIT )+
+                # src/ll/UL4.g:82:4: ( DIGIT )+
                 cnt2 = 0
                 while True: #loop2
                     alt2 = 2
@@ -1505,7 +1505,7 @@ class UL4Lexer(Lexer):
 
 
             elif alt6 == 2:
-                # src/ll/UL4.g:86:4: '0' ( 'b' | 'B' ) ( BIN_DIGIT )+
+                # src/ll/UL4.g:83:4: '0' ( 'b' | 'B' ) ( BIN_DIGIT )+
                 pass 
                 self.match(48)
 
@@ -1518,7 +1518,7 @@ class UL4Lexer(Lexer):
 
 
 
-                # src/ll/UL4.g:86:18: ( BIN_DIGIT )+
+                # src/ll/UL4.g:83:18: ( BIN_DIGIT )+
                 cnt3 = 0
                 while True: #loop3
                     alt3 = 2
@@ -1553,7 +1553,7 @@ class UL4Lexer(Lexer):
 
 
             elif alt6 == 3:
-                # src/ll/UL4.g:87:4: '0' ( 'o' | 'O' ) ( OCT_DIGIT )+
+                # src/ll/UL4.g:84:4: '0' ( 'o' | 'O' ) ( OCT_DIGIT )+
                 pass 
                 self.match(48)
 
@@ -1566,7 +1566,7 @@ class UL4Lexer(Lexer):
 
 
 
-                # src/ll/UL4.g:87:18: ( OCT_DIGIT )+
+                # src/ll/UL4.g:84:18: ( OCT_DIGIT )+
                 cnt4 = 0
                 while True: #loop4
                     alt4 = 2
@@ -1601,7 +1601,7 @@ class UL4Lexer(Lexer):
 
 
             elif alt6 == 4:
-                # src/ll/UL4.g:88:4: '0' ( 'x' | 'X' ) ( HEX_DIGIT )+
+                # src/ll/UL4.g:85:4: '0' ( 'x' | 'X' ) ( HEX_DIGIT )+
                 pass 
                 self.match(48)
 
@@ -1614,7 +1614,7 @@ class UL4Lexer(Lexer):
 
 
 
-                # src/ll/UL4.g:88:18: ( HEX_DIGIT )+
+                # src/ll/UL4.g:85:18: ( HEX_DIGIT )+
                 cnt5 = 0
                 while True: #loop5
                     alt5 = 2
@@ -1660,8 +1660,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "EXPONENT"
     def mEXPONENT(self, ):
         try:
-            # src/ll/UL4.g:94:2: ( ( 'e' | 'E' ) ( '+' | '-' )? ( DIGIT )+ )
-            # src/ll/UL4.g:94:4: ( 'e' | 'E' ) ( '+' | '-' )? ( DIGIT )+
+            # src/ll/UL4.g:91:2: ( ( 'e' | 'E' ) ( '+' | '-' )? ( DIGIT )+ )
+            # src/ll/UL4.g:91:4: ( 'e' | 'E' ) ( '+' | '-' )? ( DIGIT )+
             pass 
             if self.input.LA(1) == 69 or self.input.LA(1) == 101:
                 self.input.consume()
@@ -1672,7 +1672,7 @@ class UL4Lexer(Lexer):
 
 
 
-            # src/ll/UL4.g:94:14: ( '+' | '-' )?
+            # src/ll/UL4.g:91:14: ( '+' | '-' )?
             alt7 = 2
             LA7_0 = self.input.LA(1)
 
@@ -1693,7 +1693,7 @@ class UL4Lexer(Lexer):
 
 
 
-            # src/ll/UL4.g:94:25: ( DIGIT )+
+            # src/ll/UL4.g:91:25: ( DIGIT )+
             cnt8 = 0
             while True: #loop8
                 alt8 = 2
@@ -1742,13 +1742,13 @@ class UL4Lexer(Lexer):
             _type = FLOAT
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:97:2: ( ( DIGIT )+ '.' ( DIGIT )* ( EXPONENT )? | '.' ( DIGIT )+ ( EXPONENT )? | ( DIGIT )+ EXPONENT )
+            # src/ll/UL4.g:94:2: ( ( DIGIT )+ '.' ( DIGIT )* ( EXPONENT )? | '.' ( DIGIT )+ ( EXPONENT )? | ( DIGIT )+ EXPONENT )
             alt15 = 3
             alt15 = self.dfa15.predict(self.input)
             if alt15 == 1:
-                # src/ll/UL4.g:97:4: ( DIGIT )+ '.' ( DIGIT )* ( EXPONENT )?
+                # src/ll/UL4.g:94:4: ( DIGIT )+ '.' ( DIGIT )* ( EXPONENT )?
                 pass 
-                # src/ll/UL4.g:97:4: ( DIGIT )+
+                # src/ll/UL4.g:94:4: ( DIGIT )+
                 cnt9 = 0
                 while True: #loop9
                     alt9 = 2
@@ -1783,7 +1783,7 @@ class UL4Lexer(Lexer):
 
                 self.match(46)
 
-                # src/ll/UL4.g:97:15: ( DIGIT )*
+                # src/ll/UL4.g:94:15: ( DIGIT )*
                 while True: #loop10
                     alt10 = 2
                     LA10_0 = self.input.LA(1)
@@ -1809,14 +1809,14 @@ class UL4Lexer(Lexer):
                         break #loop10
 
 
-                # src/ll/UL4.g:97:22: ( EXPONENT )?
+                # src/ll/UL4.g:94:22: ( EXPONENT )?
                 alt11 = 2
                 LA11_0 = self.input.LA(1)
 
                 if (LA11_0 == 69 or LA11_0 == 101) :
                     alt11 = 1
                 if alt11 == 1:
-                    # src/ll/UL4.g:97:22: EXPONENT
+                    # src/ll/UL4.g:94:22: EXPONENT
                     pass 
                     self.mEXPONENT()
 
@@ -1826,11 +1826,11 @@ class UL4Lexer(Lexer):
 
 
             elif alt15 == 2:
-                # src/ll/UL4.g:98:4: '.' ( DIGIT )+ ( EXPONENT )?
+                # src/ll/UL4.g:95:4: '.' ( DIGIT )+ ( EXPONENT )?
                 pass 
                 self.match(46)
 
-                # src/ll/UL4.g:98:8: ( DIGIT )+
+                # src/ll/UL4.g:95:8: ( DIGIT )+
                 cnt12 = 0
                 while True: #loop12
                     alt12 = 2
@@ -1863,14 +1863,14 @@ class UL4Lexer(Lexer):
                     cnt12 += 1
 
 
-                # src/ll/UL4.g:98:15: ( EXPONENT )?
+                # src/ll/UL4.g:95:15: ( EXPONENT )?
                 alt13 = 2
                 LA13_0 = self.input.LA(1)
 
                 if (LA13_0 == 69 or LA13_0 == 101) :
                     alt13 = 1
                 if alt13 == 1:
-                    # src/ll/UL4.g:98:15: EXPONENT
+                    # src/ll/UL4.g:95:15: EXPONENT
                     pass 
                     self.mEXPONENT()
 
@@ -1880,9 +1880,9 @@ class UL4Lexer(Lexer):
 
 
             elif alt15 == 3:
-                # src/ll/UL4.g:99:4: ( DIGIT )+ EXPONENT
+                # src/ll/UL4.g:96:4: ( DIGIT )+ EXPONENT
                 pass 
-                # src/ll/UL4.g:99:4: ( DIGIT )+
+                # src/ll/UL4.g:96:4: ( DIGIT )+
                 cnt14 = 0
                 while True: #loop14
                     alt14 = 2
@@ -1931,8 +1931,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "TIME"
     def mTIME(self, ):
         try:
-            # src/ll/UL4.g:105:2: ( DIGIT DIGIT ':' DIGIT DIGIT ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )? )? )
-            # src/ll/UL4.g:105:4: DIGIT DIGIT ':' DIGIT DIGIT ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )? )?
+            # src/ll/UL4.g:102:2: ( DIGIT DIGIT ':' DIGIT DIGIT ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )? )? )
+            # src/ll/UL4.g:102:4: DIGIT DIGIT ':' DIGIT DIGIT ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )? )?
             pass 
             self.mDIGIT()
 
@@ -1948,14 +1948,14 @@ class UL4Lexer(Lexer):
             self.mDIGIT()
 
 
-            # src/ll/UL4.g:105:32: ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )? )?
+            # src/ll/UL4.g:102:32: ( ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )? )?
             alt17 = 2
             LA17_0 = self.input.LA(1)
 
             if (LA17_0 == 58) :
                 alt17 = 1
             if alt17 == 1:
-                # src/ll/UL4.g:105:34: ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )?
+                # src/ll/UL4.g:102:34: ':' DIGIT DIGIT ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )?
                 pass 
                 self.match(58)
 
@@ -1965,14 +1965,14 @@ class UL4Lexer(Lexer):
                 self.mDIGIT()
 
 
-                # src/ll/UL4.g:105:50: ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )?
+                # src/ll/UL4.g:102:50: ( '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT )?
                 alt16 = 2
                 LA16_0 = self.input.LA(1)
 
                 if (LA16_0 == 46) :
                     alt16 = 1
                 if alt16 == 1:
-                    # src/ll/UL4.g:105:52: '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT
+                    # src/ll/UL4.g:102:52: '.' DIGIT DIGIT DIGIT DIGIT DIGIT DIGIT
                     pass 
                     self.match(46)
 
@@ -2016,8 +2016,8 @@ class UL4Lexer(Lexer):
             _type = DATE
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:107:2: ( '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ')' )
-            # src/ll/UL4.g:107:4: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ')'
+            # src/ll/UL4.g:104:2: ( '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ')' )
+            # src/ll/UL4.g:104:4: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ')'
             pass 
             self.match(64)
 
@@ -2070,8 +2070,8 @@ class UL4Lexer(Lexer):
             _type = DATETIME
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:110:2: ( '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 'T' ( TIME )? ')' )
-            # src/ll/UL4.g:110:4: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 'T' ( TIME )? ')'
+            # src/ll/UL4.g:107:2: ( '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 'T' ( TIME )? ')' )
+            # src/ll/UL4.g:107:4: '@' '(' DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 'T' ( TIME )? ')'
             pass 
             self.match(64)
 
@@ -2107,14 +2107,14 @@ class UL4Lexer(Lexer):
 
             self.match(84)
 
-            # src/ll/UL4.g:110:72: ( TIME )?
+            # src/ll/UL4.g:107:72: ( TIME )?
             alt18 = 2
             LA18_0 = self.input.LA(1)
 
             if ((48 <= LA18_0 <= 57)) :
                 alt18 = 1
             if alt18 == 1:
-                # src/ll/UL4.g:110:72: TIME
+                # src/ll/UL4.g:107:72: TIME
                 pass 
                 self.mTIME()
 
@@ -2141,7 +2141,7 @@ class UL4Lexer(Lexer):
             _type = COLOR
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:113:2: ( '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT | '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT | '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT | '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:110:2: ( '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT | '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT | '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT | '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
             alt19 = 4
             LA19_0 = self.input.LA(1)
 
@@ -2208,7 +2208,7 @@ class UL4Lexer(Lexer):
 
 
             if alt19 == 1:
-                # src/ll/UL4.g:113:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT
+                # src/ll/UL4.g:110:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT
                 pass 
                 self.match(35)
 
@@ -2223,7 +2223,7 @@ class UL4Lexer(Lexer):
 
 
             elif alt19 == 2:
-                # src/ll/UL4.g:114:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+                # src/ll/UL4.g:111:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
                 pass 
                 self.match(35)
 
@@ -2241,7 +2241,7 @@ class UL4Lexer(Lexer):
 
 
             elif alt19 == 3:
-                # src/ll/UL4.g:115:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+                # src/ll/UL4.g:112:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
                 pass 
                 self.match(35)
 
@@ -2265,7 +2265,7 @@ class UL4Lexer(Lexer):
 
 
             elif alt19 == 4:
-                # src/ll/UL4.g:116:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+                # src/ll/UL4.g:113:4: '#' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
                 pass 
                 self.match(35)
 
@@ -2309,8 +2309,8 @@ class UL4Lexer(Lexer):
             _type = WS
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:120:2: ( ( ' ' | '\\t' | '\\r' | '\\n' ) )
-            # src/ll/UL4.g:120:4: ( ' ' | '\\t' | '\\r' | '\\n' )
+            # src/ll/UL4.g:117:2: ( ( ' ' | '\\t' | '\\r' | '\\n' ) )
+            # src/ll/UL4.g:117:4: ( ' ' | '\\t' | '\\r' | '\\n' )
             pass 
             if (9 <= self.input.LA(1) <= 10) or self.input.LA(1) == 13 or self.input.LA(1) == 32:
                 self.input.consume()
@@ -2343,7 +2343,7 @@ class UL4Lexer(Lexer):
             _type = STRING
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:124:2: ( '\"' ( ESC_SEQ |~ ( '\\\\' | '\"' | '\\r' | '\\n' ) )* '\"' | '\\'' ( ESC_SEQ |~ ( '\\\\' | '\\'' | '\\r' | '\\n' ) )* '\\'' )
+            # src/ll/UL4.g:121:2: ( '\"' ( ESC_SEQ |~ ( '\\\\' | '\"' | '\\r' | '\\n' ) )* '\"' | '\\'' ( ESC_SEQ |~ ( '\\\\' | '\\'' | '\\r' | '\\n' ) )* '\\'' )
             alt22 = 2
             LA22_0 = self.input.LA(1)
 
@@ -2358,11 +2358,11 @@ class UL4Lexer(Lexer):
 
 
             if alt22 == 1:
-                # src/ll/UL4.g:124:4: '\"' ( ESC_SEQ |~ ( '\\\\' | '\"' | '\\r' | '\\n' ) )* '\"'
+                # src/ll/UL4.g:121:4: '\"' ( ESC_SEQ |~ ( '\\\\' | '\"' | '\\r' | '\\n' ) )* '\"'
                 pass 
                 self.match(34)
 
-                # src/ll/UL4.g:124:8: ( ESC_SEQ |~ ( '\\\\' | '\"' | '\\r' | '\\n' ) )*
+                # src/ll/UL4.g:121:8: ( ESC_SEQ |~ ( '\\\\' | '\"' | '\\r' | '\\n' ) )*
                 while True: #loop20
                     alt20 = 3
                     LA20_0 = self.input.LA(1)
@@ -2374,14 +2374,14 @@ class UL4Lexer(Lexer):
 
 
                     if alt20 == 1:
-                        # src/ll/UL4.g:124:10: ESC_SEQ
+                        # src/ll/UL4.g:121:10: ESC_SEQ
                         pass 
                         self.mESC_SEQ()
 
 
 
                     elif alt20 == 2:
-                        # src/ll/UL4.g:124:20: ~ ( '\\\\' | '\"' | '\\r' | '\\n' )
+                        # src/ll/UL4.g:121:20: ~ ( '\\\\' | '\"' | '\\r' | '\\n' )
                         pass 
                         if (0 <= self.input.LA(1) <= 9) or (11 <= self.input.LA(1) <= 12) or (14 <= self.input.LA(1) <= 33) or (35 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
                             self.input.consume()
@@ -2401,11 +2401,11 @@ class UL4Lexer(Lexer):
 
 
             elif alt22 == 2:
-                # src/ll/UL4.g:125:4: '\\'' ( ESC_SEQ |~ ( '\\\\' | '\\'' | '\\r' | '\\n' ) )* '\\''
+                # src/ll/UL4.g:122:4: '\\'' ( ESC_SEQ |~ ( '\\\\' | '\\'' | '\\r' | '\\n' ) )* '\\''
                 pass 
                 self.match(39)
 
-                # src/ll/UL4.g:125:9: ( ESC_SEQ |~ ( '\\\\' | '\\'' | '\\r' | '\\n' ) )*
+                # src/ll/UL4.g:122:9: ( ESC_SEQ |~ ( '\\\\' | '\\'' | '\\r' | '\\n' ) )*
                 while True: #loop21
                     alt21 = 3
                     LA21_0 = self.input.LA(1)
@@ -2417,14 +2417,14 @@ class UL4Lexer(Lexer):
 
 
                     if alt21 == 1:
-                        # src/ll/UL4.g:125:11: ESC_SEQ
+                        # src/ll/UL4.g:122:11: ESC_SEQ
                         pass 
                         self.mESC_SEQ()
 
 
 
                     elif alt21 == 2:
-                        # src/ll/UL4.g:125:21: ~ ( '\\\\' | '\\'' | '\\r' | '\\n' )
+                        # src/ll/UL4.g:122:21: ~ ( '\\\\' | '\\'' | '\\r' | '\\n' )
                         pass 
                         if (0 <= self.input.LA(1) <= 9) or (11 <= self.input.LA(1) <= 12) or (14 <= self.input.LA(1) <= 38) or (40 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
                             self.input.consume()
@@ -2458,7 +2458,7 @@ class UL4Lexer(Lexer):
             _type = STRING3
             _channel = DEFAULT_CHANNEL
 
-            # src/ll/UL4.g:129:2: ( '\"\"\"' ( options {greedy=false; } : TRIQUOTE )* '\"\"\"' | '\\'\\'\\'' ( options {greedy=false; } : TRIAPOS )* '\\'\\'\\'' )
+            # src/ll/UL4.g:126:2: ( '\"\"\"' ( options {greedy=false; } : TRIQUOTE )* '\"\"\"' | '\\'\\'\\'' ( options {greedy=false; } : TRIAPOS )* '\\'\\'\\'' )
             alt25 = 2
             LA25_0 = self.input.LA(1)
 
@@ -2473,12 +2473,12 @@ class UL4Lexer(Lexer):
 
 
             if alt25 == 1:
-                # src/ll/UL4.g:129:4: '\"\"\"' ( options {greedy=false; } : TRIQUOTE )* '\"\"\"'
+                # src/ll/UL4.g:126:4: '\"\"\"' ( options {greedy=false; } : TRIQUOTE )* '\"\"\"'
                 pass 
                 self.match("\"\"\"")
 
 
-                # src/ll/UL4.g:129:10: ( options {greedy=false; } : TRIQUOTE )*
+                # src/ll/UL4.g:126:10: ( options {greedy=false; } : TRIQUOTE )*
                 while True: #loop23
                     alt23 = 2
                     LA23_0 = self.input.LA(1)
@@ -2504,7 +2504,7 @@ class UL4Lexer(Lexer):
 
 
                     if alt23 == 1:
-                        # src/ll/UL4.g:129:35: TRIQUOTE
+                        # src/ll/UL4.g:126:35: TRIQUOTE
                         pass 
                         self.mTRIQUOTE()
 
@@ -2519,12 +2519,12 @@ class UL4Lexer(Lexer):
 
 
             elif alt25 == 2:
-                # src/ll/UL4.g:130:5: '\\'\\'\\'' ( options {greedy=false; } : TRIAPOS )* '\\'\\'\\''
+                # src/ll/UL4.g:127:5: '\\'\\'\\'' ( options {greedy=false; } : TRIAPOS )* '\\'\\'\\''
                 pass 
                 self.match("'''")
 
 
-                # src/ll/UL4.g:130:14: ( options {greedy=false; } : TRIAPOS )*
+                # src/ll/UL4.g:127:14: ( options {greedy=false; } : TRIAPOS )*
                 while True: #loop24
                     alt24 = 2
                     LA24_0 = self.input.LA(1)
@@ -2550,7 +2550,7 @@ class UL4Lexer(Lexer):
 
 
                     if alt24 == 1:
-                        # src/ll/UL4.g:130:39: TRIAPOS
+                        # src/ll/UL4.g:127:39: TRIAPOS
                         pass 
                         self.mTRIAPOS()
 
@@ -2576,10 +2576,10 @@ class UL4Lexer(Lexer):
     # $ANTLR start "TRIQUOTE"
     def mTRIQUOTE(self, ):
         try:
-            # src/ll/UL4.g:136:2: ( ( '\"' | '\"\"' )? ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+ )
-            # src/ll/UL4.g:136:4: ( '\"' | '\"\"' )? ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+
+            # src/ll/UL4.g:133:2: ( ( '\"' | '\"\"' )? ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+ )
+            # src/ll/UL4.g:133:4: ( '\"' | '\"\"' )? ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+
             pass 
-            # src/ll/UL4.g:136:4: ( '\"' | '\"\"' )?
+            # src/ll/UL4.g:133:4: ( '\"' | '\"\"' )?
             alt26 = 3
             LA26_0 = self.input.LA(1)
 
@@ -2591,13 +2591,13 @@ class UL4Lexer(Lexer):
                 elif ((0 <= LA26_1 <= 33) or (35 <= LA26_1 <= 65535)) :
                     alt26 = 1
             if alt26 == 1:
-                # src/ll/UL4.g:136:5: '\"'
+                # src/ll/UL4.g:133:5: '\"'
                 pass 
                 self.match(34)
 
 
             elif alt26 == 2:
-                # src/ll/UL4.g:136:9: '\"\"'
+                # src/ll/UL4.g:133:9: '\"\"'
                 pass 
                 self.match("\"\"")
 
@@ -2605,7 +2605,7 @@ class UL4Lexer(Lexer):
 
 
 
-            # src/ll/UL4.g:136:16: ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+
+            # src/ll/UL4.g:133:16: ( ESC_SEQ |~ ( '\\\\' | '\"' ) )+
             cnt27 = 0
             while True: #loop27
                 alt27 = 3
@@ -2618,14 +2618,14 @@ class UL4Lexer(Lexer):
 
 
                 if alt27 == 1:
-                    # src/ll/UL4.g:136:17: ESC_SEQ
+                    # src/ll/UL4.g:133:17: ESC_SEQ
                     pass 
                     self.mESC_SEQ()
 
 
 
                 elif alt27 == 2:
-                    # src/ll/UL4.g:136:25: ~ ( '\\\\' | '\"' )
+                    # src/ll/UL4.g:133:25: ~ ( '\\\\' | '\"' )
                     pass 
                     if (0 <= self.input.LA(1) <= 33) or (35 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
                         self.input.consume()
@@ -2660,10 +2660,10 @@ class UL4Lexer(Lexer):
     # $ANTLR start "TRIAPOS"
     def mTRIAPOS(self, ):
         try:
-            # src/ll/UL4.g:141:2: ( ( '\\'' | '\\'\\'' )? ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+ )
-            # src/ll/UL4.g:141:4: ( '\\'' | '\\'\\'' )? ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+
+            # src/ll/UL4.g:138:2: ( ( '\\'' | '\\'\\'' )? ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+ )
+            # src/ll/UL4.g:138:4: ( '\\'' | '\\'\\'' )? ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+
             pass 
-            # src/ll/UL4.g:141:4: ( '\\'' | '\\'\\'' )?
+            # src/ll/UL4.g:138:4: ( '\\'' | '\\'\\'' )?
             alt28 = 3
             LA28_0 = self.input.LA(1)
 
@@ -2675,13 +2675,13 @@ class UL4Lexer(Lexer):
                 elif ((0 <= LA28_1 <= 38) or (40 <= LA28_1 <= 65535)) :
                     alt28 = 1
             if alt28 == 1:
-                # src/ll/UL4.g:141:5: '\\''
+                # src/ll/UL4.g:138:5: '\\''
                 pass 
                 self.match(39)
 
 
             elif alt28 == 2:
-                # src/ll/UL4.g:141:10: '\\'\\''
+                # src/ll/UL4.g:138:10: '\\'\\''
                 pass 
                 self.match("''")
 
@@ -2689,7 +2689,7 @@ class UL4Lexer(Lexer):
 
 
 
-            # src/ll/UL4.g:141:19: ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+
+            # src/ll/UL4.g:138:19: ( ESC_SEQ |~ ( '\\\\' | '\\'' ) )+
             cnt29 = 0
             while True: #loop29
                 alt29 = 3
@@ -2702,14 +2702,14 @@ class UL4Lexer(Lexer):
 
 
                 if alt29 == 1:
-                    # src/ll/UL4.g:141:20: ESC_SEQ
+                    # src/ll/UL4.g:138:20: ESC_SEQ
                     pass 
                     self.mESC_SEQ()
 
 
 
                 elif alt29 == 2:
-                    # src/ll/UL4.g:141:28: ~ ( '\\\\' | '\\'' )
+                    # src/ll/UL4.g:138:28: ~ ( '\\\\' | '\\'' )
                     pass 
                     if (0 <= self.input.LA(1) <= 38) or (40 <= self.input.LA(1) <= 91) or (93 <= self.input.LA(1) <= 65535):
                         self.input.consume()
@@ -2744,7 +2744,7 @@ class UL4Lexer(Lexer):
     # $ANTLR start "ESC_SEQ"
     def mESC_SEQ(self, ):
         try:
-            # src/ll/UL4.g:146:2: ( '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE1_ESC | UNICODE2_ESC | UNICODE4_ESC )
+            # src/ll/UL4.g:143:2: ( '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE1_ESC | UNICODE2_ESC | UNICODE4_ESC )
             alt30 = 4
             LA30_0 = self.input.LA(1)
 
@@ -2771,7 +2771,7 @@ class UL4Lexer(Lexer):
 
 
             if alt30 == 1:
-                # src/ll/UL4.g:146:4: '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
+                # src/ll/UL4.g:143:4: '\\\\' ( 'a' | 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
                 pass 
                 self.match(92)
 
@@ -2786,21 +2786,21 @@ class UL4Lexer(Lexer):
 
 
             elif alt30 == 2:
-                # src/ll/UL4.g:147:4: UNICODE1_ESC
+                # src/ll/UL4.g:144:4: UNICODE1_ESC
                 pass 
                 self.mUNICODE1_ESC()
 
 
 
             elif alt30 == 3:
-                # src/ll/UL4.g:148:4: UNICODE2_ESC
+                # src/ll/UL4.g:145:4: UNICODE2_ESC
                 pass 
                 self.mUNICODE2_ESC()
 
 
 
             elif alt30 == 4:
-                # src/ll/UL4.g:149:4: UNICODE4_ESC
+                # src/ll/UL4.g:146:4: UNICODE4_ESC
                 pass 
                 self.mUNICODE4_ESC()
 
@@ -2817,8 +2817,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "UNICODE1_ESC"
     def mUNICODE1_ESC(self, ):
         try:
-            # src/ll/UL4.g:154:2: ( '\\\\' 'x' HEX_DIGIT HEX_DIGIT )
-            # src/ll/UL4.g:154:4: '\\\\' 'x' HEX_DIGIT HEX_DIGIT
+            # src/ll/UL4.g:151:2: ( '\\\\' 'x' HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:151:4: '\\\\' 'x' HEX_DIGIT HEX_DIGIT
             pass 
             self.match(92)
 
@@ -2843,8 +2843,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "UNICODE2_ESC"
     def mUNICODE2_ESC(self, ):
         try:
-            # src/ll/UL4.g:159:2: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
-            # src/ll/UL4.g:159:4: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+            # src/ll/UL4.g:156:2: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:156:4: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
             pass 
             self.match(92)
 
@@ -2875,8 +2875,8 @@ class UL4Lexer(Lexer):
     # $ANTLR start "UNICODE4_ESC"
     def mUNICODE4_ESC(self, ):
         try:
-            # src/ll/UL4.g:164:2: ( '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
-            # src/ll/UL4.g:164:4: '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+            # src/ll/UL4.g:161:2: ( '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            # src/ll/UL4.g:161:4: '\\\\' 'U' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
             pass 
             self.match(92)
 
