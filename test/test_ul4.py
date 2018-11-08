@@ -127,6 +127,7 @@ class TemplateJava:
 	def findexception(self, output):
 		lines = output.splitlines()
 		msg = None
+		exc = None
 		for line in lines:
 			prefix1 = 'Exception in thread "main"'
 			prefix2 = "Caused by:"
@@ -134,9 +135,17 @@ class TemplateJava:
 				msg = line[len(prefix1):].strip()
 			elif line.startswith(prefix2):
 				msg = line[len(prefix2):].strip()
-		if msg is not None:
+			else:
+				continue
+			if exc is None:
+				exc = RuntimeError(msg)
+			else:
+				newexc = RuntimeError(msg)
+				newexc.__cause__ = exc
+				exc = newexc
+		if exc is not None:
 			print(output, file=sys.stderr)
-			raise RuntimeError(msg)
+			raise exc
 
 	def run(self, data):
 		dump = ul4on.dumps(data).encode("utf-8")
