@@ -8,7 +8,7 @@ Requirements
 For the release process to work you need to install :mod:`wheel` and
 :mod:`twine`::
 
-	pip install wheel thwin
+	pip install wheel twine
 
 
 Preparing for the release
