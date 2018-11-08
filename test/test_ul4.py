@@ -128,6 +128,7 @@ class TemplateJava:
 		lines = output.splitlines()
 		msg = None
 		exc = None
+		lastexc = None
 		for line in lines:
 			prefix1 = 'Exception in thread "main"'
 			prefix2 = "Caused by:"
@@ -138,8 +139,10 @@ class TemplateJava:
 			else:
 				continue
 			newexc = RuntimeError(msg)
-			newexc.__cause__ = exc
-			exc = newexc
+			newexc.__cause__ = lastexc
+			lastexc = newexc
+			if exc is None:
+				exc = newexc
 		if exc is not None:
 			print(output, file=sys.stderr)
 			raise exc
