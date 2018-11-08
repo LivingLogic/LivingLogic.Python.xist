@@ -4973,7 +4973,6 @@ def test_templateattributes(T):
 	assert "None" == T("<?print repr(template.parenttemplate)?>").renders(template=t1)
 	assert "<?" == T("<?print template.startdelim?>").renders(template=t1)
 	assert "?>" == T("<?print template.enddelim?>").renders(template=t1)
-	assert s1 == T("<?print template.source?>").renders(template=t1)
 	assert "2" == T("<?print len(template.content)?>").renders(template=t1) # The template AST always contains an :class:`Indent` node at the start
 	assert "(indent) (print)" == T("<?print ' '.join('(' + ast.type + ')' for ast in template.content)?>").renders(template=t1)
 	assert "t1" == T("<?print template.content[0].template.name?>").renders(template=t1)
@@ -4988,16 +4987,67 @@ def test_templateattributes(T):
 	assert "inner" == T("<?def inner?><?end def?><?print inner.template.name?>", name="foo").renders()
 	assert "foo" == T("<?def inner?><?end def?><?print inner.parenttemplate.name?>", name="foo").renders()
 
-	s3 = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblock b()?>foo<?end renderblock?>"
-	t3 = ul4c.Template(s3, name="t3")
 
-	assert "<?renderblock b()?>foo<?end renderblock?>" == T("<?print template.content[-1].source?>", name="foo").renders(template=t3)
-	assert "foo" == T("<?print template.content[-1].content.source?>", name="foo").renders(template=t3)
+@pytest.mark.ul4
+def test_sourceattribute_node(T):
+	s = "<?print x?>"
+	t = ul4c.Template(s, name="t")
 
-	s4 = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblocks b()?><?def content?>foo<?end def?><?end renderblocks?>"
-	t4 = ul4c.Template(s4, name="t4")
+	assert s == T("<?print template.content[-1].source?>").renders(template=t)
+	assert "x" == T("<?print template.content[-1].obj.source?>").renders(template=t)
 
-	assert "<?def content?>foo<?end def?>" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t4)
+
+@pytest.mark.ul4
+def test_sourceattribute_template(T):
+	s = "<?print x?>"
+	t = ul4c.Template(s, name="t")
+
+	assert s == T("<?print template.source?>").renders(template=t)
+
+
+@pytest.mark.ul4
+def test_sourceattribute_renderblock(T):
+	s = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblock b()?>foo<?end renderblock?>"
+	t = ul4c.Template(s, name="t")
+
+	assert "<?renderblock b()?>foo<?end renderblock?>" == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "foo" == T("<?print template.content[-1].content.source?>", name="foo").renders(template=t)
+
+
+@pytest.mark.ul4
+def test_sourceattribute_renderblocks(T):
+	s = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblocks b()?><?def content?>foo<?end def?><?end renderblocks?>"
+	t = ul4c.Template(s, name="t")
+
+	assert "<?def content?>foo<?end def?>" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t)
+
+
+@pytest.mark.ul4
+def test_sourceattribute_for(T):
+	s = "<?for i in range(10)?><?printx i?><?end for?>"
+	t = ul4c.Template(s, name="t")
+
+	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+
+
+@pytest.mark.ul4
+def test_sourceattribute_while(T):
+	s = "<?while now() < @(2020-02-02)?>wait<?end while?>"
+	t = ul4c.Template(s, name="t")
+
+	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+
+
+@pytest.mark.ul4
+def test_sourceattribute_if(T):
+	s = "<?if 1?>1<?elif 2?>2<?else?>3<?end if?>"
+	t = ul4c.Template(s, name="t")
+
+	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "<?if 1?>1" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t)
+	assert "<?elif 2?>2" == T("<?print template.content[-1].content[1].source?>", name="foo").renders(template=t)
+	assert "<?else?>3" == T("<?print template.content[-1].content[2].source?>", name="foo").renders(template=t)
+
 
 @pytest.mark.ul4
 def test_templateattributes_localtemplate(T):
