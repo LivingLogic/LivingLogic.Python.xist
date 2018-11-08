@@ -137,12 +137,9 @@ class TemplateJava:
 				msg = line[len(prefix2):].strip()
 			else:
 				continue
-			if exc is None:
-				exc = RuntimeError(msg)
-			else:
-				newexc = RuntimeError(msg)
-				newexc.__cause__ = exc
-				exc = newexc
+			newexc = RuntimeError(msg)
+			newexc.__cause__ = exc
+			exc = newexc
 		if exc is not None:
 			print(output, file=sys.stderr)
 			raise exc
