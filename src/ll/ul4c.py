@@ -4390,6 +4390,8 @@ class Template(Block):
 			raise ValueError(f"whitespace mode {self.whitespace!r} unknown")
 
 		for tag in tags:
+			# Update ``tag.template`` to reference the innermost template
+			# (Originally it referenced the outermost one)
 			tag.template = templatestack[-1]
 			try:
 				if isinstance(tag, Text):
