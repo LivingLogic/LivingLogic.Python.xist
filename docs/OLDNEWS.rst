@@ -2362,7 +2362,7 @@ Changes in ll-nightshade 0.7.1 (released 05/12/2007)
 Changes in ll-nightshade 0.7 (released 03/16/2007)
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
-*	A new decorator :class:`withconnection` has been added. This can be use to
+*	A new decorator :class:`withconnection` has been added. This can be used to
 	retry database operations in case of stale connections.
 
 
