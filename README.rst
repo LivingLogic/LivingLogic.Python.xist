@@ -95,11 +95,11 @@ For the license read :file:`xist/__init__.py`.
 Download
 --------
 
-XIST is available via FTP_, HTTP_ or from the Cheeseshop_.
+XIST is available for download from the `download diretory`_ or from the
+Cheeseshop_.
 
-.. _FTP: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
-.. _HTTP: http://ftp.livinglogic.de/xist/
-.. _Cheeseshop: http://cheeseshop.python.org/pypi/ll-xist
+.. _download diretory: http://python.livinglogic.de/download/
+.. _Cheeseshop: https://pypi.org/project/ll-xist/
 
 
 Source

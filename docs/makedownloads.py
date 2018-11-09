@@ -4,9 +4,9 @@ from ll import url
 
 
 class File:
-	def __init__(self, url):
-		self.url = url
-		name = url.file
+	def __init__(self, url_):
+		self.url = url_
+		name = url_.file
 		if name.endswith(".tar.gz") or name.endswith(".tar.bz2") or name.endswith(".zip"):
 			self.type = "Source"
 		elif name.endswith(".egg"):
@@ -46,9 +46,9 @@ class File:
 			self.type = "Binary RPM"
 		else:
 			self.type = None
-		self.size = url.size()
-		self.url.scheme = "http"
-		self.url.server = "ftp.livinglogic.de"
+		self.size = url_.size()
+		# Use the official http download URL (instead of the ssh one)
+		self.url = url.URL(f"http://python.livinglogic.de/download/xist/{self.url.file}")
 
 	def restfile(self):
 		return f"`{self.url.file} <{self.url}>`_"
@@ -62,7 +62,7 @@ class Version:
 	def __init__(self, version, date):
 		self.version = version
 		self.date = datetime.datetime.strptime(date, "%m/%d/%Y")
-		u = url.URL("ssh://root@ftp.livinglogic.de/~ftp/pub/livinglogic/xist/")
+		u = url.URL("ssh://livpython@python.livinglogic.de/~/public_downloads/xist/")
 		files = u/u.files(f"*-{version}[-.][twpzc]*")
 		self.files = [File(f) for f in sorted(files, key=str)]
 
