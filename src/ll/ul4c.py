@@ -117,7 +117,7 @@ class LocationError(Exception):
 			if outerstartpos == 0:
 				break
 			# We arrived at the start of the line
-			if template._source[outerstartpos-1] == "\n":
+			if template.fullsource[outerstartpos-1] == "\n":
 				break
 			maxprefix -= 1
 			outerstartpos -= 1
@@ -125,10 +125,10 @@ class LocationError(Exception):
 			# We've exhausted the length of the prefix
 			preprefix = "..."
 
-		return preprefix + template._source[outerstartpos:innerstartpos]
+		return preprefix + template.fullsource[outerstartpos:innerstartpos]
 
 	def strsource(self):
-		return self.location.template._source[self.location.pos]
+		return self.location.template.fullsource[self.location.pos]
 
 	def strsourcesuffix(self):
 		template = self.location.template
@@ -138,10 +138,10 @@ class LocationError(Exception):
 		maxsuffix = 40
 		while maxsuffix > 0:
 			# We arrived at the end of the source
-			if outerstoppos >= len(template._source):
+			if outerstoppos >= len(template.fullsource):
 				break
 			# We arrived at the end of the line
-			if template._source[outerstoppos] == "\n":
+			if template.fullsource[outerstoppos] == "\n":
 				break
 			maxsuffix -= 1
 			outerstoppos += 1
@@ -149,7 +149,7 @@ class LocationError(Exception):
 			# We've exhausted the length of the suffix
 			postsuffix = "..."
 
-		return template._source[innerstoppos:outerstoppos] + postsuffix
+		return template.fullsource[innerstoppos:outerstoppos] + postsuffix
 
 	def __str__(self):
 		prefix = repr(self._condensewhitespace.sub(" ", self.strsourceprefix()))[1:-1]
@@ -1073,7 +1073,7 @@ class AST:
 	"""
 
 	# Set of attributes available to UL4 templates
-	ul4attrs = {"type", "template", "pos", "source"}
+	ul4attrs = {"type", "template", "pos", "source", "fullsource"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
@@ -1087,7 +1087,7 @@ class AST:
 		self.pos = pos
 
 	def _linecol(self):
-		return _linecol(self.template._source, self.pos)
+		return _linecol(self.template.fullsource, self.pos)
 
 	def __repr__(self):
 		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
@@ -1121,7 +1121,7 @@ class AST:
 
 	@property
 	def source(self):
-		return self.template._source[self.pos]
+		return self.template.fullsource[self.pos]
 
 	def __str__(self):
 		# This uses :meth:`_str`, which is a generator and may output:
@@ -1189,7 +1189,7 @@ class Text(AST):
 
 	@property
 	def text(self):
-		return self.template._source[self.pos]
+		return self.template.fullsource[self.pos]
 
 	def _str(self):
 		yield f"text {self.text!r}"
@@ -1211,7 +1211,7 @@ class Indent(Text):
 	@property
 	def text(self):
 		if self._text is None:
-			return self.template._source[self.pos]
+			return self.template.fullsource[self.pos]
 		else:
 			return self._text
 
@@ -1219,7 +1219,7 @@ class Indent(Text):
 	# set this attribute. However the attribute *will* be set by the code
 	# compiling the template
 	def _settext(self, text):
-		self._text = text if text != self.template._source[self.pos] else None
+		self._text = text if text != self.template.fullsource[self.pos] else None
 
 	def _str(self):
 		yield f"indent {self.text!r}"
@@ -1271,7 +1271,7 @@ class Tag(AST):
 
 	@property
 	def code(self):
-		return self.template._source[self.codepos]
+		return self.template.fullsource[self.codepos]
 
 
 class Code(AST):
@@ -3707,7 +3707,7 @@ class Template(Block):
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "renders"})
+	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
 
 	version = "46"
 
@@ -3791,7 +3791,7 @@ class Template(Block):
 		self.startdelim = startdelim or "<?"
 		self.enddelim = enddelim or "?>"
 		self.name = name
-		self._source = None
+		self.fullsource = None
 		self.docpos = None
 		self.parenttemplate = None
 		if isinstance(signature, str):
@@ -3861,7 +3861,7 @@ class Template(Block):
 
 	@property
 	def doc(self):
-		return self._source[self.docpos] if self.docpos is not None else None
+		return self.fullsource[self.docpos] if self.docpos is not None else None
 
 	def ul4getattr(self, name):
 		if name == "renders":
@@ -3873,7 +3873,7 @@ class Template(Block):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
 		encoder.dump(self.name)
-		encoder.dump(self._source)
+		encoder.dump(self.fullsource)
 		encoder.dump(self.whitespace)
 		encoder.dump(self.startdelim)
 		encoder.dump(self.enddelim)
@@ -3933,7 +3933,7 @@ class Template(Block):
 			if version != self.version:
 				raise ValueError(f"invalid version, expected {self.version!r}, got {version!r}")
 			self.name = decoder.load()
-			self._source = decoder.load()
+			self.fullsource = decoder.load()
 			self.whitespace = decoder.load()
 			self.startdelim = decoder.load()
 			self.enddelim = decoder.load()
@@ -4309,7 +4309,7 @@ class Template(Block):
 		Compile the template source code :obj:`source` into an AST.
 		:obj:`startdelim` and :obj:`enddelim` are used as the tag delimiters.
 		"""
-		self._source = source
+		self.fullsource = source
 		self.startdelim = startdelim
 		self.enddelim = enddelim
 
@@ -4350,7 +4350,7 @@ class Template(Block):
 				# We create the sub template without source so there won't be any compilation done ...
 				render.content = Template(None, name="content", whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim)
 				# ... but then we have to fix the ``source`` and ``pos`` attributes ourselves
-				render.content._source = self._source
+				render.content.fullsource = self.fullsource
 				# The stop position will be updated by :meth:`RenderBlock.finish`.
 				render.content.pos = slice(tag.pos.stop, tag.pos.stop)
 			return render
@@ -4481,7 +4481,7 @@ class Template(Block):
 					templatestack.append(block)
 					# The source is always the complete source of the top level template
 					# (so that the offsets in all :class:`AST` objects are correct)
-					block._source = self._source
+					block.fullsource = self.fullsource
 					block.pos = tag.pos
 					blockstack[-1].append(block)
 					blockstack.append(block)
