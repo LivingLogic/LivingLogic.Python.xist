@@ -1090,6 +1090,12 @@ class AST:
 	def _linecol(self):
 		return _linecol(self.template.fullsource, self.pos)
 
+	def __getattr__(self, name):
+		if name == "fullsource":
+			return self.template.fullsource
+		else:
+			return super().__getattr__(name)
+
 	def __repr__(self):
 		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
 		if self.pos is not None:
