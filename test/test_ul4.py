@@ -4995,6 +4995,7 @@ def test_sourceattribute_node(T):
 
 	assert s == T("<?print template.content[-1].source?>").renders(template=t)
 	assert "x" == T("<?print template.content[-1].obj.source?>").renders(template=t)
+	assert s == T("<?print template.content[-1].fullsource?>").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5003,6 +5004,7 @@ def test_sourceattribute_template(T):
 	t = ul4c.Template(s, name="t")
 
 	assert s == T("<?print template.source?>").renders(template=t)
+	assert s == T("<?print template.fullsource?>").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5012,6 +5014,7 @@ def test_sourceattribute_renderblock(T):
 
 	assert "<?renderblock b()?>foo<?end renderblock?>" == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
 	assert "foo" == T("<?print template.content[-1].content.source?>", name="foo").renders(template=t)
+	assert s == T("<?print template.content[-1].content.fullsource?>", name="foo").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5020,6 +5023,7 @@ def test_sourceattribute_renderblocks(T):
 	t = ul4c.Template(s, name="t")
 
 	assert "<?def content?>foo<?end def?>" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t)
+	assert s == T("<?print template.content[-1].content[0].fullsource?>", name="foo").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5028,6 +5032,7 @@ def test_sourceattribute_for(T):
 	t = ul4c.Template(s, name="t")
 
 	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert s == T("<?print template.content[-1].fullsource?>", name="foo").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5036,6 +5041,7 @@ def test_sourceattribute_while(T):
 	t = ul4c.Template(s, name="t")
 
 	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert s == T("<?print template.content[-1].fullsource?>", name="foo").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5047,6 +5053,7 @@ def test_sourceattribute_if(T):
 	assert "<?if 1?>1" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t)
 	assert "<?elif 2?>2" == T("<?print template.content[-1].content[1].source?>", name="foo").renders(template=t)
 	assert "<?else?>3" == T("<?print template.content[-1].content[2].source?>", name="foo").renders(template=t)
+	assert s == T("<?print template.content[-1].fullsource?>", name="foo").renders(template=t)
 
 
 @pytest.mark.ul4
