@@ -859,11 +859,12 @@ def proto_exception(obj):
 
 
 def _linecol(source, pos):
-	lastlinefeed = source.rfind("\n", 0, pos.start)
+	start = pos.start or 0
+	lastlinefeed = source.rfind("\n", 0, start)
 	if lastlinefeed >= 0:
-		return (source.count("\n", 0, pos.start)+1, pos.start-lastlinefeed)
+		return (source.count("\n", 0, start)+1, start-lastlinefeed)
 	else:
-		return (1, pos.start + 1)
+		return (1, start + 1)
 
 
 def _offset(pos):
