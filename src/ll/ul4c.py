@@ -3807,6 +3807,8 @@ class Template(Block):
 		# If we have source code compile it
 		if source is not None:
 			self._compile(source, startdelim, enddelim)
+		else:
+			self.fullsource = ""
 
 	def _repr(self):
 		yield f"name={self.name!r}"
