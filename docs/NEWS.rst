@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.37.1 (released 11/??/2018)
+---------------------------------------
+
+*	Each UL4 AST node now has an attribute ``fullsource`` which is the full
+	source of the outermost template.
+
+*	Fixed ``source`` attribute of empty UL4 templates.
+
+
 Changes in 5.37 (released 11/08/2018)
 -------------------------------------
 
