@@ -4316,7 +4316,6 @@ class Template(Block):
 		if source is None:
 			return
 
-		self.pos = slice(0, len(source))
 		blockstack = [self] # This stack stores the nested for/if/elif/else/def blocks
 		templatestack = [self] # This stack stores the nested templates
 
