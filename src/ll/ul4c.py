@@ -4348,7 +4348,7 @@ class Template(Block):
 			if tag.tag == "renderblock":
 				# We create the sub template without source so there won't be any compilation done ...
 				render.content = Template(None, name="content", whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim)
-				# ... but then we have to fix the ``source`` and ``pos`` attributes ourselves
+				# ... but then we have to fix the ``fullsource`` and ``pos`` attributes ourselves
 				render.content.fullsource = self.fullsource
 				# The stop position will be updated by :meth:`RenderBlock.finish`.
 				render.content.pos = slice(tag.pos.stop, tag.pos.stop)
