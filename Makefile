@@ -23,7 +23,7 @@ build:
 	python$(PYVERSION) setup.py sdist --formats=gztar bdist_wheel
 
 dist: build
-	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -uftp -gftp dist/*.tar.gz dist/*.whl ssh://livpython@python.livinglogic.de/~/public_downloads/xist/
+	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python.livinglogic.de/~/public_downloads/xist/
 
 
 upload: build
@@ -39,7 +39,7 @@ livinglogic:
 
 windist:
 	python$(PYVERSION) setup.py bdist --formats=wininst
-	python -mll.scripts.ucp -vyes -cno -uftp -gftp dist/*.exe ssh://livpython@python.livinglogic.de/~/public_downloads/xist/
+	python -mll.scripts.ucp -vyes -cno -ulivpython -glivpython dist/*.exe ssh://livpython@python.livinglogic.de/~/public_downloads/xist/
 
 
 winupload:
