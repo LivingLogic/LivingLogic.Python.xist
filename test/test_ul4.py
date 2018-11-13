@@ -692,7 +692,7 @@ def test_float(T):
 
 @pytest.mark.ul4
 def test_string(T):
-	with raises("Unterminated string|mismatched character|MismatchedTokenException|NoViableAltException"):
+	with raises("Unterminated string|mismatched character|MismatchedTokenException|NoViableAltException|SyntaxException"):
 		T('<?print "?>').renders()
 	assert 'foo' == T('<?print "foo"?>').renders()
 	assert '\n' == T('<?print "\\n"?>').renders()
