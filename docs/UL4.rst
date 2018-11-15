@@ -2148,28 +2148,58 @@ Exceptions
 
 Exception objects can not be created directly by UL4 templates, but UL4
 templates can work with exceptions and access their attributes. The function
-``isexception`` returns ``True`` is the argument is an exception object and
-exception objects have an attribute ``cause`` that exposed the ``__cause__`` or
-``__context__`` attribute of the Python exception object.
+``isexception`` returns ``True`` if the argument is an exception object and
+exception objects have an attribute ``context`` that exposed the ``__cause__``
+or ``__context__`` attribute of the Python exception object.
 
 Exceptions that happen in UL4 templates use exception chaining to add
 information about the location of the error while the exception bubbles up the
-Python call stack. These exception objects have the following UL4 attributes:
+Python call stack. So the exception will be e.g. a :class:`TypeError` object
+and its ``__cause__`` attribute (which is accessible as the UL4 attribute
+``context``) specifies the immediate location inside the UL4 source code where
+the exception happened (and its ``__cause__`` is the location that called that
+one etc.). So if we have the following UL4 template::
 
-``location``
-	The AST node or tag where the error occured;
+	<?def x(i)?>
+		Print: <?print 1/i?>
+		Render: <?render x(i-1)?>
+	<?end def?>
+	Initial render: <?render x(3)?>
 
-``template``
-	The innermost template where the exception occurred (as a ``slice`` object);
+Calling the template will result in a :class:`ZeroDivisionError` exception. We
+can format a nice UL4 stacktrace (in HTML) for this exception with the
+following UL4 code::
 
-``outerpos``
-	The position of the tag where the error occurred (as a ``slice`` object);
+	<?def frame(exc)?>
+		<?if exc.context?>
+			<?render frame(exc.context)?>
+		<?end if?>
+		<?if exc.location?>
+			<li>
+				<p>
+					<b><?printx type(exc)?></b>
+					in template <b><?printx exc.location.template.name?></b>
+					: line <?printx exc.location.line?>
+					; col <?printx exc.location.col?>
+				</p>
+				<p>
+					<?print exc.location.sourceprefix?>
+					<b><?print exc.location.source?></b>
+					<?print exc.location.sourcesuffix?>
+				</p>
+			</li>
+		<?else?>
+			<li>
+				<p>
+					<b><?printx type(exc)?></b><?if str(exc)?>: <?print str(exc)?>
+				</p>
+			</li>
+		<?end def?>
+	<?end def?>
 
-``innerpos``
-	The position of the AST node where the error occurred.
-
-	If the error location is a tag (e.g. when there's an error with the block
-	structure of the template), ``outerpos`` and ``innerpos`` are the same.
+	<ul>
+		<?render frame(exc)?>
+	</ul>
 
 
 Delimiters

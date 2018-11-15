@@ -8,6 +8,18 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.38 (released 11/15/2018)
+-------------------------------------
+
+*	Added the following attributes to the UL4 class :class:`AST`: ``line`` (the
+	line number in the template source code), ``col`` (the column number in the
+	template source code), ``sourceprefix`` (a part of the templates source code
+	before the source code of the :class:`AST` node) and ``sourcesuffix`` (a part
+	of the templates source code after the :class:`AST`\s source code).
+
+	These attributes are also accessible to UL4 templates.
+
+
 Changes in 5.37.1 (released 11/13/2018)
 ---------------------------------------
 
