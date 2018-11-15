@@ -103,58 +103,13 @@ class LocationError(Exception):
 		return f"{prefix} {' in '.join(out)}"
 
 	def strlocation(self):
-		(line, col) = self.location._linecol()
-		return f"offset {_offset(self.location.pos)}; line {line:,}; col {col:,}"
-
-	def strsourceprefix(self):
-		template = self.location.template
-		outerstartpos = innerstartpos = self.location.pos.start
-
-		preprefix = ""
-		maxprefix = 40
-		while maxprefix > 0:
-			# We arrived at the start of the source
-			if outerstartpos == 0:
-				break
-			# We arrived at the start of the line
-			if template.fullsource[outerstartpos-1] == "\n":
-				break
-			maxprefix -= 1
-			outerstartpos -= 1
-		else:
-			# We've exhausted the length of the prefix
-			preprefix = "..."
-
-		return preprefix + template.fullsource[outerstartpos:innerstartpos]
-
-	def strsource(self):
-		return self.location.template.fullsource[self.location.pos]
-
-	def strsourcesuffix(self):
-		template = self.location.template
-		outerstoppos = innerstoppos = self.location.pos.stop
-
-		postsuffix = ""
-		maxsuffix = 40
-		while maxsuffix > 0:
-			# We arrived at the end of the source
-			if outerstoppos >= len(template.fullsource):
-				break
-			# We arrived at the end of the line
-			if template.fullsource[outerstoppos] == "\n":
-				break
-			maxsuffix -= 1
-			outerstoppos += 1
-		else:
-			# We've exhausted the length of the suffix
-			postsuffix = "..."
-
-		return template.fullsource[innerstoppos:outerstoppos] + postsuffix
+		loc = self.location
+		return f"offset {_offset(loc.pos)}; line {loc.line:,}; col {loc.col:,}"
 
 	def __str__(self):
-		prefix = repr(self._condensewhitespace.sub(" ", self.strsourceprefix()))[1:-1]
-		source = repr(self._condensewhitespace.sub(" ", self.strsource()))[1:-1]
-		suffix = repr(self._condensewhitespace.sub(" ", self.strsourcesuffix()))[1:-1]
+		prefix = repr(self._condensewhitespace.sub(" ", self.location.sourceprefix))[1:-1]
+		source = repr(self._condensewhitespace.sub(" ", self.location.source))[1:-1]
+		suffix = repr(self._condensewhitespace.sub(" ", self.location.sourcesuffix))[1:-1]
 		indent = ' '*len(prefix)
 		underline = error_underline*len(source)
 
@@ -1074,7 +1029,7 @@ class AST:
 	"""
 
 	# Set of attributes available to UL4 templates
-	ul4attrs = {"type", "template", "pos", "source", "fullsource"}
+	ul4attrs = {"type", "template", "pos", "line", "col", "fullsource", "source", "sourceprefix", "sourcesuffix"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
@@ -1085,10 +1040,73 @@ class AST:
 		# ``self`` is a part. This mean that for a :class:`Template` object ``a``
 		# (which is an :class:`AST` object) ``a.template is a`` is true.
 		self.template = template
-		self.pos = pos
+		self._pos = pos
+		self._line = None
+		self._col = None
 
-	def _linecol(self):
-		return _linecol(self.template.fullsource, self.pos)
+	@property
+	def pos(self):
+		return self._pos
+
+	@pos.setter
+	def pos(self, pos):
+		self._pos = pos
+		self._line = None
+		self._col = None
+
+	@property
+	def line(self):
+		if self._line is None:
+			(self._line, self._col) = _linecol(self.template.fullsource, self.pos)
+		return self._line
+
+	@property
+	def col(self):
+		if self._col is None:
+			(self._line, self._col) = _linecol(self.template.fullsource, self.pos)
+		return self._col
+
+	@property
+	def sourceprefix(self):
+		outerstartpos = innerstartpos = self.pos.start
+
+		preprefix = ""
+		maxprefix = 40
+		while maxprefix > 0:
+			# We arrived at the start of the source
+			if outerstartpos == 0:
+				break
+			# We arrived at the start of the line
+			if self.template.fullsource[outerstartpos-1] == "\n":
+				break
+			maxprefix -= 1
+			outerstartpos -= 1
+		else:
+			# We've exhausted the length of the prefix
+			preprefix = "\N{HORIZONTAL ELLIPSIS}"
+
+		return preprefix + self.template.fullsource[outerstartpos:innerstartpos]
+
+	@property
+	def sourcesuffix(self):
+		outerstoppos = innerstoppos = self.pos.stop
+
+		postsuffix = ""
+		maxsuffix = 40
+		while maxsuffix > 0:
+			# We arrived at the end of the source
+			if outerstoppos >= len(self.template.fullsource):
+				break
+			# We arrived at the end of the line
+			if self.template.fullsource[outerstoppos] == "\n":
+				break
+			maxsuffix -= 1
+			outerstoppos += 1
+		else:
+			# We've exhausted the length of the suffix
+			postsuffix = "\N{HORIZONTAL ELLIPSIS}"
+
+		return self.template.fullsource[innerstoppos:outerstoppos] + postsuffix
 
 	def __getattr__(self, name):
 		if name == "fullsource":
@@ -1099,8 +1117,7 @@ class AST:
 	def __repr__(self):
 		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
 		if self.pos is not None:
-			(line, col) = self._linecol()
-			parts.append(f"(offset {_offset(self.pos)}; line {line:,}; col {col:,})")
+			parts.append(f"(offset {_offset(self.pos)}; line {self.line:,}; col {self.col:,})")
 		parts.extend(self._repr())
 		parts.append(f"at {id(self):#x}>")
 		return " ".join(parts)
@@ -1111,8 +1128,7 @@ class AST:
 	def _repr_pretty_(self, p, cycle):
 		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
 		if self.pos is not None:
-			(line, col) = self._linecol()
-			prefix += f"(offset {_offset(self.pos)}; line {line:,}; col {col:,})"
+			prefix += f"(offset {_offset(self.pos)}; line {self.line:,}; col {self.col:,})"
 		suffix = f"at {id(self):#x}"
 
 		if cycle:
@@ -1273,8 +1289,7 @@ class Tag(AST):
 		p.pretty(self.source)
 
 	def __str__(self):
-		(line, col) = self._linecol()
-		return f"{self.source!r} (offset {_offset(self.pos)}; line {line:,}; col {col:,})"
+		return f"{self.source!r} (offset {_offset(self.pos)}; line {self.line:,}; col {self.col:,})"
 
 	@property
 	def code(self):

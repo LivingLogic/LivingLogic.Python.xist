@@ -4962,7 +4962,7 @@ def test_exception(T):
 
 
 @pytest.mark.ul4
-def test_templateattributes(T):
+def test_astattributes(T):
 	s1 = "<?print x?>"
 	t1 = ul4c.Template(s1, name="t1")
 
@@ -4988,8 +4988,19 @@ def test_templateattributes(T):
 	assert "foo" == T("<?def inner?><?end def?><?print inner.parenttemplate.name?>", name="foo").renders()
 
 
+	s3 = "[<?print x?>]"
+	t3 = ul4c.Template(s3, name="t")
+
+	assert "slice(9, 10, None)" == T("<?print template.content[2].obj.pos?>").renders(template=t3)
+	assert "1" == T("<?print template.content[2].obj.line?>").renders(template=t3)
+	assert "10" == T("<?print template.content[2].obj.col?>").renders(template=t3)
+	assert "[<?print " == T("<?print template.content[2].obj.sourceprefix?>").renders(template=t3)
+	assert "x" == T("<?print template.content[2].obj.source?>").renders(template=t3)
+	assert "?>]" == T("<?print template.content[2].obj.sourcesuffix?>").renders(template=t3)
+
+
 @pytest.mark.ul4
-def test_sourceattribute_node(T):
+def test_astattribute_source_node(T):
 	s = "<?print x?>"
 	t = ul4c.Template(s, name="t")
 
@@ -4999,7 +5010,7 @@ def test_sourceattribute_node(T):
 
 
 @pytest.mark.ul4
-def test_sourceattribute_template(T):
+def test_astattribute_source_template(T):
 	s = "<?print x?>"
 	t = ul4c.Template(s, name="t")
 
@@ -5008,7 +5019,7 @@ def test_sourceattribute_template(T):
 
 
 @pytest.mark.ul4
-def test_sourceattribute_renderblock(T):
+def test_astattribute_source_renderblock(T):
 	s = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblock b()?>foo<?end renderblock?>"
 	t = ul4c.Template(s, name="t")
 
@@ -5018,7 +5029,7 @@ def test_sourceattribute_renderblock(T):
 
 
 @pytest.mark.ul4
-def test_sourceattribute_renderblocks(T):
+def test_astattribute_source_renderblocks(T):
 	s = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblocks b()?><?def content?>foo<?end def?><?end renderblocks?>"
 	t = ul4c.Template(s, name="t")
 
@@ -5027,7 +5038,7 @@ def test_sourceattribute_renderblocks(T):
 
 
 @pytest.mark.ul4
-def test_sourceattribute_for(T):
+def test_astattribute_source_for(T):
 	s = "<?for i in range(10)?><?printx i?><?end for?>"
 	t = ul4c.Template(s, name="t")
 
@@ -5036,7 +5047,7 @@ def test_sourceattribute_for(T):
 
 
 @pytest.mark.ul4
-def test_sourceattribute_while(T):
+def test_astattribute_source_while(T):
 	s = "<?while now() < @(2020-02-02)?>wait<?end while?>"
 	t = ul4c.Template(s, name="t")
 
@@ -5045,7 +5056,7 @@ def test_sourceattribute_while(T):
 
 
 @pytest.mark.ul4
-def test_sourceattribute_if(T):
+def test_astattribute_source_if(T):
 	s = "<?if 1?>1<?elif 2?>2<?else?>3<?end if?>"
 	t = ul4c.Template(s, name="t")
 
