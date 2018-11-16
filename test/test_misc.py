@@ -304,6 +304,7 @@ def test_sysinfo():
 	misc.sysinfo.host_release
 	misc.sysinfo.host_version
 	misc.sysinfo.host_machine
+	misc.sysinfo.host_processor
 	misc.sysinfo.user_name
 	misc.sysinfo.user_uid
 	misc.sysinfo.user_gid

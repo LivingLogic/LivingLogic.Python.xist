@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
+import sys, os, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
 from collections import abc
 
 from ll import color
@@ -642,6 +642,7 @@ class SysInfo:
 		self._host_release = object
 		self._host_version = object
 		self._host_machine = object
+		self._host_processor = object
 		self._user_name = object
 		self._user_uid = object
 		self._user_gid = object
@@ -672,7 +673,7 @@ class SysInfo:
 		return self._host_ip
 
 	def _make_host_info(self):
-		(self._host_sysname, self._host_nodename, self._host_release, self._host_version, self._host_machine) = os.uname()
+		(self._host_sysname, self._host_nodename, self._host_release, self._host_version, self._host_machine, self._host_processor) = platform.uname()
 
 	@property
 	def host_sysname(self):
@@ -703,6 +704,12 @@ class SysInfo:
 		if self._host_machine is object:
 			self._make_host_info()
 		return self._host_machine
+
+	@property
+	def host_processor(self):
+		if self._host_processor is object:
+			self._make_host_info()
+		return self._host_processor
 
 	def _make_user_info(self):
 		import pwd
