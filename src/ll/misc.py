@@ -712,8 +712,19 @@ class SysInfo:
 		return self._host_processor
 
 	def _make_user_info(self):
-		import pwd
-		(self._user_name, _, self._user_uid, self._user_gid, self._user_gecos, self._user_dir, self._user_shell) = pwd.getpwuid(os.getuid())
+		try:
+			import pwd
+		except ImportError:
+			# We're probably on Windows
+			import getpass, os.path
+			self._user_name = getpass.getuser()
+			self._user_uid = None
+			self._user_gid = None
+			self._user_gecos = None
+			self._user_dir = os.path.expanduser("~")
+			self._user_shell = None
+		else:
+			(self._user_name, _, self._user_uid, self._user_gid, self._user_gecos, self._user_dir, self._user_shell) = pwd.getpwuid(os.getuid())
 
 	@property
 	def user_name(self):
