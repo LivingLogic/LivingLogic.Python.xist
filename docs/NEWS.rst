@@ -14,7 +14,9 @@ Changes in 5.39 (released 11/??/2018)
 *	:class:`ll.misc.SysInfo` now uses :func:`platform.uname` instead of
 	:func:`os.uname` for its host information, so this will work on Windows too.
 	This also means :class:`ll.misc.SysInfo` gained a new attribute
-	``host_processor`` which is provided by :func:`platform.uname`.
+	``host_processor`` which is provided by :func:`platform.uname`. Furthermore
+	the user information on Windows now supports ``user_name`` and ``user_dir``
+	(all other user attribute or ``None``).
 
 
 Changes in 5.38 (released 11/15/2018)
