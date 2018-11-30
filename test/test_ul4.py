@@ -466,6 +466,17 @@ class TemplateJavascriptNode(TemplateJavascript):
 		return self.runcode("node {fn}", source)
 
 
+template_params = [
+	"python",
+	"python_dumps",
+	"python_dump",
+	pytest.param("java_compiled_by_python", marks=pytest.mark.java)
+	pytest.param("java_compiled_by_java", marks=pytest.mark.java)
+	pytest.param("js_v8", marks=pytest.mark.js),
+	pytest.param("js_node", marks=pytest.mark.js),
+	pytest.param("php", marks=pytest.mark.php),
+]
+
 all_templates = dict(
 	python=TemplatePython,
 	python_dumps=TemplatePythonDumpS,
@@ -474,11 +485,10 @@ all_templates = dict(
 	java_compiled_by_java=TemplateJavaCompiledByJava,
 	js_v8=TemplateJavascriptV8,
 	js_node=TemplateJavascriptNode,
-	# php=TemplatePHP,
+	php=TemplatePHP,
 )
 
-
-@pytest.fixture(scope="module", params=all_templates.keys())
+@pytest.fixture(scope="module", params=template_params)
 def T(request):
 	"""
 	A parameterized fixture that returns each of the testing classes
