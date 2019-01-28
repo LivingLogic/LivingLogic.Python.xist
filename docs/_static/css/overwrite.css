@@ -170,6 +170,7 @@ code, .rst-content tt, .rst-content code
 .rst-content dl dt
 {
 	font-weight: 600;
+	margin-bottom: 0;
 }
 
 h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
