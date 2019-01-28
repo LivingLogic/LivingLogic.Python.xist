@@ -474,7 +474,7 @@ template_params = [
 	pytest.param("java_compiled_by_java", marks=pytest.mark.java),
 	pytest.param("js_v8", marks=pytest.mark.js),
 	pytest.param("js_node", marks=pytest.mark.js),
-	pytest.param("php", marks=pytest.mark.php),
+	# pytest.param("php", marks=pytest.mark.php),
 ]
 
 all_templates = dict(
