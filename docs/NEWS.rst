@@ -16,7 +16,7 @@ Changes in 5.39 (released 01/30/2019)
 	This also means :class:`ll.misc.SysInfo` gained a new attribute
 	``host_processor`` which is provided by :func:`platform.uname`. Furthermore
 	the user information on Windows now supports ``user_name`` and ``user_dir``
-	(all other user attribute or ``None``).
+	(all other user attribute are ``None``).
 
 *	:mod:`ll.orasql` objects that have source code (like :class:`Type`,
 	:class:`Procedure` etc.) should now be able to better handle any duplicate
