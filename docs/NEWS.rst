@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.39 (released 11/??/2018)
+Changes in 5.39 (released 01/30/2019)
 -------------------------------------
 
 *	:class:`ll.misc.SysInfo` now uses :func:`platform.uname` instead of
@@ -17,6 +17,10 @@ Changes in 5.39 (released 11/??/2018)
 	``host_processor`` which is provided by :func:`platform.uname`. Furthermore
 	the user information on Windows now supports ``user_name`` and ``user_dir``
 	(all other user attribute or ``None``).
+
+*	:mod:`ll.orasql` objects that have source code (like :class:`Type`,
+	:class:`Procedure` etc.) should now be able to better handle any duplicate
+	spaces in its source code header introduced by Oracle 18.
 
 
 Changes in 5.38 (released 11/15/2018)
