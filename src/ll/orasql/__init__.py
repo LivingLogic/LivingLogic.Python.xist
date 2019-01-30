@@ -891,6 +891,8 @@ class MixinCodeSQL:
 		else:
 			while code and (code[0].isalnum() or code[0] in "_$."):
 				code = code[1:]
+		while code.startswith("  "):
+			code = code[1:]
 		code = f"create or replace {type} {self.getfullname()}{code}\n"
 		if term:
 			code += "\n/\n"
