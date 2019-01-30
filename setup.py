@@ -312,9 +312,6 @@ args = dict(
 		"proctitle": ["setproctitle >= 1.1.8"],
 	},
 	zip_safe=False,
-	dependency_links=[
-		"http://cx-oracle.sourceforge.net/", # cx_Oracle
-	],
 )
 
 if havecython:
