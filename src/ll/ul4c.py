@@ -4911,7 +4911,6 @@ def function_islist(obj):
 
 @Context.makefunction
 def function_isset(obj):
-	from ll import color
 	return isinstance(obj, (set, frozenset))
 
 
