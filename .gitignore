@@ -8,6 +8,7 @@ src/ll/xist/*.so
 src/*.egg-info
 docs/build
 .cache
+.mypy_cache
 node_modules
 package-lock.json
 UL4.tokens
