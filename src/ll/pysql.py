@@ -1632,7 +1632,7 @@ reprthreshold = 100
 
 def _reprbytes(value):
 	if len(value) > reprthreshold:
-		return f"({len(value):,} bytes starting with {__repr__(value[:reprthreshold])})"
+		return f"({len(value):,} bytes starting with {bytes.__repr__(value[:reprthreshold])})"
 	else:
 		return bytes.__repr__(value) # Because ``value`` might be an instance of a subclass of :class:`bytes`
 
@@ -1655,13 +1655,13 @@ class strvalue(str):
 
 
 class bytesvalue(bytes):
-	def __new__(cls, key, value=""):
+	def __new__(cls, key, value=b""):
 		self = super().__new__(cls, value)
 		self.key = key
 		return self
 
 	def __repr__(self):
-		return f"{self.__class__.__qualname__}({self.key!r}, {_reprstr(self)})"
+		return f"{self.__class__.__qualname__}({self.key!r}, {_reprbytes(self)})"
 
 
 class intvalue(int):
