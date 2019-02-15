@@ -711,6 +711,7 @@ class Command:
 		This key will be ignored completely, but can be used to add a comment
 		to a command.
 	"""
+
 	def __init__(self, location, *, raiseexceptions=None, comment=None):
 		self.location = location
 		self.raiseexceptions = raiseexceptions
@@ -743,6 +744,7 @@ class IncludeCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "include"
 
 	def __init__(self, location, *, name, raiseexceptions=None, comment=None):
@@ -769,6 +771,7 @@ class PushConnectionCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "pushconnection"
 
 	def __init__(self, location, *, connectstring, raiseexceptions=None, comment=None, connectname=None, commit=None):
@@ -804,6 +807,7 @@ class PopConnectionCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "popconnection"
 
 	def __init__(self, location, *, connectname=None, raiseexceptions=None, comment=None):
@@ -873,6 +877,7 @@ class _SQLCommand(_DatabaseCommand):
 	"""
 	Common base class of :class:`ProcedureCommand` and :class:`SQLCommand`.
 	"""
+
 	@staticmethod
 	def _createvar(cursor, type, value):
 		var = cursor.var(type)
@@ -1034,6 +1039,7 @@ class SQLCommand(_SQLCommand):
 	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
 	and ``"connectstring"`` from the base classes are supported.
 	"""
+
 	type = "sql"
 
 	def __init__(self, location, *, sql, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
@@ -1091,6 +1097,7 @@ class SetVarCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "setvar"
 
 	def __init__(self, location, *, name, value, raiseexceptions=None, comment=None):
@@ -1123,6 +1130,7 @@ class UnsetVarCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "unsetvar"
 
 	def __init__(self, location, *, name, raiseexceptions=None, comment=None):
@@ -1167,6 +1175,7 @@ class RaiseExceptionsCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "raiseexceptions"
 
 	def __init__(self, location, *, value, raiseexceptions=None, comment=None):
@@ -1210,6 +1219,7 @@ class PushRaiseExceptionsCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "pushraiseexceptions"
 
 	def __init__(self, location, *, value, raiseexceptions=None, comment=None):
@@ -1242,6 +1252,7 @@ class PopRaiseExceptionsCommand(Command):
 	The keys ``"raiseexceptions"`` and ``"comment"`` from the base class are
 	supported in the command dictionary.
 	"""
+
 	type = "popraiseexceptions"
 
 	def __init__(self, location, *, raiseexceptions=None, comment=None):
@@ -1276,6 +1287,7 @@ class CheckErrorsCommand(_DatabaseCommand):
 	and ``"connectstring"`` from the base classes are supported, but the value
 	of the ``"raiseexceptions"`` key will be ignored.
 	"""
+
 	type = "checkerrors"
 
 	def __repr__(self):
@@ -1310,6 +1322,7 @@ class CompileAllCommand(_DatabaseCommand):
 	The keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
 	and ``"connectstring"`` from the base classes are supported.
 	"""
+
 	type = "compileall"
 
 	def __repr__(self):
@@ -1352,6 +1365,7 @@ class SCPCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "scp"
 
 	def __init__(self, location, *, name, content, raiseexceptions=None, comment=None):
@@ -1416,6 +1430,7 @@ class FileCommand(Command):
 	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
 	class are supported.
 	"""
+
 	type = "file"
 
 	def __init__(self, location, *, name, content, raiseexceptions, comment=None, mode=None, owner=None, group=None):
@@ -1509,6 +1524,7 @@ class ResetSequenceCommand(_DatabaseCommand):
 	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
 	and ``"connectstring"`` from the base classes are supported.
 	"""
+
 	type = "resetsequence"
 
 	def __init__(self, location, *, sequence, table, field, raiseexceptions=None, comment=None, minvalue=None, increment=None, connectstring=None, connectname=None):
@@ -1576,6 +1592,7 @@ class CommentCommand(Command):
 	The keys ``"raiseexceptions"`` and ``"comment"`` from the base class are
 	supported.
 	"""
+
 	type = "comment"
 
 	def __str__(self):
@@ -1830,6 +1847,7 @@ class SCPError(Exception):
 	Exception raised by :class:`SCPCommand` when a call to the ``scp`` command
 	fails.
 	"""
+
 	def __init__(self, status, msg):
 		self.status = status
 		self.msg = msg
@@ -1842,6 +1860,7 @@ class Location:
 	"""
 	The location of a PySQL/SQL command in a pysql file.
 	"""
+
 	def __init__(self, filename, startline, endline):
 		self.filename = filename
 		self.startline = startline
