@@ -651,6 +651,7 @@ class Context:
 			print("Command summary:")
 			anyoutput = False
 			totallen = len(f"{self.totalcount:,}")
+
 			def sortkey(keyvalue):
 				(key, value) = keyvalue
 				if len(key) > 1: # db command
