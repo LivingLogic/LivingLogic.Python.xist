@@ -1827,7 +1827,7 @@ class CompilationError(Exception):
 
 class SCPError(Exception):
 	"""
-	Exception raised by :class:`SCPCommand` when a call to the ``scp`` comamnd
+	Exception raised by :class:`SCPCommand` when a call to the ``scp`` command
 	fails.
 	"""
 	def __init__(self, status, msg):
