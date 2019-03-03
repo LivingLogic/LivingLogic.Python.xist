@@ -332,6 +332,13 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 	)
 	return skip or (name in exclusions)
 
+def autodoc_process_docstring(app, what, name, obj, options, lines):
+	print(what, name)
+	for i in range(len(lines)):
+		line = lines[i].lstrip()
+		levels = (len(lines[i]) - len(line))//8
+		lines[i] = levels * "   " + line
 
 def setup(app):
 	app.connect('autodoc-skip-member', autodoc_skip_member)
+	app.connect('autodoc-process-docstring', autodoc_process_docstring)
