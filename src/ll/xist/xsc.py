@@ -1076,7 +1076,7 @@ class Node(object, metaclass=_Node_Meta):
 
 	def clone(self):
 		"""
-		return a clone of :obj:`self`. Compared to :meth:`deepcopy` :meth:`clone`
+		Return a clone of :obj:`self`. Compared to :meth:`deepcopy` :meth:`clone`
 		will create multiple instances of objects that can be found in the tree
 		more than once. :meth:`clone` can't clone trees that contain cycles.
 		"""
@@ -1133,7 +1133,7 @@ class Node(object, metaclass=_Node_Meta):
 	@misc.notimplemented
 	def convert(self, converter):
 		"""
-		implementation of the conversion method. When you define your own element
+		Implementation of the conversion method. When you define your own element
 		classes you have to overwrite this method and implement the desired
 		conversion.
 
