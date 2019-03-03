@@ -34,7 +34,7 @@ xml_xmlns = "http://www.w3.org/XML/1998/namespace"
 
 def tonode(value):
 	"""
-	convert :obj:`value` to an XIST :class:`Node`.
+	Convert :obj:`value` to an XIST :class:`Node`.
 
 	If :obj:`value` is a tuple or list, it will be (recursively) converted to a
 	:class:`Frag`. Integers, strings, etc. will be converted to a :class:`Text`.
