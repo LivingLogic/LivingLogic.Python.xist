@@ -160,6 +160,7 @@ def count(iterable):
 def notimplemented(function):
 	"""
 	A decorator that raises :exc:`NotImplementedError` when the method is called.
+
 	This saves you the trouble of formatting the error message yourself for each
 	implementation.
 	"""
@@ -171,9 +172,10 @@ def notimplemented(function):
 
 def withdoc(doc):
 	"""
-	A decorator that adds a docstring to the function it decorates. This can be
-	useful if the docstring is not static, and adding it afterwards is not
-	possible.
+	A decorator that adds a docstring to the function it decorates.
+
+	This can be useful if the docstring is not static, and adding it afterwards
+	is not possible.
 	"""
 	def wrapper(function):
 		function.__doc__ = doc
@@ -225,7 +227,9 @@ class propclass(property, metaclass=_propclass_Meta):
 
 def format_class(obj):
 	"""
-	Format the name of the class of :obj:`obj`::
+	Format the name of the class of :obj:`obj`.
+
+	Example::
 
 		>>> misc.format_class(42)
 		'int'
@@ -240,7 +244,9 @@ def format_class(obj):
 
 def format_exception(exc):
 	"""
-	Format an exception object::
+	Format an exception object.
+
+	Example::
 
 		>>> misc.format_exception(ValueError("bad value"))
 		'ValueError: bad value'
@@ -275,6 +281,7 @@ class Pool:
 	The attributes of a module can be put into a pool and each pool can have
 	base pools where lookup continues if an attribute can't be found.
 	"""
+
 	def __init__(self, *objects):
 		self._attrs = {}
 		self.bases = []
@@ -396,6 +403,7 @@ class Queue:
 	queue and the method :meth:`read` read from the other end of the queue and
 	remove the characters read.
 	"""
+
 	def __init__(self):
 		self._buffer = ""
 
