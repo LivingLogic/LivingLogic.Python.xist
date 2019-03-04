@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
+import sys, os, os.path, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
 from collections import abc
 
 from ll import color
@@ -724,7 +724,7 @@ class SysInfo:
 			import pwd
 		except ImportError:
 			# We're probably on Windows
-			import getpass, os.path
+			import getpass
 			self._user_name = getpass.getuser()
 			self._user_uid = None
 			self._user_gid = None
