@@ -1212,7 +1212,7 @@ class Node(object, metaclass=_Node_Meta):
 	def validate(self, recursive=True, path=None):
 		"""
 		This method will be called when parsing or publishing to check whether
-		:var`self` is valid.
+		:obj:`self` is valid.
 
 		If :obj:`self` is found to be invalid a warning should be issued through
 		the Python warning framework.
