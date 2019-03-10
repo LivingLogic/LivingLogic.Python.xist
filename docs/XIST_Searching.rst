@@ -504,7 +504,7 @@ The output looks like this:
 
 If the :class:`~ll.xist.ns.html.img` elements are not immediate children of the
 :class:`~ll.xist.ns.html.a` elements, the :mod:`~ll.xist.xfind` selector above
-won't output then. In this case you can use a "decendant selector" instead of a
+won't output them. In this case you can use a "decendant selector" instead of a
 "child selector". To do this simply replace ``html.a/html.img`` with
 ``html.a//html.img``.
 
