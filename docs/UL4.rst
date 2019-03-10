@@ -1914,7 +1914,7 @@ in January. For this ``mindaysinfirstweek == 7``.
 
 ``week`` is a date method. The signature is
 ``week(day, firstweekday=0, mindaysinfirstweek=4)``. It returns the calendar
-week number of the date ``day`. For more information see the method ``yearweek``.
+week number of the date ``day``. For more information see the method ``yearweek``.
 
 
 ``yearday``
