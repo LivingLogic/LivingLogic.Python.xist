@@ -873,23 +873,9 @@ main .toctree-wrapper p.caption .headerlink
 	visibility: hidden;
 	font-size: 1px;
 	text-align: right;
-	flex: 1 1 auto;
 }
 
-main dl:not(.docutils) > dt > .reference.internal + .headerlink,
-main dl:not(.docutils) > dt > .headerlink + .reference.internal
-{
-	flex: 0 1 auto;
-}
-
-main dl:not(.docutils) > dt > .reference.internal:after,
-main h1 .reference.internal:after,
-main h2 .reference.internal:after,
-main h3 .reference.internal:after,
-main h4 .reference.internal:after,
-main h5 .reference.internal:after,
-main h6 .reference.internal:after
-{
+main dl:not(.docutils) > dt > .reference.internal:after{
 	content: "\f121";
 	font-family: "Font Awesome 5 Free";
 	font-weight: 900;
@@ -1026,32 +1012,6 @@ table.download td:last-child
 {
 	text-align: right;
 }
-
-main h1,
-main h2,
-main h3,
-main h4,
-main h5,
-main h6,
-main .toctree-wrapper p.caption,
-main dl.class > dt,
-main dl.function > dt,
-main dl.method > dt,
-main dl.classmethod > dt,
-main dl.exception > dt,
-main dl.attribute > dt,
-main dl:not(.docutils) dl.class > dt,
-main dl:not(.docutils) dl.function > dt,
-main dl:not(.docutils) dl.method > dt,
-main dl:not(.docutils) dl.classmethod > dt,
-main dl:not(.docutils) dl.exception > dt,
-main dl:not(.docutils) dl.attribute > dt
-{
-	display: flex;
-	flex-flow: row wrap;
-	align-items: center;
-}
-
 
 main dl.class > dt,
 main dl.function > dt,
