@@ -1,176 +1,13 @@
 @import url("theme.css");
 
-@font-face
-{
-	font-family: "Source Sans Pro";
-	font-style: normal;
-	font-weight: 300;
-	src: url(fonts/SourceSansPro-Light.eot);
-	src: local('SourceSansPro-Light'), url(fonts/SourceSansPro-Light.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Sans Pro";
-	font-style: normal;
-	font-weight: 400;
-	src: url(fonts/SourceSansPro-Regular.eot);
-	src: local('SourceSansPro-Regular'), url(fonts/SourceSansPro-Regular.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Sans Pro";
-	font-style: normal;
-	font-weight: 600;
-	src: url(fonts/SourceSansPro-Semibold.eot);
-	src: local('SourceSansPro-Semibold'), url(fonts/SourceSansPro-Semibold.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Sans Pro";
-	font-style: normal;
-	font-weight: 700;
-	src: url(fonts/SourceSansPro-Bold.eot);
-	src: local('SourceSansPro-Bold'), url(fonts/SourceSansPro-Bold.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Code Pro";
-	font-style: normal;
-	font-weight: 300;
-	src: url(fonts/SourceCodePro-Light.eot);
-	src: local('SourceCodePro-Light'), url(fonts/SourceCodePro-Light.ttf.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Code Pro";
-	font-style: normal;
-	font-weight: 400;
-	src: url(fonts/SourceCodePro-Regular.eot);
-	src: local('SourceCodePro-Regular'), url(fonts/SourceCodePro-Regular.ttf.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Code Pro";
-	font-style: normal;
-	font-weight: 600;
-	src: url(fonts/SourceCodePro-Semibold.eot);
-	src: local('SourceCodePro-Semibold'), url(fonts/SourceCodePro-Semibold.ttf.woff) format('woff');
-}
-
-@font-face
-{
-	font-family: "Source Code Pro";
-	font-style: normal;
-	font-weight: 700;
-	src: url(fonts/SourceCodePro-Bold.eot);
-	src: local('SourceCodePro-Bold'), url(fonts/SourceCodePro-Bold.ttf.woff) format('woff');
-}
-
-body
-{
-	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
-}
-
-h1, h2, h3, h4, h5, h6
-{
-	margin: 1.6em 0 0.5rem 0;
-	font-weight: 400;
-	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
-}
-
-.document p,
-.document li,
-.document dd,
-.document ul,
-.document ol,
-.document dl
-{
-	line-height: 166%;
-	margin-bottom: 0.8rem;
-}
-
-.document li
-{
-	font-size: 16px;
-}
-
-.document dt
-{
-	line-height: 166%;
-}
-
 .document .line-block
 {
-	margin-bottom: 0.8rem;
+	margin-bottom: 0.7em;
 }
 
 .document .line-block .line
 {
-	font-size: 16px;
-	line-height: 166%;
-}
-
-div[class^='highlight'] pre
-{
-	font-family: "Source Code Pro", monospace;
-	font-size: 0.8em;
-	padding: 0.5rem 0.8rem;
-}
-
-.code-block-caption
-{
-	margin-bottom: 3px;
-}
-
-.code-block-caption .caption-text
-{
-	font-size: 80%;
-	color: #999;
-}
-
-.code-block-caption .headerlink
-{
-	display: none;
-	padding-left: 0.5em;
-	font-size: 80%;
-}
-
-.code-block-caption:hover .headerlink
-{
-	display: inline-block;
-}
-
-code, .rst-content tt, .rst-content code
-{
-	font-family: "Source Code Pro", monospace;
-	color: inherit;
-	background-color: rgba(255, 255, 255, 0.66);
-	font-size: inherit;
-	border: 1px solid rgba(0, 0, 0, 0.2);
-	border-radius: 0.3em;
-	padding: 1px 0.3em;
-	margin: 0;
-}
-
-.wy-menu-vertical li code, .wy-menu-vertical li .rst-content tt, .rst-content .wy-menu-vertical li tt
-{
-	border-radius: 0.3em;
-	padding: 1px 0.3em;
-	margin: 0;
-	background-color: rgba(255, 255, 255, 0.05);
-	border: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.rst-content dl dt
-{
-	font-weight: 600;
-	margin-bottom: 0;
+	line-height: 1.5;
 }
 
 h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
@@ -179,53 +16,8 @@ h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
 	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
 }
 
-.literal-block-wrapper
-{
-	margin: 0 0 0.8rem 0;
-}
-
-.codeblock, pre.literal-block, .rst-content .literal-block, .rst-content pre.literal-block, div[class^='highlight']
-{
-	margin: 0 0 0.8rem 0;
-	border: 1px solid rgba(0, 0, 0, 0.2);
-	border-radius: 0.3em;
-	background-color: rgba(255, 255, 255, 0.66);
-}
-
-.rst-content tt.xref, a .rst-content tt, .rst-content tt.xref, .rst-content code.xref, a .rst-content tt, a .rst-content code
-{
-	color: inherit;
-	font-weight: normal;
-}
-
-.rst-content dl:not(.docutils) tt, .rst-content dl:not(.docutils) tt, .rst-content dl:not(.docutils) code
-{
-	font-weight: normal;
-}
-
-.rst-content tt.literal, .rst-content tt.literal, .rst-content code.literal
-{
-	color: inherit;
-}
-
-.wy-plain-list-disc li, .rst-content .section ul li, .rst-content .toctree-wrapper ul li, article ul li
-{
-	margin-bottom: 12px;
-}
-
-.rst-content .viewcode-link, .rst-content .viewcode-back
-{
-	color: inherit;
-}
-
-.wy-menu-vertical
-{
-	width: 400px;
-}
-
 .wy-side-nav-search
 {
-	width: 400px;
 	background-color: #0063a8;
 	background-image: url('../NautilusBlue.jpg');
 	background-attachment: fixed;
@@ -233,36 +25,8 @@ h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
 	background-repeat: no-repeat;
 }
 
-.wy-side-scroll
-{
-	width: 420px;
-}
-
-.wy-nav-side
-{
-	width: 400px;
-}
-
-.wy-body-for-nav
-{
-	background-size: 400px 1px;
-}
-
-.wy-nav-content-wrap
-{
-	margin-left: 400px;
-}
-
 @media screen and (max-width: 768px)
 {
-	.wy-nav-side
-	{
-		left: -400px;
-	}
-	.wy-nav-content-wrap
-	{
-		margin-left: 0;
-	}
 	img[src^='https://img.shields.io']
 	{
 		width: auto;
@@ -274,103 +38,82 @@ table.download td:last-child
 	text-align: right;
 }
 
-.wy-breadcrumbs li code, .wy-breadcrumbs li .rst-content tt, .rst-content .wy-breadcrumbs li tt
+main dl.class > dt,
+main dl.function > dt,
+main dl.method > dt,
+main dl.classmethod > dt,
+main dl.exception > dt,
+main dl.attribute > dt,
+main dl:not(.docutils) dl.class > dt,
+main dl:not(.docutils) dl.function > dt,
+main dl:not(.docutils) dl.method > dt,
+main dl:not(.docutils) dl.classmethod > dt,
+main dl:not(.docutils) dl.exception > dt,
+main dl:not(.docutils) dl.attribute > dt
 {
-	padding: 0;
-}
-
-.rst-content dl,
-.rst-content dl:not(.docutils)
-{
-	padding: 0;
-	margin: 0 0 12px 0;
-}
-
-.rst-content dl:not(.docutils) dt,
-.rst-content dl:not(.docutils) dl dt
-{
-	background-color: inherit;
-	color: inherit;
-	border: 0;
-	border-top: 0;
-	margin: 0;
-	padding: 0;
-	line-height: 166%;
-}
-
-.rst-content dl.class,
-.rst-content dl.function,
-.rst-content dl.method,
-.rst-content dl.exception,
-.rst-content dl.attribute
-{
-	border: 1px solid rgba(0, 0, 0, 0.2);
-	margin: 0 0 0.8rem 0;
-	border-radius: 0.3em;
-}
-
-.rst-content dl.class > dt,
-.rst-content dl.function > dt,
-.rst-content dl.method > dt,
-.rst-content dl.exception > dt,
-.rst-content dl.attribute > dt,
-.rst-content dl:not(.docutils) dl.class > dt,
-.rst-content dl:not(.docutils) dl.function > dt,
-.rst-content dl:not(.docutils) dl.method > dt,
-.rst-content dl:not(.docutils) dl.exception > dt,
-.rst-content dl:not(.docutils) dl.attribute > dt
-{
+	margin: 0.6em 0 0 0;
+	border: 1px solid #ddd;
+	border-top-left-radius: 0.3em;
+	border-top-right-radius: 0.3em;
+	padding: 0.3em 1.2rem;
+	font-family: "Source Code Pro", monospace;
 	background-color: rgba(1, 1, 1, 0.05);
-	color: inherit;
-	display: block;
-	border: 0;
+	display: flex;
+	flex-flow: row wrap;
+}
+
+main dl.class > dd,
+main dl.function > dd,
+main dl.method > dd,
+main dl.classmethod > dd,
+main dl.exception > dd,
+main dl.attribute > dd,
+main dl:not(.docutils) dl.class > dd,
+main dl:not(.docutils) dl.function > dd,
+main dl:not(.docutils) dl.method > dd,
+main dl:not(.docutils) dl.exception > dd,
+main dl:not(.docutils) dl.attribute > dd
+{
+	margin: 0 0 0.6em 0;
+	border-style: solid;
+	border-color: #ddd;
+	border-width: 0 1px 1px 1px;
+	border-bottom-left-radius: 0.3em;
+	border-bottom-right-radius: 0.3em;
+	padding: 0.3em 1.2rem;
+}
+
+main dl.class > dd:last-child > p:last-child,
+main dl.function > dd:last-child > p:last-child,
+main dl.method > dd:last-child > p:last-child,
+main dl.classmethod > dd:last-child > p:last-child,
+main dl.exception > dd:last-child > p:last-child,
+main dl.attribute > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.class > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.function > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.method > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.classmethod > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.exception > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.attribute > dd:last-child > p:last-child
+{
 	margin: 0;
-	padding: 0.2rem 0.8rem;
-}
-
-.rst-content dl.class > dd,
-.rst-content dl.function > dd,
-.rst-content dl.method > dd,
-.rst-content dl.exception > dd,
-.rst-content dl.attribute > dd,
-.rst-content dl:not(.docutils) dl.class > dd,
-.rst-content dl:not(.docutils) dl.function > dd,
-.rst-content dl:not(.docutils) dl.method > dd,
-.rst-content dl:not(.docutils) dl.exception > dd,
-.rst-content dl:not(.docutils) dl.attribute > dd
-{
-	margin: 0.2rem 0.8rem;
-}
-
-.rst-content dl.class > dd > *:last-child,
-.rst-content dl.function > dd > *:last-child,
-.rst-content dl.method > dd > *:last-child,
-.rst-content dl.exception > dd > *:last-child,
-.rst-content dl.attribute > dd > *:last-child,
-.rst-content dl:not(.docutils) dl.class > dd > *:last-child,
-.rst-content dl:not(.docutils) dl.function > dd > *:last-child,
-.rst-content dl:not(.docutils) dl.method > dd > *:last-child,
-.rst-content dl:not(.docutils) dl.exception > dd > *:last-child,
-.rst-content dl:not(.docutils) dl.attribute > dd > *:last-child
-{
-	margin-bottom: 0 !important;
 }
 
 .wy-alert,
-.rst-content .note,
-.rst-content .attention,
-.rst-content .caution,
-.rst-content .danger,
-.rst-content .error,
-.rst-content .hint,
-.rst-content .important,
-.rst-content .tip,
-.rst-content .warning,
-.rst-content .seealso,
-.rst-content .admonition-todo
+main .note,
+main .attention,
+main .caution,
+main .danger,
+main .error,
+main .hint,
+main .important,
+main .tip,
+main .warning,
+main .seealso,
+main .admonition-todo
 {
-	padding: 0 0.8rem 0.2rem 0.8rem;
-	margin-bottom: 0.8rem;
+	padding: 0 1.2rem 0.3rem 1.2rem;
+	margin-bottom: 0.7rem;
 	border-radius: 0.3em;
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	line-height: 166%;
