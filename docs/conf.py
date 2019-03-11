@@ -367,6 +367,8 @@ autodoc_default_flags = ["members", "special-members", "show-inheritance"]
 
 autodoc_member_order = "bysource"
 
+autodoc_inherit_docstrings = False
+
 def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = (
 		'__weakref__', # special-members
