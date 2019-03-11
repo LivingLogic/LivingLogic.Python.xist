@@ -184,8 +184,6 @@ html_theme = 'sphinx_ll_theme'
 
 html_theme_path = ["."]
 
-html_style = 'css/overwrite.css'
-
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.

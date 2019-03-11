@@ -944,3 +944,135 @@ span[id*='MathJax-Span']{color:#404040}
 {
 	text-align:center;
 }
+
+.document .line-block
+{
+	margin-bottom: 0.7em;
+}
+
+.document .line-block .line
+{
+	line-height: 1.5;
+}
+
+h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
+{
+	font-weight: 400;
+	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
+}
+
+.wy-side-nav-search
+{
+	background-color: #0063a8;
+	background-image: url('../NautilusBlue.jpg');
+	background-attachment: fixed;
+	background-position: top left;
+	background-repeat: no-repeat;
+}
+
+@media screen and (max-width: 768px)
+{
+	img[src^='https://img.shields.io']
+	{
+		width: auto;
+	}
+}
+
+table.download td:last-child
+{
+	text-align: right;
+}
+
+main dl.class > dt,
+main dl.function > dt,
+main dl.method > dt,
+main dl.classmethod > dt,
+main dl.exception > dt,
+main dl.attribute > dt,
+main dl:not(.docutils) dl.class > dt,
+main dl:not(.docutils) dl.function > dt,
+main dl:not(.docutils) dl.method > dt,
+main dl:not(.docutils) dl.classmethod > dt,
+main dl:not(.docutils) dl.exception > dt,
+main dl:not(.docutils) dl.attribute > dt
+{
+	margin: 0.6em 0 0 0;
+	border: 1px solid #ddd;
+	border-top-left-radius: 0.3em;
+	border-top-right-radius: 0.3em;
+	padding: 0.3em 1.2rem;
+	font-family: "Source Code Pro", monospace;
+	background-color: rgba(1, 1, 1, 0.05);
+	display: flex;
+	flex-flow: row wrap;
+}
+
+main dl.class > dd,
+main dl.function > dd,
+main dl.method > dd,
+main dl.classmethod > dd,
+main dl.exception > dd,
+main dl.attribute > dd,
+main dl:not(.docutils) dl.class > dd,
+main dl:not(.docutils) dl.function > dd,
+main dl:not(.docutils) dl.method > dd,
+main dl:not(.docutils) dl.exception > dd,
+main dl:not(.docutils) dl.attribute > dd
+{
+	margin: 0 0 0.6em 0;
+	border-style: solid;
+	border-color: #ddd;
+	border-width: 0 1px 1px 1px;
+	border-bottom-left-radius: 0.3em;
+	border-bottom-right-radius: 0.3em;
+	padding: 0.3em 1.2rem;
+}
+
+main dl.class > dd:last-child > p:last-child,
+main dl.function > dd:last-child > p:last-child,
+main dl.method > dd:last-child > p:last-child,
+main dl.classmethod > dd:last-child > p:last-child,
+main dl.exception > dd:last-child > p:last-child,
+main dl.attribute > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.class > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.function > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.method > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.classmethod > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.exception > dd:last-child > p:last-child,
+main dl:not(.docutils) dl.attribute > dd:last-child > p:last-child
+{
+	margin: 0;
+}
+
+.wy-alert,
+main .note,
+main .attention,
+main .caution,
+main .danger,
+main .error,
+main .hint,
+main .important,
+main .tip,
+main .warning,
+main .seealso,
+main .admonition-todo
+{
+	padding: 0 1.2rem 0.3rem 1.2rem;
+	margin-bottom: 0.7rem;
+	border-radius: 0.3em;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	line-height: 166%;
+}
+
+.wy-alert-title, .rst-content .admonition-title
+{
+	padding: 0.4rem 0.8rem;
+	margin: 0 -0.8rem 0.2rem -0.8rem;
+	border-top-left-radius: 0.3em;
+	border-top-right-radius: 0.3em;
+}
+
+dt em
+{
+	font-style: normal;
+}
