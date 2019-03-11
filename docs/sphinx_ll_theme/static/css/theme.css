@@ -1003,7 +1003,6 @@ span[id*='MathJax-Span']{color:#404040}
 h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
 {
 	font-weight: 400;
-	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
 }
 
 .wy-side-nav-search
