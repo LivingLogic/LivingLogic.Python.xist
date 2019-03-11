@@ -4116,7 +4116,7 @@ def nsclark(obj):
 	"""
 	Return a name in Clark notation. :obj:`xmlns` can be :const:`None`,
 	a string or a module to return a namespace name, or a :class:`Node` instance
-	of subclass to return a namespace name + node name combination::
+	to return a namespace name + node name combination::
 
 		>>> from ll.xist import xsc
 		>>> from ll.xist.ns import html
