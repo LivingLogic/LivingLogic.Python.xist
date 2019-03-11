@@ -448,10 +448,10 @@ a.wy-text-success:hover{color:#36d278 !important}
 a.wy-text-danger:hover{color:#ed7669 !important}
 .wy-text-neutral{color:#404040 !important}
 a.wy-text-neutral:hover{color:#595959 !important}
-.rst-content .toctree-wrapper p.caption,legend
+main .toctree-wrapper p.caption,
+legend
 {
 	margin-top:0;
-	font-weight:700;
 }
 h1{font-size:175%}
 h2,.rst-content .toctree-wrapper p.caption{font-size:150%}
