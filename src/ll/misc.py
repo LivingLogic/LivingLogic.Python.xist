@@ -351,7 +351,7 @@ class Pool:
 
 def iterone(item):
 	"""
-	Return an iterator that will produce one item: :obj:`item`.
+	Return an iterator that will produce one item: ``item``.
 	"""
 	yield item
 
