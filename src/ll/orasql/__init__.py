@@ -3154,10 +3154,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, SchemaObject):
 			t = BLOB
 		elif isinstance(arg, str) and len(arg) >= 2000:
 			t = CLOB
-		if typename is None:
-			var = cursor.var(t)
-		else:
-			var = cursor.var(t, typename=typename)
+		var = cursor.var(t, typename=typename)
 		var.setvalue(0, arg)
 		return var
 
