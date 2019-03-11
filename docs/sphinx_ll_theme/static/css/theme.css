@@ -1000,7 +1000,7 @@ span[id*='MathJax-Span']{color:#404040}
 	line-height: 1.5;
 }
 
-h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend
+h1, h2, main .toctree-wrapper p.caption, h3, h4, h5, h6, legend
 {
 	font-weight: 400;
 }
@@ -1027,6 +1027,32 @@ table.download td:last-child
 	text-align: right;
 }
 
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6,
+main .toctree-wrapper p.caption,
+main dl.class > dt,
+main dl.function > dt,
+main dl.method > dt,
+main dl.classmethod > dt,
+main dl.exception > dt,
+main dl.attribute > dt,
+main dl:not(.docutils) dl.class > dt,
+main dl:not(.docutils) dl.function > dt,
+main dl:not(.docutils) dl.method > dt,
+main dl:not(.docutils) dl.classmethod > dt,
+main dl:not(.docutils) dl.exception > dt,
+main dl:not(.docutils) dl.attribute > dt
+{
+	display: flex;
+	flex-flow: row wrap;
+	align-items: center;
+}
+
+
 main dl.class > dt,
 main dl.function > dt,
 main dl.method > dt,
@@ -1047,8 +1073,6 @@ main dl:not(.docutils) dl.attribute > dt
 	padding: 0.3em 1.2rem;
 	font-family: "Source Code Pro", monospace;
 	background-color: rgba(1, 1, 1, 0.05);
-	display: flex;
-	flex-flow: row wrap;
 }
 
 main dl.class > dd,
