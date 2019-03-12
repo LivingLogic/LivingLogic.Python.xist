@@ -55,7 +55,7 @@ Options
 
 .. option:: -v <flag>, --verbose <flag>
 
-	Prints which files are compare before the comparison. When false
+	Prints which files are compared before the comparison. When false
 	:program:`udiff` will be silent as long as no differences are detected.
 	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
@@ -80,7 +80,7 @@ Options
 
 	Don't enter directories whose name matches one of the specified patterns.
 
-.. option:: -n <integer>, --context`` <integer>
+.. option:: -n <integer>, --context <integer>
 
 	How many lines of copied context to show (default 2).
 
