@@ -1,12 +1,10 @@
-<hr/>
-
-<footer>
+<aside>
 	{% if (theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev) %}
-		<div class="rst-buttons" role="navigation" aria-label="footer navigation">
+		<div class="rst-buttons" role="navigation" aria-label="aside navigation">
 			{% if prev %}
 				<a href="{{ prev.link|e }}" accesskey="p" rel="prev" class="iconpanel prev">
 					<span class="icon">
-						<i class="fas fa-fw fa-chevron-left"></i>
+						<i class="{{theme_font_awesome_style}} fa-fw fa-chevron-left"></i>
 					</span>
 					<span class="text">
 						<span class="label">{{ _('Previous') }}</span>
@@ -15,9 +13,9 @@
 				</a>
 			{% endif %}
 			{% if next %}
-				<a href="{{ next.link|e }}" accesskey="n" rel="next" class="iconpanel reverse next">
+				<a href="{{ next.link|e }}" accesskey="n" rel="next" class="iconpanel next">
 					<span class="icon">
-						<i class="fas fa-fw fa-chevron-right"></i>
+						<i class="{{theme_font_awesome_style}} fa-fw fa-chevron-right"></i>
 					</span>
 					<span class="text">
 						<span class="label">{{ _('Next') }}</span>
@@ -33,42 +31,62 @@
 		  {% if display_github %}
 		  {% if check_meta and 'github_url' in meta %}
 			 <!-- User defined GitHub URL -->
-			 <a href="{{ meta['github_url'] }}" class="fab fa-fw fa-github"> {{ _('Edit on GitHub') }}</a>
+			 <a href="{{ meta['github_url'] }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
 		  {% else %}
 			 <a href="https://{{ github_host|default("github.com") }}/{{ github_user }}/{{ github_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ github_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
 		  {% endif %}
 		{% elif display_bitbucket %}
 		  {% if check_meta and 'bitbucket_url' in meta %}
 			 <!-- User defined Bitbucket URL -->
-			 <a href="{{ meta['bitbucket_url'] }}" class="fab fa-fw fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
+			 <a href="{{ meta['bitbucket_url'] }}" class="fa fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
 		  {% else %}
 			 <a href="https://bitbucket.org/{{ bitbucket_user }}/{{ bitbucket_repo }}/src/{{ bitbucket_version}}{{ conf_py_path }}{{ pagename }}{{ suffix }}?mode={{ theme_vcs_pageview_mode|default("view") }}" class="fa fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
 		  {% endif %}
 		{% elif display_gitlab %}
 		  {% if check_meta and 'gitlab_url' in meta %}
 			 <!-- User defined GitLab URL -->
-			 <a href="{{ meta['gitlab_url'] }}" class="fab fa-fw fa-gitlab"> {{ _('Edit on GitLab') }}</a>
+			 <a href="{{ meta['gitlab_url'] }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
 		  {% else %}
 			 <a href="https://{{ gitlab_host|default("gitlab.com") }}/{{ gitlab_user }}/{{ gitlab_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ gitlab_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
 		  {% endif %}
 		{% elif show_source and source_url_prefix %}
-		  <a href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}"><i class="fas fa-fw fa-code"></i> {{ _('View page source') }}</a>
+		  <a href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}" class="iconpanel">
+			  <span class="icon"><i class="{{theme_font_awesome_style}} fa-fw fa-code"></i></span>
+			  <span class="text">
+					<span class="label">Source</span>
+					<span class="title">{{ _('View page source') }}</span>
+			  </span>
+			</a>
 		{% elif show_source and has_source and sourcename %}
-		  <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow"><i class="fas fa-fw fa-code"></i> {{ _('View page source') }}</a>
-		{% endif %}
+		  <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow" class="iconpanel">
+			<span class="icon"><i class="{{theme_font_awesome_style}} fa-fw fa-code"></i></span>
+			<span class="text">
+				<span class="label">Source</span>
+				<span class="title">{{ _('View page source') }}</span>
+			</span>
+		</a>
+	 {% endif %}
 	 {% endif %}
   </div>
 
-	<div role="contentinfo">
-		<p>
-			{%- if show_copyright %}
-				{%- if hasdoc('copyright') %}
-					{% trans path=pathto('copyright'), copyright=copyright|e %}<i class="fas fa-fw fa-copyright"></i> <a href="{{ path }}">Copyright</a> {{ copyright }}{% endtrans %}
-				{%- else %}
-					{% trans copyright=copyright|e %}<i class="fas fa-fw fa-copyright"></i> Copyright {{ copyright }}{% endtrans %}
-				{%- endif %}
-			{%- endif %}
+  <div role="contentinfo" class="iconpanel">
+		{%- if show_copyright %}
+			<span class="icon">
+				<i class="{{theme_font_awesome_style}} fa-fw fa-copyright"></i>
+			</span>
+			<span class="text">
+				<span class="label">
+					{%- if hasdoc('copyright') %}
+						{% trans path=pathto('copyright'), copyright=copyright|e %}<a href="{{ path }}">Copyright</a>{% endtrans %}
+					{%- else %}
+						{% trans copyright=copyright|e %}Copyright{% endtrans %}
+					{%- endif %}
+				</span>
+				<span class="title">{{ copyright }}</span>
+			</span>
+		{%- endif %}
 
+		<p>
 			{%- if build_id and build_url %}
 				{% trans build_url=build_url, build_id=build_id %}
 					<span class="build">
@@ -88,12 +106,21 @@
 				</span>
 			{%- endif %}
 		</p>
-		{%- if show_sphinx -%}
-			<p>
-				<i class="{{theme_font_awesome_style}} fa-fw fa-cog"></i> {% trans %}Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>{% endtrans %}.
-			</p>
-		{%- endif -%}
 	</div>
 
-	{%- block extrafooter %} {% endblock %}
-</footer>
+	{%- if show_sphinx -%}
+		<div class="iconpanel">
+			<span class="icon"><i class="{{theme_font_awesome_style}} fa-fw fa-cog"></i></span>
+			<span class="text">
+				<span class="label">
+					{% trans %}Built{% endtrans %}
+				</span>
+				<span class="title">
+						{% trans %}with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>{% endtrans %}.
+				</span>
+			</span>
+		</div>
+	{%- endif -%}
+
+	{%- block extraaside %} {% endblock %}
+</aside>

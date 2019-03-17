@@ -1,7 +1,7 @@
 /* sphinx_ll_theme version 0.1 | MIT license */
 @import url("../typeface-source-sans-pro-0.0.35/index.css");
 @import url("../typeface-source-code-pro-0.0.35/index.css");
-@import url("../fontawesome-free-5.7.2-web/css/all.min.css");
+@import url({{theme_font_awesome_url}});
 
 *
 {
@@ -22,11 +22,11 @@ audio:not([controls]){display:none}
 }
 html
 {
-	font-size: 16px;
+	font-size: {{theme_font_size}}px;
 	-webkit-text-size-adjust: 100%;
 	-ms-text-size-adjust: 100%;
 	height: 100vh;
-	overflow-x:hidden;
+	overflow-x: hidden;
 }
 body
 {
@@ -92,18 +92,19 @@ samp
 
 pre
 {
-	white-space:pre;
+	white-space: pre;
 	scrollbar-width: thin;
 }
 
-q{
+q
+{
 	quotes:none;
 }
 q:before,
 q:after
 {
-	content:"";
-	content:none;
+	content: "";
+	content: none;
 }
 small{font-size:85%}
 sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
@@ -119,26 +120,26 @@ main dl,
 main dt,
 main dd
 {
-	line-height: 1.5;
+	line-height: {{theme_line_height}};
 	margin: 0;
 	padding: 0;
 }
 
 main p
 {
-	margin: 0 0 0.7em 0;
+	margin: 0 0 {{theme_vertical_spacing}} 0;
 }
 
 main ul,
 main ol,
 main dl
 {
-	margin: 0.7em 0;
+	margin: {{theme_vertical_spacing}} 0;
 }
 
 main li
 {
-	margin: 0 0 0.7em 1.2rem;
+	margin: 0 0 {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 }
 
 main dl dt
@@ -148,7 +149,7 @@ main dl dt
 
 main dl dd
 {
-	margin: 0 0 0.7em 1.2rem;
+	margin: 0 0 {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 }
 
 img{border:0;-ms-interpolation-mode:bicubic;vertical-align:middle;max-width:100%}
@@ -642,7 +643,11 @@ footer
 footer div:not(:last-child) {
 	margin: 0 0 1.2rem 0;
 }
-footer p {margin: 0;}
+footer p
+{
+	margin: 0 0 0.3rem 0;
+}
+
 footer span.commit code,
 footer span.commit .rst-content tt,
 .rst-content footer span.commit tt
@@ -654,46 +659,97 @@ footer span.commit .rst-content tt,
 	border:none;
 	color:gray;
 }
-footer .rst-footer-buttons
+
+footer .rst-buttons
 {
 	display: flex;
 	flex-flow: row nowrap;
+}
+
+footer .rst-buttons > *
+{
+	flex: 1 1 0px;
+}
+
+aside .rst-buttons
+{
+	display: flex;
+	flex-flow: column nowrap;
 	justify-content: space-between;
 }
 
-footer .rst-footer-buttons a
+footer .rst-buttons a:not(:last-child)
+{
+	margin-right: {{theme_horizontal_indent}};
+}
+
+footer .rst-buttons a:not(:first-child)
+{
+	margin-left: {{theme_horizontal_indent}};
+}
+
+.iconpanel
 {
 	flex: 1 0 auto;
 	display: flex;
 	flex-flow: row nowrap;
+	padding: 0.5rem 1.2rem;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	margin-bottom: {{theme_vertical_spacing}};
 }
 
-footer .rst-footer-buttons a .icon
+a.iconpanel
+{
+	border-color: #2980B9;
+}
+
+a.iconpanel:hover
+{
+	border-color: #3091d1;
+}
+
+a.iconpanel:visited{
+	border-color: #9B59B6;
+}
+
+:not(a).iconpanel
+{
+	color: #999;
+}
+
+.iconpanel .icon
 {
 	font-size: 1.8rem;
 	margin: auto 0.6rem auto 0;
 }
 
-footer .rst-footer-buttons a .text
+.iconpanel .text
 {
 	display: flex;
 	flex-flow: column nowrap;
+	justify-content: space-evenly;
 }
 
-footer .rst-footer-buttons a.next
+.iconpanel.reverse
 {
 	text-align: right;
 	flex-flow: row-reverse nowrap;
 }
 
-footer .rst-footer-buttons a.next .icon
+.iconpanel.reverse .icon
 {
 	margin: auto 0 auto 0.6rem;
 }
 
-footer .rst-footer-buttons .title
+.iconpanel .title
 {
 	font-size: 80%;
+}
+
+aside
+{
+	padding: 1rem 2rem;
 }
 
 #search-results .search li{margin-bottom:24px;border-bottom:solid 1px #e1e4e5;padding-bottom:24px}
@@ -802,7 +858,7 @@ footer .rst-footer-buttons .title
 	font-size: 0.9em;
 	line-height: 1.3;
 	margin: 0;
-	padding: 0.3em 1.2rem;
+	padding: 0.3em {{theme_horizontal_indent}};
 	overflow: auto;
 	tab-size: 3;
 	-moz-tab-size: 3;
@@ -1030,7 +1086,7 @@ main dl:not(.docutils) dl.attribute > dt
 	border: 1px solid #ddd;
 	border-top-left-radius: 0.3em;
 	border-top-right-radius: 0.3em;
-	padding: 0.3em 1.2rem;
+	padding: 0.3em {{theme_horizontal_indent}};
 	font-family: "Source Code Pro", monospace;
 	background-color: rgba(1, 1, 1, 0.05);
 }
@@ -1053,7 +1109,7 @@ main dl:not(.docutils) dl.attribute > dd
 	border-width: 0 1px 1px 1px;
 	border-bottom-left-radius: 0.3em;
 	border-bottom-right-radius: 0.3em;
-	padding: 0.3em 1.2rem;
+	padding: 0.3em {{theme_horizontal_indent}};
 }
 
 main dl.class > dd:last-child > p:last-child,
@@ -1085,7 +1141,7 @@ main .warning,
 main .seealso,
 main .admonition-todo
 {
-	padding: 0 1.2rem 0.3rem 1.2rem;
+	padding: 0 {{theme_horizontal_indent}} 0.3rem {{theme_horizontal_indent}};
 	margin-bottom: 0.7rem;
 	border-radius: 0.3em;
 	border: 1px solid rgba(0, 0, 0, 0.2);

@@ -112,7 +112,7 @@
 				{% if logo and theme_logo_only %}
 				<a href="{{ pathto(master_doc) }}">
 				{% else %}
-				<a href="{{ pathto(master_doc) }}"><i class="fas fa-home"></i> {{ project }}
+				<a href="{{ pathto(master_doc) }}"><i class="{{theme_font_awesome_style}} fa-home"></i> {{ project }}
 				{% endif %}
 
 				{% if logo %}
@@ -167,7 +167,7 @@
 			{# MOBILE NAV, TRIGGLES SIDE NAV ON TOGGLE #}
 			<nav class="wy-nav-top" aria-label="top navigation">
 				{% block mobile_nav %}
-					<i data-toggle="wy-nav-top" class="fas fa-bars"></i>
+					<i data-toggle="wy-nav-top" class="{{theme_font_awesome_style}} fa-bars"></i>
 					<a href="{{ pathto(master_doc) }}">{{ project }}</a>
 				{% endblock %}
 			</nav>
@@ -191,7 +191,9 @@
 		</div>
 	</section>
 
-  {% include "versions.html" %}
+	{% include "aside.html" %}
+
+	{% include "versions.html" %}
 
   <script type="text/javascript">
       jQuery(function () {
