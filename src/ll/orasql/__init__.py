@@ -1765,7 +1765,7 @@ class Comment(OwnedSchemaObject):
 	def createsql(self, connection=None, term=True):
 		comment = (self.comment(connection) or "").replace("'", "''")
 		name = self.getfullname()
-		code = f"comment on column {name} is {comment}'"
+		code = f"comment on column {name} is '{comment}'"
 		if term:
 			code += ";\n"
 		else:
