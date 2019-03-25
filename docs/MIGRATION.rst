@@ -77,9 +77,8 @@ Changes to UL4
 	``values`` and ``get`` are no longer synthesized. This also means that
 	``len``, ``list``, item access and containment tests no longer work on
 	objects. However iterating over the attribute names of an object can now be
-	done with the new function ``dir``. To get, set and test attributes, if the
-	name of the attribute is a variable the new functions ``getattr``,
-	``setattr`` and ``hasattr`` can be used.
+	done with the new function ``dir``. To get, set and test attributes, the new
+	functions ``getattr``, ``setattr`` and ``hasattr`` can be used.
 
 
 Migrating to version 5.22
