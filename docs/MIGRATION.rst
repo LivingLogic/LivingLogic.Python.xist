@@ -599,7 +599,7 @@ Changes to scripts
 	for the encoding of the template files. For printing the result Pythons
 	output encoding is used.
 
-*	The options ``--inputencoding``,/``--inputerrors`` and
+*	The options ``--inputencoding``/``--inputerrors`` and
 	``--outputencoding``/``--outputerrors`` of :class:`ll.sisyphus.Job` have been
 	replaced with option ``--encoding``/``--errors`` for the encoding of the log
 	files.
