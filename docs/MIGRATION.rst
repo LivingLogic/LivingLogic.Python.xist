@@ -8,6 +8,18 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.40
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+The class :class:`ll.orasql.SchemaObject` has been renamed to
+:class:`ll.orasql.OwnedSchemaObject`. (:class:`ll.orasql.SchemaObject` now
+is for objects that don't have an owner (i.e. :class:`ll.orasql.User` and
+:class:`ll.orasql.JobClass`).)
+
+
 Migrating to version 5.37
 =========================
 
@@ -35,6 +47,7 @@ Changes to ``ll.orasql``
 
 As :mod:`cx_Oracle` provides its own :class:`Object` :class:`orasql.Object`
 has been renamed to :class:`orasql.SchemaObject`.
+
 
 Migrating to version 5.34
 =========================
@@ -76,9 +89,8 @@ Changes to UL4
 	``values`` and ``get`` are no longer synthesized. This also means that
 	``len``, ``list``, item access and containment tests no longer work on
 	objects. However iterating over the attribute names of an object can now be
-	done with the new function ``dir``. To get, set and test attributes, if the
-	name of the attribute is a variable the new functions ``getattr``,
-	``setattr`` and ``hasattr`` can be used.
+	done with the new function ``dir``. To get, set and test attributes, the new
+	functions ``getattr``, ``setattr`` and ``hasattr`` can be used.
 
 
 Migrating to version 5.22
@@ -599,7 +611,7 @@ Changes to scripts
 	for the encoding of the template files. For printing the result Pythons
 	output encoding is used.
 
-*	The options ``--inputencoding``,/``--inputerrors`` and
+*	The options ``--inputencoding``/``--inputerrors`` and
 	``--outputencoding``/``--outputerrors`` of :class:`ll.sisyphus.Job` have been
 	replaced with option ``--encoding``/``--errors`` for the encoding of the log
 	files.

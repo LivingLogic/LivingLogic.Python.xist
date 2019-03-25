@@ -8,6 +8,22 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.40.1 (released 03/25/2019)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.orasql` for :class:`Comment` objects.
+
+
+Changes in 5.40 (released 03/25/2019)
+-------------------------------------
+
+*	:mod:`ll.orasql` now supports jobs and job classes via the new classes
+	:class:`Job` and :class:`JobClass`.
+
+*	The UL4 functions ``isfirst``, ``islast`` and ``isfirstlast`` are now
+	available as standalone Python functions in the :mod:`ll.misc` module.
+
+
 Changes in 5.39 (released 01/30/2019)
 -------------------------------------
 

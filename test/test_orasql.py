@@ -247,6 +247,24 @@ def test_procedure_nonexistant():
 
 
 @pytest.mark.db
+def test_jobs():
+	if dbname:
+		db = orasql.connect(dbname)
+		for obj in orasql.Job.objects(db):
+			obj.createsql()
+			obj.dropsql()
+
+
+@pytest.mark.db
+def test_job_classes():
+	if dbname:
+		db = orasql.connect(dbname)
+		for obj in orasql.JobClass.objects(db):
+			obj.createsql()
+			obj.dropsql()
+
+
+@pytest.mark.db
 def test_createorder(db_data):
 	# check that the default output order of :meth:`objects` (i.e. create order) works
 	objects = db_data.objects()

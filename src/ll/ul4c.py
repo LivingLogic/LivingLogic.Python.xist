@@ -4798,49 +4798,18 @@ def function_enumfl(iterable, start=0):
 
 
 @Context.makefunction
-def function_isfirstlast(iterable):
-	lastitem = None
-	first = True
-	it = iter(iterable)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (first, True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (first, False, lastitem)
-			first = False
-
-
-@Context.makefunction
 def function_isfirst(iterable):
-	first = True
-	for item in iterable:
-		yield (first, item)
-		first = False
+	return misc.isfirst(iterable)
 
 
 @Context.makefunction
 def function_islast(iterable):
-	lastitem = None
-	it = iter(iterable)
-	try:
-		item = next(it)
-	except StopIteration:
-		return
-	while True:
-		try:
-			(lastitem, item) = (item, next(it))
-		except StopIteration:
-			yield (True, item) # Items haven't been swapped yet
-			return
-		else:
-			yield (False, lastitem)
+	return misc.islast(iterable)
+
+
+@Context.makefunction
+def function_isfirstlast(iterable):
+	return misc.isfirstlast(iterable)
 
 
 @Context.makefunction

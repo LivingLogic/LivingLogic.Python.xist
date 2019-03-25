@@ -50,6 +50,10 @@ bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0) # timestamp for Oracle "directo
 ALL = misc.Const("ALL", "ll.orasql") # marker object for specifying a user
 
 
+###
+### Exceptions
+###
+
 class SQLObjectNotFoundError(IOError):
 	def __init__(self, obj):
 		IOError.__init__(self, errno.ENOENT, f"no such {obj.type}: {obj.getfullname()}")
@@ -92,6 +96,28 @@ class ConflictError(ValueError):
 
 	def __str__(self):
 		return f"conflict in {self.object!r}: {self.message}"
+
+
+###
+### Helper classes and functions
+###
+
+def makeurl(name):
+	return urllib.request.pathname2url(name.encode("utf-8")).replace("/", "%2f")
+
+
+def sqlliteral(value):
+	if value is None:
+		return "null"
+	elif isinstance(value, int):
+		return str(value)
+	elif isinstance(value, datetime.datetime):
+		return f"to_date('{value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')"
+	elif isinstance(value, str):
+		value = value.replace("'", "''")
+		return f"'{value}'"
+	else:
+		raise TypeError(f"unknown type {type(value)!r}")
 
 
 class Args(dict):
@@ -755,43 +781,6 @@ class Cursor(Cursor):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} statement={self.statement!r} at {id(self):#x}>"
 
 
-def formatstring(value, latin1=False):
-	result = []
-	current = []
-
-	if latin1:
-		upper = 255
-	else:
-		upper = 127
-	# Helper function: move the content of current to result
-
-	def shipcurrent(force=False):
-		if current and (force or (len(current) > 2000)):
-			if result:
-				result.append(" || ")
-			result.append(f"'{''.join(current)}'")
-
-	for c in value:
-		if c == "'":
-			current.append("''")
-			shipcurrent()
-		elif ord(c) < 32 or ord(c) > upper:
-			shipcurrent(True)
-			current = []
-			if result:
-				result.append(" || ")
-			result.append(f"chr({ord(c)})")
-		else:
-			current.append(c)
-			shipcurrent()
-	shipcurrent(True)
-	return "".join(result)
-
-
-def makeurl(name):
-	return urllib.request.pathname2url(name.encode("utf-8")).replace("/", "%2f")
-
-
 ###
 ### Classes used for database meta data
 ###
@@ -935,7 +924,7 @@ def getfullname(name, owner):
 class _SchemaObject_meta(type):
 	def __new__(mcl, name, bases, dict):
 		typename = None
-		if "type" in dict and name != "SchemaObject":
+		if "type" in dict and name not in {"SchemaObject", "OwnedSchemaObject"}:
 			typename = dict["type"]
 		cls = type.__new__(mcl, name, bases, dict)
 		if typename is not None:
@@ -950,40 +939,30 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 	"""
 	name2type = {} # maps the Oracle type name to the Python class (populated by the metaclass)
 
-	def __init__(self, name, owner=None, connection=None):
+	def __init__(self, name, connection=None):
 		self.name = name
-		self.owner = owner
 		self.connection = connection
 
 	def __repr__(self):
-		if self.owner is not None:
-			if self.connection is not None:
-				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} connection={self.connectstring!r} at {id(self):#x}>"
-			else:
-				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} at {id(self):#x}>"
+		if self.connection is not None:
+			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} connection={self.connectstring!r} at {id(self):#x}>"
 		else:
-			if self.connection is not None:
-				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} connection={self.connectstring!r} at {id(self):#x}>"
-			else:
-				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id(self):#x}>"
+			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} at {id(self):#x}>"
 
 	def __str__(self):
-		if self.owner is not None:
-			return f"{self.type} {self.name} @ {self.owner}"
-		else:
-			return f"{self.type} {self.name}"
+		return f"{self.type} {self.name}"
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.name == other.name and self.owner == other.owner
+		return self.__class__ is other.__class__ and self.name == other.name
 
 	def __ne__(self, other):
 		return not self.__eq__(other)
 
 	def __hash__(self):
-		return hash(self.__class__.__name__) ^ hash(self.name) ^ hash(self.owner)
+		return hash(self.__class__.__name__) ^ hash(self.name)
 
 	def getfullname(self):
-		return getfullname(self.name, self.owner)
+		return getfullname(self.name, None)
 
 	@misc.notimplemented
 	def createsql(self, connection=None, term=True):
@@ -1007,7 +986,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 	@misc.notimplemented
 	def exists(self, connection=None):
 		"""
-		Return wether the object :obj:`self` really exists in the database
+		Return whether the object :obj:`self` really exists in the database
 		specified by :obj:`connection`.
 		"""
 
@@ -1026,6 +1005,63 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		date of :obj:`self` in the database specified by :obj:`connection`
 		(or :const:`None` if such information is not available).
 		"""
+
+	def getconnection(self, connection):
+		if connection is None:
+			connection = self.connection
+		if connection is None:
+			raise TypeError("no connection available")
+		return connection
+
+	def getcursor(self, connection):
+		connection = self.getconnection(connection)
+		return (connection, connection.cursor())
+
+	def getconnectstring(self):
+		if self.connection:
+			return self.connection.connectstring()
+		return None
+	connectstring = property(getconnectstring)
+
+
+class OwnedSchemaObject(SchemaObject):
+	"""
+	The base class for all Python classes modelling schema objects in the
+	database.
+	"""
+	name2type = {} # maps the Oracle type name to the Python class (populated by the metaclass)
+
+	def __init__(self, name, owner=None, connection=None):
+		self.name = name
+		self.owner = owner
+		self.connection = connection
+
+	def __repr__(self):
+		if self.owner is not None:
+			if self.connection is not None:
+				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} connection={self.connectstring!r} at {id(self):#x}>"
+			else:
+				return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} owner={self.owner!r} at {id(self):#x}>"
+		else:
+			return super().__repr__()
+
+	def __str__(self):
+		if self.owner is not None:
+			return f"{self.type} {self.name} @ {self.owner}"
+		else:
+			return super().__str__()
+
+	def __eq__(self, other):
+		return self.__class__ is other.__class__ and self.name == other.name and self.owner == other.owner
+
+	def __ne__(self, other):
+		return not self.__eq__(other)
+
+	def __hash__(self):
+		return hash(self.__class__.__name__) ^ hash(self.name) ^ hash(self.owner)
+
+	def getfullname(self):
+		return getfullname(self.name, self.owner)
 
 	def references(self, connection=None):
 		"""
@@ -1128,23 +1164,6 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 				yield from obj.referencedbyall(connection, done)
 			yield self
 
-	def getconnection(self, connection):
-		if connection is None:
-			connection = self.connection
-		if connection is None:
-			raise TypeError("no connection available")
-		return connection
-
-	def getcursor(self, connection):
-		connection = self.getconnection(connection)
-		return (connection, connection.cursor())
-
-	def getconnectstring(self):
-		if self.connection:
-			return self.connection.connectstring()
-		return None
-	connectstring = property(getconnectstring)
-
 	@classmethod
 	def names(cls, connection, owner=None):
 		"""
@@ -1236,7 +1255,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
 
 
-class Sequence(MixinNormalDates, SchemaObject):
+class Sequence(MixinNormalDates, OwnedSchemaObject):
 	"""
 	Models a sequence in the database.
 	"""
@@ -1366,7 +1385,7 @@ def _columndefault(rec):
 	return "null"
 
 
-class Table(MixinNormalDates, SchemaObject):
+class Table(MixinNormalDates, OwnedSchemaObject):
 	"""
 	Models a table in the database.
 	"""
@@ -1695,7 +1714,7 @@ class Table(MixinNormalDates, SchemaObject):
 				yield obj
 
 
-class Comment(SchemaObject):
+class Comment(OwnedSchemaObject):
 	"""
 	Models a column comment in the database.
 	"""
@@ -1777,7 +1796,7 @@ class Comment(SchemaObject):
 			yield None
 
 
-class Constraint(SchemaObject):
+class Constraint(OwnedSchemaObject):
 	"""
 	Base class of all constraints (primary key constraints, foreign key
 	constraints, unique constraints and check constraints).
@@ -2355,7 +2374,7 @@ class CheckConstraint(Constraint):
 			yield Table(rec.table_name, rec.owner, connection)
 
 
-class Index(MixinNormalDates, SchemaObject):
+class Index(MixinNormalDates, OwnedSchemaObject):
 	"""
 	Models an index in the database.
 	"""
@@ -2429,8 +2448,7 @@ class Index(MixinNormalDates, SchemaObject):
 		code = f"create{unique} index {indexname} on {tablename} ({fields}){logging}"
 		if rec.index_type == "DOMAIN":
 			if rec.parameters:
-				p = rec.parameters.replace("'", "''")
-				parameters = f" parameters ('{p}')"
+				parameters = f" parameters ({sqlliteral(rec.parameters)})"
 			else:
 				parameters = ""
 			code += f" indextype is {rec.ityp_owner}.{rec.ityp_name}{parameters}"
@@ -2685,7 +2703,7 @@ class Index(MixinNormalDates, SchemaObject):
 			yield Column(f"{table.name}.{rec.column_name}", owner=table.owner)
 
 
-class Synonym(SchemaObject):
+class Synonym(OwnedSchemaObject):
 	"""
 	Models a synonym in the database.
 	"""
@@ -2801,7 +2819,7 @@ class Synonym(SchemaObject):
 		return connection._getobject(rec.table_name, rec.table_owner)
 
 
-class View(MixinNormalDates, SchemaObject):
+class View(MixinNormalDates, OwnedSchemaObject):
 	"""
 	Models a view in the database.
 	"""
@@ -2937,7 +2955,7 @@ class MaterializedView(View):
 		yield Table(self.name, self.owner, connection)
 
 
-class Library(SchemaObject):
+class Library(OwnedSchemaObject):
 	"""
 	Models a library in the database.
 	"""
@@ -3012,7 +3030,7 @@ class Argument:
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} position={self.position!r} datatype={self.datatype!r} at {id(self):#x}>"
 
 
-class Callable(MixinNormalDates, MixinCodeSQL, SchemaObject):
+class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	Models a callable object in the database, i.e. functions and procedures.
 	"""
@@ -3028,7 +3046,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, SchemaObject):
 	}
 
 	def __init__(self, name, owner=None, connection=None):
-		SchemaObject.__init__(self, name, owner, connection)
+		super().__init__(name, owner, connection)
 		self._argsbypos = None
 		self._argsbyname = None
 		self._returnvalue = None
@@ -3247,42 +3265,42 @@ class Function(Callable):
 		return (returnvalue, self._makerecord(cursor, queryargs))
 
 
-class Package(MixinNormalDates, MixinCodeSQL, SchemaObject):
+class Package(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	Models a package in the database.
 	"""
 	type = "package"
 
 
-class PackageBody(MixinNormalDates, MixinCodeSQL, SchemaObject):
+class PackageBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	Models a package body in the database.
 	"""
 	type = "package body"
 
 
-class Type(MixinNormalDates, MixinCodeSQL, SchemaObject):
+class Type(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	Models a type definition in the database.
 	"""
 	type = "type"
 
 
-class TypeBody(MixinNormalDates, MixinCodeSQL, SchemaObject):
+class TypeBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	Models a type body in the database.
 	"""
 	type = "type body"
 
 
-class Trigger(MixinNormalDates, MixinCodeSQL, SchemaObject):
+class Trigger(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	Models a trigger in the database.
 	"""
 	type = "trigger"
 
 
-class JavaSource(MixinNormalDates, SchemaObject):
+class JavaSource(MixinNormalDates, OwnedSchemaObject):
 	"""
 	Models Java source code in the database.
 	"""
@@ -3513,7 +3531,7 @@ class Privilege:
 		return code
 
 
-class Column(SchemaObject):
+class Column(OwnedSchemaObject):
 	"""
 	Models a single column of a table in the database. This is used to output
 	``ALTER TABLE`` statements for adding, dropping and modifying columns.
@@ -3723,46 +3741,10 @@ class Column(SchemaObject):
 		return rec.comments or None
 
 
-class User:
+class User(SchemaObject):
 	"""
 	Models a user in the database.
 	"""
-
-	def __init__(self, name, connection=None):
-		self.name = name
-		self.connection = connection
-
-	def __repr__(self):
-		return f"{self.__class__.__module__}.{self.__class__.__qualname__}({self.name!r})"
-
-	def __str__(self):
-		return "{self.__class__.__qualname__}({self.name})"
-
-	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.name == other.name
-
-	def __ne__(self, other):
-		return not self.__eq__(other)
-
-	def __hash__(self):
-		return hash(self.__class__.__name__) ^ hash(self.name)
-
-	def getconnection(self, connection):
-		if connection is None:
-			connection = self.connection
-		if connection is None:
-			raise TypeError("no connection available")
-		return connection
-
-	def getcursor(self, connection):
-		connection = self.getconnection(connection)
-		return (connection, connection.cursor())
-
-	def getconnectstring(self):
-		if self.connection:
-			return self.connection.connectstring()
-		return None
-	connectstring = property(getconnectstring)
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -3788,10 +3770,10 @@ class User:
 		"""
 		Generator that yields all user objects.
 		"""
-		return (cls(name[0], connection) for name in cls.names(connection))
+		return (cls(name, connection) for name in cls.names(connection))
 
 
-class Preference(SchemaObject):
+class Preference(OwnedSchemaObject):
 	"""
 	Models a preference in the database.
 	"""
@@ -3807,21 +3789,16 @@ class Preference(SchemaObject):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		query = "select pre_object from ctx_preferences where pre_owner = nvl(:owner, user) and pre_name = :name"
-		cursor.execute(query, owner=self.owner, name=self.name)
+		cursor.execute(query, owner=self.owner, name=seslf.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		name = self.getfullname()
 		code = ["begin\n"]
-		name = name.replace("'", "''")
-		object = rec.pre_object.replace("'", "''")
-		code.append(f"\tctx_ddl.create_preference(f'{name}', '{object}');\n")
+		code.append(f"\tctx_ddl.create_preference({sqlliteral(name)}, {sqlliteral(rec.pre_object)});\n")
 		cursor.execute("select prv_attribute, prv_value from ctx_preference_values where prv_owner=nvl(:owner, user) and prv_preference=:name", owner=self.owner, name=self.name)
-		name = self.getfullname().replace("'", "''")
 		for rec in cursor:
-			attribute = rec.prv_attribute.replace("'", "''")
-			value = rec.prv_value.replace("'", "''")
-			code.append(f"\tctx_ddl.set_attribute('{name}', '{attribute}', '{value}');\n")
+			code.append(f"\tctx_ddl.set_attribute({sqlliteral(name)}, {sqlliteral(rec.prv_attribute)}, {sqlliteral(rec.prv_value)});\n")
 		code.append("end;\n")
 		code = "".join(code)
 		if term:
@@ -3830,8 +3807,7 @@ class Preference(SchemaObject):
 
 	def dropsql(self, connection=None, term=True):
 		name = self.getfullname()
-		name = name.replace("'", "''")
-		code = f"begin\n\tctx_ddl.drop_preference('{name}');\nend;\n"
+		code = f"begin\n\tctx_ddl.drop_preference({sqlliteral(name)});\nend;\n"
 		if term:
 			code += "/\n"
 		return code
@@ -3879,6 +3855,233 @@ class Preference(SchemaObject):
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all preferences.
+		"""
+		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
+
+
+class JobClass(SchemaObject):
+	"""
+	Models a job class (from the ``dbms_scheduler`` package) in the database.
+	"""
+	type = "jobclass"
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"select 1 from {ddprefix}_scheduler_job_classes where job_class_name = :name"
+		cursor.execute(query, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
+	def createsql(self, connection=None, term=True):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"select * from {ddprefix}_scheduler_job_classes where job_class_name = :name"
+		cursor.execute(query, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+
+		if rec.logging_level is None:
+			logging_level = "null"
+		else:
+			logging_level = rec.logging_level.replace(" ", "_").lower()
+			logging_level = f"dbms_scheduler.logging_{logging_level}"
+
+		code = []
+		code.append(f"declare\n")
+		code.append(f"\tv_jobname varchar2(128) := {sqlliteral(rec.job_class_name)};\n")
+		code.append(f"begin\n")
+		code.append(f"\tsys.dbms_scheduler.create_job_class(\n")
+		code.append(f"\t\tjob_class_name=>v_jobname,\n")
+		code.append(f"\t\tresource_consumer_group=>{sqlliteral(rec.resource_consumer_group)},\n")
+		code.append(f"\t\tservice=>{sqlliteral(rec.service)},\n")
+		code.append(f"\t\tlogging_level=>{logging_level},\n")
+		code.append(f"\t\tlog_history=>{sqlliteral(rec.log_history)},\n")
+		code.append(f"\t\tcomments=>''\n")
+		code.append(f"\t);\n")
+		code.append(f"end;\n")
+
+		if term:
+			code.append("/\n")
+
+		code = "".join(code)
+
+		return code
+
+	def dropsql(self, connection=None, term=True):
+		code = f"dbms_scheduler.drop_job_class(job_class_name=>{sqlliteral(self.name)})"
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def fixname(self, code):
+		if code:
+			code = code.splitlines(True)
+			name = self.getfullname()
+			code[1] = f"\tv_jobname varchar2(128) := {sqlliteral(name)};\n"
+			code = "".join(code)
+		return code
+
+	def cdate(self, connection=None):
+		return None
+
+	def udate(self, connection=None):
+		return None
+
+	def referencedby(self, connection=None):
+		if False:
+			yield None
+
+	def references(self, connection=None, done=None):
+		if False:
+			yield None
+
+	@classmethod
+	def names(cls, connection):
+		"""
+		Generator that yields the names of all job classes.
+		"""
+		cursor = connection.cursor()
+
+		ddprefix = cursor.ddprefix()
+		query = f"select job_class_name from {ddprefix}_scheduler_job_classes order by job_class_name"
+		cursor.execute(query)
+		return (row.job_class_name for row in cursor)
+
+	@classmethod
+	def objects(cls, connection):
+		"""
+		Generator that yields all job classes.
+		"""
+		return (cls(name, connection) for name in cls.names(connection))
+
+
+class Job(OwnedSchemaObject):
+	"""
+	Models a job (from the ``dbms_scheduler`` package) in the database.
+	"""
+	type = "job"
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"select 1 from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
+	def createsql(self, connection=None, term=True):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"select * from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+
+		jobname = f"{rec.job_creator}.{rec.job_name}"
+		enabled = "true" if rec.enabled == "TRUE" and rec.number_of_arguments == 0 else "false"
+		auto_drop = "true" if rec.auto_drop == "TRUE" else "false"
+
+		code = []
+		code.append(f"declare\n")
+		code.append(f"\tv_jobname varchar2(128) := {sqlliteral(jobname)};\n")
+		code.append(f"begin\n")
+		code.append(f"\tsys.dbms_scheduler.create_job(\n")
+		code.append(f"\t\tjob_name=>v_jobname,\n")
+		code.append(f"\t\tjob_type=>{sqlliteral(rec.job_type)},\n")
+		code.append(f"\t\tjob_action=>{sqlliteral(rec.job_action)},\n")
+		code.append(f"\t\tnumber_of_arguments=>{sqlliteral(rec.number_of_arguments)},\n")
+		code.append(f"\t\tstart_date=>{sqlliteral(rec.start_date)},\n")
+		code.append(f"\t\trepeat_interval=>{sqlliteral(rec.repeat_interval)},\n")
+		code.append(f"\t\tend_date=>{sqlliteral(rec.end_date)},\n")
+		code.append(f"\t\tjob_class=>{sqlliteral(rec.job_class)},\n")
+		code.append(f"\t\tenabled=>{enabled},\n")
+		code.append(f"\t\tauto_drop=>{auto_drop},\n")
+		code.append(f"\t\tcomments=>{sqlliteral(rec.comments)}\n")
+		code.append(f"\t);\n")
+
+		query = f"select argument_position, argument_type, value from {ddprefix}_scheduler_job_args where owner = nvl(:owner, user) and job_name = :job_name order by argument_position"
+		cursor.execute(query, owner=self.owner, job_name=rec.job_name)
+		for rec2 in cursor:
+			code.append(f"\n")
+			code.append(f"\tsys.dbms_scheduler.set_job_argument_value(\n")
+			code.append(f"\t\tjob_name=>v_jobname,\n")
+			code.append(f"\t\targument_position=>{sqlliteral(rec2.argument_position)},\n")
+			code.append(f"\t\targument_value=>{sqlliteral(rec2.value)}\n")
+			code.append(f"\t);\n")
+
+		if rec.enabled == "TRUE" and rec.number_of_arguments and rec.number_of_arguments > 0:
+			code.append(f"\n")
+			code.append(f"\tsys.dbms_scheduler.enable(v_jobname);\n")
+
+		code.append("end;\n")
+
+		if term:
+			code.append("/\n")
+
+		code = "".join(code)
+
+		return code
+
+	def dropsql(self, connection=None, term=True):
+		name = self.getfullname()
+		code = f"dbms_scheduler.drop_job(job_name=>{sqlliteral(name)})"
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def fixname(self, code):
+		if code:
+			code = code.splitlines(True)
+			name = self.getfullname()
+			code[1] = f"\tv_jobname varchar2(128) := {sqlliteral(name)};\n"
+			code = "".join(code)
+		return code
+
+	def cdate(self, connection=None):
+		return None
+
+	def udate(self, connection=None):
+		return None
+
+	def referencedby(self, connection=None):
+		if False:
+			yield None
+
+	def references(self, connection=None, done=None):
+		if False:
+			yield None
+
+	@classmethod
+	def names(cls, connection, owner=None):
+		"""
+		Generator that yields the names of all jobs.
+		"""
+		cursor = connection.cursor()
+
+		if owner is None:
+			query = "select null as owner, job_name from user_scheduler_jobs order by job_name"
+			cursor.execute(query)
+		elif owner is ALL:
+			ddprefix = cursor.ddprefix()
+			query = f"select owner, job_name from {ddprefix}_scheduler_jobs order by owner, job_name"
+			cursor.execute(query)
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner = :owner order by job_name"
+			cursor.execute(query, owner=owner)
+		return ((row.job_name, row.owner) for row in cursor)
+
+	@classmethod
+	def objects(cls, connection, owner=None):
+		"""
+		Generator that yields all jobs.
 		"""
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
 
