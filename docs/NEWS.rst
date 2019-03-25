@@ -14,12 +14,8 @@ Changes in 5.40 (released 03/25/2019)
 *	:mod:`ll.orasql` now supports jobs and job classes via the new classes
 	:class:`Job` and :class:`JobClass`
 
-*	:mod:`ll.orasql` objects that have source code (like :class:`Type`,
-	:class:`Procedure` etc.) should now be able to better handle any duplicate
-	spaces in its source code header introduced by Oracle 18.
-
-*	The UL4 function ``isfirst``, ``islast`` and ``isfirstlast`` are now
-	available as standalone Python function in the :mod:`ll.misc` module.
+*	The UL4 functions ``isfirst``, ``islast`` and ``isfirstlast`` are now
+	available as standalone Python functions in the :mod:`ll.misc` module.
 
 
 Changes in 5.39 (released 01/30/2019)
