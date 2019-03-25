@@ -755,43 +755,6 @@ class Cursor(Cursor):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} statement={self.statement!r} at {id(self):#x}>"
 
 
-def formatstring(value, latin1=False):
-	result = []
-	current = []
-
-	if latin1:
-		upper = 255
-	else:
-		upper = 127
-	# Helper function: move the content of current to result
-
-	def shipcurrent(force=False):
-		if current and (force or (len(current) > 2000)):
-			if result:
-				result.append(" || ")
-			result.append(f"'{''.join(current)}'")
-
-	for c in value:
-		if c == "'":
-			current.append("''")
-			shipcurrent()
-		elif ord(c) < 32 or ord(c) > upper:
-			shipcurrent(True)
-			current = []
-			if result:
-				result.append(" || ")
-			result.append(f"chr({ord(c)})")
-		else:
-			current.append(c)
-			shipcurrent()
-	shipcurrent(True)
-	return "".join(result)
-
-
-def makeurl(name):
-	return urllib.request.pathname2url(name.encode("utf-8")).replace("/", "%2f")
-
-
 ###
 ### Classes used for database meta data
 ###
