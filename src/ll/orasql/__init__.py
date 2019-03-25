@@ -970,7 +970,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 	@misc.notimplemented
 	def exists(self, connection=None):
 		"""
-		Return wether the object :obj:`self` really exists in the database
+		Return whether the object :obj:`self` really exists in the database
 		specified by :obj:`connection`.
 		"""
 
