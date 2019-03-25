@@ -152,7 +152,7 @@ def count(iterable):
 	will exhaust the iterator.
 	"""
 	count = 0
-	for node in iterable:
+	for item in iterable:
 		count += 1
 	return count
 
