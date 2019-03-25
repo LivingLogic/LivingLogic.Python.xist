@@ -8,6 +8,17 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.40 (released 03/25/2019)
+-------------------------------------
+
+*	:mod:`ll.orasql` now supports jobs and job classes via the new classes
+	:class:`Job` and :class:`JobClass`
+
+*	:mod:`ll.orasql` objects that have source code (like :class:`Type`,
+	:class:`Procedure` etc.) should now be able to better handle any duplicate
+	spaces in its source code header introduced by Oracle 18.
+
+
 Changes in 5.39 (released 01/30/2019)
 -------------------------------------
 

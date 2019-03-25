@@ -8,6 +8,18 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.40
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+The class :class:`ll.orasql.SchemaObject` has been renamed to
+:class:`ll.orasql.OwnedSchemaObject`. (:class:`ll.orasql.SchemaObject` now
+is for objects that don't have an owner (i.e. :class:`ll.orasql.User` and
+:class:`ll.orasql.JobClass`).)
+
+
 Migrating to version 5.37
 =========================
 
