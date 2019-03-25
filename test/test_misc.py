@@ -175,6 +175,24 @@ def test_count():
 	assert misc.count(e) == 0
 
 
+def test_isfirst():
+	assert [] == list(misc.isfirst([]))
+	assert [(True, 1)] == list(misc.isfirst([1]))
+	assert [(True, 1), (False, 2)] == list(misc.isfirst([1, 2]))
+
+
+def test_islast():
+	assert [] == list(misc.islast([]))
+	assert [(True, 1)] == list(misc.islast([1]))
+	assert [(False, 1), (True, 2)] == list(misc.islast([1, 2]))
+
+
+def test_isfirstlast():
+	assert [] == list(misc.isfirstlast([]))
+	assert [(True, True, 1)] == list(misc.isfirstlast([1]))
+	assert [(True, False, 1), (False, True, 2)] == list(misc.isfirstlast([1, 2]))
+
+
 def test_iterator_bool():
 	e = misc.Iterator(iter(range(10)))
 	assert e

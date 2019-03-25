@@ -18,6 +18,9 @@ Changes in 5.40 (released 03/25/2019)
 	:class:`Procedure` etc.) should now be able to better handle any duplicate
 	spaces in its source code header introduced by Oracle 18.
 
+*	The UL4 function ``isfirst``, ``islast`` and ``isfirstlast`` are now
+	available as standalone Python function in the :mod:`ll.misc` module.
+
 
 Changes in 5.39 (released 01/30/2019)
 -------------------------------------

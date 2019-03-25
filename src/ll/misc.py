@@ -41,6 +41,7 @@ except ImportError:
 		``>``, ``&``, ``\"``, ``'`` and every restricted character has been
 		replaced with their XML character entity or character reference.
 		"""
+
 		if isinstance(string, str):
 			return string.translate({0x00: '&#0;', 0x01: '&#1;', 0x02: '&#2;', 0x03: '&#3;', 0x04: '&#4;', 0x05: '&#5;', 0x06: '&#6;', 0x07: '&#7;', 0x08: '&#8;', 0x0b: '&#11;', 0x0c: '&#12;', 0x0e: '&#14;', 0x0f: '&#15;', 0x10: '&#16;', 0x11: '&#17;', 0x12: '&#18;', 0x13: '&#19;', 0x14: '&#20;', 0x15: '&#21;', 0x16: '&#22;', 0x17: '&#23;', 0x18: '&#24;', 0x19: '&#25;', 0x1a: '&#26;', 0x1b: '&#27;', 0x1c: '&#28;', 0x1d: '&#29;', 0x1e: '&#30;', 0x1f: '&#31;', 0x22: '&quot;', 0x26: '&amp;', 0x27: '&#39;', 0x3c: '&lt;', 0x3e: '&gt;', 0x7f: '&#127;', 0x80: '&#128;', 0x81: '&#129;', 0x82: '&#130;', 0x83: '&#131;', 0x84: '&#132;', 0x86: '&#134;', 0x87: '&#135;', 0x88: '&#136;', 0x89: '&#137;', 0x8a: '&#138;', 0x8b: '&#139;', 0x8c: '&#140;', 0x8d: '&#141;', 0x8e: '&#142;', 0x8f: '&#143;', 0x90: '&#144;', 0x91: '&#145;', 0x92: '&#146;', 0x93: '&#147;', 0x94: '&#148;', 0x95: '&#149;', 0x96: '&#150;', 0x97: '&#151;', 0x98: '&#152;', 0x99: '&#153;', 0x9a: '&#154;', 0x9b: '&#155;', 0x9c: '&#156;', 0x9d: '&#157;', 0x9e: '&#158;', 0x9f: '&#159;'})
 		else:
@@ -59,6 +60,7 @@ except ImportError:
 		``>``, ``&``, and every restricted character has been replaced with their
 		XML character entity or character reference.
 		"""
+
 		if isinstance(string, str):
 			return string.translate({0x00: '&#0;', 0x01: '&#1;', 0x02: '&#2;', 0x03: '&#3;', 0x04: '&#4;', 0x05: '&#5;', 0x06: '&#6;', 0x07: '&#7;', 0x08: '&#8;', 0x0b: '&#11;', 0x0c: '&#12;', 0x0e: '&#14;', 0x0f: '&#15;', 0x10: '&#16;', 0x11: '&#17;', 0x12: '&#18;', 0x13: '&#19;', 0x14: '&#20;', 0x15: '&#21;', 0x16: '&#22;', 0x17: '&#23;', 0x18: '&#24;', 0x19: '&#25;', 0x1a: '&#26;', 0x1b: '&#27;', 0x1c: '&#28;', 0x1d: '&#29;', 0x1e: '&#30;', 0x1f: '&#31;', 0x26: '&amp;', 0x3c: '&lt;', 0x3e: '&gt;', 0x7f: '&#127;', 0x80: '&#128;', 0x81: '&#129;', 0x82: '&#130;', 0x83: '&#131;', 0x84: '&#132;', 0x86: '&#134;', 0x87: '&#135;', 0x88: '&#136;', 0x89: '&#137;', 0x8a: '&#138;', 0x8b: '&#139;', 0x8c: '&#140;', 0x8d: '&#141;', 0x8e: '&#142;', 0x8f: '&#143;', 0x90: '&#144;', 0x91: '&#145;', 0x92: '&#146;', 0x93: '&#147;', 0x94: '&#148;', 0x95: '&#149;', 0x96: '&#150;', 0x97: '&#151;', 0x98: '&#152;', 0x99: '&#153;', 0x9a: '&#154;', 0x9b: '&#155;', 0x9c: '&#156;', 0x9d: '&#157;', 0x9e: '&#158;', 0x9f: '&#159;'})
 		else:
@@ -75,6 +77,7 @@ except ImportError:
 		``>``, ``&``, ``"`` and every restricted character has been replaced with
 		their XML character entity or character reference.
 		"""
+
 		if isinstance(string, str):
 			return string.translate({0x00: '&#0;', 0x01: '&#1;', 0x02: '&#2;', 0x03: '&#3;', 0x04: '&#4;', 0x05: '&#5;', 0x06: '&#6;', 0x07: '&#7;', 0x08: '&#8;', 0x0b: '&#11;', 0x0c: '&#12;', 0x0e: '&#14;', 0x0f: '&#15;', 0x10: '&#16;', 0x11: '&#17;', 0x12: '&#18;', 0x13: '&#19;', 0x14: '&#20;', 0x15: '&#21;', 0x16: '&#22;', 0x17: '&#23;', 0x18: '&#24;', 0x19: '&#25;', 0x1a: '&#26;', 0x1b: '&#27;', 0x1c: '&#28;', 0x1d: '&#29;', 0x1e: '&#30;', 0x1f: '&#31;', 0x22: '&quot;', 0x26: '&amp;', 0x3c: '&lt;', 0x3e: '&gt;', 0x7f: '&#127;', 0x80: '&#128;', 0x81: '&#129;', 0x82: '&#130;', 0x83: '&#131;', 0x84: '&#132;', 0x86: '&#134;', 0x87: '&#135;', 0x88: '&#136;', 0x89: '&#137;', 0x8a: '&#138;', 0x8b: '&#139;', 0x8c: '&#140;', 0x8d: '&#141;', 0x8e: '&#142;', 0x8f: '&#143;', 0x90: '&#144;', 0x91: '&#145;', 0x92: '&#146;', 0x93: '&#147;', 0x94: '&#148;', 0x95: '&#149;', 0x96: '&#150;', 0x97: '&#151;', 0x98: '&#152;', 0x99: '&#153;', 0x9a: '&#154;', 0x9b: '&#155;', 0x9c: '&#156;', 0x9d: '&#157;', 0x9e: '&#158;', 0x9f: '&#159;'})
 		else:
@@ -100,6 +103,7 @@ def item(iterable, index, default=None):
 	will be applied recursively, i.e. ``item(["foo", "bar"], (1, -1))`` returns
 	``'r'``.
 	"""
+
 	if isinstance(index, int):
 		index = (index,)
 	for i in index:
@@ -130,6 +134,7 @@ def first(iterable, default=None):
 	Return the first item from the iterable. If the iterator doesn't
 	produce any items :obj:`default` will be returned.
 	"""
+
 	for item in iterable:
 		return item
 	return default
@@ -140,6 +145,7 @@ def last(iterable, default=None):
 	Return the last item from the iterable. If the iterator doesn't produce any
 	items :obj:`default` will be returned.
 	"""
+
 	item = default
 	for item in iterable:
 		pass
@@ -151,10 +157,78 @@ def count(iterable):
 	Count the number of items produced by the iterable. Calling this function
 	will exhaust the iterator.
 	"""
+
 	count = 0
 	for item in iterable:
 		count += 1
 	return count
+
+
+def isfirst(iterable):
+	"""
+	Iterate through items of the iterable and give information about whether the
+	item is the first in the iterable::
+
+	>>> list(misc.isfirst("foo"))
+	[(True, 'f'), (False, 'o'), (False, 'o')]
+	"""
+
+	first = True
+	for item in iterable:
+		yield (first, item)
+		first = False
+
+
+def islast(iterable):
+	"""
+	Iterate through items of the iterable and give information about whether the
+	item is the last in the iterable::
+
+	>>> list(misc.islast("foo"))
+	[(False, 'f'), (False, 'o'), (True, 'o')]
+	"""
+
+	lastitem = None
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, next(it))
+		except StopIteration:
+			yield (True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (False, lastitem)
+
+
+def isfirstlast(iterable):
+	"""
+	Iterate through items of the iterable and give information about whether the
+	item is the first and/or last in the iterable::
+
+	>>> list(misc.isfirstlast("foo"))
+	[(True, False, 'f'), (False, False, 'o'), (False, True, 'o')]
+	"""
+
+	lastitem = None
+	first = True
+	it = iter(iterable)
+	try:
+		item = next(it)
+	except StopIteration:
+		return
+	while True:
+		try:
+			(lastitem, item) = (item, next(it))
+		except StopIteration:
+			yield (first, True, item) # Items haven't been swapped yet
+			return
+		else:
+			yield (first, False, lastitem)
+			first = False
 
 
 def notimplemented(function):
