@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.40.2 (released 03/26/2019)
+---------------------------------------
+
+*	The jobname for :class:`ll.orasql.Job` objects now no longer includes the
+	owner name.
+
+
 Changes in 5.40.1 (released 03/25/2019)
 ---------------------------------------
 
