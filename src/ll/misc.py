@@ -169,8 +169,8 @@ def isfirst(iterable):
 	Iterate through items of the iterable and give information about whether the
 	item is the first in the iterable::
 
-	>>> list(misc.isfirst("foo"))
-	[(True, 'f'), (False, 'o'), (False, 'o')]
+		>>> list(misc.isfirst("foo"))
+		[(True, 'f'), (False, 'o'), (False, 'o')]
 	"""
 
 	first = True
@@ -184,8 +184,8 @@ def islast(iterable):
 	Iterate through items of the iterable and give information about whether the
 	item is the last in the iterable::
 
-	>>> list(misc.islast("foo"))
-	[(False, 'f'), (False, 'o'), (True, 'o')]
+		>>> list(misc.islast("foo"))
+		[(False, 'f'), (False, 'o'), (True, 'o')]
 	"""
 
 	lastitem = None
@@ -209,8 +209,8 @@ def isfirstlast(iterable):
 	Iterate through items of the iterable and give information about whether the
 	item is the first and/or last in the iterable::
 
-	>>> list(misc.isfirstlast("foo"))
-	[(True, False, 'f'), (False, False, 'o'), (False, True, 'o')]
+		>>> list(misc.isfirstlast("foo"))
+		[(True, False, 'f'), (False, False, 'o'), (False, True, 'o')]
 	"""
 
 	lastitem = None
