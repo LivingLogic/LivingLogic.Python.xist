@@ -990,21 +990,74 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		specified by :obj:`connection`.
 		"""
 
-	@misc.notimplemented
 	def cdate(self, connection=None):
 		"""
 		Return a :class:`datetime.datetime` object with the creation date of
 		:obj:`self` in the database specified by :obj:`connection` (or
-		:const:`None` if such information is not available).
+		:const:`None` if that information is not available).
 		"""
+		return None
 
-	@misc.notimplemented
 	def udate(self, connection=None):
 		"""
 		Return a :class:`datetime.datetime` object with the last modification
 		date of :obj:`self` in the database specified by :obj:`connection`
-		(or :const:`None` if such information is not available).
+		(or :const:`None` if that information is not available).
 		"""
+		return None
+
+	def references(self, connection=None, done=None):
+		"""
+		Objects directly used by :obj:`self`.
+
+		If :obj:`connection` is not :const:`None` it will be used as the database
+		connection from which to fetch data. If :obj:`connection` is :const:`None`
+		the connection from which :obj:`self` has been extracted will be used. If
+		there is not such connection, you'll get an exception.
+		"""
+		if False:
+			yield None
+
+	def referencesall(self, connection=None, done=None):
+		"""
+		All objects used by :obj:`self` (recursively).
+
+		For the meaning of :obj:`connection` see :meth:`references`.
+
+		:obj:`done` is used internally and shouldn't be passed.
+		"""
+		if done is None:
+			done = set()
+		if self not in done:
+			done.add(self)
+			for obj in self.references(connection):
+				yield from obj.referencesall(connection, done)
+			yield self
+
+	def referencedby(self, connection=None):
+		"""
+		Objects using :obj:`self`.
+
+		For the meaning of :obj:`connection` see :meth:`references`.
+		"""
+		if False:
+			yield None
+
+	def referencedbyall(self, connection=None, done=None):
+		"""
+		All objects depending on :obj:`self` (recursively).
+
+		For the meaning of :obj:`connection` see :meth:`references`.
+
+		:obj:`done` is used internally and shouldn't be passed.
+		"""
+		if done is None:
+			done = set()
+		if self not in done:
+			done.add(self)
+			for obj in self.referencedby(connection):
+				yield from obj.referencedbyall(connection, done)
+			yield self
 
 	def getconnection(self, connection):
 		if connection is None:
@@ -1064,14 +1117,6 @@ class OwnedSchemaObject(SchemaObject):
 		return getfullname(self.name, self.owner)
 
 	def references(self, connection=None):
-		"""
-		Objects directly used by :obj:`self`.
-
-		If :obj:`connection` is not :const:`None` it will be used as the database
-		connection from which to fetch data. If :obj:`connection` is :const:`None`
-		the connection from which :obj:`self` has been extracted will be used. If
-		there is not such connection, you'll get an exception.
-		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"""
@@ -1099,28 +1144,7 @@ class OwnedSchemaObject(SchemaObject):
 			else:
 				yield cls(rec.referenced_name, rec.referenced_owner, connection)
 
-	def referencesall(self, connection=None, done=None):
-		"""
-		All objects used by :obj:`self` (recursively).
-
-		For the meaning of :obj:`connection` see :meth:`references`.
-
-		:obj:`done` is used internally and shouldn't be passed.
-		"""
-		if done is None:
-			done = set()
-		if self not in done:
-			done.add(self)
-			for obj in self.references(connection):
-				yield from obj.referencesall(connection, done)
-			yield self
-
 	def referencedby(self, connection=None):
-		"""
-		Objects using :obj:`self`.
-
-		For the meaning of :obj:`connection` see :meth:`references`.
-		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"""
@@ -1147,22 +1171,6 @@ class OwnedSchemaObject(SchemaObject):
 				pass # FIXME: Issue a warning?
 			else:
 				yield type(rec.name, rec.owner, connection)
-
-	def referencedbyall(self, connection=None, done=None):
-		"""
-		All objects depending on :obj:`self` (recursively).
-
-		For the meaning of :obj:`connection` see :meth:`references`.
-
-		:obj:`done` is used internally and shouldn't be passed.
-		"""
-		if done is None:
-			done = set()
-		if self not in done:
-			done.add(self)
-			for obj in self.referencedby(connection):
-				yield from obj.referencedbyall(connection, done)
-			yield self
 
 	@classmethod
 	def names(cls, connection, owner=None):
@@ -1781,19 +1789,9 @@ class Comment(OwnedSchemaObject):
 		code = f"comment on column {self.getfullname()} is {code[5]}"
 		return code
 
-	def cdate(self, connection=None):
-		return None
-
-	def udate(self, connection=None):
-		return None
-
 	def references(self, connection=None):
 		connection = self.getconnection(connection)
 		yield Table(self.name.split(".")[0], self.owner, connection)
-
-	def referencedby(self, connection=None):
-		if False:
-			yield None
 
 
 class Constraint(OwnedSchemaObject):
@@ -2784,17 +2782,6 @@ class Synonym(OwnedSchemaObject):
 			code = f"create or replace synonym {self.getfullname()} {code[5]}"
 		return code
 
-	def cdate(self, connection=None):
-		return None
-
-	def udate(self, connection=None):
-		return None
-
-	def references(self, connection=None, done=None):
-		# Shortcut: a synonym doesn't depend on anything
-		if False:
-			yield None
-
 	def getobject(self, connection=None):
 		"""
 		Get the object for which :obj:`self` is a synonym.
@@ -3689,10 +3676,6 @@ class Column(OwnedSchemaObject):
 		name = self.name.split(".")
 		yield Table(name[0], self.owner, connection)
 
-	def referencedby(self, connection=None):
-		if False:
-			yield None
-
 	def datatype(self, connection=None):
 		"""
 		The SQL type of this column.
@@ -3812,20 +3795,8 @@ class Preference(OwnedSchemaObject):
 			code += "/\n"
 		return code
 
-	def cdate(self, connection=None):
-		return None
-
-	def udate(self, connection=None):
-		return None
-
-	def referencedby(self, connection=None):
-		# FIXME: Parse the parameters of all domain indexes and output those indexes here that reference us in any of their parameters
-		if False:
-			yield None
-
-	def references(self, connection=None, done=None):
-		if False:
-			yield None
+	# FIXME: Implement :meth:`referencedby` by parsing the parameters of all domain indexes
+	# and output those indexes here that reference us in any of their parameters
 
 	@classmethod
 	def names(cls, connection, owner=None):
@@ -3925,20 +3896,6 @@ class JobClass(SchemaObject):
 			code = "".join(code)
 		return code
 
-	def cdate(self, connection=None):
-		return None
-
-	def udate(self, connection=None):
-		return None
-
-	def referencedby(self, connection=None):
-		if False:
-			yield None
-
-	def references(self, connection=None, done=None):
-		if False:
-			yield None
-
 	@classmethod
 	def names(cls, connection):
 		"""
@@ -3982,7 +3939,6 @@ class Job(OwnedSchemaObject):
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 
-		jobname = f"{rec.job_creator}.{rec.job_name}"
 		enabled = "true" if rec.enabled == "TRUE" and rec.number_of_arguments == 0 else "false"
 		auto_drop = "true" if rec.auto_drop == "TRUE" else "false"
 
@@ -4043,20 +3999,6 @@ class Job(OwnedSchemaObject):
 			code[1] = f"\tv_jobname varchar2(128) := {sqlliteral(name)};\n"
 			code = "".join(code)
 		return code
-
-	def cdate(self, connection=None):
-		return None
-
-	def udate(self, connection=None):
-		return None
-
-	def referencedby(self, connection=None):
-		if False:
-			yield None
-
-	def references(self, connection=None, done=None):
-		if False:
-			yield None
 
 	@classmethod
 	def names(cls, connection, owner=None):
