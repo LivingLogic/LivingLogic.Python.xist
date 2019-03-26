@@ -3988,7 +3988,7 @@ class Job(OwnedSchemaObject):
 
 		code = []
 		code.append(f"declare\n")
-		code.append(f"\tv_jobname varchar2(128) := {sqlliteral(jobname)};\n")
+		code.append(f"\tv_jobname varchar2(128) := {sqlliteral(rec.job_name)};\n")
 		code.append(f"begin\n")
 		code.append(f"\tsys.dbms_scheduler.create_job(\n")
 		code.append(f"\t\tjob_name=>v_jobname,\n")
