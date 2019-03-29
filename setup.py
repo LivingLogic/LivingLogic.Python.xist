@@ -282,6 +282,7 @@ args = dict(
 			"oramerge = ll.orasql.scripts.oramerge:main [oracle]",
 			"oragrant = ll.orasql.scripts.oragrant:main [oracle]",
 			"orafind = ll.orasql.scripts.orafind:main [oracle]",
+			"oracycles = ll.orasql.scripts.oracycles:main [oracle]",
 		]
 	),
 	scripts=[
