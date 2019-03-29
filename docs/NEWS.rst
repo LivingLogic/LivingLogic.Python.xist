@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.41 (released 03/29/2019)
+-------------------------------------
+
+*	Added a script :program:`oracycles` that can find cyclic foreign key
+	references in an Oracle database schema.
+
+
 Changes in 5.40.2 (released 03/26/2019)
 ---------------------------------------
 

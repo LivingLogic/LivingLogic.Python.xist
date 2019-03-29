@@ -16,3 +16,4 @@
    orasql_scripts_oradiff
    orasql_scripts_oramerge
    orasql_scripts_orareindex
+   orasql_scripts_oracycles

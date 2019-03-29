@@ -243,7 +243,7 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.40.2",
+	version="5.41",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -303,6 +303,7 @@ args = dict(
 		"scripts/oramerge.py",
 		"scripts/oragrant.py",
 		"scripts/orafind.py",
+		"scripts/oracycles.py",
 	],
 	install_requires=[
 		"cssutils == 1.0.2",
