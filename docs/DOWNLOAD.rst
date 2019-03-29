@@ -17,12 +17,16 @@ You can download XIST from the Cheeseshop_, go directly to the
 
 .. rst-class:: download
 
-=============================================================================================================================================== ====================== ====
-File                                                                                                                                            Type                   Size
-=============================================================================================================================================== ====================== ====
-`ll-xist-5.41.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.41.tar.gz>`_                                                         Source                 673K
-`ll_xist-5.41-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.41-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7) 521K
-=============================================================================================================================================== ====================== ====
+=============================================================================================================================================== ========================== ====
+File                                                                                                                                            Type                       Size
+=============================================================================================================================================== ========================== ====
+`ll-xist-5.41.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.41.tar.gz>`_                                                         Source                     673K
+`ll_xist-5.41-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.41-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 533K
+`ll_xist-5.41-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.41-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 536K
+`ll_xist-5.41-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.41-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7)     521K
+`ll_xist-5.41-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.41-cp37-cp37m-win32.whl>`_                             Windows wheel (Python 3.7) 530K
+`ll_xist-5.41-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.41-cp37-cp37m-win_amd64.whl>`_                     Windows wheel (Python 3.7) 533K
+=============================================================================================================================================== ========================== ====
 
 
 5.40.2 (released 03/26/2019)
