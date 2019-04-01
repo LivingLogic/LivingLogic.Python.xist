@@ -67,7 +67,7 @@ class if_(xsc.ProcInst):
 	"""
 	Starts an if block. An if block can contain zero or more :class:`elif_`
 	blocks, followed by zero or one :class:`else_` block and must be closed
-	with an :class:`endif` PI.
+	with an :class:`end` PI.
 
 	For example::
 
@@ -185,7 +185,7 @@ class while_(xsc.ProcInst):
 
 class end(xsc.ProcInst):
 	"""
-	Ends a :class:`while_` or :class:`for` loop or a :class:`if_`, :class:`def_`
+	Ends a :class:`while_` or :class:`for_` loop or a :class:`if_`, :class:`def_`
 	or :class:`class_` block.
 	"""
 
