@@ -584,7 +584,8 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 
 nav
 {
-	flex: 1 0 auto;
+	flex: 1 3 auto;
+	min-width: 15rem;
 	max-width: 25rem;
 	color: #9b9b9b;
 	background: #343131;
@@ -611,9 +612,10 @@ nav li
 .wy-nav-top i{font-size:30px;float:left;cursor:pointer;padding-top:inherit}
 .wy-nav-content-wrap
 {
+	flex: 3 2 auto;
+	max-width: 50rem;
 	border-right: 1px solid #ddd;
 	background-color: #fcfcfc;
-	max-width: 40rem;
 	scrollbar-width: thin;
 }
 
@@ -637,9 +639,12 @@ main
 }
 footer
 {
-	margin: 1rem 2rem;
+	margin: 0;
+	border-top: 1px solid #ddd;
+	padding: 1rem 2rem;
 	color: #999;
 }
+
 footer div:not(:last-child) {
 	margin: 0 0 1.2rem 0;
 }
@@ -750,7 +755,27 @@ a.iconpanel:visited{
 aside
 {
 	padding: 1rem 2rem;
+	flex: 1 1 auto;
+	min-width: 20rem;
+	max-width: 30rem;
 }
+
+@media screen and (max-width: 90rem)
+{
+	aside
+	{
+		display: none;
+	}
+}
+
+@media screen and (min-width: 90rem)
+{
+	footer
+	{
+		display: none;
+	}
+}
+
 
 #search-results .search li{margin-bottom:24px;border-bottom:solid 1px #e1e4e5;padding-bottom:24px}
 #search-results .search li:first-child{border-top:solid 1px #e1e4e5;padding-top:24px}
