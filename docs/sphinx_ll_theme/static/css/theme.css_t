@@ -111,6 +111,11 @@ sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
 sup{top:-0.5em}
 sub{bottom:-0.25em}
 
+.navigation
+{
+	border-bottom: 1px solid #ddd;
+}
+
 main p,
 main ul,
 main ol,
@@ -484,31 +489,29 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-plain-list-decimal li ul,.rst-content .section ol li ul,.rst-content ol.arabic li ul,article ol li ul{margin-bottom:0}
 .wy-plain-list-decimal li ul li,.rst-content .section ol li ul li,.rst-content ol.arabic li ul li,article ol li ul li{list-style:disc}
 
-.wy-breadcrumbs
+.breadcrumbs
 {
-	display: block;
-	margin: 1rem 2rem;
-	padding: 0;
+	padding: 1rem 2rem;
+	border-bottom: 1px solid #ddd;
+	color: #666;
 }
 
-.wy-breadcrumbs .sep
+.breadcrumbs .sep
 {
 	padding: 0 0.5em;
 }
 
-.wy-breadcrumbs .here
+.breadcrumbs .here
 {
 	font-weight: bolder;
 }
 
-@media screen and (max-width: 480px)
-{
-	.wy-breadcrumbs-extra{display:none}
-}
-
 @media print
 {
-	.wy-breadcrumbs .wy-breadcrumbs-aside{display:none}
+	.breadcrumbs
+	{
+		display:none;
+	}
 }
 
 .wy-affix{position:fixed;top:1.618em}
@@ -754,10 +757,21 @@ a.iconpanel:visited{
 
 aside
 {
-	padding: 1rem 2rem;
 	flex: 1 1 auto;
 	min-width: 20rem;
 	max-width: 30rem;
+}
+
+aside > *
+{
+	margin: 1rem 2rem;
+}
+
+aside .breadcrumbs
+{
+	padding: 1rem 2rem;
+	margin: 0 0 1rem 0;
+	border-bottom: 1px solid #ddd;
 }
 
 @media screen and (max-width: 90rem)
@@ -770,6 +784,7 @@ aside
 
 @media screen and (min-width: 90rem)
 {
+	section .breadcrumbs,
 	footer
 	{
 		display: none;
