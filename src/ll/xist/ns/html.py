@@ -3628,8 +3628,8 @@ def astext(
 	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
 	an HTML tree.
 
-	:obj:`width` is the maximum line length. If :obj:`width` is :const`None` line
-	length is unlimited (i.e. no line wrapping will be done).
+	:obj:`width` is the maximum line length. If :obj:`width` is :const:`None`
+	line length is unlimited (i.e. no line wrapping will be done).
 
 	The rest of the parameters specify the formatting styles for HTML elements.
 	The parameter names are the names of the HTML elements, except for ``ol_li``
