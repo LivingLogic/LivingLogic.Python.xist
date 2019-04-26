@@ -1115,12 +1115,15 @@ class Job:
 			logfile = logfilename.open(mode="w", encoding=self.encoding, errors=self.errors)
 			self._loggers.append(URLResourceLogger(self, logfilename, logfile, skipurls, self._formatlogline))
 			if self.currentloglinkname is not None:
+				# Create the link to the current log file
 				template = ul4c.Template(self.currentloglinkname, "currentloglinkname", whitespace="strip")
 				loglinkname = template.renders(job=self)
 				loglinkname = url.File(loglinkname).abs()
 				self._loggers.append(CurrentLinkLogger(self, logfilename, loglinkname))
 				skipurls.append(loglinkname)
 			if self.lasteventfulloglinkname is not None:
+				# Create the link to the log file of the last eventful run
+				# (deferred to the end of the run)
 				template = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname", whitespace="strip")
 				loglinkname = template.renders(job=self)
 				loglinkname = url.File(loglinkname).abs()
