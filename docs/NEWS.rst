@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.42 (released 04/26/2019)
+-------------------------------------
+
+*	By returning :const:`None` from the method :meth:`ll.sisyphus.Job.execute`
+	a sisyphus job can now report that the job run was "uneventful" (i.e. the
+	job had nothing to do) and that the log file can be deleted immediately.
+
+
 Changes in 5.41 (released 03/29/2019)
 -------------------------------------
 

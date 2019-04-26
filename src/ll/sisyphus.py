@@ -24,7 +24,7 @@ implement the :meth:`execute` method.
 
 Logs will (by default) be created in the :file:`~/ll.sisyphus` directory.
 This can be changed by deriving a new subclass and overwriting the appropriate
-class attribute.
+class attributes.
 
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
@@ -59,12 +59,13 @@ The following example illustrates the use of this module:
 			data = urllib.request.urlopen(self.url).read()
 			datasize = len(data)
 			self.log(f"writing file {self.tmpname!r} ({datasize:,} bytes)")
-			open(self.tmpname, "wb").write(data)
+			with open(self.tmpname, "wb") as f:
+				f.write(data)
 			self.log(f"renaming file {self.tmpname!r} to {self.officialname!r}")
 			os.rename(self.tmpname, self.officialname)
 			return f"cached {self.url!r} as {self.officialname!r} ({datasize:,} bytes)"
 
-	if __name__=="__main__":
+	if __name__ == "__main__":
 		sisyphus.executewithargs(Fetch())
 
 You will find the log files for this job in
@@ -137,12 +138,42 @@ When an exception object is passed to ``self.log`` the tag ``exc`` will be added
 to the log call automatically.
 
 
+Eventful und uneventful job runs
+--------------------------------
+
+The method :meth:`Job.execute` (which must be overwritten to implement the jobs
+main functionality) should return a one-line summary of what the job did
+(this is called an "eventful run"). It can also return :const:`None` to report
+that the job had nothing to do (this is called an "uneventful run"). In case of
+an uneventful run, the log file will be deleted immediately at the end of the
+run.
+
+
+Log files
+---------
+
+By default logging is done to the log file (whose name changes from run to run
+as it includes the start time of the job).
+
+However logging to ``stdout`` and ``stderr`` can also be activated.
+
+Furthermore two links will be created that automatically point to the last log
+file. The "current" link (by default named :file:`current.sisyphuslog`) will
+always point to the log file of the currently running job. If no job is running,
+but the last run was eventful, it will point the newest log file. If the last
+run was uneventful the link will point to a nonexistant log file (whose name can
+be used to determine the date of the last run). The "last eventful" link
+(by default named :file:`last_eventful.sisyphuslog`) will always point to the
+last eventful job run (but will only be created at the end of the job run).
+This link will never point to a non-existant file.
+
+
 Email
 -----
 
-It is possible to send an email when a job fails. For this the options
+It is possible to send an email when a job fails. For this, the options
 :option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
-set. If the job terminates because of an exception, or exceeds its maximum
+set. If the job terminates because of an exception or exceeds its maximum
 runtime (and the option :option:`--noisykills` is set) or any of the calls
 to :meth:`~Job.log` include the tag ``email``, the email will be sent. This
 email includes the last 10 logging calls and the final exception (if there is
@@ -318,14 +349,20 @@ class Job:
 
 	.. option:: --logfilename <filename>
 
-		Path/name of the logfile for this job as an UL4 template. Variables
+		Name of the logfile for this job as an UL4 template. Variables
 		available in the template include ``user_name``, ``projectname``,
 		``jobname`` and ``starttime``.
 
-	.. option:: --loglinkname <filename>
+	.. option:: --currentloglinkname <filename>
 
 		The filename of a link that points to the currently active logfile
 		(as an UL4 template). If this is :const:`None` no link will be created.
+
+	.. option:: --lasteventfulloglinkname <filename>
+
+		The filename of a link that points to the logfile of the last eventful
+		run of the job (as an UL4 template). If this is :const:`None` no
+		link will be created.
 
 	.. option:: -f, --log2file
 
@@ -383,7 +420,7 @@ class Job:
 
 	:attr:`argdescription`
 
-		Description for help message of the command line argument parser.
+		Description for the help message of the command line argument parser.
 	"""
 
 	projectname = None
@@ -408,9 +445,10 @@ class Job:
 	notify = False
 
 	logfilename = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	loglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/current.sisyphuslog"
+	currentloglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/current.sisyphuslog"
+	lasteventfulloglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/last_eventful.sisyphuslog"
 
-	# URL of final log file (``None`` if no logging is done to a fiole)
+	# URL of final log file (``None`` if no logging is done to a file)
 	logfileurl = None
 
 	log2file = True
@@ -652,8 +690,15 @@ class Job:
 
 	def execute(self):
 		"""
-		Execute the job once. The return value is a one line summary of what the
-		job did. Overwrite in subclasses.
+		Execute the job once.
+
+		Overwrite in subclasses to implement your job functionality.
+
+		The return value is a one line summary of what the job did.
+
+		When this method returns :const:`None` instead this tells the job
+		machinery that the run of the job was uneventful and that the logfile
+		can be deleted.
 		"""
 		return "done"
 
@@ -898,10 +943,11 @@ class Job:
 					self.log.sisyphus.result.errors(result)
 				else:
 					self.log.sisyphus.result.ok(result)
+
 			finally:
 				self.setproctitle("child", "Cleaning up logs")
 				for logger in self._loggers:
-					logger.close()
+					logger.close(result)
 				self.notifyfinish(result)
 				if fcntl is not None:
 					fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
@@ -956,7 +1002,7 @@ class Job:
 
 			import sys, operator
 
-			items = sys.modules.items()
+			items = list(sys.modules.items())
 			for (name, module) in self.tasks(items, "module", operator.itemgetter(0)):
 				self.log(f"module is {module}")
 
@@ -1034,6 +1080,20 @@ class Job:
 		with os.popen("crontab -l 2>/dev/null") as f:
 			self.crontab = f.read()
 
+	def _makelink(self, logfilename, linknametemplate):
+		loglinkname = ul4c.Template(linknametemplate, "filename").renders(job=self)
+		loglinkname = url.File(loglinkname).abs()
+		logfilename = logfilename.relative(loglinkname)
+		try:
+			logfilename.symlink(loglinkname)
+		except OSError as exc:
+			if exc.errno == errno.EEXIST:
+				loglinkname.remove()
+				logfilename.symlink(loglinkname)
+			else:
+				raise
+		return loglinkname
+
 	def _createlog(self):
 		"""
 		Create the logfile and the link to the logfile (if requested).
@@ -1052,21 +1112,17 @@ class Job:
 			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, logfilename.local()))
 			skipurls = [logfilename]
 			logfile = logfilename.open(mode="w", encoding=self.encoding, errors=self.errors)
-			if self.loglinkname is not None:
-				# Create the log link
-				loglinkname = ul4c.Template(self.loglinkname, "loglinkname").renders(job=self)
+			self._loggers.append(URLResourceLogger(self, logfilename, logfile, skipurls, self._formatlogline))
+			if self.currentloglinkname is not None:
+				loglinkname = ul4c.Template(self.currentloglinkname, "currentloglinkname").renders(job=self)
 				loglinkname = url.File(loglinkname).abs()
+				self._loggers.append(CurrentLinkLogger(self, logfilename, loglinkname))
 				skipurls.append(loglinkname)
-				logfilename = logfilename.relative(loglinkname)
-				try:
-					logfilename.symlink(loglinkname)
-				except OSError as exc:
-					if exc.errno == errno.EEXIST:
-						loglinkname.remove()
-						logfilename.symlink(loglinkname)
-					else:
-						raise
-			self._loggers.append(URLResourceLogger(self, logfile, skipurls, self._formatlogline))
+			if self.lasteventfulloglinkname is not None:
+				loglinkname = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname").renders(job=self)
+				loglinkname = url.File(loglinkname).abs()
+				self._loggers.append(LastLinkLogger(self, logfilename, loglinkname))
+				skipurls.append(loglinkname)
 
 
 class Task:
@@ -1167,20 +1223,68 @@ class Tag:
 
 
 class Logger:
+	"""
+	A :class:`Logger` is called by the :class:`Job` on any logging event.
+	"""
 	def log(self, timestamp, tags, tasks, text):
-		pass
+		"""
+		Called by the :class:`Job` when a log entry has to be made.
+
+		Arguments have the following meaning:
+
+		``timestamp`` : ``datetime.datetime``
+			The moment when the logging call was made.
+
+		``tags`` : List of strings
+			The tags that were part of the logging call. For example for the
+			logging call::
+
+				self.log.xml.warning("Skipping foobar")
+
+			the list of tags is::
+
+				["xml", "warning"]
+
+		``tasks`` : List of :class:`Task` objects
+			The currently active stack of :class:`Task` objects.
+
+		``text`` : Any object
+			The log text. This can be any object in which case is will be
+			converted to a string via :func:`pprint.pformat` (or
+			:func:`traceback.format_exception` if it's an exception)
+		"""
 
 	def taskstart(self, tasks):
-		pass
+		"""
+		Called by the :class:`Job` when a new subtask has been started.
+
+		:obj:`tasks` is the stack of currently active tasks (so ``tasks[-1]`` is
+		the task that has been started).
+		"""
 
 	def taskend(self, tasks):
-		pass
+		"""
+		Called by the :class:`Job` when a subtask is about to end.
 
-	def close(self):
-		pass
+		:obj:`tasks` is the stack of currently active tasks (so ``tasks[-1]`` is
+		the task that's about to end).
+		"""
+
+	def close(self, result):
+		"""
+		Called by the :class:`Job` when job execution has finished.
+
+		:obj:`result` is the result of the job run (as returned by
+		:meth:`Job.execute`).
+		"""
 
 
 class StreamLogger(Logger):
+	"""
+	Logger that writes logging events into an open file-like object. Is is used
+	for logging to ``stdout`` and ``stderr``.
+	"""
+
 	def __init__(self, job, stream, linetemplate):
 		self.job = job
 		self.stream = stream
@@ -1200,11 +1304,18 @@ class StreamLogger(Logger):
 
 
 class URLResourceLogger(StreamLogger):
-	def __init__(self, job, resource, skipurls, linetemplate):
+	"""
+	Logger that writes logging events into a file specified via an
+	:class:`~ll.url.URL` object. This is used for logging to the standard log
+	file.
+	"""
+
+	def __init__(self, job, fileurl, resource, skipurls, linetemplate):
 		StreamLogger.__init__(self, job, resource, linetemplate)
+		self.fileurl = fileurl
 		self.skipurls = skipurls
 
-	def close(self):
+	def close(self, result):
 		keepfilelogs = self.job.keepfilelogs
 		compressfilelogs = self.job.compressfilelogs
 
@@ -1215,36 +1326,55 @@ class URLResourceLogger(StreamLogger):
 				compressfilelogs = datetime.timedelta(days=compressfilelogs)
 			now = datetime.datetime.utcnow()
 			keepthreshold = now - keepfilelogs # Files older that this will be deleted
-			compressthreshold = now - compressfilelogs # Files older that this will be gzipped
+			compressthreshold = now - compressfilelogs # Files older that this will be compressed
 			logdir = self.stream.url.withoutfile()
 			removedany = False
 			compressedany = False
 			warnedcompressany = False
 			for fileurl in logdir/logdir.files():
 				fileurl = logdir/fileurl
-				# Never delete/compress the current log file or link, even if keepfilelogs/compressfilelogs is 0
-				if fileurl in self.skipurls:
-					continue
-				# If the file is too old, delete/compress it (note that this might touch files that were not produced by sisyphus)
-				mdate = fileurl.mdate()
-				if mdate < keepthreshold:
+
+				# Decide what to do with this file
+				# (Note that this might delete/compress files that were not produced by sisyphus)
+				action = None
+				deletecurrent = False
+				if fileurl == self.fileurl and result is None:
+					# If this is the current log file and ``result`` is ``None``
+					# (i.e. the log file should not be kept), we delete it
+					action = "delete"
+					deletecurrent = True # Remember to avoid logging into a deleted file.
+				elif fileurl not in self.skipurls:
+					mdate = fileurl.mdate()
+					# If the file is not the logfile or a link to it ...
+					if mdate < keepthreshold:
+						# ... and it's to old to keep it, delete it
+						action = "delete"
+					elif mdate < compressthreshold:
+						# ... and it's to old to keep it in uncompressed, compress it
+						action = "compress"
+
+				# Execute the action
+				if action == "delete":
 					if not removedany: # Only log this line for the first logfile we remove
-						# This will still work, as the file isn't closed yet.
-						self.job.log.sisyphus.info(f"Removing logfiles older than {keepfilelogs}")
+						if not deletecurrent:
+							# This will still work, as the file isn't closed yet.
+							self.job.log.sisyphus.info(f"Removing logfiles older than {keepfilelogs}")
 						removedany = True
 					self.remove(fileurl)
-				elif mdate < compressthreshold:
+				elif action == "compress":
 					if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
 						if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
 							if not warnedcompressany:
-								self.job.log.sisyphus.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
+								if not deletecurrent:
+									self.job.log.sisyphus.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
 								warnedcompressany = True
 						else:
 							if not compressedany:
-								self.job.log.sisyphus.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
+								if not deletecurrent:
+									self.job.log.sisyphus.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
 								compressedany = True
 							self.compress(fileurl)
-			if removedany or compressedany:
+			if (removedany or compressedany) and not deletecurrent:
 				self.job.log.sisyphus.info("Logfiles cleaned up")
 
 	def remove(self, fileurl):
@@ -1276,7 +1406,55 @@ class URLResourceLogger(StreamLogger):
 		fileurl.remove()
 
 
+class LinkLogger(Logger):
+	"""
+	Baseclass of all loggers that handle links to the log file.
+	"""
+	def __init__(self, job, fileurl, linkurl):
+		self.job = job
+		self.fileurl = fileurl
+		self.linkurl = linkurl
+
+	def _makelink(self):
+		linkurl = self.linkurl.abs()
+		fileurl = self.fileurl.relative(linkurl)
+		try:
+			fileurl.symlink(linkurl)
+		except OSError as exc:
+			if exc.errno == errno.EEXIST:
+				linkurl.remove()
+				fileurl.symlink(linkurl)
+			else:
+				raise
+
+
+class CurrentLinkLogger(LinkLogger):
+	"""
+	Logger that handles the link to the current log file.
+	"""
+	def __init__(self, job, fileurl, linkurl):
+		super().__init__(job, fileurl, linkurl)
+		self._makelink()
+
+
+class LastLinkLogger(LinkLogger):
+	"""
+	Logger that handles the link to the log file of the last eventful job run.
+	"""
+
+	def __init__(self, job, fileurl, linkurl):
+		super().__init__(job, fileurl, linkurl)
+
+	def close(self, result):
+		if result is not None:
+			self._makelink()
+
+
 class EmailLogger(Logger):
+	"""
+	Logger that handles sending an email report of the job run.
+	"""
+
 	def __init__(self, job):
 		self.job = job
 		self._log = []
@@ -1292,7 +1470,7 @@ class EmailLogger(Logger):
 			else:
 				self._countmessages += 1
 
-	def close(self):
+	def close(self, result):
 		if self._log:
 			ul4log = []
 			jsonlog = []
