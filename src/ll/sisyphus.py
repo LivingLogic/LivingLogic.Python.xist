@@ -1107,19 +1107,22 @@ class Job:
 			self._loggers.append(StreamLogger(self, sys.stdout, self._formatlogline))
 		if self.log2file:
 			# Create the log file
-			logfilename = ul4c.Template(self.logfilename, "logfilename").renders(job=self)
+			template = ul4c.Template(self.logfilename, "logfilename", whitespace="strip")
+			logfilename = template.renders(job=self)
 			logfilename = url.File(logfilename).abs()
 			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, logfilename.local()))
 			skipurls = [logfilename]
 			logfile = logfilename.open(mode="w", encoding=self.encoding, errors=self.errors)
 			self._loggers.append(URLResourceLogger(self, logfilename, logfile, skipurls, self._formatlogline))
 			if self.currentloglinkname is not None:
-				loglinkname = ul4c.Template(self.currentloglinkname, "currentloglinkname").renders(job=self)
+				template = ul4c.Template(self.currentloglinkname, "currentloglinkname", whitespace="strip")
+				loglinkname = template.renders(job=self)
 				loglinkname = url.File(loglinkname).abs()
 				self._loggers.append(CurrentLinkLogger(self, logfilename, loglinkname))
 				skipurls.append(loglinkname)
 			if self.lasteventfulloglinkname is not None:
-				loglinkname = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname").renders(job=self)
+				template = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname", whitespace="strip")
+				loglinkname = template.renders(job=self)
 				loglinkname = url.File(loglinkname).abs()
 				self._loggers.append(LastLinkLogger(self, logfilename, loglinkname))
 				skipurls.append(loglinkname)
