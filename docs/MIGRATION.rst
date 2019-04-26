@@ -8,6 +8,17 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.42
+=========================
+
+Changes to ``ll.sisyphus``
+--------------------------
+
+Returning :const:`None` from :meth:`ll.sisyphus.Job.execute` now has a special
+meaning: Delete the log file. If this isn't wanted a string (e.g. ``"done"``)
+should be returned.
+
+
 Migrating to version 5.40
 =========================
 
