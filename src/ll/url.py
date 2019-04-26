@@ -2748,7 +2748,7 @@ class URL(object):
 
 		If :obj:`allowschemerel` is true, scheme relative URLs are allowed, i.e.
 		if both :obj:`self` and :obj:`baseurl` use the same hierarchical scheme,
-		both a different authority (i.e. server), a scheme relative url
+		but a different authority (i.e. server), a scheme relative url
 		(``//server/path/file.html``) will be returned.
 		"""
 		# if :obj:`self` is relative don't do anything
