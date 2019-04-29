@@ -444,9 +444,29 @@ class Job:
 	noisykills = False
 	notify = False
 
-	logfilename = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog"
-	currentloglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/current.sisyphuslog"
-	lasteventfulloglinkname = "~/ll.sisyphus/<?print job.projectname?>/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>/last_eventful.sisyphuslog"
+	logfilename = """
+	~
+	/ll.sisyphus
+	/<?print job.projectname?>
+	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
+	/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog
+	"""
+
+	currentloglinkname = """
+	~
+	/ll.sisyphus
+	/<?print job.projectname?>
+	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
+	/current.sisyphuslog
+	"""
+
+	lasteventfulloglinkname = """
+	~
+	/ll.sisyphus
+	/<?print job.projectname?>
+	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
+	/last_eventful.sisyphuslog
+	"""
 
 	# URL of final log file (``None`` if no logging is done to a file)
 	logfileurl = None
