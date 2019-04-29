@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.42.1 (released 04/29/2019)
+---------------------------------------
+
+*	Fixed a bug in :meth:`ll.orasql.OracleURLConnection._walk` to support the
+	orasql objects that don't have an owner (i.e. :class:`~ll.orasql.User` and
+	:class:`~ll.orasql.JobClass`).
+
+
 Changes in 5.42 (released 04/26/2019)
 -------------------------------------
 
