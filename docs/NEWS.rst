@@ -11,9 +11,12 @@ see :ref:`MIGRATION`.
 Changes in 5.42.1 (released 04/29/2019)
 ---------------------------------------
 
-*	Fixed a bug in :meth:`ll.orasql.OracleURLConnection._walk` to support the
-	orasql objects that don't have an owner (i.e. :class:`~ll.orasql.User` and
+*	Fixed a bug in :meth:`ll.orasql.OracleURLConnection._walk` to support orasql
+	objects that don't have an owner (i.e. :class:`~ll.orasql.User` and
 	:class:`~ll.orasql.JobClass`).
+
+*	Simplified clean up logic for sisyphus jobs (which makes the new "delete
+	log files for uneventful runs" logic work on Windows).
 
 
 Changes in 5.42 (released 04/26/2019)

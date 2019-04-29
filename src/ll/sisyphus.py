@@ -1362,46 +1362,37 @@ class URLResourceLogger(StreamLogger):
 
 				# Decide what to do with this file
 				# (Note that this might delete/compress files that were not produced by sisyphus)
-				action = None
-				deletecurrent = False
-				if fileurl == self.fileurl and result is None:
-					# If this is the current log file and ``result`` is ``None``
-					# (i.e. the log file should not be kept), we delete it
-					action = "delete"
-					deletecurrent = True # Remember to avoid logging into a deleted file.
-				elif fileurl not in self.skipurls:
+				if fileurl not in self.skipurls:
 					mdate = fileurl.mdate()
 					# If the file is not the logfile or a link to it ...
 					if mdate < keepthreshold:
 						# ... and it's to old to keep it, delete it
-						action = "delete"
-					elif mdate < compressthreshold:
-						# ... and it's to old to keep it in uncompressed, compress it
-						action = "compress"
-
-				# Execute the action
-				if action == "delete":
-					if not removedany: # Only log this line for the first logfile we remove
-						if not deletecurrent:
+						if not removedany: # Only log this line for the first logfile we remove
 							# This will still work, as the file isn't closed yet.
 							self.job.log.sisyphus.info(f"Removing logfiles older than {keepfilelogs}")
-						removedany = True
-					self.remove(fileurl)
-				elif action == "compress":
-					if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
-						if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
-							if not warnedcompressany:
-								if not deletecurrent:
+							removedany = True
+						self.remove(fileurl)
+					elif mdate < compressthreshold:
+						# ... and it's to old to keep it in uncompressed, compress it
+						if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
+							if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
+								if not warnedcompressany:
 									self.job.log.sisyphus.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
-								warnedcompressany = True
-						else:
-							if not compressedany:
-								if not deletecurrent:
+									warnedcompressany = True
+							else:
+								if not compressedany:
 									self.job.log.sisyphus.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
-								compressedany = True
-							self.compress(fileurl)
-			if (removedany or compressedany) and not deletecurrent:
+									compressedany = True
+								self.compress(fileurl)
+			if result is None:
+				self.job.log.sisyphus.info("Going to delete current logfile")
+			if removedany or compressedany or result is None:
 				self.job.log.sisyphus.info("Logfiles cleaned up")
+			# Close the stream now, so that we're able to delete it (even on Windows)
+			self.stream.close()
+			if result is None:
+				# Remove current log file in case of a uneventful run
+				self.fileurl.remove()
 
 	def remove(self, fileurl):
 		self.job.log.sisyphus.info(f"Removing logfile {fileurl.local()}")
