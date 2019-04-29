@@ -4216,7 +4216,6 @@ class OracleURLConnection(url_.Connection):
 				class_ = SchemaObject.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
-			print(class_)
 			if issubclass(class_, OwnedSchemaObject):
 				names = (name for (name, owner) in class_.names(self.dbconnection, path[1]))
 			else:
