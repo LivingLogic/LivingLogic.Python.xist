@@ -3772,7 +3772,7 @@ class Preference(OwnedSchemaObject):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		query = "select pre_object from ctx_preferences where pre_owner = nvl(:owner, user) and pre_name = :name"
-		cursor.execute(query, owner=self.owner, name=seslf.name)
+		cursor.execute(query, owner=self.owner, name=self.name)
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
