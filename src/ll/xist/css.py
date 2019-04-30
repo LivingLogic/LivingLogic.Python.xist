@@ -17,7 +17,7 @@ import os, contextlib, operator
 
 try:
 	import cssutils
-	from cssutils import css, stylesheets, codec
+	from cssutils import css, codec
 except ImportError:
 	cssutils = None
 else:
