@@ -1,5 +1,5 @@
-:mod:`ll.orasql` -- Utilities for :mod:`cx_Oracle`
-==================================================
+:mod:`!ll.orasql` -- Utilities for :mod:`cx_Oracle`
+===================================================
 
 .. automodule:: ll.orasql
 

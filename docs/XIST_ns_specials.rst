@@ -1,4 +1,4 @@
-:mod:`specials` -- Common useful elements
-=========================================
+:mod:`!specials` -- Common useful elements
+==========================================
 
 .. automodule:: ll.xist.ns.specials

@@ -1,5 +1,5 @@
-:mod:`ll.url` -- RFC 2396 compliant URLs
-########################################
+:mod:`!ll.url` -- RFC 2396 compliant URLs
+#########################################
 
 .. automodule:: ll.url
 

@@ -1,4 +1,4 @@
-:mod:`form` -- Form related elements
-====================================
+:mod:`!form` -- Form related elements
+=====================================
 
 .. automodule:: ll.xist.ns.form

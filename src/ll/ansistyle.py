@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.ansistyle` is a module that helps colorize terminal output
+:mod:`!ll.ansistyle` is a module that helps colorize terminal output
 with ANSI escape sequences.
 
 Color values are integers between -1 and 511 (octal 0777).

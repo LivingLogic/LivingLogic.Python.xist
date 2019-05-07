@@ -1,4 +1,4 @@
-:mod:`doc` -- Automated documentation generation
-================================================
+:mod:`!doc` -- Automated documentation generation
+=================================================
 
 .. automodule:: ll.xist.ns.doc

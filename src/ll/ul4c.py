@@ -10,12 +10,12 @@
 
 
 """
-:mod:`ll.ul4c` provides templating for XML/HTML as well as any other text-based
+:mod:`!ll.ul4c` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.ul4c` compiles a template to an internal format, which makes it
+:mod:`!ll.ul4c` compiles a template to an internal format, which makes it
 possible to implement template renderers in multiple programming languages.
 """
 

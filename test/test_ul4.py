@@ -425,7 +425,7 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4').ul4;
+			import * as ul4 from '{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4';
 
 			template = {self.template.jssource()};
 			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
@@ -449,7 +449,7 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4').ul4;
+			import * as ul4 from '{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4';
 
 			template = {self.template.jssource()};
 			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));

@@ -12,7 +12,7 @@
 """
 .. program:: sisyphus
 
-:mod:`ll.sisyphus` simplifies running Python stuff as cron jobs.
+:mod:`!ll.sisyphus` simplifies running Python stuff as jobs.
 
 There will be no more than one sisyphus job of a certain name running at any
 given time. A job has a maximum allowed runtime. If this maximum is exceeded,
@@ -189,13 +189,13 @@ expired (via :func:`os.fork` and :func:`signal.signal`). This won't work on
 Windows. So on Windows the job will always run to completion without being
 killed after the maximum runtime.
 
-To make sure that only one job instance job runs concurrently, :mod:`sisyphus`
+To make sure that only one job instance runs concurrently, :mod:`!ll.sisyphus`
 uses :mod:`fcntl` to create an exclusive lock on the file of the running script.
 This won't work on Windows either. So on Windows you might have multiple
 running instances of the job.
 
-:mod:`sisyphus` uses the module :mod:`setproctitle` to change the process title
-during various phases of running the job. If :mod:`setproctitle` is not
+:mod:`!ll.sisyphus` uses the module :mod:`setproctitle` to change the process
+title during various phases of running the job. If :mod:`setproctitle` is not
 available the process title will not be changed.
 
 If the module :mod:`psutil` is available it will be used to kill the child

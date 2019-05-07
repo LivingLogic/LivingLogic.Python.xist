@@ -1,5 +1,5 @@
-:mod:`scripts` -- Oracle related scripts
-========================================
+:mod:`!scripts` -- Oracle related scripts
+=========================================
 
 .. automodule:: ll.orasql.scripts
 

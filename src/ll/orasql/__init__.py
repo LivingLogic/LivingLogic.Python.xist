@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.orasql` contains utilities for working with cx_Oracle__:
+:mod:`!ll.orasql` contains utilities for working with cx_Oracle__:
 
 *	It allows calling procedures and functions with keyword arguments (via the
 	classes :class:`Procedure` and :class:`Function`).

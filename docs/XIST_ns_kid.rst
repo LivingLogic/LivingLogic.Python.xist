@@ -1,4 +1,4 @@
-:mod:`kid` -- Kid templates
-===========================
+:mod:`!kid` -- Kid templates
+============================
 
 .. automodule:: ll.xist.ns.kid

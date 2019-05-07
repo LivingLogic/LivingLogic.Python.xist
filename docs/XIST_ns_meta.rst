@@ -1,4 +1,4 @@
-:mod:`meta` -- HTML meta information
-====================================
+:mod:`!meta` -- HTML meta information
+=====================================
 
 .. automodule:: ll.xist.ns.meta

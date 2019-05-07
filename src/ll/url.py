@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.url` contains an :rfc:`2396` compliant implementation of URLs and
+:mod:`!ll.url` contains an :rfc:`2396` compliant implementation of URLs and
 classes for accessing resource metadata as well as file like classes for
 reading and writing resource data.
 
