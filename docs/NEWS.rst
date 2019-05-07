@@ -8,13 +8,16 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.43 (release ??/??/2019)
+Changes in 5.43 (release 05/07/2019)
 ------------------------------------
 
 *	The functions :func:`ll.xist.css.iterrules` and
 	:func:`ll.xist.css.applystylesheets` now treat ``<style>`` and
 	``<link rel="stylesheet">`` elements without a ``type`` attribute as
 	containing/linking to CSS.
+
+*	:class:`ll.sisyphus.Job` now provides a repeat mode. With this the Python
+	script can function as its own minimal cron daemon.
 
 
 Changes in 5.42.1 (released 04/29/2019)
