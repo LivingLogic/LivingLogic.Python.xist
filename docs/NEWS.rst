@@ -8,8 +8,8 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.43 (release 05/07/2019)
-------------------------------------
+Changes in 5.43 (released 05/07/2019)
+-------------------------------------
 
 *	The functions :func:`ll.xist.css.iterrules` and
 	:func:`ll.xist.css.applystylesheets` now treat ``<style>`` and
