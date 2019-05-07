@@ -1167,7 +1167,7 @@ def test_add(T):
 
 	for x in values:
 		for y in values:
-			assert x + y == eval(t.renders(x=x, y=y)) # Using ``eval`` avoids problem with the nonexistant int/float distinction in JS
+			assert x + y == eval(t.renders(x=x, y=y)) # Using ``eval`` avoids problem with the nonexistent int/float distinction in JS
 	assert 'foobar' == T('<?code x="foo"?><?code y="bar"?><?print x+y?>').renders()
 	assert '[1, 2, 3, 4]' == t.renders(x=[1, 2], y=[3, 4])
 	assert '(f)(o)(o)(b)(a)(r)' == T('<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>').renders(data=dict(foo="foo", bar="bar"))

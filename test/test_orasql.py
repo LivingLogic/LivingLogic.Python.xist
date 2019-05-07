@@ -239,7 +239,7 @@ def test_procedure_arguments(db_data):
 
 
 @pytest.mark.db
-def test_procedure_nonexistant():
+def test_procedure_nonexistent():
 	if dbname:
 		db = orasql.connect(dbname)
 		with pytest.raises(orasql.SQLObjectNotFoundError):
