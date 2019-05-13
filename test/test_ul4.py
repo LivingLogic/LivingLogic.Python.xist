@@ -319,9 +319,9 @@ class TemplatePHP:
 		if args:
 			raise ValueError("*args not supported")
 
-		source = rf"""<?php
+		source = f"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
+		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
 		$variables = {self.phpexpr(kwargs)};
 		print $template->renders($variables);
 		?>"""
@@ -334,9 +334,9 @@ class TemplatePHP:
 		if args:
 			raise ValueError("*args not supported")
 
-		source = rf"""<?php
+		source = f"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
+		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
 		$variables = {self.phpexpr(kwargs)};
 		print $template->call($variables);
 		?>"""
