@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, datetime, io, json, tempfile, shutil, subprocess, inspect, datetime, codecs
+import sys, os, re, io, tempfile, subprocess, codecs, datetime
 from collections import abc
 
 import pytest
@@ -394,7 +394,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 --stack_size=100 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/dist/ul4.js {fn}", source)
+		return self.runcode("d8 --stack_size=100 {dir}/dist/umd/ul4.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
@@ -416,7 +416,7 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
-		return self.runcode("d8 {dir}/node_modules/blueimp-md5/js/md5.min.js {dir}/dist/ul4.js {fn}", source)
+		return self.runcode("d8 {dir}/dist/umd/ul4.js {fn}", source)
 
 
 class TemplateJavascriptNode(TemplateJavascript):
@@ -425,10 +425,10 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			import * as ul4 from '{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4';
+			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
 
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var template = {self.template.jssource()};
+			var data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
 				console.log(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
@@ -449,10 +449,10 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("*args not supported")
 
 		source = f"""
-			import * as ul4 from '{home}/checkouts/LivingLogic.Javascript.ul4/dist/ul4';
+			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
 
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var template = {self.template.jssource()};
+			var data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
 			try
 			{{
 				console.log(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
@@ -2192,11 +2192,11 @@ def test_function_asjson(T):
 	assert '[1, 2, 3]' == t.renders(data=PseudoList([1, 2, 3]))
 	assert '{"one": 1}' == t.renders(data={"one": 1})
 	assert '{"one": 1}' == t.renders(data=PseudoDict({"one": 1}))
-	assert 'new ul4.Date(2000, 2, 29)' == t.renders(data=datetime.date(2000, 2, 29))
+	assert 'new ul4.Date_(2000, 2, 29)' == t.renders(data=datetime.date(2000, 2, 29))
+	assert 'new Date(2000, 1, 29, 12, 34, 56, 987)' == t.renders(data=datetime.datetime(2000, 2, 29, 12, 34, 56, 987654))
 	assert 'new ul4.TimeDelta(1, 1, 1)' == t.renders(data=datetime.timedelta(1, 1, 1))
 	assert 'new ul4.MonthDelta(1)' == t.renders(data=misc.monthdelta(1))
 	assert 'new ul4.Color(1, 2, 3, 4)' == t.renders(data=color.Color(1, 2, 3, 4))
-	assert 'new Date(2000, 1, 29, 12, 34, 56, 987)' == t.renders(data=datetime.datetime(2000, 2, 29, 12, 34, 56, 987654))
 
 	# Make sure that the parameters have the same name in all implementations
 	assert "42" == T("<?print asjson(obj=data)?>").renders(data=42)
