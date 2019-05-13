@@ -983,7 +983,7 @@ def _asjson(obj):
 	if obj is None:
 		return "null"
 	elif isinstance(obj, Undefined):
-		return "{}.undefined"
+		return "undefined"
 	elif isinstance(obj, (bool, int, float)):
 		return json.dumps(obj)
 	elif isinstance(obj, str):
@@ -991,7 +991,7 @@ def _asjson(obj):
 	elif isinstance(obj, datetime.datetime):
 		return f"new Date({obj.year}, {obj.month-1}, {obj.day}, {obj.hour}, {obj.minute}, {obj.second}, {obj.microsecond//1000})"
 	elif isinstance(obj, datetime.date):
-		return f"new ul4.Date({obj.year}, {obj.month}, {obj.day})"
+		return f"new ul4.Date_({obj.year}, {obj.month}, {obj.day})"
 	elif isinstance(obj, datetime.timedelta):
 		return f"new ul4.TimeDelta({obj.days}, {obj.seconds}, {obj.microseconds})"
 	elif isinstance(obj, misc.monthdelta):
