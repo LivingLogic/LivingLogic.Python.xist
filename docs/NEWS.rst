@@ -22,6 +22,8 @@ Changes in 5.44 (released 05/??/2019)
 *	:meth:`ll.orasql.JobClass.referencedby` will now yield all
 	:class:`ll.orasql.Job` objects that use this job class.
 
+*	Running PySQL scripts in full mode now outputs timing information.
+
 *	Fixed SQL statement for dropping :class:`ll.orasql.Job` objects.
 
 

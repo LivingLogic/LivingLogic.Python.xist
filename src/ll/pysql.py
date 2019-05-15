@@ -455,6 +455,8 @@ class Context:
 		self.errorcount = 0
 		self.totalcount = 0
 		self._location = None
+		self._runstarttime = None
+		self._commandstarttime = None
 		if connectstring is not None:
 			self.pushconnection(None, self.connect(connectstring, commit))
 
@@ -494,15 +496,19 @@ class Context:
 		return loadstr(filename, encoding, errors).execute(self._location.filename)
 
 	def commandintro(self, command):
+		if self._runstarttime is None:
+			self._runstarttime = datetime.datetime.now()
+		now = datetime.datetime.now()
 		if self.verbose == "dot":
 			print(".", end="", flush=True)
 		elif self.verbose == "type":
 			print(" " + command.type, end="", flush=True)
 		elif self.verbose == "full":
-			print(f"pysql #{self.totalcount+1:,} :: {command.location}", end="", flush=True)
+			print(f"[t+{now-self._runstarttime}] :: #{self.totalcount+1:,} :: {command.location}", end="", flush=True)
 
 	def commandstart(self, *messages):
 		if self.verbose == "full":
+			self._commandstarttime = datetime.datetime.now()
 			output = []
 			for (i, message) in enumerate(messages):
 				if i == len(messages)-1 and i:
@@ -514,10 +520,11 @@ class Context:
 
 	def commandend(self, message=None):
 		if self.verbose == "full":
+			now = datetime.datetime.now()
 			if message is not None:
-				print(f" -> {message}", flush=True)
+				print(f" -> {message} (in {now-self._commandstarttime})", flush=True)
 			else:
-				print(flush=True)
+				print(f"-> in {now-self._commandstarttime}", flush=True)
 
 	def _load(self, stream):
 		"""
@@ -646,9 +653,15 @@ class Context:
 
 	def _printsummary(self):
 		if self.summary:
+			if self._runstarttime is None:
+				self._runstarttime = datetime.datetime.now()
+			now = datetime.datetime.now()
 			if self.verbose:
 				print()
-			print("Command summary:")
+			if self.verbose == "full":
+				print(f"[t+{now-self._runstarttime}] >> Command summary")
+			else:
+				print("Command summary")
 			anyoutput = False
 			totallen = len(f"{self.totalcount:,}")
 
