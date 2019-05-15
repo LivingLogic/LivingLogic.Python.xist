@@ -728,8 +728,8 @@ class Command:
 		to a command.
 	"""
 
-	def __init__(self, location, *, raiseexceptions=None, comment=None):
-		self.location = location
+	def __init__(self, *, raiseexceptions=None, comment=None):
+		self.location = None
 		self.raiseexceptions = raiseexceptions
 		self.comment = comment
 
@@ -738,11 +738,16 @@ class Command:
 	@classmethod
 	def fromdict(cls, type, location, d):
 		if type in cls.commands:
-			return cls.commands[type](location, **d)
+			command = cls.commands[type](**d)
+			command.location = location
+			return command
 		raise ValueError(f"command type {type!r} unknown")
 
 	def __str__(self):
-		return f"{self.type} command {self.location}"
+		if self.location is None:
+			return f"{self.type} command"
+		else:
+			return f"{self.type} command {self.location}"
 
 	def label(self):
 		return self.type
@@ -766,8 +771,8 @@ class IncludeCommand(Command):
 
 	type = "include"
 
-	def __init__(self, location, *, name, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, name, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 
 	def __repr__(self):
@@ -790,8 +795,8 @@ class PushConnectionCommand(Command):
 
 	type = "pushconnection"
 
-	def __init__(self, location, *, connectstring, raiseexceptions=None, comment=None, connectname=None, commit=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, connectstring, raiseexceptions=None, comment=None, connectname=None, commit=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.connectstring = connectstring
 		self.connectname = connectname
 		self.commit = commit
@@ -825,8 +830,8 @@ class PopConnectionCommand(Command):
 
 	type = "popconnection"
 
-	def __init__(self, location, *, connectname=None, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, connectname=None, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.connectname = connectname
 
 	def __repr__(self):
@@ -867,10 +872,10 @@ class _DatabaseCommand(Command):
 	class are supported.
 	"""
 
-	def __init__(self, location, *, raiseexceptions=None, comment=None, connectstring=None, connectname=None):
+	def __init__(self, *, raiseexceptions=None, comment=None, connectstring=None, connectname=None):
 		if connectstring is not None and connectname is not None:
 			raise ValueError("connectstring and connectname can't be specified simultaneously")
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.connectstring = connectstring
 		self.connectname = connectname
 
@@ -985,8 +990,8 @@ class ProcedureCommand(_SQLCommand):
 
 	type = "procedure"
 
-	def __init__(self, location, *, name, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment, connectstring=connectstring, connectname=connectname)
+	def __init__(self, *, name, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment, connectstring=connectstring, connectname=connectname)
 		self.name = name
 		self.args = args or {}
 
@@ -1056,8 +1061,8 @@ class SQLCommand(_SQLCommand):
 
 	type = "sql"
 
-	def __init__(self, location, *, sql, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment, connectstring=connectstring, connectname=connectname)
+	def __init__(self, *, sql, raiseexceptions=None, comment=None, connectstring=None, connectname=None, args=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment, connectstring=connectstring, connectname=connectname)
 		self.sql = sql
 		self.args = args or {}
 
@@ -1111,8 +1116,8 @@ class SetVarCommand(Command):
 
 	type = "setvar"
 
-	def __init__(self, location, *, name, value, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, name, value, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 		self.value = value
 
@@ -1141,8 +1146,8 @@ class UnsetVarCommand(Command):
 
 	type = "unsetvar"
 
-	def __init__(self, location, *, name, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, name, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 
 	def __repr__(self):
@@ -1183,8 +1188,8 @@ class RaiseExceptionsCommand(Command):
 
 	type = "raiseexceptions"
 
-	def __init__(self, location, *, value, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, value, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.value = bool(value)
 
 	def __repr__(self):
@@ -1224,8 +1229,8 @@ class PushRaiseExceptionsCommand(Command):
 
 	type = "pushraiseexceptions"
 
-	def __init__(self, location, *, value, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, value, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.value = bool(value)
 
 	def __repr__(self):
@@ -1254,8 +1259,8 @@ class PopRaiseExceptionsCommand(Command):
 
 	type = "popraiseexceptions"
 
-	def __init__(self, location, *, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
@@ -1358,8 +1363,8 @@ class SCPCommand(Command):
 
 	type = "scp"
 
-	def __init__(self, location, *, name, content, raiseexceptions=None, comment=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, name, content, raiseexceptions=None, comment=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 		self.content = content
 
@@ -1420,8 +1425,8 @@ class FileCommand(Command):
 
 	type = "file"
 
-	def __init__(self, location, *, name, content, raiseexceptions, comment=None, mode=None, owner=None, group=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, comment=comment)
+	def __init__(self, *, name, content, raiseexceptions, comment=None, mode=None, owner=None, group=None):
+		super().__init__(raiseexceptions=raiseexceptions, comment=comment)
 		self.name = name
 		self.content = content
 		self.mode = mode
@@ -1511,8 +1516,8 @@ class ResetSequenceCommand(_DatabaseCommand):
 
 	type = "resetsequence"
 
-	def __init__(self, location, *, sequence, table, field, raiseexceptions=None, comment=None, minvalue=None, increment=None, connectstring=None, connectname=None):
-		super().__init__(location=location, raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
+	def __init__(self, *, sequence, table, field, raiseexceptions=None, comment=None, minvalue=None, increment=None, connectstring=None, connectname=None):
+		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
