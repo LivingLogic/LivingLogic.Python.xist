@@ -337,8 +337,9 @@ it supports the following command line options:
 	``-v``, ``--verbose``
 		Gives different levels of output while data is being imported to the
 		database. The default is no output (unless an exception occurs). Possible
-		modes are: ``dot`` (one dot for each command), ``type`` (each command type)
-		or ``full`` (detailed output for each command/procedure call)
+		modes are: ``dot`` (one dot for each command), ``type`` (each command type),
+		``label`` (each command type + the procedure name) or ``full``
+		(detailed output for each command/procedure call)
 
 	``-z``, ``--summary``
 		Give a summary of the number of commands executed and procedures called.
@@ -503,6 +504,8 @@ class Context:
 			print(".", end="", flush=True)
 		elif self.verbose == "type":
 			print(" " + command.type, end="", flush=True)
+		elif self.verbose == "label":
+			print(" " + command.label(), end="", flush=True)
 		elif self.verbose == "full":
 			print(f"[t+{now-self._runstarttime}] :: #{self.totalcount+1:,} :: {command.location}", end="", flush=True)
 
@@ -618,7 +621,7 @@ class Context:
 		over lines that contain the PySQL commands.
 		"""
 		try:
-			if self.verbose == "type":
+			if self.verbose in {"type", "label"}:
 				print("commands:", end="", flush=True)
 			for command in self._load(stream):
 				try:
@@ -626,7 +629,7 @@ class Context:
 					command.execute(self)
 				except Exception as exc:
 					if command.raiseexceptions:
-						if self.verbose == "type":
+						if self.verbose in {"type", "label"}:
 							print("(error)", flush=True)
 						elif self.verbose:
 							print()
@@ -635,7 +638,7 @@ class Context:
 						self.errorcount += 1
 						if self.verbose == "dot":
 							print("!", end="", flush=True)
-						elif self.verbose == "type":
+						elif self.verbose in {"type", "label"}:
 							print("(error)", end="", flush=True)
 						elif self.verbose == "full":
 							exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
@@ -647,7 +650,7 @@ class Context:
 					elif connection.commit == "never":
 						connection.connection.rollback()
 		finally:
-			if self.verbose in ("dot", "type"):
+			if self.verbose in {"dot", "type", "label"}:
 				print()
 		self._printsummary()
 
@@ -740,6 +743,9 @@ class Command:
 
 	def __str__(self):
 		return f"{self.type} command {self.location}"
+
+	def label(self):
+		return self.type
 
 
 def register(cls):
@@ -997,6 +1003,9 @@ class ProcedureCommand(_SQLCommand):
 
 	def __str__(self):
 		return f"procedure command {self.location}"
+
+	def label(self):
+		return f"{self.name}()"
 
 	def _formatprocedurecall(self, context):
 		return f"{self.name}({self._formatargs(context)})"
@@ -1925,7 +1934,7 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://python.livinglogic.de/pysql.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "full"))
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "label", "full"))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
