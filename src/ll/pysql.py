@@ -811,6 +811,8 @@ class PushConnectionCommand(Command):
 
 		context.pushconnection(self.connectname, context.connect(self.connectstring, self.commit if self.commit is not None else context.commit))
 
+		context.count(self.type)
+
 		context.commandend("done")
 
 
@@ -846,6 +848,8 @@ class PopConnectionCommand(Command):
 		connection = context.popconnection(self.connectname)
 		connectstring = connection.connectstring()
 		connection.close()
+
+		context.count(self.type)
 
 		context.commandend(f"popped {connectstring}")
 
@@ -1601,6 +1605,7 @@ class ResetSequenceCommand(_DatabaseCommand):
 			result = None
 
 		context.count(connection.connectstring(), self.type)
+
 		self.endconnection(context, connection)
 		context.commandend(message)
 		return result
@@ -1622,6 +1627,9 @@ class CommentCommand(Command):
 
 	def execute(self, context):
 		context.commandstart("comment")
+
+		context.count(self.type)
+
 		context.commandend()
 
 
