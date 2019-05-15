@@ -516,7 +516,7 @@ class Connection(Connection):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
 		comments, unique constraints, indexes, views, functions, procedures,
-		packages and types in the current users schema (or all users schemas)
+		packages, types and jobsin the current users schema (or all users schemas)
 		in a specified order.
 
 		:obj:`mode` specifies the order in which objects will be yielded:
@@ -553,11 +553,13 @@ class Connection(Connection):
 		cursor = self.cursor()
 
 		def own(obj):
+			# We ignore objects that have no owner (like :class:`JobClass` objects)
+			# we only ouput them if ``owner is ALL``.
 			if owner is None:
-				if obj.owner is not None:
+				if not isinstance(obj, OwnedSchemaObject) or obj.owner is not None:
 					return False
 			elif owner is not ALL:
-				if obj.owner != owner:
+				if not isinstance(obj, OwnedSchemaObject) or obj.owner != owner:
 					return False
 			return True
 
@@ -599,7 +601,9 @@ class Connection(Connection):
 					yield from do(table)
 
 		def dorest():
-			for type in (CheckConstraint, UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource):
+			# Since Oracle doesn't give as any dependency information about jobs,
+			# output them last (in "create" mode) to be on the safe side.
+			for type in (CheckConstraint, UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource, Job):
 				for obj in type.objects(self, owner):
 					yield from do(obj)
 
@@ -3915,6 +3919,17 @@ class JobClass(SchemaObject):
 		"""
 		return (cls(name, connection) for name in cls.names(connection))
 
+	def references(self, connection=None):
+		yield from ()
+
+	def referencedby(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"select decode(owner, user, null, owner) as owner, job_name from {ddprefix}_scheduler_jobs where job_class = :name"
+		cursor.execute(query, name=self.name)
+		for rec in cursor:
+			yield Job(rec.job_name, rec.owner, connection)
+
 
 class Job(OwnedSchemaObject):
 	"""
@@ -4026,6 +4041,27 @@ class Job(OwnedSchemaObject):
 		Generator that yields all jobs.
 		"""
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
+
+	def references(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"select job_class from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+
+		# We don't want to reference any system job classes
+		system_classes = {"DEFAULT_JOB_CLASS", "DEFAULT_IN_MEMORY_JOB_CLASS", "XMLDB_NFS_JOBCLASS"}
+		if "$" not in rec.job_class and rec.job_class not in system_classes:
+			yield JobClass(rec.job_class, connection)
+
+	def referencedby(self, connection=None):
+		# Oracle does not provide any information about which procedures etc.
+		# the job calls, so skip the check
+		# (To still be able to get objects in a usable order
+		# :meth:`Connect.objects` outputs jobs last.)
+		yield from ()
 
 
 ###

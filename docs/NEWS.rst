@@ -8,6 +8,21 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.44 (released 05/??/2019)
+-------------------------------------
+
+*	:meth:`ll.orasql.Connection.objects` now outputs :class:`Job` objects too.
+	Since Oracle provides no dependency information about jobs, :class:`Job`
+	objects will always be output last (in "create" mode; in "drop" mode they
+	will be output first).
+
+*	:meth:`ll.orasql.Job.references` will now yield the appropriate
+	:meth:`ll.orasql.JobClass` object (if the job class isn't a system job class).
+
+*	:meth:`ll.orasql.JobClass.referencedby` will now yield all
+	:meth:`ll.orasql.Job` objects that use this job class.
+
+
 Changes in 5.43 (released 05/07/2019)
 -------------------------------------
 
