@@ -773,9 +773,6 @@ class IncludeCommand(Command):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"incluce command {self.location}"
-
 
 @register
 class PushConnectionCommand(Command):
@@ -801,9 +798,6 @@ class PushConnectionCommand(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectname={self.connectname!r} connection={self.connection!r} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"pushconnection command {self.location}"
 
 	def execute(self, context):
 		connectname = "default connection" if self.connectname is None else f"connection {self.connectname!r}"
@@ -837,9 +831,6 @@ class PopConnectionCommand(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectname={self.connectname!r} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"popconnection command {self.location}"
 
 	def execute(self, context):
 		connectname = "default connection" if self.connectname is None else f"connection {self.connectname!r}"
@@ -1005,9 +996,6 @@ class ProcedureCommand(_SQLCommand):
 		else:
 			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"procedure command {self.location}"
-
 	def label(self):
 		return f"{self.name}()"
 
@@ -1079,9 +1067,6 @@ class SQLCommand(_SQLCommand):
 		else:
 			return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"sql command {self.location}"
-
 	def _formatsql(self, context):
 		if self.args:
 			return f"{self.sql!r} with args {self._formatargs(context)}"
@@ -1134,9 +1119,6 @@ class SetVarCommand(Command):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} value={self.value!r} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"setvar command {self.location}"
-
 	def execute(self, context):
 		context.commandstart(f"set var {self.name!r} to {self.value!r}")
 
@@ -1165,9 +1147,6 @@ class UnsetVarCommand(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"unsetvar command {self.location}"
 
 	def execute(self, context):
 		context.commandstart(f"unset var {self.name!r}")
@@ -1211,9 +1190,6 @@ class RaiseExceptionsCommand(Command):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"raiseexceptions command {self.location}"
-
 	def execute(self, context):
 		context.commandstart(f"raiseexceptions {self.value!r}")
 
@@ -1255,9 +1231,6 @@ class PushRaiseExceptionsCommand(Command):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"pushraiseexceptions command {self.location}"
-
 	def execute(self, context):
 		context.commandstart(f"pushraiseexceptions {self.value!r}")
 
@@ -1287,9 +1260,6 @@ class PopRaiseExceptionsCommand(Command):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
 
-	def __str__(self):
-		return f"popraiseexceptions command {self.location}"
-
 	def execute(self, context):
 		context.commandstart("popraiseexceptions")
 
@@ -1318,9 +1288,6 @@ class CheckErrorsCommand(_DatabaseCommand):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"checkerrors command {self.location}"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
@@ -1353,9 +1320,6 @@ class CompileAllCommand(_DatabaseCommand):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"compileall command {self.location}"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
@@ -1401,9 +1365,6 @@ class SCPCommand(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={self.formatload(self.content)} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"scp command {self.location}"
 
 	def execute(self, context):
 		filename = context.scpdirectory + self.name.format(**context.keys)
@@ -1469,9 +1430,6 @@ class FileCommand(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={self.formatload(self.content)} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"file command {self.location}"
 
 	def execute(self, context):
 		filename = context.filedirectory + self.name.format(**context.keys)
@@ -1563,9 +1521,6 @@ class ResetSequenceCommand(_DatabaseCommand):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sequence={self.sequence!r} {self.location} at {id(self):#x}>"
-
-	def __str__(self):
-		return f"resetsequence command {self.location}"
 
 	def execute(self, context):
 		connection = self.beginconnection(context)
