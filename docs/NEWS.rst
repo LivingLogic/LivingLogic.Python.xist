@@ -22,6 +22,8 @@ Changes in 5.44 (released 05/??/2019)
 *	:meth:`ll.orasql.JobClass.referencedby` will now yield all
 	:class:`ll.orasql.Job` objects that use this job class.
 
+*	Fixed SQL statement for dropping :class:`ll.orasql.Job` objects.
+
 
 Changes in 5.43 (released 05/07/2019)
 -------------------------------------
