@@ -24,7 +24,7 @@ Changes in 5.44 (released 05/??/2019)
 
 *	Running PySQL scripts in full mode now outputs timing information.
 
-*	Added a verbose mode ``label`` for PySQL scripts, which output the procedure
+*	Added a verbose mode ``label`` for PySQL scripts, which outputs the procedure
 	name for procedures (instead of a simple ``proc``).
 
 *	Fixed SQL statement for dropping :class:`ll.orasql.Job` objects.
