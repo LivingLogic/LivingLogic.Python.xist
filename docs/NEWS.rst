@@ -17,10 +17,10 @@ Changes in 5.44 (released 05/??/2019)
 	will be output first).
 
 *	:meth:`ll.orasql.Job.references` will now yield the appropriate
-	:meth:`ll.orasql.JobClass` object (if the job class isn't a system job class).
+	:class:`ll.orasql.JobClass` object (if the job class isn't a system job class).
 
 *	:meth:`ll.orasql.JobClass.referencedby` will now yield all
-	:meth:`ll.orasql.Job` objects that use this job class.
+	:class:`ll.orasql.Job` objects that use this job class.
 
 
 Changes in 5.43 (released 05/07/2019)
