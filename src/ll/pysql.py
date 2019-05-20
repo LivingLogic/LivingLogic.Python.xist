@@ -595,11 +595,11 @@ class Context:
 			else:
 				self.errorcount += 1
 				if not quiet:
-					if verbose == "dot":
+					if self.verbose == "dot":
 						print("!", end="", flush=True)
-					elif verbose == "type":
+					elif self.verbose == "type":
 						print(f") -> failed", end="", flush=True)
-					elif verbose == "full":
+					elif self.verbose == "full":
 						exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
 						print(f") -> ignored {format_class(exc.__class__)}: {exctext}")
 		else:
