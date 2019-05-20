@@ -518,7 +518,7 @@ class Context:
 	def finish(self):
 		if self.verbose == "full":
 			self._commandstack = []
-		self.count(IncludeCommand.type)
+		self.count("include")
 
 	def sep(self, index):
 		if len(self._commandstack) >= index:
@@ -546,9 +546,9 @@ class Context:
 
 		if self.verbose == "full":
 			if self._commandstack:
-				quiet = isinstance(self._commandstack[0].command, IncludeCommand)
+				quiet = isinstance(self._commandstack[0].command, include)
 			else:
-				quiet = isinstance(object, IncludeCommand)
+				quiet = isinstance(object, include)
 		else:
 			quiet = False
 
@@ -562,8 +562,8 @@ class Context:
 				print(message, end="", flush=True)
 			return object
 
-		if isinstance(object, CommentCommand):
-			self.count(CommentCommand.type)
+		if isinstance(object, comment):
+			self.count("comment")
 			return None
 
 		if object.raiseexceptions is not None:
@@ -625,7 +625,7 @@ class Context:
 		finally:
 			if object.raiseexceptions is not None:
 				self.raiseexceptions.pop()
-			if not isinstance(object, IncludeCommand):
+			if not isinstance(object, include):
 				self._commandstack.pop()
 		return result
 
@@ -648,7 +648,7 @@ class Context:
 		"""
 		lines = []
 
-		globals = {command.type: command for command in Command.commands.values()}
+		globals = {command.__name__: command for command in Command.commands.values()}
 		globals["sqlexpr"] = sqlexpr
 		globals["datetime"] = datetime
 
@@ -679,11 +679,11 @@ class Context:
 						if state == "sql":
 							if text.endswith((";", "/")):
 								text = text[:-1]
-							command = LiteralSQLCommand(text)
+							command = literalsql(text)
 						elif state == "comment":
-							command = CommentCommand(text)
+							command = comment(text)
 						elif state == "blockcomment":
-							command = CommentCommand(text)
+							command = comment(text)
 						elif state == "dict":
 							args = eval(text, globals)
 							command = Command.fromdict(args)
@@ -932,12 +932,12 @@ class Command:
 
 
 def register(cls):
-	Command.commands[cls.type] = cls
+	Command.commands[cls.__name__] = cls
 	return cls
 
 
 @register
-class IncludeCommand(Command):
+class include(Command):
 	"""
 	The ``"include"`` command includes another PySQL file. The filename is read
 	from the key ``"name"``. This name is interpreted as being relative to the
@@ -972,7 +972,7 @@ class IncludeCommand(Command):
 
 
 @register
-class PushConnectionCommand(Command):
+class pushconnection(Command):
 	"""
 	The ``"pushconnection"`` command connects to the database given in the
 	connectstring in the key ``"connectstring"`` and pushes the connection under
@@ -1018,7 +1018,7 @@ class PushConnectionCommand(Command):
 
 
 @register
-class PopConnectionCommand(Command):
+class popconnection(Command):
 	"""
 	The ``"popconnection"`` command disconnects from the database connection with
 	the name in the key ``"connectname"`` and reverts to the previous connection
@@ -1116,7 +1116,7 @@ class _SQLCommand(_DatabaseCommand):
 			argvalue = context.execute(f"args.{argname}", None, argvalue)
 			if isinstance(argvalue, sqlexpr):
 				continue # no value
-			if isinstance(argvalue, VarCommand):
+			if isinstance(argvalue, var):
 				varargs[argname] = argvalue
 				if argvalue.key is not None and argvalue.key in context.keys:
 					argvalue = context.keys[argvalue.key]
@@ -1141,7 +1141,7 @@ class _SQLCommand(_DatabaseCommand):
 
 
 @register
-class ProcedureCommand(_SQLCommand):
+class procedure(_SQLCommand):
 	"""
 	A ``"procedure"`` command calls an Oracle procedure in the database.
 	The following keys are supported in the command dictionary:
@@ -1220,7 +1220,7 @@ class ProcedureCommand(_SQLCommand):
 
 
 @register
-class SQLCommand(_SQLCommand):
+class sql(_SQLCommand):
 	"""
 	An ``"sql"`` command directly executes an SQL statement in the Oracle database.
 	The following keys are supported in the command dictionary:
@@ -1271,9 +1271,9 @@ class SQLCommand(_SQLCommand):
 		)
 
 
-class LiteralSQLCommand(_SQLCommand):
+class literalsql(_SQLCommand):
 	"""
-	A :class:`LiteralSQLCommand` is use for SQL that appear literally in the
+	A :class:`literalsql` is use for SQL that appear literally in the
 	PySQL file. So apart from the ``sql`` attribute is has no further usable
 	attributes (i.e. ``raiseexceptions``, ``comment``, ``connectname``
 	and ``connectstring`` from the base classes are all ``None``).
@@ -1300,7 +1300,7 @@ class LiteralSQLCommand(_SQLCommand):
 
 
 @register
-class SetVarCommand(Command):
+class setvar(Command):
 	"""
 	The ``"setvar"`` command sets a variable to a fixed value. The following
 	keys are supported in the command dictionary:
@@ -1341,7 +1341,7 @@ class SetVarCommand(Command):
 
 
 @register
-class UnsetVarCommand(Command):
+class unsetvar(Command):
 	"""
 	The ``"unsetvar"`` command deletes a variable. The key ``"name"`` must be
 	given and must contain the name of the variable.
@@ -1373,7 +1373,7 @@ class UnsetVarCommand(Command):
 
 
 @register
-class RaiseExceptionsCommand(Command):
+class raiseexceptions(Command):
 	"""
 	The ``"raiseexceptions"`` command changes the global error reporting mode
 	for all subsequent commands. After::
@@ -1417,7 +1417,7 @@ class RaiseExceptionsCommand(Command):
 
 
 @register
-class PushRaiseExceptionsCommand(Command):
+class pushraiseexceptions(Command):
 	"""
 	The ``"pushraiseexceptions"`` command changes the global error reporting mode
 	for all subsequent commands, but remembers the previous exception handling
@@ -1460,7 +1460,7 @@ class PushRaiseExceptionsCommand(Command):
 
 
 @register
-class PopRaiseExceptionsCommand(Command):
+class popraiseexceptions(Command):
 	"""
 	The ``"popraiseexceptions"`` command restores the previously active exception
 	handling mode (i.e. the one active before the last ``"pushraiseexceptions"``
@@ -1487,7 +1487,7 @@ class PopRaiseExceptionsCommand(Command):
 
 
 @register
-class CheckErrorsCommand(_DatabaseCommand):
+class checkerrors(_DatabaseCommand):
 	"""
 	The ``"checkerrors"`` command checks that there are no compilation errors in
 	the target schema. If there are, an exception will be raised.
@@ -1516,14 +1516,14 @@ class CheckErrorsCommand(_DatabaseCommand):
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
 
-		return py(f"No errors in {connectstring}")
+		return pyexpr(f"No errors in {connectstring}")
 
 	def source_format(self):
 		yield from self._source_format()
 
 
 @register
-class CompileAllCommand(_DatabaseCommand):
+class compileall(_DatabaseCommand):
 	"""
 	The ``"compileall"`` command will recompile all objects in the schema.
 
@@ -1546,14 +1546,14 @@ class CompileAllCommand(_DatabaseCommand):
 		self.endconnection(context, connection)
 
 		context.count(connectstring, self.type)
-		return py(f"Compiled all in {connectstring}")
+		return pyexpr(f"Compiled all in {connectstring}")
 
 	def source_format(self):
 		yield from self._source_format()
 
 
 @register
-class SCPCommand(Command):
+class scp(Command):
 	"""
 	The ``"scp"`` command creates a file by copying it via the ``scp`` command.
 	The following keys are supported in the command dictionary:
@@ -1611,7 +1611,7 @@ class SCPCommand(Command):
 
 
 @register
-class FileCommand(Command):
+class file(Command):
 	"""
 	The ``"file"`` command creates a file by directly saving it from Python.
 	The following keys are supported in the command dictionary:
@@ -1674,17 +1674,17 @@ class FileCommand(Command):
 			else:
 				raise # we don't have a directory to make so pass the error on
 
-		if self.mode:
-			os.chmod(filename, self.mode)
-		if self.owner or self.group:
-			if self.owner:
-				uid = self.owner
+		if mode:
+			os.chmod(filename, mode)
+		if owner or group:
+			if owner:
+				uid = owner
 				if isinstance(uid, str):
 					uid = pwd.getpwnam(uid)[2]
 			else:
 				uid = -1
-			if self.group:
-				gid = self.group
+			if group:
+				gid = group
 				if isinstance(gid, str):
 					gid = grp.getgrnam(gid)[2]
 			else:
@@ -1706,7 +1706,7 @@ class FileCommand(Command):
 
 
 @register
-class ResetSequenceCommand(_DatabaseCommand):
+class resetsequence(_DatabaseCommand):
 	"""
 	The ``"resetsequence"`` command resets a sequence in the Oracle database to
 	the maximum value of a field in a table. The following keys are supported
@@ -1810,7 +1810,7 @@ class ResetSequenceCommand(_DatabaseCommand):
 
 
 @register
-class CommentCommand(Command):
+class comment(Command):
 	"""
 	The ``"comment"`` command does nothing.
 
@@ -1842,7 +1842,7 @@ class CommentCommand(Command):
 
 
 @register
-class LoadBytesCommand(Command):
+class loadbytes(Command):
 	"""
 	A :class:`loadbytes` object can be used to load a :class:`bytes` object
 	from an external file.
@@ -1881,7 +1881,7 @@ class LoadBytesCommand(Command):
 
 
 @register
-class LoadStrCommand(Command):
+class loadstr(Command):
 	"""
 	A :class:`loadstr` object can be used to load a :class:`str` object
 	from an external file.
@@ -1934,20 +1934,20 @@ class LoadStrCommand(Command):
 
 
 @register
-class VarCommand(Command):
+class var(Command):
 	"""
-	``"var"``:class:`VarCommand` commands are used to mark procedure values that are
-	``OUT`` parameters. On first use the parameter is used as an ``OUT`` parameter
-	and PySQL will remembers the OUT value under the unique key specified in the
-	constructor. When a :class:`VarCommand` object is used a second time its
-	value will be passed to the procedure as a normal ``IN`` parameter instead.
+	:class:`var` commands are used to mark procedure values that are ``OUT``
+	parameters. On first use the parameter is used as an ``OUT`` parameter and
+	PySQL will remembers the OUT value under the unique key specified in the
+	constructor. When a :class:`var` object is used a second time its value
+	will be passed to the procedure as a normal ``IN`` parameter instead.
 	"""
 
 	type = "var"
 
 	def __init__(self, key=None, type=int):
 		"""
-		Create a :class:`VarCommand` instance. :obj:`key` is a unique name for the
+		Create a :class:`var` instance. :obj:`key` is a unique name for the
 		value. :obj:`type` is the type of the value (defaulting to :class:`int`).
 
 		Note that when the :obj:`key` is :const:`None`, PySQL will *not* remember
@@ -1966,7 +1966,7 @@ class VarCommand(Command):
 			return f"var({self.key!r}, {format_class(self.type)})"
 
 	def execute(self, context):
-		# Don't count uses of :class:`VarCommand` objects
+		# Don't count uses of :class:`var` objects
 		if self.key in context.keys:
 			value = context.keys[self.key]
 			if value is not None and not isinstance(value, self.type):
@@ -2038,7 +2038,7 @@ class CommandError(Exception):
 
 class CompilationError(Exception):
 	"""
-	Exception raised by :class:`CheckErrorsCommand` when invalid database
+	Exception raised by :class:`checkerrors` when invalid database
 	objects are encountered.
 	"""
 	def __init__(self, objects):
@@ -2054,7 +2054,7 @@ class CompilationError(Exception):
 
 class SCPError(Exception):
 	"""
-	Exception raised by :class:`SCPCommand` when a call to the ``scp`` command
+	Exception raised by :class:`scp` when a call to the ``scp`` command
 	fails.
 	"""
 
