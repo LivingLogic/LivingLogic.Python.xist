@@ -422,8 +422,10 @@ def shortrepr(value):
 
 
 class Connection:
-	def __init__(self, connectstring, commit):
-		self.connection = cx_Oracle.connect(connectstring)
+	def __init__(self, connectstring, mode, commit):
+		self.mode = mode
+		mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
+		self.connection = cx_Oracle.connect(connectstring, mode=mode)
 		self.connectstring = f"{self.connection.username}@{self.connection.tnsentry}"
 		self.cursor = self.connection.cursor()
 		self.commit = commit
@@ -494,8 +496,8 @@ class Context:
 		if connectstring is not None:
 			self.pushconnection(None, self.connect(connectstring, commit))
 
-	def connect(self, connectstring, commit="once"):
-		return Connection(connectstring, commit)
+	def connect(self, connectstring, mode=None, commit="once"):
+		return Connection(connectstring, mode, commit)
 
 	def connection(self, connectname=None):
 		if connectname not in self.connections:
@@ -990,9 +992,10 @@ class PushConnectionCommand(Command):
 
 	type = "pushconnection"
 
-	def __init__(self, *, connectstring, raiseexceptions=None, connectname=None, commit=None):
+	def __init__(self, connectstring, *, mode=None, raiseexceptions=None, connectname=None, commit=None):
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.connectstring = connectstring
+		self.mode = mode
 		self.connectname = connectname
 		self.commit = commit
 
@@ -1002,9 +1005,10 @@ class PushConnectionCommand(Command):
 	def execute(self, context):
 		connectname = context.execute("connectname", None, self.connectname)
 		connectstring = context.execute("connectstring", None, self.connectstring)
+		mode = context.execute("mode", None, self.mode)
 		commit = context.execute("commit", None, self.commit)
 
-		connection = context.connect(connectstring, commit if commit is not None else context.commit)
+		connection = context.connect(connectstring, mode=mode, commit=commit if commit is not None else context.commit)
 		context.pushconnection(connectname, connection)
 		context.count(self.type)
 		return connection
