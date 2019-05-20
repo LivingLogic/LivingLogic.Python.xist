@@ -1257,7 +1257,7 @@ class SQLCommand(_SQLCommand):
 		connectname = context.execute("connectname", None, self.connectname)
 
 		connection = self.beginconnection(context, connectstring, connectname)
-		result = self._executesql(context, sql, connection)
+		result = self._executesql(context, connection, sql)
 		context.count(connection.connectstring, self.type)
 		self.endconnection(context, connection)
 		return result
