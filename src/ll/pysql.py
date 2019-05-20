@@ -635,15 +635,14 @@ class Context:
 		"""
 		lines = []
 
-		globals = {command.__name__: command for command in Command.commands.values()}
-		globals["sqlexpr"] = sqlexpr
-		globals["datetime"] = datetime
+		vars = globals()
 
 		constructor_prefixes = tuple(f"{cname}(" for cname in Command.commands)
 
 		# ``state`` is the state of the "parser", values have the following meaning
 		# ``None``: outside of any block
-		# ``sql``: inside of SQL block
+		# ``sql``: inside of literal SQL block
+		# ``py``: inside of literal Python block
 		# ``comment``: inside of comment (lines starting with "#")
 		# ``blockcomment``: inside of block comment (lines delimited by "###")
 		# ``dict``: inside of Python dict literal
@@ -667,15 +666,17 @@ class Context:
 							if text.endswith((";", "/")):
 								text = text[:-1]
 							command = literalsql(text)
+						elif state == "py":
+							command = literalpy(text)
 						elif state == "comment":
 							command = comment(text)
 						elif state == "blockcomment":
 							command = comment(text)
 						elif state == "dict":
-							args = eval(text, globals)
+							args = eval(text, vars, vars)
 							command = Command.fromdict(args)
 						else:
-							command = eval(text, globals)
+							command = eval(text, vars, vars)
 						command.location = self._location
 						yield command
 			except Exception as exc:
@@ -692,6 +693,8 @@ class Context:
 						state = None
 				elif line == "###":
 					state = "blockcomment"
+				elif line == ">>>":
+					state = "py"
 				elif line.startswith("#"):
 					lines.append((i, line))
 					state = "comment"
@@ -714,6 +717,12 @@ class Context:
 					state = None
 			elif state == "sql":
 				if line.startswith(self.terminator):
+					yield from makeblock()
+					state = None
+				else:
+					lines.append((i, line))
+			elif state == "py":
+				if line == "<<<":
 					yield from makeblock()
 					state = None
 				else:
@@ -808,6 +817,13 @@ class Context:
 	def count(self, *args):
 		self.commandcounts[args] += 1
 		self.totalcount += 1
+
+
+def globals():
+	vars = {command.__name__: command for command in Command.commands.values()}
+	vars["sqlexpr"] = sqlexpr
+	vars["datetime"] = datetime
+	return vars
 
 
 ###
@@ -1246,10 +1262,10 @@ class sql(_SQLCommand):
 
 class literalsql(_SQLCommand):
 	"""
-	A :class:`!literalsql` is used for SQL that appear literally in the
+	A :class:`!sql` is used for SQL that appears literally in the
 	PySQL file. So apart from the ``sql`` attribute is has no further usable
-	attributes (i.e. ``raiseexceptions``, ``comment``, ``connectname``
-	and ``connectstring`` from the base classes are all ``None``).
+	attributes (i.e. ``raiseexceptions``, ``connectname`` and ``connectstring``
+	from the base classes are all ``None``).
 	"""
 
 	def __init__(self, sql):
@@ -1268,6 +1284,36 @@ class literalsql(_SQLCommand):
 
 	def source(self):
 		return (self.sql or "").strip()
+
+
+class literalpy(_DatabaseCommand):
+	"""
+	A :class:`!literalpy` is used for Python code that appears literally in the
+	PySQL file. So apart from the ``code`` attribute is has no further usable
+	attributes (i.e. ``raiseexceptions``, ``connectname`` and ``connectstring``
+	from the base classes are all ``None``).
+	"""
+
+	def __init__(self, code):
+		super().__init__()
+		self.code = code
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} code={self.code!r} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		code = context.execute(None, None, self.code)
+		connection = self.beginconnection(context, None, None)
+
+		vars = globals()
+		vars["connection"] = connection.connection
+		exec(code + "\n", vars, vars)
+
+		context.count(connection.connectstring, self.__class__.__name__)
+		self.endconnection(context, connection)
+
+	def source(self):
+		return f">>>\n{self.code.strip()}\n<<<"
 
 
 @register
