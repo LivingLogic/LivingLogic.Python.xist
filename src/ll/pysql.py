@@ -252,7 +252,6 @@ name (which might not exist). An example looks like this::
 	procedure("test", connectname="db")
 
 	popconnection(connectname="db")
-	}
 
 The connection with the name ``None`` is the "default connection". This
 connection will be used for all normal SQL commands and all PySQL commands that
