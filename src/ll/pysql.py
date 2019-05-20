@@ -23,12 +23,12 @@ SQL commands
 
 A PySQL file may contain normal SQL commands. For the :mod:`pysql` script
 to be able to execute these commands they must be terminated with a comment
-line that starts with ``-- @@@``. :mod:`pysql` will strip off a trailing
-``;`` or ``/`` from the command and execute it. Any exception that is raised
-as a result of executing the command will stop the script and be reported.
-This is in contrast to how ``sqlplus`` executes SQL commands. ``sqlplus``
-would continue after an error and exit with status code 0 even if there were
-errors. It is also possible to explicitely ignore any exception raised by the
+line ``-- @@@``. :mod:`pysql` will strip off a trailing ``;`` or ``/`` from
+the command and execute it. Any exception that is raised as a result of
+executing the command will stop the script and be reported. This is in
+contrast to how ``sqlplus`` executes SQL commands. ``sqlplus`` would continue
+after an error and exit with status code 0 even if there were errors.
+It is also possible to explicitely ignore any exception raised by the
 command by specifying a different exception handling mode.
 
 A PySQL file that only contains SQL commands is still a valid SQL file from
@@ -39,12 +39,12 @@ PySQL commands
 --------------
 
 A PySQL file may also contain PySQL commands. A PySQL command looks like a
-Python dictionary literal. This literal must either be contained in a single
-line or it must start with a line that only contains ``{`` and end at a
-line that only contains ``}``.
+Python function call. This function call must either be contained in a single
+line or it must start with a line that only contains ``name(`` and end at a
+line that only contains ``)``. (``name`` must be the name of a PySQL command).
 
-For further information about the different commands and which keys they support,
-see the class :class:`Command` and its subclasses.
+For further information about the different commands and which arguments they
+support, see the class :class:`Command` and its subclasses.
 
 
 Example
@@ -165,47 +165,45 @@ procedure and will call the procedure to insert data into the table::
 	end;
 	/
 
-	-- @@@ import data
+	-- @@@
 
-	{
-		'type': 'procedure',
-		'name': 'person_insert',
-		'args': {
-			'c_user': 'import',
-			'p_per_id': var('per_id_max'),
-			'p_per_firstname': 'Max',
-			'p_per_lastname': 'Mustermann',
-		}
+	# import data
+
+	procedure(
+		'person_insert',
+		args=dict(
+			c_user='import',
+			p_per_id=var('per_id_max'),
+			p_per_firstname='Max',
+			p_per_lastname='Mustermann',
+		)
+	)
+
+	procedure(
+		'contact_insert',
+		args=dict(
+			c_user='import',
+			p_per_id=var('per_id_max'),
+			p_con_id=var('con_id_max'),
+			p_con_type='email',
+			p_con_value='max@example.org',
+		)
+	)
+
+	file(
+		'portrait_{per_id_max}.png',
+		b'\\x89PNG\\r\\n\\x1a\\n...',
+	)
+
+	resetsequence(
+		'person_seq',
+		table='person',
+		field='per_id',
 	}
 
-	{
-		'type': 'procedure',
-		'name': 'contact_insert',
-		'args': {
-			'c_user': 'import',
-			'p_per_id': var('per_id_max'),
-			'p_con_id': var('con_id_max'),
-			'p_con_type': 'email',
-			'p_con_value': 'max@example.org',
-		}
-	}
+	compileall()
 
-	{
-		'type': 'file',
-		'name': 'portrait_{per_id_max}.png',
-		'content': b'\\x89PNG\\r\\n\\x1a\\n...',
-	}
-
-	{
-		'type': 'resetsequence',
-		'sequence': 'person_seq',
-		'table': 'person',
-		'field': 'per_id',
-	}
-
-	{"type": "compileall"}
-
-	{"type": "checkerrors"}
+	checkerrors()
 
 This file can then be imported into an Oracle database with the following
 command::
@@ -249,27 +247,17 @@ name to specify the database connection to use. The ``popconnection`` command
 disconnects from the database and reverts to the previous connection for that
 name (which might not exist). An example looks like this::
 
-	{
-		"type": "pushconnection",
-		"connectstring": "user/pwd@db",
-		"connectname": "db",
-	}
+	pushconnection(connectstring="user/pwd@db", connectname=db")
 
-	{
-		"type": "procedure",
-		"name": "test",
-		"connectname": "db",
-	}
+	procedure("test", connectname="db")
 
-	{
-		"type": "popconnection",
-		"connectname": "db",
+	popconnection(connectname="db")
 	}
 
 The connection with the name ``None`` is the "default connection". This
 connection will be used for all normal SQL commands and all PySQL commands that
-don't have a ``"connectname"`` key (or where the ``"connectname"`` key is
-``None``).
+don't have a ``connectname`` parameter (or where the ``connectname`` parameter
+is ``None``).
 
 
 Variables
@@ -279,14 +267,14 @@ Variable objects can be used to receive out parameters of procedure calls or
 SQL statements. A variable object can be specified like this ``var("foo")``.
 ``"foo"`` is the "name" of the variable. When a variable object is passed
 to a procedure the first time (i.e. the variable object is uninitialized),
-a ``cx_Oracle`` ``var`` object will be passed and the resulting value after
+a :mod:`cx_Oracle` ``var`` object will be passed and the resulting value after
 the call will be stored under the name of the variable. When the variable is
 used in a later command the stored value will be used instead. (Note that it's
 not possible to use the same variable twice in the same procedure call,
 if it hasn't been used before, however in later commands this is no problem).
 
-The type of the variable defaults to ``int``, but a different type can be passed
-when creating the object like this: ``var("foo", str)``.
+The type of the variable defaults to :class:`int`, but a different type can be
+passed when creating the object like this: ``var("foo", str)``.
 
 It is also possible to create variable objects via command line parameters.
 
@@ -304,7 +292,7 @@ External files
 ==============
 
 Inside a PySQL command it is possible to load values from external files.
-The ``loadbytes`` function loads a ``bytes`` object from an external file
+The ``loadbytes`` command loads a ``bytes`` object from an external file
 like this::
 
 	loadbytes("path/to/file.png")
@@ -350,12 +338,12 @@ it supports the following command line options:
 		after all commands.
 
 	``-s``, ``--scpdirectory``
-		The base directory for ``scp`` file copy commands. As files are copied
-		via ``scp`` this can be a remote filename (like
+		The base directory for :class:`scp` file copy commands. As files are
+		copied via ``scp`` this can be a remote filename (like
 		``root@www.example.org:~/uploads/``) and must include a trailing ``/``.
 
 	``-f``, ``--filedirectory``
-		The base directory for ``file`` file save commands. It must include
+		The base directory for :class:`file` file save commands. It must include
 		a trailing ``/``.
 
 	``-t``, ``--terminator``
@@ -577,13 +565,13 @@ class Context:
 				print(".", end="", flush=True)
 			elif self.verbose == "type":
 				self.sep(2)
-				print(f"{object.type}(", end="", flush=True)
+				print(f"{object.__class__.__name__}(", end="", flush=True)
 			elif self.verbose == "full":
 				if len(self._commandstack) == 1:
-					print(f"[t+{entry.starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: {object.location} >> {object.type}(", end="", flush=True)
+					print(f"[t+{entry.starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: {object.location} >> {object.__class__.__name__}(", end="", flush=True)
 				else:
 					self.sep(2)
-					print(f"{object.type}(", end="", flush=True)
+					print(f"{object.__class__.__name__}(", end="", flush=True)
 
 		result = None
 		try:
@@ -830,15 +818,8 @@ class Context:
 class Command:
 	"""
 	The base class of all commands. A :class:`Command` object is created from
-	a command dictionary literal in a PySQL file. The keys in the command
-	dictionary that are supported by all command types are the following:
-
-	``type`` : string (optional)
-		This is either ``"procedure"`` (the default), ``"sql"``, ``"file"``,
-		``"scp"``, ``"resetsequence"``, ``"setvar"``, ``"include"``,
-		``"compileall"``, ``"checkerrors"``, ``"pushconnection"``,
-		``"popconnection"``, ``"raiseexceptions"``, ``"pushraiseexceptions"``
-		or ``"popraiseexceptions"``  and specifies the type of the PySQL command.
+	function call in a PySQL file. The only parameter in the call that is
+	supported by all commands is the following:
 
 	``raiseexceptions`` : bool (optional)
 		Specifies whether exceptions that happen during the execution of the
@@ -861,9 +842,9 @@ class Command:
 
 	def __str__(self):
 		if self.location is None:
-			return f"{self.type} command"
+			return f"{self.__class__.__name__} command"
 		else:
-			return f"{self.type} command in {self.location}"
+			return f"{self.__class__.__name__} command in {self.location}"
 
 	def _value(self, output, key, value):
 		if key is not None:
@@ -899,7 +880,7 @@ class Command:
 		output.append(None)
 
 	def _source_format(self, *args, **kwargs):
-		yield f"{self.type}("
+		yield f"{self.__class__.__name__}("
 		yield 1
 		yield None
 		parts = []
@@ -939,33 +920,38 @@ def register(cls):
 @register
 class include(Command):
 	"""
-	The ``"include"`` command includes another PySQL file. The filename is read
-	from the key ``"name"``. This name is interpreted as being relative to the
-	directory with the file containing the ``include`` command.
+	The :class:`!include` command includes another PySQL file. The filename is
+	passed in the first parameter ``name``. This name is interpreted as being
+	relative to the directory with the file containing the :class:`!include`
+	command.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	The parameter ``cond`` specifies whether this :class:`!include` command
+	should be executed or not. If ``cond`` is ``None`` or true, the
+	:class:`!include` command will be executed, else it won't.
+
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	type = "include"
-
-	def __init__(self, name, *, raiseexceptions=None):
+	def __init__(self, name, *, cond=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.name = name
+		self.cond = cond
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
 		name = context.execute("name", None, self.name)
+		cond = context.execute("cond", None, self.cond)
 		context.finish()
 
 		filename = context.basedir/name
 
-		with context.changed_basedir(filename.parent):
-			with filename.open("r", encoding="utf-8") as f:
-				for command in context._load(f):
-					context.execute(None, None, command)
+		if cond is None or cond:
+			with context.changed_basedir(filename.parent):
+				with filename.open("r", encoding="utf-8") as f:
+					for command in context._load(f):
+						context.execute(None, None, command)
 
 	def source_format(self):
 		yield from self._source_format(self.name, raiseexceptions=self.raiseexceptions)
@@ -974,18 +960,15 @@ class include(Command):
 @register
 class pushconnection(Command):
 	"""
-	The ``"pushconnection"`` command connects to the database given in the
-	connectstring in the key ``"connectstring"`` and pushes the connection under
-	the name from the key ``"connectname"``. (If ``"connectname"`` is not given
-	or is ``None``, the connection will be pushed as the default connection).
-	``"commit"`` can be given to specify the commit mode for this connection
-	(``"record"``, ``"once"`` or ``"never"``).
+	The :class:`!pushconnection` command connects to the database given in the
+	connectstring in the parameter ``connectstring`` and pushes the connection
+	under the name from the parameter ``connectname``. (If ``connectname`` is
+	not given or is ``None``, the connection will be pushed as the default
+	connection). ``commit`` can be given to specify the commit mode for this
+	connection (``"record"``, ``"once"`` or ``"never"``).
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "pushconnection"
 
 	def __init__(self, connectstring, *, mode=None, raiseexceptions=None, connectname=None, commit=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1005,7 +988,7 @@ class pushconnection(Command):
 
 		connection = context.connect(connectstring, mode=mode, commit=commit if commit is not None else context.commit)
 		context.pushconnection(connectname, connection)
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return connection
 
 	def source_format(self):
@@ -1020,17 +1003,14 @@ class pushconnection(Command):
 @register
 class popconnection(Command):
 	"""
-	The ``"popconnection"`` command disconnects from the database connection with
-	the name in the key ``"connectname"`` and reverts to the previous connection
-	registered for that name. (If ``"connectname"`` is ``None`` the default
+	The :class:`!popconnection` command disconnects from the database connection
+	with the name ``connectname`` and reverts to the previous connection
+	registered for that name. (If ``connectname`` is ``None`` the default
 	connection will be used). If the commit mode for the connection is ``"once"``
 	the transaction will be committed before closing the connection.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "popconnection"
 
 	def __init__(self, *, connectname=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1043,7 +1023,7 @@ class popconnection(Command):
 		connectname = context.execute("connectname", None, self.connectname)
 		connection = context.popconnection(connectname)
 		connection.close()
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return connection
 
 	def source_format(self):
@@ -1057,22 +1037,21 @@ class _DatabaseCommand(Command):
 	"""
 	Base class of all commands that use a database connection.
 
-	All database commands support the following keys:
+	All database commands support the following parameters:
 
-	``"connectname"`` : string (optional)
+	``connectname`` : string (optional)
 		The name of the connection to use for this command. (This connection must
-		have been pushed by a :class:`PushConnectionCommand` previously). Also
+		have been pushed by a :class:`pushconnection` command previously). Also
 		``None`` can be specified explicitely to use the default connection.
 
-	``"connectstring"`` : string (optional)
-		If a ``"connectstring"`` is given a new connection to this database will
-		be created  just for this one command.
+	``connectstring`` : string (optional)
+		If a ``connectstring`` is given a new connection to this database will
+		be created just for this one command.
 
-	If neither of these keys is given, the default connection is used (and
+	If neither of these parameters is given, the default connection is used (and
 	giving both is an error).
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
 	def __init__(self, *, raiseexceptions=None, connectstring=None, connectname=None):
@@ -1143,21 +1122,21 @@ class _SQLCommand(_DatabaseCommand):
 @register
 class procedure(_SQLCommand):
 	"""
-	A ``"procedure"`` command calls an Oracle procedure in the database.
-	The following keys are supported in the command dictionary:
+	A :class:`!procedure` command calls an Oracle procedure in the database.
+	The following parameters are supported:
 
-	``"name"`` : string (required)
+	``name`` : string (required)
 		The name of the procedure to be called (This may include ``.`` for
 		calling a procedure in a package or one owned by a different user).
 
-	``"args"`` : dictionary (optional)
+	``args`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
 		values as values. PySQL supports all types as values that
 		:mod:`cx_Oracle` supports. In addition to those, three special classes
 		are supported:
 
-		*	:class:`sql` objects can be used to specify that the paramater
-			should be literal SQL. So e.g. ``sql("sysdate")`` will be the date
+		*	:class:`sqlexpr` objects can be used to specify that the paramater
+			should be literal SQL. So e.g. ``sqlexpr("sysdate")`` will be the date
 			when the PySQL script was executed.
 
 		*	:class:`var` objects can be used to hold values that are ``OUT``
@@ -1169,20 +1148,18 @@ class procedure(_SQLCommand):
 			If a different type is required it can be passed as the second
 			argument to :class:`var`, e.g. ``var("foo_10", str)``.
 
-		*	Finally :func:`loadbytes`  and :func:`loadstr` objects can be used
-			to load values from external files (as long as they are of type
-			:class:`bytes` or :class:`str`). ``loadbytes("foo/bar.txt")`` will
-			be replaced with the content of the external file ``foo/bar.txt``
-			(as a :class:`bytes` object). If a :class:`str` object is required,
-			:func:`loadstr` can be used. Encoding info can be passed like this::
+		*	Finally all other commands can be called to get a value (for example
+			the two commands :class:`loadbytes`  and :class:`loadstr` to load
+			values from external files (as long as they are of type :class:`bytes`
+			or :class:`str`). ``loadbytes("foo/bar.txt")`` will return with the
+			content of the external file ``foo/bar.txt`` (as a :class:`bytes`
+			object). If a :class:`str` object is required, :class:`loadstr` can
+			be used. Encoding info can be passed like this::
 
 				loadstr("foo/bar.txt", "utf-8", "replace")
 
-	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
-	and ``"connectstring"`` from the base classes are supported.
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
-
-	type = "procedure"
 
 	def __init__(self, name, *, raiseexceptions=None, connectstring=None, connectname=None, args=None):
 		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
@@ -1203,7 +1180,7 @@ class procedure(_SQLCommand):
 		query = f"begin {name}({argsql}); end;"
 		result = self._executesql(context, connection, query)
 
-		context.count(connection.connectstring, self.type, name)
+		context.count(connection.connectstring, self.__class__.__name__, name)
 
 		self.endconnection(context, connection)
 
@@ -1222,25 +1199,22 @@ class procedure(_SQLCommand):
 @register
 class sql(_SQLCommand):
 	"""
-	An ``"sql"`` command directly executes an SQL statement in the Oracle database.
-	The following keys are supported in the command dictionary:
+	An :class:`!sql` command directly executes an SQL statement in the Oracle
+	database. The following parameters are supported:
 
-	``"sql"`` : string (required)
+	``sql`` : string (required)
 		The SQL to be executed. This may contain parameters in the form of
 		``:paramname``. The values for those parameters will be taken from
 		``args``.
 
-	``"args"`` : dictionary (optional)
+	``args`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
 		values as values. Similar to procedure calls :class:`var`,
 		:class:`loadbytes` and :class:`loadstr` objects are supported. However
-		:class:`sql` objects are not supported (they will be ignored).
+		:class:`sqlexpr` objects are not supported (they will be ignored).
 
-	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
-	and ``"connectstring"`` from the base classes are supported.
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
-
-	type = "sql"
 
 	def __init__(self, sql, *, raiseexceptions=None, connectstring=None, connectname=None, args=None):
 		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
@@ -1257,7 +1231,7 @@ class sql(_SQLCommand):
 
 		connection = self.beginconnection(context, connectstring, connectname)
 		result = self._executesql(context, connection, sql)
-		context.count(connection.connectstring, self.type)
+		context.count(connection.connectstring, self.__class__.__name__)
 		self.endconnection(context, connection)
 		return result
 
@@ -1273,13 +1247,11 @@ class sql(_SQLCommand):
 
 class literalsql(_SQLCommand):
 	"""
-	A :class:`literalsql` is use for SQL that appear literally in the
+	A :class:`!literalsql` is used for SQL that appear literally in the
 	PySQL file. So apart from the ``sql`` attribute is has no further usable
 	attributes (i.e. ``raiseexceptions``, ``comment``, ``connectname``
 	and ``connectstring`` from the base classes are all ``None``).
 	"""
-
-	type = "literalsql"
 
 	def __init__(self, sql):
 		super().__init__()
@@ -1292,7 +1264,7 @@ class literalsql(_SQLCommand):
 		sql = context.execute(None, None, self.sql)
 		connection = self.beginconnection(context, None, None)
 		connection.cursor.execute(sql)
-		context.count(connection.connectstring, self.type)
+		context.count(connection.connectstring, self.__class__.__name__)
 		self.endconnection(context, connection)
 
 	def source(self):
@@ -1302,20 +1274,17 @@ class literalsql(_SQLCommand):
 @register
 class setvar(Command):
 	"""
-	The ``"setvar"`` command sets a variable to a fixed value. The following
-	keys are supported in the command dictionary:
+	The :class:`!setvar` command sets a variable to a fixed value. The following
+	parameters are supported:
 
-	``"name"``: string (required)
+	``name``: string (required)
 		The name of the variable to set.
 
-	``"value"``: object (required)
+	``value``: object (required)
 		The value of the variable.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "setvar"
 
 	def __init__(self, name, value, *, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1330,7 +1299,7 @@ class setvar(Command):
 		value = context.execute(None, None, self.value)
 
 		context.keys[name] = value
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1343,14 +1312,11 @@ class setvar(Command):
 @register
 class unsetvar(Command):
 	"""
-	The ``"unsetvar"`` command deletes a variable. The key ``"name"`` must be
-	given and must contain the name of the variable.
+	The :class:`!unsetvar` command deletes a variable. The parameter ``name``
+	must be given and must contain the name of the variable.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "unsetvar"
 
 	def __init__(self, name, *, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1363,7 +1329,7 @@ class unsetvar(Command):
 		name = context.execute(None, None, self.name)
 
 		context.keys.pop(name, None)
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1375,27 +1341,24 @@ class unsetvar(Command):
 @register
 class raiseexceptions(Command):
 	"""
-	The ``"raiseexceptions"`` command changes the global error reporting mode
+	The :class:`!raiseexceptions` command changes the global error reporting mode
 	for all subsequent commands. After::
 
-		{"type": "raiseexceptions", "value": False}
+		raiseexceptions(False)
 
 	for all subsequent commands any exception will be reported and command
 	execution will continue with the next command. ::
 
-		{"type": "raiseexceptions", "value": True}
+		raiseexceptions(True)
 
 	will switch back to aborting the execution of the PySQL script once an
 	exception is encountered.
 
 	Note that the global configuration will only be relevant for commands that
-	don't specify the ``"raiseexceptions"`` key themselves.
+	don't specify the ``raiseexceptions`` paramter themselves.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "raiseexceptions"
 
 	def __init__(self, *, value, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1407,7 +1370,7 @@ class raiseexceptions(Command):
 	def execute(self, context):
 		value = context.execute(None, None, self.value)
 		context.raiseexceptions[-1] = value
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1419,26 +1382,23 @@ class raiseexceptions(Command):
 @register
 class pushraiseexceptions(Command):
 	"""
-	The ``"pushraiseexceptions"`` command changes the global error reporting mode
-	for all subsequent commands, but remembers the previous exception handling
-	mode. After::
+	The :class:`!pushraiseexceptions` command changes the global error reporting
+	mode for all subsequent commands, but remembers the previous exception
+	handling mode. After::
 
-		{"type": "pushraiseexceptions", "value": False}
+		pushraiseexceptions(False)
 
 	for all subsequent commands any exception will be ignored and command
 	execution will continue with the next command. It is possible to switch back
 	to the previous exception handling mode via::
 
-		{"type": "popraiseexceptions"}
+		popraiseexceptions()
 
-	Note that this global configuration will only be relavant for commands that
-	don't specify the ``"raiseexceptions"`` key themselves.
+	Note that this global configuration will only be relevant for commands that
+	don't specify the ``raiseexceptions`` parameter themselves.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "pushraiseexceptions"
 
 	def __init__(self, value, *, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1450,7 +1410,7 @@ class pushraiseexceptions(Command):
 	def execute(self, context):
 		value = context.execute(None, None, self.value)
 		context.raiseexceptions.append(value)
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1462,15 +1422,12 @@ class pushraiseexceptions(Command):
 @register
 class popraiseexceptions(Command):
 	"""
-	The ``"popraiseexceptions"`` command restores the previously active exception
-	handling mode (i.e. the one active before the last ``"pushraiseexceptions"``
-	command).
+	The :class:`popraiseexceptions` command restores the previously active
+	exception handling mode (i.e. the one active before the last
+	:class:`pushraiseexceptions` command).
 
-	The keys ``"raiseexceptions"`` and ``"comment"`` from the base class are
-	supported in the command dictionary.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "popraiseexceptions"
 
 	def __init__(self, *, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1482,22 +1439,19 @@ class popraiseexceptions(Command):
 		if len(context.raiseexceptions) <= 1:
 			raise ValueError("raiseexception stack empty")
 		oldvalue = context.raiseexceptions.pop()
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return oldvalue
 
 
 @register
 class checkerrors(_DatabaseCommand):
 	"""
-	The ``"checkerrors"`` command checks that there are no compilation errors in
-	the target schema. If there are, an exception will be raised.
+	The :class:`!checkerrors` command checks that there are no compilation errors
+	in the target schema. If there are, an exception will be raised.
 
-	The keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
-	and ``"connectstring"`` from the base classes are supported, but the value
-	of the ``"raiseexceptions"`` key will be ignored.
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`
+	(but the value of the ``raiseexceptions`` key will be ignored).
 	"""
-
-	type = "checkerrors"
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
@@ -1511,7 +1465,7 @@ class checkerrors(_DatabaseCommand):
 		connection.cursor.execute("select lower(type), name from user_errors group by lower(type), name")
 		invalid_objects = [tuple(r) for r in connection.cursor]
 		self.endconnection(context, connection)
-		context.count(connectstring, self.type)
+		context.count(connectstring, self.__class__.__name__)
 
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
@@ -1525,13 +1479,10 @@ class checkerrors(_DatabaseCommand):
 @register
 class compileall(_DatabaseCommand):
 	"""
-	The ``"compileall"`` command will recompile all objects in the schema.
+	The :class:`!compileall` command will recompile all objects in the schema.
 
-	The keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
-	and ``"connectstring"`` from the base classes are supported.
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
-
-	type = "compileall"
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
@@ -1545,7 +1496,7 @@ class compileall(_DatabaseCommand):
 		connection.cursor.execute("begin dbms_utility.compile_schema(user); end;")
 		self.endconnection(context, connection)
 
-		context.count(connectstring, self.type)
+		context.count(connectstring, self.__class__.__name__)
 		return pyexpr(f"Compiled all in {connectstring}")
 
 	def source_format(self):
@@ -1555,25 +1506,22 @@ class compileall(_DatabaseCommand):
 @register
 class scp(Command):
 	"""
-	The ``"scp"`` command creates a file by copying it via the ``scp`` command.
-	The following keys are supported in the command dictionary:
+	The :class:`!scp` command creates a file by copying it via the ``scp``
+	command. The following parameters are supported:
 
-	``"name"`` : string (required)
+	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a ``"procedure"``
-		or ``"sql"`` command. These specifiers will be replaced by the correct
+		specifications containing any key that appeared in a :class:`procedure`
+		or :class:`sql` command. These specifiers will be replaced by the correct
 		key values. As these files will be copied via the ``scp`` command,
 		ssh file names can be used.
 
-	``"content"``: bytes (required)
+	``content``: bytes (required)
 		The content of the file to be created. This can also be a
-		:class:`loadbytes` object, to load the content from an external file.
+		:class:`loadbytes` command, to load the content from an external file.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "scp"
 
 	def __init__(self, *, name, content, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1599,7 +1547,7 @@ class scp(Command):
 		finally:
 			os.remove(tempname)
 
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return content
 
 	def source_format(self):
@@ -1613,36 +1561,33 @@ class scp(Command):
 @register
 class file(Command):
 	"""
-	The ``"file"`` command creates a file by directly saving it from Python.
-	The following keys are supported in the command dictionary:
+	The :class:`!file` command creates a file by directly saving it from Python.
+	The following parameters are supported:
 
-	``"name"`` : string (required)
+	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a ``"procedure"`` or
-		``"sql"`` command. These specifiers will be replaced by the correct
+		specifications containing any key that appeared in a :class:`procedure` or
+		:class:`sql` command. These specifiers will be replaced by the correct
 		key values.
 
-	``"content"``: bytes (required)
+	``content``: bytes (required)
 		The content of the file to be created. This can also be a
-		:class:`loadbytes` object, to load the content from an external file.
+		:class:`loadbytes` command, to load the content from an external file.
 
-	``"mode"``: integer (optional)
+	``mode``: integer (optional)
 		The file mode for the new file. If the mode is specified :func:`os.chmod`
 		will be called on the file.
 
-	``"owner"``: integer or string (optional)
+	``owner``: integer or string (optional)
 		The owner of the file (as a user name or a uid).
 
-	``"group"``: integer or string (optional)
+	``group``: integer or string (optional)
 		The owning group of the file (as a group name or a gid).
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
 		the file.
 
-	Additionally the keys ``"raiseexceptions"`` and ``"comment"`` from the base
-	class are supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "file"
 
 	def __init__(self, name, content, *, mode=None, owner=None, group=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
@@ -1691,7 +1636,7 @@ class file(Command):
 				gid = -1
 			os.chown(filename, uid, gid)
 
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return content
 
 	def source_format(self):
@@ -1708,33 +1653,30 @@ class file(Command):
 @register
 class resetsequence(_DatabaseCommand):
 	"""
-	The ``"resetsequence"`` command resets a sequence in the Oracle database to
-	the maximum value of a field in a table. The following keys are supported
-	in the command dictionary:
+	The :class:`!resetsequence` command resets a sequence in the Oracle database
+	to the maximum value of a field in a table. The following parameters are
+	supported:
 
-	``"sequence"``: string (required)
+	``sequence``: string (required)
 		The name of the sequence to reset.
 
-	``"table"``: string (required)
+	``table``: string (required)
 		The name of the table that contains the field.
 
-	``"field"``: string (required)
+	``field``: string (required)
 		The name of the field in the table ``table``. The sequence will be
-		reset to a value, so that fetching the next value from the sequence
+		reset to a value so that fetching the next value from the sequence
 		will deliver a value that is larger than the maximum value of the field
 		``field`` in the table ``table``.
 
-	``"minvalue"``: integer (optional, default taken from sequence)
+	``minvalue``: integer (optional, default taken from sequence)
 		The minimum value for the sequence.
 
-	``"increment"``: integer (optional, default taken from sequence)
+	``increment``: integer (optional, default taken from sequence)
 		The increment (i.e. the step size) for the sequence.
 
-	Additionally the keys ``"raiseexceptions"``, ``"comment"``, ``"connectname"``
-	and ``"connectstring"`` from the base classes are supported.
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
-
-	type = "resetsequence"
 
 	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, connectstring=None, connectname=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
@@ -1787,7 +1729,7 @@ class resetsequence(_DatabaseCommand):
 		else:
 			seqvalue = None
 
-		context.count(connection.connectstring, self.type)
+		context.count(connection.connectstring, self.__class__.__name__)
 
 		self.endconnection(context, connection)
 
@@ -1812,13 +1754,10 @@ class resetsequence(_DatabaseCommand):
 @register
 class comment(Command):
 	"""
-	The ``"comment"`` command does nothing.
+	The :class:`!comment` command does nothing.
 
-	The keys ``"raiseexceptions"`` and ``"comment"`` from the base class are
-	supported.
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	type = "comment"
 
 	def __init__(self, comment=None):
 		super().__init__()
@@ -1828,7 +1767,7 @@ class comment(Command):
 		return f"comment {self.location}"
 
 	def execute(self, context):
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 
 	def source(self):
 		if "\n" in self.comment:
@@ -1844,18 +1783,18 @@ class comment(Command):
 @register
 class loadbytes(Command):
 	"""
-	A :class:`loadbytes` object can be used to load a :class:`bytes` object
-	from an external file.
+	The :class:`!loadbytes` command can be used to load a :class:`bytes` object
+	from an external file. The following parameters are supported:
+
+	:obj:`filename` : string (required)
+		The name of the file to be loaded. The filename is treated as being
+		relative to the directory containing the pysql file that contains 
+		:class:`loadbytes` command.
+
+	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	type = "loadbytes"
-
 	def __init__(self, filename, *, raiseexceptions=None):
-		"""
-		:obj:`filename` is the name of the file to be loaded. The filename is
-		treated as being relative to the directory containing the pysql file that
-		contains the PySQL command with the :class:`loadbytes` object.
-		"""
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.filename = filename
 
@@ -1870,7 +1809,7 @@ class loadbytes(Command):
 		context.report(f"filename={filename!r}")
 		filename = context.basedir/filename
 		data = filename.read_bytes()
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return data
 
 	def source_format(self):
@@ -1883,19 +1822,24 @@ class loadbytes(Command):
 @register
 class loadstr(Command):
 	"""
-	A :class:`loadstr` object can be used to load a :class:`str` object
-	from an external file.
-	"""
+	The :class:`!loadstr` command can be used to load a :class:`str` object
+	from an external file. The following parameters are supported:
 
-	type = "loadstr"
+	:obj:`filename` : string (required)
+		The name of the file to be loaded. The filename is treated as being
+		relative to the directory containing the PySQL file that contains the
+		the :class:`!loadstr` command.
+
+	:obj:`encoding` : string (optional)
+		The encoding used for decoding the bytes in the file to text.
+
+	:obj:`errors` : string (optional)
+		The error handling mode for decoding.
+	"""
 
 	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None):
 		"""
-		Create a new :class:`loadbytes` object. :obj:`filename` is the name of the
-		file to be loaded. The filename is treated as being relative to the
-		directory containing the pysql file that contains the PySQL command with
-		the :class:`loadstr` object. :obj:`encoding` and :obj:`errors` will be
-		used for the file content into a string.
+		Create a new :class:`loadbytes` object. 
 		"""
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.filename = filename
@@ -1921,7 +1865,7 @@ class loadstr(Command):
 
 		filename = context.basedir/filename
 		data = filename.read_text(encoding=encoding, errors=errors)
-		context.count(self.type)
+		context.count(self.__class__.__name__)
 		return data
 
 	def source_format(self):
@@ -1941,20 +1885,21 @@ class var(Command):
 	PySQL will remembers the OUT value under the unique key specified in the
 	constructor. When a :class:`var` object is used a second time its value
 	will be passed to the procedure as a normal ``IN`` parameter instead.
+	The following parameters are supported:
+
+	:obj:`key` : string (required)
+		A unique name for the value.
+
+	:obj:`type` : class )optional)
+		The type of the value (defaulting to :class:`int`).
+
+	Note that when the :obj:`key` is :const:`None`, PySQL will *not* remember
+	the value, instead each use of ``var(None)`` will create a new OUT
+	parameter. This can be used for OUT parameters whose values is not
+	required by subsequent commands.
 	"""
 
-	type = "var"
-
 	def __init__(self, key=None, type=int):
-		"""
-		Create a :class:`var` instance. :obj:`key` is a unique name for the
-		value. :obj:`type` is the type of the value (defaulting to :class:`int`).
-
-		Note that when the :obj:`key` is :const:`None`, PySQL will *not* remember
-		the value, instead each use of ``var(None)`` will create a new OUT
-		parameter. This can be used for OUT parameters whose values is not
-		required by subsequent commands.
-		"""
 		super().__init__(raiseexceptions=None)
 		self.key = key
 		self.type = type
@@ -1964,6 +1909,9 @@ class var(Command):
 			return f"var({self.key!r})"
 		else:
 			return f"var({self.key!r}, {format_class(self.type)})"
+
+	def __bool__(self):
+		return False
 
 	def execute(self, context):
 		# Don't count uses of :class:`var` objects
@@ -1977,6 +1925,7 @@ class var(Command):
 
 	def source_format(self):
 		yield repr(self)
+
 
 ###
 ### Classes to be used by the PySQL commands
@@ -2094,16 +2043,16 @@ def define(arg):
 
 	if type == "int":
 		if not value:
-			return intvalue(name, 0)
+			return 0
 		try:
-			return intvalue(name, int(value))
+			return int(value)
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal integer value")
 	elif type == "float":
 		if not value:
-			return floatvalue(name, 0.)
+			return 0.
 		try:
-			return floatvalue(name, float(value))
+			return float(value)
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal float value")
 	elif type == "bool":
@@ -2115,7 +2064,7 @@ def define(arg):
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal bool value")
 	elif type and type != "str":
 		raise argparse.ArgumentTypeError(f"{type!r} is not a legal type")
-	return strvalue(name, value)
+	return value
 
 
 def source_format(object):
@@ -2191,6 +2140,7 @@ def source(object):
 			else: # tuple
 				output.append(part[0])
 		return "".join(output)
+
 
 ###
 ### Main script function
