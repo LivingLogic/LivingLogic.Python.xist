@@ -490,7 +490,6 @@ class Context:
 		self._runstarttime = None
 		self._reports = []
 		self.basedir = pathlib.Path()
-		self.basefile = self.basedir
 		self._commandstack = []
 		self._output = False
 		if connectstring is not None:
@@ -631,17 +630,13 @@ class Context:
 		return result
 
 	@contextlib.contextmanager
-	def changed_basefile(self, filepath):
+	def changed_basedir(self, dirpath):
 		oldbasedir = self.basedir
-		oldbasefile = self.basefile
-		filepath = pathlib.Path(filepath)
-		self.basedir = self.basedir/filepath.parent
-		self.basefile = self.basedir/filepath
+		self.basedir = dirpath
 		try:
 			yield
 		finally:
 			self.basedir = oldbasedir
-			self.basefile = oldbasefile
 
 	def _load(self, stream):
 		"""
@@ -967,7 +962,7 @@ class IncludeCommand(Command):
 
 		filename = context.basedir/name
 
-		with context.changed_basefile(filename):
+		with context.changed_basedir(filename.parent):
 			with filename.open("r", encoding="utf-8") as f:
 				for command in context._load(f):
 					context.execute(None, None, command)
