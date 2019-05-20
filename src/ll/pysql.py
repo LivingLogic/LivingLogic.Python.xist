@@ -1980,9 +1980,8 @@ class VarCommand(Command):
 		else:
 			return self
 
-	def source(self):
-		return repr(self)
-
+	def source_format(self):
+		yield repr(self)
 
 ###
 ### Classes to be used by the PySQL commands
