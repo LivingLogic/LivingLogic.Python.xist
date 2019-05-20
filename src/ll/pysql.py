@@ -652,7 +652,7 @@ class Context:
 		lines = []
 
 		globals = {command.type: command for command in Command.commands.values()}
-		globals["sql"] = sql
+		globals["sqlexpr"] = sqlexpr
 		globals["datetime"] = datetime
 
 		constructor_prefixes = tuple(f"{cname}(" for cname in Command.commands)
@@ -1115,7 +1115,7 @@ class _SQLCommand(_DatabaseCommand):
 		varargs = {}
 		for (argname, argvalue) in self.args.items():
 			argvalue = context.execute(f"args.{argname}", None, argvalue)
-			if isinstance(argvalue, sql):
+			if isinstance(argvalue, sqlexpr):
 				continue # no value
 			if isinstance(argvalue, VarCommand):
 				varargs[argname] = argvalue
@@ -1200,7 +1200,7 @@ class ProcedureCommand(_SQLCommand):
 
 		connection = self.beginconnection(context, connectstring, connectname)
 
-		argsql = ", ".join(f"{an}=>{av}" if isinstance(av, sql) else f"{an}=>:{an}" for (an, av) in self.args.items())
+		argsql = ", ".join(f"{an}=>{av}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
 		query = f"begin {name}({argsql}); end;"
 		result = self._executesql(context, connection, query)
 
@@ -1985,24 +1985,30 @@ class VarCommand(Command):
 ###
 
 
-class sql:
+class sqlexpr:
 	"""
-	An :class:`sql` object can be used to specify an SQL expression as a
+	An :class:`sqlexpr` object can be used to specify an SQL expression as a
 	procedure parameter instead of a fixed value. For example passing the current
-	date (i.e. the date of the import) can be done with ``sql("sysdate")``.
+	date (i.e. the date of the import) can be done with ``sqlexpr("sysdate")``.
 	"""
 
 	def __init__(self, expression):
 		self.expression = expression
 
 	def __repr__(self):
-		return f"sql({self.expression!r})"
+		return f"sqlexpr({self.expression!r})"
 
 
-class py:
+class pyexpr:
 	"""
-	An :class:`py` object can be used to embed literal Python source code in a
-	PySQL file.
+	A :class:`pyexpr` object can be used to embed literal Python source code
+	in a PySQL file.
+
+	.. note::
+		As PySQL source code is evaluated via :func:`eval` anyway, it it always
+		possible to embed Python expressions in PySQL source code. However this
+		doesn't roundtrip, i.e. printing the PySQL command via
+		:meth:`~Command.source` outputs the value of a "literal" Python expression.
 	"""
 
 	def __init__(self, expression):
