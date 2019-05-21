@@ -625,6 +625,12 @@ class Context:
 		finally:
 			self.basedir = oldbasedir
 
+	def globals(self):
+		vars = {command.__name__: command for command in Command.commands.values()}
+		vars["sqlexpr"] = sqlexpr
+		vars["datetime"] = datetime
+		return vars
+
 	def _load(self, stream):
 		"""
 		Load a PySQL file from :obj:`stream`. :obj:`stream` must be an iterable
@@ -635,7 +641,7 @@ class Context:
 		"""
 		lines = []
 
-		vars = globals()
+		vars = self.globals()
 
 		constructor_prefixes = tuple(f"{cname}(" for cname in Command.commands)
 
@@ -817,13 +823,6 @@ class Context:
 	def count(self, *args):
 		self.commandcounts[args] += 1
 		self.totalcount += 1
-
-
-def globals():
-	vars = {command.__name__: command for command in Command.commands.values()}
-	vars["sqlexpr"] = sqlexpr
-	vars["datetime"] = datetime
-	return vars
 
 
 ###
@@ -1301,12 +1300,19 @@ class literalpy(_DatabaseCommand):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} code={self.code!r} location={self.location} at {id(self):#x}>"
 
+	def globals(self, context, connection):
+		vars = {command.__name__: CommandExecutor(command, context) for command in Command.commands.values()}
+		vars["sqlexpr"] = sqlexpr
+		vars["datetime"] = datetime
+		vars["vars"] = context.keys
+		vars["connection"] = connection.connection
+		return vars
+
 	def execute(self, context):
 		code = context.execute(None, None, self.code)
 		connection = self.beginconnection(context, None, None)
 
-		vars = globals()
-		vars["connection"] = connection.connection
+		vars = self.globals(context, connection)
 		exec(code + "\n", vars, vars)
 
 		context.count(connection.connectstring, self.__class__.__name__)
@@ -1973,6 +1979,23 @@ class var(Command):
 
 	def source_format(self):
 		yield repr(self)
+
+
+class CommandExecutor:
+	"""
+	A :class:`!CommandExecutor` object wraps a :class:`Command` object in a
+	callable. Calling the :class:`!CommandExecutor` object executes the command
+	using the specified context and returns the command result.
+
+	This is used to allow calling commands in the Python source code of
+	by :class:`literalpy` commands.
+	"""
+	def __init__(self, command, context):
+		self.command = command
+		self.context = context
+
+	def __call__(self, *args, **kwargs):
+		return self.command(*args, **kwargs).execute(self.context)
 
 
 ###
