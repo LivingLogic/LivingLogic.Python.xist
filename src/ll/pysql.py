@@ -647,8 +647,8 @@ class Context:
 
 		# ``state`` is the state of the "parser", values have the following meaning
 		# ``None``: outside of any block
-		# ``sql``: inside of literal SQL block
-		# ``py``: inside of literal Python block
+		# ``literalsql``: inside of literal SQL block
+		# ``literalpy``: inside of literal Python block
 		# ``comment``: inside of comment (lines starting with "#")
 		# ``blockcomment``: inside of block comment (lines delimited by "###")
 		# ``dict``: inside of Python dict literal
@@ -668,11 +668,11 @@ class Context:
 					text = "\n".join(line[1] for line in lines).strip()
 					lines.clear()
 					if text:
-						if state == "sql":
+						if state == "literalsql":
 							if text.endswith((";", "/")):
 								text = text[:-1]
 							command = literalsql(text)
-						elif state == "py":
+						elif state == "literalpy":
 							command = literalpy(text)
 						elif state == "comment":
 							command = comment(text)
@@ -700,7 +700,7 @@ class Context:
 				elif line == "###":
 					state = "blockcomment"
 				elif line == ">>>":
-					state = "py"
+					state = "literalpy"
 				elif line.startswith("#"):
 					lines.append((i, line))
 					state = "comment"
@@ -715,19 +715,19 @@ class Context:
 						state = None
 				elif line.strip():
 					lines.append((i, line))
-					state = "sql"
+					state = "literalsql"
 			elif state == "dict":
 				lines.append((i, line))
 				if line == "}": # A single unindented ``}``
 					yield from makeblock()
 					state = None
-			elif state == "sql":
+			elif state == "literalsql":
 				if line.startswith(self.terminator):
 					yield from makeblock()
 					state = None
 				else:
 					lines.append((i, line))
-			elif state == "py":
+			elif state == "literalpy":
 				if line == "<<<":
 					yield from makeblock()
 					state = None
