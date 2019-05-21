@@ -1983,6 +1983,31 @@ class var(Command):
 		yield repr(self)
 
 
+@register
+class env(Command):
+	"""
+	:class:`env` commands return an environment variable:
+	The following parameters are supported:
+
+	:obj:`name` : string (required)
+		The name of the environment variable.
+	"""
+
+	def __init__(self, name):
+		super().__init__(raiseexceptions=None)
+		self.name = name
+
+	def __repr__(self):
+		return f"env({self.name!r})"
+
+	def execute(self, context):
+		name = context.execute(None, None, self.name)
+		return os.environ.get(name, None)
+
+	def source_format(self):
+		yield repr(self)
+
+
 class CommandExecutor:
 	"""
 	A :class:`!CommandExecutor` object wraps a :class:`Command` object in a
