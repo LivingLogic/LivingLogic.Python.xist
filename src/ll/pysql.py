@@ -1198,7 +1198,7 @@ class procedure(_SQLCommand):
 
 		self.endconnection(context, connection)
 
-		return result
+		return result or None
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1247,7 +1247,7 @@ class sql(_SQLCommand):
 		result = self._executesql(context, connection, sql)
 		context.count(connection.connectstring, self.__class__.__name__)
 		self.endconnection(context, connection)
-		return result
+		return result or None
 
 	def source_format(self):
 		yield from self._source_format(
