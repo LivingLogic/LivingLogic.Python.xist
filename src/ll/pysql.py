@@ -702,8 +702,10 @@ class Context:
 				elif line == ">>>":
 					state = "literalpy"
 				elif line.startswith("#"):
-					lines.append((i, line))
 					state = "comment"
+					lines.append((i, line[1:].strip()))
+					yield from makeblock()
+					state = None
 				elif line == self.terminator:
 					pass # Still outside the block
 				# Check for PySQL command constructor
