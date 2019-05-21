@@ -1959,11 +1959,14 @@ class var(Command):
 		return False
 
 	def execute(self, context):
+		key = context.execute(None, None, self.key)
+		type = context.execute(None, str, self.type)
+
 		# Don't count uses of :class:`var` objects
-		if self.key in context.keys:
-			value = context.keys[self.key]
-			if value is not None and not isinstance(value, self.type):
-				raise TypeError(f"{value!r} is not of type {format_class(self.type)}")
+		if key in context.keys:
+			value = context.keys[key]
+			if value is not None and not isinstance(value, type):
+				raise TypeError(f"{value!r} is not of type {format_class(type)}")
 			return value
 		else:
 			return self
