@@ -360,6 +360,50 @@ class SessionPool(SessionPool):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object db={self.connectstring()!r} at {id(self):#x}>"
 
 
+def sqlstr(s):
+	if s is None:
+		return null
+	else:
+		s = s.replace("'", "''")
+		return f"'{s}'"
+
+
+def owned(obj, owner):
+	"""
+	Do we own the object :obj:`obj` according to the owner specification
+	:obj:`owner`?
+
+	:obj:`owner` can be:
+
+		:const:`None`
+			The current user (i.e. via the view ``USER_OBJECTS``);
+
+		:const:`ALL`
+			Any user (via the views ``ALL_OBJECTS`` or ``DBA_OBJECTS``);
+
+		username : string
+			The specified user
+
+		:class:`set` or :class:`tuple`
+			A set or tuple of usernames. An object must belong to any of the users
+			to be considered owned.
+	"""
+	# We ignore objects that have no owner (like :class:`JobClass` objects)
+	# we only output them if ``owner is ALL``.
+	if owner is None:
+		if not isinstance(obj, OwnedSchemaObject) or obj.owner is not None:
+			return False
+	elif owner is ALL:
+		return True
+	elif isinstance(owner, (set, tuple)):
+		if not isinstance(obj, OwnedSchemaObject) or not any(owned(obj, o) for o in owner):
+			return False
+	else:
+		if not isinstance(obj, OwnedSchemaObject) or obj.owner != owner:
+			return False
+	return True
+
+
 class Connection(Connection):
 	"""
 	:class:`Connection` is a subclass of :class:`cx_Oracle.Connection`.
@@ -532,18 +576,8 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
-		:obj:`owner` specifies from which schema objects should be yielded:
-
-			:const:`None`
-				All objects belonging to the current user (i.e. via the view
-				``USER_OBJECTS``);
-
-			:const:`ALL`
-				All objects for all users (via the views ``ALL_OBJECTS`` or
-				``DBA_OBJECTS``);
-
-			username : string
-				All objects belonging to the specified user
+		:obj:`owner` specifies from which schema objects should be yielded.
+		For more information see :func:`owned`.
 		"""
 		if mode not in ("create", "drop", "flat"):
 			raise UnknownModeError(mode)
@@ -552,30 +586,19 @@ class Connection(Connection):
 
 		cursor = self.cursor()
 
-		def own(obj):
-			# We ignore objects that have no owner (like :class:`JobClass` objects)
-			# we only ouput them if ``owner is ALL``.
-			if owner is None:
-				if not isinstance(obj, OwnedSchemaObject) or obj.owner is not None:
-					return False
-			elif owner is not ALL:
-				if not isinstance(obj, OwnedSchemaObject) or obj.owner != owner:
-					return False
-			return True
-
 		def do(obj):
 			if mode == "create":
 				for subobj in obj.referencesall(self, done):
-					if own(subobj):
+					if owned(subobj, owner):
 						yield subobj
 			elif mode == "drop":
 				for subobj in obj.referencedbyall(self, done):
-					if own(subobj):
+					if owned(subobj, owner):
 						yield subobj
 			else:
 				if obj not in done:
 					done.add(obj)
-					if own(obj):
+					if owned(obj, owner):
 						yield obj
 
 		def dosequences():
@@ -604,6 +627,7 @@ class Connection(Connection):
 			# Since Oracle doesn't give as any dependency information about jobs,
 			# output them last (in "create" mode) to be on the safe side.
 			for type in (CheckConstraint, UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource, Job):
+				print("#"*40, type)
 				for obj in type.objects(self, owner):
 					yield from do(obj)
 
@@ -1180,18 +1204,8 @@ class OwnedSchemaObject(SchemaObject):
 	def names(cls, connection, owner=None):
 		"""
 		Generator that yields the names of all objects of this type. The argument
-		:obj:`owner` specifies whose objects are yielded:
-
-			:const:`None`
-				All objects belonging to the current user (i.e. via the view
-				``USER_OBJECTS``).
-
-			:const:`ALL`
-				All objects for all users (via the views ``ALL_OBJECTS`` or
-				``DBA_OBJECTS``)
-
-			username : string
-				All objects belonging to the specified user
+		:obj:`owner` specifies whose objects are yielded. For more information
+		see :func:`owned`.
 
 		Names will be in ascending order.
 		"""
@@ -1228,7 +1242,7 @@ class OwnedSchemaObject(SchemaObject):
 					object_name
 			"""
 			cursor.execute(query, type=cls.type.upper())
-		else:
+		elif isinstance(owner, str):
 			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
@@ -1245,24 +1259,31 @@ class OwnedSchemaObject(SchemaObject):
 					object_name
 			"""
 			cursor.execute(query, type=cls.type.upper(), owner=owner)
+		else:
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					object_name
+				from
+					{ddprefix}_objects
+				where
+					object_type = :type and
+					object_name not like 'BIN$%' and
+					object_name not like 'DR$%' and
+					owner in ({', '.join(sqlstr(o) for o in owner)})
+				order by
+					owner,
+					object_name
+			"""
+			cursor.execute(query, type=cls.type.upper())
 		return ((row.object_name, row.owner) for row in cursor)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all objects of this type in the current users schema.
-		The argument :obj:`owner` specifies whose objects are yielded:
-
-			:const:`None`
-				All objects belonging to the current user (i.e. via the view
-				``USER_OBJECTS``).
-
-			:const:`ALL`
-				All objects for all users (via the views ``ALL_OBJECTS`` or
-				``DBA_OBJECTS``)
-
-			username : string
-				All objects belonging to the specified user
+		The argument :obj:`owner` specifies whose objects are yielded. For more
+		information see :func:`owned`.
 		"""
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
 
@@ -1601,6 +1622,26 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 					table_name
 			"""
 			cursor.execute(query)
+		elif isinstance(owner, str):
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					table_name
+				from
+					{ddprefix}_tables
+				where
+					table_name not like 'BIN$%' and
+					table_name not like 'DR$%'
+				minus
+					select decode(owner, user, null, owner) as owner,
+					mview_name as table_name
+				from
+					{ddprefix}_mviews
+				order by
+					owner,
+					table_name
+			"""
+			cursor.execute(query, owner=owner)
 		else:
 			query = f"""
 				select
@@ -1611,7 +1652,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				where
 					table_name not like 'BIN$%' and
 					table_name not like 'DR$%' and
-					owner=:owner
+					owner in ({', '.join(sqlstr(o) for o in owner)})
 				minus
 				select
 					decode(owner, user, null, owner) as owner,
@@ -1619,11 +1660,12 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				from
 					{ddprefix}_mviews
 				where
-					owner=:owner
+					owner in ({', '.join(sqlstr(o) for o in owner)})
 				order by
+					owner,
 					table_name
 			"""
-			cursor.execute(query, owner=owner)
+			cursor.execute(query)
 		return ((row.table_name, row.owner) for row in cursor)
 
 	def columns(self, connection=None):
@@ -1949,7 +1991,7 @@ class Constraint(OwnedSchemaObject):
 					constraint_name
 			"""
 			cursor.execute(query, type=cls.constraint_type)
-		else:
+		elif isinstance(owner, str):
 			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
@@ -1966,6 +2008,23 @@ class Constraint(OwnedSchemaObject):
 					constraint_name
 			"""
 			cursor.execute(query, type=cls.constraint_type, owner=owner)
+		else:
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					constraint_name
+				from
+					{ddprefix}_constraints
+				where
+					generated = 'USER NAME' and
+					constraint_type = :type and
+					constraint_name not like 'BIN$%' and
+					owner in ({', '.join(sqlstr(o) for o in owner)})
+				order by
+					owner,
+					constraint_name
+			"""
+			cursor.execute(query, type=cls.constraint_type)
 		return ((rec.constraint_name, rec.owner) for rec in cursor)
 
 	def fixname(self, code):
@@ -2546,7 +2605,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 						index_name
 			"""
 			cursor.execute(query)
-		else:
+		elif isinstance(owner, str):
 			query = f"""
 				select
 					decode(owner, user, null, owner) as owner,
@@ -2578,6 +2637,38 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 					index_name
 			"""
 			cursor.execute(query, owner=owner)
+		else:
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					index_name
+				from
+					(
+						select
+							owner,
+							index_name
+						from
+							{ddprefix}_indexes
+						where
+							index_type not in ('LOB', 'IOT - TOP') and
+							owner in ({', '.join(sqlstr(o) for o in owner)})
+						minus
+						select
+							index_owner,
+							index_name
+						from
+							{ddprefix}_constraints
+						where
+							constraint_type in ('U', 'P') and
+							index_owner in ({', '.join(sqlstr(o) for o in owner)})
+						)
+					where
+						index_name not like 'BIN$%'
+					order by
+						owner,
+						index_name
+			"""
+			cursor.execute(query)
 		return ((row.index_name, row.owner) for row in cursor)
 
 	def fixname(self, code):
@@ -3420,7 +3511,7 @@ class Privilege:
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields object privileges. For the meaning of :obj:`owner`
-		see :meth:`SchemaObject.names`.
+		see :func:`owned`.
 		"""
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
 
@@ -3473,7 +3564,7 @@ class Privilege:
 						privilege
 				"""
 			cursor.execute(query)
-		else:
+		elif isinstance(owner, str):
 			ddprefix = cursor.ddprefix()
 			query = """
 				select
@@ -3492,6 +3583,42 @@ class Privilege:
 					privilege
 			"""
 			cursor.execute(query, owner=owner)
+		else:
+			ddprefix = cursor.ddprefix()
+			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
+			if ddprefix == "all":
+				query = f"""
+					select
+						decode(table_schema, user, null, table_schema) as owner,
+						privilege,
+						table_name as object,
+						decode(grantor, user, null, grantor) as grantor,
+						grantee
+					from
+						all_tab_privs
+					where
+						table_schema in ({', '.join(sqlstr(o) for o in owner)})
+					order by
+						table_name,
+						privilege
+				"""
+			else:
+				query = f"""
+					select
+						decode(owner, user, null, owner) as owner,
+						privilege,
+						table_name as object,
+						decode(grantor, user, null, grantor) as grantor,
+						grantee
+					from
+						dba_tab_privs
+					where
+						owner in ({', '.join(sqlstr(o) for o in owner)})
+					order by
+						table_name,
+						privilege
+				"""
+			cursor.execute(query)
 		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
 
 	def grantsql(self, connection=None, term=True, mapgrantee=True):
@@ -3506,7 +3633,7 @@ class Privilege:
 		(connection, cursor) = self.getcursor(connection)
 		if mapgrantee is True:
 			grantee = self.grantee
-		elif isinstance(mapgrantee, (list, tuple)):
+		elif isinstance(mapgrantee, (set, list, tuple)):
 			if self.grantee.lower() in (g.lower() for g in mapgrantee):
 				grantee = self.grantee
 			else:
@@ -3815,9 +3942,12 @@ class Preference(OwnedSchemaObject):
 			elif owner is ALL:
 				query = "select pre_owner as owner, pre_name from ctx_preferences order by pre_owner, pre_name"
 				cursor.execute(query)
-			else:
+			elif isinstance(owner, str):
 				query = "select decode(pre_owner, user, null, pre_owner) as owner, pre_name from ctx_preferences where pre_owner = :owner order by pre_name"
 				cursor.execute(query, owner=owner)
+			else:
+				query = f"select pre_owner as owner, pre_name from ctx_preferences where pre_owner in ({', '.join(sqlstr(o) for o in owner)}) order by pre_owner, pre_name"
+				cursor.execute(query)
 		except DatabaseError as exc:
 			if exc.args[0].code == 942: # ORA-00942: table or view does not exist
 				return iter(())
@@ -4027,10 +4157,14 @@ class Job(OwnedSchemaObject):
 			ddprefix = cursor.ddprefix()
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs order by owner, job_name"
 			cursor.execute(query)
-		else:
+		elif isinstance(owner, str):
 			ddprefix = cursor.ddprefix()
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner = :owner order by job_name"
 			cursor.execute(query, owner=owner)
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner in ({', '.join(sqlstr(o) for o in owner)}) order by owner, job_name"
+			cursor.execute(query)
 		return ((row.job_name, row.owner) for row in cursor)
 
 	@classmethod
