@@ -627,7 +627,6 @@ class Connection(Connection):
 			# Since Oracle doesn't give as any dependency information about jobs,
 			# output them last (in "create" mode) to be on the safe side.
 			for type in (CheckConstraint, UniqueConstraint, ForeignKey, Preference, Index, Synonym, View, MaterializedView, Function, Procedure, Package, PackageBody, Type, TypeBody, Trigger, JavaSource, Job):
-				print("#"*40, type)
 				for obj in type.objects(self, owner):
 					yield from do(obj)
 
