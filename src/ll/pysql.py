@@ -1829,8 +1829,8 @@ class loadbytes(Command):
 		"""
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
-		filename = context.execute(self.filename)
 		context.report(f"filename={filename!r}")
+		filename = context.execute(None, None, self.filename)
 		filename = context.basedir/filename
 		data = filename.read_bytes()
 		context.count(self.__class__.__name__)
