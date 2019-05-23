@@ -1883,7 +1883,7 @@ class loadstr(Command):
 		"""
 		Read the file and return the file content as a :class:`str` object.
 		"""
-		filename = context.execute("filename", None, self.filename)
+		filename = context.execute(None, None, self.filename)
 		encoding = context.execute("encoding", None, self.encoding)
 		errors = context.execute("errors", "strict", self.errors)
 
