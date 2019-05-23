@@ -518,6 +518,41 @@ class Context:
 		else:
 			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,}"
 
+	def rule(self):
+		if object is not self._lastcommand:
+			print("\u2501"*self._width, flush=True)
+			self._lastcommand = object
+
+	def source(self, object):
+		lines = object.source(self.tabsize).splitlines(False)
+		if object.location and object.location.startline and object.location.endline:
+			startline = object.location.startline
+			endline = object.location.endline
+			linenumberlen = len(f"{object.location.endline:,}")
+			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c" + "\u2500" * (self._width - 2 - linenumberlen)
+			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (self._width - 2 - linenumberlen)
+			print(ruletop, flush=True)
+
+			ellipsis = "\u22ee"
+			for (linenumber, line) in enumerate(lines, startline):
+				if self.context is not None and startline + self.context <= linenumber <= endline - self.context:
+					if startline + self.context == linenumber:
+						print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
+				else:
+					print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
+			print(rulebottom, flush=True)
+		else:
+			endline = len(lines) - 1
+			rule = "\u2500" * self._width
+			print(rule, flush=True)
+			for (linenumber, line) in enumerate(lines):
+				if self.context is not None and self.context <= linenumber <= endline - self.context:
+					if self.context == linenumber:
+						print(ellipsis, flush=True)
+				else:
+					print(line, flush=True)
+			print(rule, flush=True)
+
 	def execute(self, label, default, object):
 		if self._runstarttime is None:
 			self._runstarttime = datetime.datetime.now()
@@ -555,38 +590,9 @@ class Context:
 		elif self.verbose == "line":
 			print(f"[t+{starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: [{object.location}] >> {object.__class__.__name__}(", end="", flush=True)
 		elif self.verbose == "full":
-			if object is not self._lastcommand:
-				print("\u2501"*self._width, flush=True)
-				self._lastcommand = object
+			self.rule()
 			print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__}", flush=True)
-			lines = object.source(self.tabsize).splitlines(False)
-			if object.location and object.location.startline and object.location.endline:
-				startline = object.location.startline
-				endline = object.location.endline
-				linenumberlen = len(f"{object.location.endline:,}")
-				ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c" + "\u2500" * (self._width - 2 - linenumberlen)
-				rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (self._width - 2 - linenumberlen)
-				print(ruletop, flush=True)
-
-				ellipsis = "\u22ee"
-				for (linenumber, line) in enumerate(lines, startline):
-					if self.context is not None and startline + self.context <= linenumber <= endline - self.context:
-						if startline + self.context == linenumber:
-							print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
-					else:
-						print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
-				print(rulebottom, flush=True)
-			else:
-				endline = len(lines) - 1
-				rule = "\u2500" * self._width
-				print(rule, flush=True)
-				for (linenumber, line) in enumerate(lines):
-					if self.context is not None and self.context <= linenumber <= endline - self.context:
-						if self.context == linenumber:
-							print(ellipsis, flush=True)
-					else:
-						print(line, flush=True)
-				print(rule, flush=True)
+			self.source(object)
 
 		if object.location is not None:
 			self._lastlocation = object.location
@@ -609,17 +615,13 @@ class Context:
 					if endfile:
 						print(f"]->failed", end="", flush=True)
 				elif self.verbose == "full":
-					if object is not self._lastcommand:
-						print("\u2501"*self._width, flush=True)
-						self._lastcommand = object
+					self.rule()
 					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
 					print(f"{self.logprefix(starttime, commandnumber, object)} >> ignored {format_class(exc.__class__)}: {exctext}", flush=True)
 		else:
 			now = datetime.datetime.now()
 			if self.verbose == "full":
-				if object is not self._lastcommand:
-					print("\u2501"*self._width, flush=True)
-					self._lastcommand = object
+				self.rule()
 				if result is None:
 					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished in {now-starttime}", flush=True)
 				else:
