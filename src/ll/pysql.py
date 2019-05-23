@@ -1625,12 +1625,12 @@ class file(Command):
 		filename = pathlib.Path(context.filedirectory + name.format(**context.keys))
 
 		try:
-			filename.write_bytes(self.content)
+			filename.write_bytes(content)
 		except FileNotFoundError: # probably the directory doesn't exist
 			parent = filename.parent
 			if parent != filename:
 				parent.mkdir(parents=True)
-				filename.write_bytes(self.content)
+				filename.write_bytes(content)
 			else:
 				raise # we don't have a directory to make so pass the error on
 
