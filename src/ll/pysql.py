@@ -399,7 +399,7 @@ reprthreshold = 100
 
 def shortrepr(value):
 	if isinstance(value, bytes) and len(value) > reprthreshold:
-		return f"<{bytes.__repr__(value[:reprthreshold])} ... ({len(value):,})>"
+		return f"<{bytes.__repr__(value[:reprthreshold])} ... ({len(value):,} bytes)>"
 	elif isinstance(value, str) and  len(value) > reprthreshold:
 		return f"<{str.__repr__(value[:reprthreshold])} ... ({len(value):,} characters)>"
 	else:
