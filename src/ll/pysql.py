@@ -648,7 +648,7 @@ class Context:
 		# ``literalsql``: inside of literal SQL block
 		# ``literalpy``: inside of literal Python block
 		# ``comment``: inside of comment (lines starting with "#")
-		# ``blockcomment``: inside of block comment (lines delimited by "###")
+		# ``blockcomment``: inside of block comment (lines delimited by "######")
 		# ``dict``: inside of Python dict literal
 		# others: inside a PySQL command of that name
 		state = None
@@ -667,8 +667,6 @@ class Context:
 					lines.clear()
 					if text:
 						if state == "literalsql":
-							if text.endswith((";", "/")):
-								text = text[:-1]
 							command = literalsql(text)
 						elif state == "literalpy":
 							command = literalpy(text)
@@ -686,8 +684,9 @@ class Context:
 			except Exception as exc:
 				raise LocationError(self._location) from exc
 
-		def handleline(lineno, line):
-			nonlocal state
+
+		for (i, line) in enumerate(stream, 1):
+			line = line.rstrip()
 			if state is None:
 				if line.startswith("{"):
 					lines.append((i, line))
@@ -695,9 +694,10 @@ class Context:
 					if line.endswith("}"):
 						yield from makeblock()
 						state = None
-				elif line == "###":
+				elif line == "######":
 					state = "blockcomment"
-				elif line == ">>>":
+				elif line == "###>>>":
+					lines.append((i, line))
 					state = "literalpy"
 				elif line.startswith("#"):
 					state = "comment"
@@ -706,14 +706,13 @@ class Context:
 					state = None
 				elif line == self.terminator:
 					pass # Still outside the block
-				# Check for PySQL command constructor
-				elif line.startswith(constructor_prefixes):
+				elif line.startswith(constructor_prefixes): # PySQL command constructor?
 					lines.append((i, line))
 					state = line[:line.find("(")]
 					if line.endswith(")"):
 						yield from makeblock()
 						state = None
-				elif line.strip():
+				elif line:
 					lines.append((i, line))
 					state = "literalsql"
 			elif state == "dict":
@@ -728,21 +727,14 @@ class Context:
 				else:
 					lines.append((i, line))
 			elif state == "literalpy":
-				if line == "<<<":
+				lines.append((i, line))
+				if line == "###<<<":
 					yield from makeblock()
 					state = None
-				else:
-					lines.append((i, line))
 			elif state == "comment":
-				if line.startswith("#"):
-					lines.append((i, line))
-				else:
-					yield from makeblock()
-					state = None
-					# We have to handle the next line
-					yield from handleline(i, line)
+				raise ValueError("This can't happen")
 			elif state == "blockcomment":
-				if line == "###":
+				if line == "######":
 					yield from makeblock()
 					state = None
 				else:
@@ -752,9 +744,6 @@ class Context:
 				if line == ")": # A single unindented ``)``
 					yield from makeblock()
 					state = None
-
-		for (i, line) in enumerate(stream, 1):
-			yield from handleline(i, line.rstrip())
 		yield from makeblock()
 
 	def executeall(self, stream):
@@ -1276,6 +1265,8 @@ class literalsql(_SQLCommand):
 
 	def execute(self, context):
 		sql = context.execute(None, None, self.sql)
+		if sql.endswith((";", "/")):
+			sql = sql[:-1]
 		connection = self.beginconnection(context, None, None)
 		connection.cursor.execute(sql)
 		context.count(connection.connectstring, self.__class__.__name__)
@@ -1319,7 +1310,7 @@ class literalpy(_DatabaseCommand):
 		self.endconnection(context, connection)
 
 	def source(self):
-		return f">>>\n{self.code.strip()}\n<<<"
+		return self.code
 
 
 @register
@@ -1794,14 +1785,8 @@ class comment(Command):
 		context.count(self.__class__.__name__)
 
 	def source(self):
-		if "\n" in self.comment:
-			lines = self.comment.splitlines(False)
-			if any(line == "###" for line in lines):
-				return "".join(f"# {line}\n" for line in lines)
-			else:
-				return f"###\n{self.comment.strip()}\n###"
-		else:
-			return f"# {self.comment}"
+		comment = self.comment
+		return comment
 
 
 @register
