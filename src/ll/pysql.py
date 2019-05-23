@@ -2143,9 +2143,8 @@ def source_format(object):
 		if "\n" in object:
 			lines = object.splitlines(True)
 			for (i, line) in enumerate(lines):
-				last = i == len(lines)-1
 				yield repr(line)
-				if not last:
+				if i != len(lines)-1:
 					yield None
 		else:
 			yield repr(object)
