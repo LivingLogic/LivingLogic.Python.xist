@@ -201,8 +201,6 @@ procedure and will call the procedure to insert data into the table::
 		field='per_id',
 	}
 
-	compileall()
-
 	checkerrors()
 
 This file can then be imported into an Oracle database with the following
@@ -233,8 +231,8 @@ import two records, one by calling ``person_insert`` and one by calling
 
 Furthermore it will create one file (named something like ``portrait_42.png``)
 and reset the sequence ``person_seq`` to the maximum value of the field
-``per_id`` in the table ``person``. Finally it will recompile all schema objects
-and then make sure that no errors exist in the schema.
+``per_id`` in the table ``person``. Finally it will make sure that no errors
+exist in the schema.
 
 
 Multiple database connections
@@ -1524,33 +1522,6 @@ class checkerrors(_DatabaseCommand):
 			raise CompilationError(invalid_objects)
 
 		return pyexpr(f"No errors in {connectstring}")
-
-	def source_format(self):
-		yield from self._source_format()
-
-
-@register
-class compileall(_DatabaseCommand):
-	"""
-	The :class:`!compileall` command will recompile all objects in the schema.
-
-	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
-	"""
-
-	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		connectstring = context.execute("connectstring", None, self.connectstring)
-		connectname = context.execute("connectname", None, self.connectname)
-
-		connection = self.beginconnection(context, connectstring, connectname)
-		connectstring = connection.connectstring
-		connection.cursor.execute("begin dbms_utility.compile_schema(user); end;")
-		self.endconnection(context, connection)
-
-		context.count(connectstring, self.__class__.__name__)
-		return pyexpr(f"Compiled all in {connectstring}")
 
 	def source_format(self):
 		yield from self._source_format()
