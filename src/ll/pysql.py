@@ -323,7 +323,8 @@ it supports the following command line options:
 		Gives different levels of output while data is being imported to the
 		database. The default is no output (unless an exception occurs). Possible
 		modes are: ``dot`` (one dot for each command), ``type`` (each command type),
-		 or ``full`` (detailed output for each command/procedure call)
+		``line`` (each top level command as a line), ``file`` (the file location
+		of each command) or ``full`` (detailed output for each command)
 
 	``-z``, ``--summary``
 		Give a summary of the number of commands executed and procedures called.
@@ -458,13 +459,15 @@ class Context:
 	A :class:`Context` objects contains the configuration and run time information
 	required for importing a PySQL file.
 	"""
-	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", raiseexceptions=True, verbose=0, summary=False, vars=None):
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
 		self.keys = {v.key: v for v in vars} if vars else {}
 		self.connections = {}
 		self.commit = commit
 		self.scpdirectory = scpdirectory
 		self.filedirectory = filedirectory
 		self.terminator = terminator
+		self.tabsize = tabsize
+		self.context = context
 		self.raiseexceptions = [raiseexceptions]
 		self.verbose = verbose
 		self.summary = summary
@@ -475,8 +478,18 @@ class Context:
 		self._runstarttime = None
 		self._reports = []
 		self.basedir = pathlib.Path()
-		self._commandstack = []
+		self._lastlocation = None
+		self._lastcommand = None
 		self._output = False
+		for fd in range(3):
+			try:
+				self._width = os.get_terminal_size(fd)[0]
+			except OSError:
+				pass
+			else:
+				break
+		else:
+			self._width = 80
 		if connectstring is not None:
 			self.pushconnection(None, self.connect(connectstring, commit))
 
@@ -500,75 +513,84 @@ class Context:
 			raise ValueError(f"connection stack for name {connectname!r} empty")
 		return self.connections[connectname].pop()
 
-	def finish(self):
-		if self.verbose == "full":
-			self._commandstack = []
-		self.count("include")
-
-	def sep(self, index):
-		if len(self._commandstack) >= index:
-			entry = self._commandstack[-index]
-			if entry.output:
-				if self.verbose in {"type", "full"}:
-					print(", ", end="", flush=True)
-			else:
-				for e in self._commandstack:
-					e.output = True
-					if e is entry:
-						break
+	def logprefix(self, starttime, commandnumber, object):
+		if object.location is not None:
+			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,} :: [{object.location}]"
 		else:
-			if self.verbose == "type":
-				if self._output:
-					print(", ", end="", flush=True)
-				else:
-					print(" ", end="", flush=True)
-					self._output = True
+			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,}"
 
 	def execute(self, label, default, object):
 		if self._runstarttime is None:
 			self._runstarttime = datetime.datetime.now()
 			self._output = False
 
-		if self.verbose == "full":
-			if self._commandstack:
-				quiet = isinstance(self._commandstack[0].command, include)
-			else:
-				quiet = isinstance(object, include)
-		else:
-			quiet = False
-
 		if not isinstance(object, Command):
-			if not quiet and object != default and self.verbose == "full":
-				self.sep(1)
-				if label is not None:
-					message = f"{label}={shortrepr(object)}"
-				else:
-					message = shortrepr(object)
-				print(message, end="", flush=True)
 			return object
 
 		if isinstance(object, comment):
 			self.count("comment")
 			return None
 
+		commandnumber = self.totalcount + 1
 		if object.raiseexceptions is not None:
 			self.raiseexceptions.append(object.raiseexceptions)
 
-		entry = CommandStackEntry(object)
-		self._commandstack.append(entry)
+		starttime = datetime.datetime.now()
 
-		if not quiet:
-			if self.verbose == "dot":
-				print(".", end="", flush=True)
-			elif self.verbose == "type":
-				self.sep(2)
-				print(f"{object.__class__.__name__}(", end="", flush=True)
-			elif self.verbose == "full":
-				if len(self._commandstack) == 1:
-					print(f"[t+{entry.starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: {object.location} >> {object.__class__.__name__}(", end="", flush=True)
-				else:
-					self.sep(2)
-					print(f"{object.__class__.__name__}(", end="", flush=True)
+		if self.verbose == "dot":
+			print(".", end="", flush=True)
+		elif self.verbose == "type":
+			print(f"{object.__class__.__name__}(", end="", flush=True)
+		elif self.verbose == "file":
+			endfile = False
+			if object.location is None:
+				pass # A command inside another command
+			elif self._lastlocation is None or object.location.filename != self._lastlocation.filename:
+				print(f" [{object.location.filename} :: {object.location.lines()}", end="", flush=True)
+				endfile = True
+			elif object.location.startline != self._lastlocation.startline or object.location.endline != self._lastlocation.endline:
+				print(f" [{object.location.lines()}", end="", flush=True)
+				endfile = True
+			else:
+				pass # still the same location
+		elif self.verbose == "line":
+			print(f"[t+{starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: [{object.location}] >> {object.__class__.__name__}(", end="", flush=True)
+		elif self.verbose == "full":
+			if object is not self._lastcommand:
+				print("\u2501"*self._width, flush=True)
+				self._lastcommand = object
+			print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__}", flush=True)
+			lines = object.source(self.tabsize).splitlines(False)
+			if object.location and object.location.startline and object.location.endline:
+				startline = object.location.startline
+				endline = object.location.endline
+				linenumberlen = len(f"{object.location.endline:,}")
+				ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c" + "\u2500" * (self._width - 2 - linenumberlen)
+				rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (self._width - 2 - linenumberlen)
+				print(ruletop, flush=True)
+
+				ellipsis = "\u22ee"
+				for (linenumber, line) in enumerate(lines, startline):
+					if self.context is not None and startline + self.context <= linenumber <= endline - self.context:
+						if startline + self.context == linenumber:
+							print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
+					else:
+						print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
+				print(rulebottom, flush=True)
+			else:
+				endline = len(lines) - 1
+				rule = "\u2500" * self._width
+				print(rule, flush=True)
+				for (linenumber, line) in enumerate(lines):
+					if self.context is not None and self.context <= linenumber <= endline - self.context:
+						if self.context == linenumber:
+							print(ellipsis, flush=True)
+					else:
+						print(line, flush=True)
+				print(rule, flush=True)
+
+		if object.location is not None:
+			self._lastlocation = object.location
 
 		result = None
 		try:
@@ -576,42 +598,41 @@ class Context:
 		except Exception as exc:
 			if self.raiseexceptions[-1]:
 				if self.verbose:
-					print()
+					print(flush=True)
 				raise CommandError(object) from exc
 			else:
 				self.errorcount += 1
-				if not quiet:
-					if self.verbose == "dot":
-						print("!", end="", flush=True)
-					elif self.verbose == "type":
-						print(f") -> failed", end="", flush=True)
-					elif self.verbose == "full":
-						exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
-						print(f") -> ignored {format_class(exc.__class__)}: {exctext}")
-		else:
-			if not quiet:
-				if self.verbose == "full":
-					now = datetime.datetime.now()
-					if self.verbose == "type":
-						print(f")", end="", flush=True)
-					elif self.verbose == "full":
-						if len(self._commandstack) == 1:
-							if result is None:
-								print(f") in {now-entry.starttime}", flush=True)
-							else:
-								print(f") -> {shortrepr(result)} (in {now-entry.starttime})", flush=True)
-						else:
-							if result is None:
-								print(f")", end="", flush=True)
-							else:
-								print(f") -> {shortrepr(result)}", end="", flush=True)
+				if self.verbose == "dot":
+					print("!", end="", flush=True)
 				elif self.verbose == "type":
-					print(f")", end="", flush=True)
+					print(f")->failed", end="", flush=True)
+				elif self.verbose == "file":
+					if endfile:
+						print(f"]->failed", end="", flush=True)
+				elif self.verbose == "full":
+					if object is not self._lastcommand:
+						print("\u2501"*self._width, flush=True)
+						self._lastcommand = object
+					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+					print(f"{self.logprefix(starttime, commandnumber, object)} >> ignored {format_class(exc.__class__)}: {exctext}", flush=True)
+		else:
+			now = datetime.datetime.now()
+			if self.verbose == "full":
+				if object is not self._lastcommand:
+					print("\u2501"*self._width, flush=True)
+					self._lastcommand = object
+				if result is None:
+					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished in {now-starttime}", flush=True)
+				else:
+					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished with {shortrepr(result)} (in {now-starttime})", flush=True)
+			elif self.verbose == "file":
+				if endfile:
+					print(f"]", end="", flush=True)
+			elif self.verbose == "type":
+				print(f")", end="", flush=True)
 		finally:
 			if object.raiseexceptions is not None:
 				self.raiseexceptions.pop()
-			if not isinstance(object, include):
-				self._commandstack.pop()
 		return result
 
 	@contextlib.contextmanager
@@ -754,6 +775,8 @@ class Context:
 		try:
 			if self.verbose == "type":
 				print("commands:", end="", flush=True)
+			elif self.verbose == "file":
+				print("files:", end="", flush=True)
 			for command in self._load(stream):
 				self.execute(None, None, command)
 			for connections in self.connections.values():
@@ -764,7 +787,7 @@ class Context:
 						connection.connection.rollback()
 		finally:
 			if self.verbose in {"dot", "type"}:
-				print()
+				print(flush=True)
 		self._printsummary()
 
 	def _printsummary(self):
@@ -772,12 +795,11 @@ class Context:
 			if self._runstarttime is None:
 				self._runstarttime = datetime.datetime.now()
 			now = datetime.datetime.now()
-			if self.verbose:
-				print()
 			if self.verbose == "full":
-				print(f"[t+{now-self._runstarttime}] >> Command summary")
+				print("\u2501"*self._width, flush=True)
+				print(f"[t+{now-self._runstarttime}] >> Command summary", flush=True)
 			else:
-				print("Command summary")
+				print("Command summary", flush=True)
 			anyoutput = False
 			totallen = len(f"{self.totalcount:,}")
 
@@ -791,23 +813,23 @@ class Context:
 			for (key, count) in sorted(self.commandcounts.items(), key=sortkey):
 				connection = key[0] if len(key) > 1 else None
 				if not anyoutput or connection != lastconnection:
-					print()
+					print(flush=True)
 					if connection:
-						print(f"Connection {connection}:")
+						print(f"Connection {connection}:", flush=True)
 					else:
-						print("Other commands:")
+						print("Other commands:", flush=True)
 				lastconnection = connection
 				anyoutput = True
 				keys = " ".join(key[1:]) if len(key) > 1 else key[0]
-				print(f"    {count:>{totallen},} {keys}")
+				print(f"    {count:>{totallen},} {keys}", flush=True)
 			if self.errorcount:
-				print("")
-				print(f"Exceptions: {self.errorcount:,} exception{'s' if self.errorcount != 1 else ''} ignored")
+				print(flush=True)
+				print(f"Exceptions: {self.errorcount:,} exception{'s' if self.errorcount != 1 else ''} ignored", flush=True)
 			if anyoutput:
-				print("")
-				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed")
+				print(flush=True)
+				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed", flush=True)
 			if not anyoutput:
-				print("    no commands executed")
+				print("    no commands executed", flush=True)
 
 	def count(self, *args):
 		self.commandcounts[args] += 1
@@ -911,8 +933,8 @@ class Command:
 		yield -1
 		yield ")"
 
-	def source(self):
-		return source(self)
+	def source(self, tabsize=None):
+		return source(self, tabsize)
 
 
 def register(cls):
@@ -946,7 +968,6 @@ class include(Command):
 	def execute(self, context):
 		name = context.execute("name", None, self.name)
 		cond = context.execute("cond", None, self.cond)
-		context.finish()
 
 		filename = context.basedir/name
 
@@ -955,6 +976,7 @@ class include(Command):
 				with filename.open("r", encoding="utf-8") as f:
 					for command in context._load(f):
 						context.execute(None, None, command)
+		context.count(self.__class__.__name__)
 
 	def source_format(self):
 		yield from self._source_format(self.name, raiseexceptions=self.raiseexceptions)
@@ -1272,8 +1294,11 @@ class literalsql(_SQLCommand):
 		context.count(connection.connectstring, self.__class__.__name__)
 		self.endconnection(context, connection)
 
-	def source(self):
-		return (self.sql or "").strip()
+	def source(self, tabsize=None):
+		sql = (self.sql or "").strip()
+		if tabsize is not None:
+			sql = sql.expandtabs(tabsize)
+		return sql
 
 
 class literalpy(_DatabaseCommand):
@@ -1309,8 +1334,8 @@ class literalpy(_DatabaseCommand):
 		context.count(connection.connectstring, self.__class__.__name__)
 		self.endconnection(context, connection)
 
-	def source(self):
-		return self.code
+	def source(self, tabsize=None):
+		return self.code.expandtabs(tabsize)
 
 
 @register
@@ -1483,6 +1508,11 @@ class popraiseexceptions(Command):
 		oldvalue = context.raiseexceptions.pop()
 		context.count(self.__class__.__name__)
 		return oldvalue
+
+	def source_format(self):
+		yield from self._source_format(
+			raiseexceptions=self.raiseexceptions,
+		)
 
 
 @register
@@ -1784,8 +1814,10 @@ class comment(Command):
 	def execute(self, context):
 		context.count(self.__class__.__name__)
 
-	def source(self):
+	def source(self, tabsize=None):
 		comment = self.comment
+		if tabsize is not None:
+			comment = comment.expandtabs(tabsize)
 		return comment
 
 
@@ -1814,7 +1846,6 @@ class loadbytes(Command):
 		"""
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
-		context.report(f"filename={filename!r}")
 		filename = context.execute(None, None, self.filename)
 		filename = context.basedir/filename
 		data = filename.read_bytes()
@@ -2085,11 +2116,17 @@ class Location:
 
 	def __str__(self):
 		if self.startline is None and self.endline is None:
-			return f"({self.filename}"
-		elif self.startline == self.endline:
-			return f"({self.filename} :: line {self.startline:,})"
+			return str(self.filename)
 		else:
-			return f"({self.filename} :: lines {self.startline:,}-{self.endline:,})"
+			return f"{self.filename} :: {self.lines()}"
+
+	def lines(self):
+		if self.startline is None and self.endline is None:
+			return "?"
+		elif self.startline == self.endline:
+			return f"{self.startline:,}"
+		else:
+			return f"{self.startline:,}-{self.endline:,}"
 
 
 def define(arg):
@@ -2171,7 +2208,7 @@ def source_format(object):
 		yield repr(object)
 
 
-def source(object):
+def source(object, tabsize=None):
 	parts = list(source_format(object))
 
 	if sum(len(part if isinstance(part, str) else part[1]) for part in parts if isinstance(part, (str, tuple))) <= 80:
@@ -2193,7 +2230,10 @@ def source(object):
 				needindent = True
 			else: # tuple
 				output.append(part[0])
-		return "".join(output)
+		output = "".join(output)
+		if tabsize is not None:
+			output = output.expandtabs(tabsize)
+		return output
 
 
 ###
@@ -2204,11 +2244,13 @@ def main(args=None):
 	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://python.livinglogic.de/pysql.html")
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
-	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "full"))
+	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "file", "line", "full"))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument("-t", "--terminator", dest="terminator", metavar="STRING", help="Terminator after an SQL command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
+	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
+	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of lines when printing source code (default %(default)r)", type=int, default=None)
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
 	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
 
@@ -2220,6 +2262,8 @@ def main(args=None):
 		filedirectory=args.filedirectory,
 		commit=args.commit,
 		terminator=args.terminator,
+		tabsize=args.tabsize,
+		context=args.context,
 		verbose=args.verbose,
 		summary=args.summary,
 		vars=args.defines
