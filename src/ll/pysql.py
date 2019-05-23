@@ -517,8 +517,8 @@ class Context:
 		else:
 			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,}"
 
-	def rule(self):
-		if object is not self._lastcommand:
+	def rule(self, object):
+		if self._lastcommand is None or object is not self._lastcommand:
 			print("\u2501"*self._width, flush=True)
 			self._lastcommand = object
 
@@ -588,12 +588,9 @@ class Context:
 		elif self.verbose == "line":
 			print(f"[t+{starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: [{object.location}] >> {object.__class__.__name__}(", end="", flush=True)
 		elif self.verbose == "full":
-			self.rule()
+			self.rule(object)
 			print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__}", flush=True)
 			self.source(object)
-
-		if object.location is not None:
-			self._lastlocation = object.location
 
 		result = None
 		try:
@@ -613,13 +610,13 @@ class Context:
 					if endfile:
 						print(f"]->failed", end="", flush=True)
 				elif self.verbose == "full":
-					self.rule()
+					self.rule(object)
 					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
 					print(f"{self.logprefix(starttime, commandnumber, object)} >> ignored {format_class(exc.__class__)}: {exctext}", flush=True)
 		else:
 			now = datetime.datetime.now()
 			if self.verbose == "full":
-				self.rule()
+				self.rule(object)
 				if result is None:
 					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished in {now-starttime}", flush=True)
 				else:
@@ -787,6 +784,8 @@ class Context:
 		finally:
 			if self.verbose in {"dot", "type"}:
 				print(flush=True)
+			elif self.verbose == "full":
+				self.rule(None)
 		self._printsummary()
 
 	def _printsummary(self):
@@ -795,7 +794,6 @@ class Context:
 				self._runstarttime = datetime.datetime.now()
 			now = datetime.datetime.now()
 			if self.verbose == "full":
-				print("\u2501"*self._width, flush=True)
 				print(f"[t+{now-self._runstarttime}] >> Command summary", flush=True)
 			else:
 				print("Command summary", flush=True)
