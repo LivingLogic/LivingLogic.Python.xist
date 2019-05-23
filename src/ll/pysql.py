@@ -1512,7 +1512,7 @@ class checkerrors(_DatabaseCommand):
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
 
-		return pyexpr(f"No errors in {connectstring}")
+		return pyexpr(f"no errors in {connectstring}")
 
 	def source_format(self):
 		yield from self._source_format()
