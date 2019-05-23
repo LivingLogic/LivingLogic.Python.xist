@@ -918,7 +918,7 @@ class Command:
 				yield (",", "")
 			else:
 				yield (",", ", ")
-			if isinstance(argvalue, str) and "\n" in argvalue:
+			if argname is not None and isinstance(argvalue, str) and "\n" in argvalue:
 				yield 1
 			yield None
 		yield -1
