@@ -476,7 +476,6 @@ class Context:
 		self.totalcount = 0
 		self._location = None
 		self._runstarttime = None
-		self._reports = []
 		self.basedir = pathlib.Path()
 		self._lastlocation = None
 		self._lastcommand = None
