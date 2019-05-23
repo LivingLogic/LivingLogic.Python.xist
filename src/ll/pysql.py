@@ -479,7 +479,6 @@ class Context:
 		self.basedir = pathlib.Path()
 		self._lastlocation = None
 		self._lastcommand = None
-		self._output = False
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
@@ -556,7 +555,6 @@ class Context:
 	def execute(self, label, default, object):
 		if self._runstarttime is None:
 			self._runstarttime = datetime.datetime.now()
-			self._output = False
 
 		if not isinstance(object, Command):
 			return object
