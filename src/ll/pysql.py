@@ -479,6 +479,7 @@ class Context:
 		self.basedir = pathlib.Path()
 		self._lastlocation = None
 		self._lastcommand = None
+		self._locals = {}
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
@@ -692,10 +693,10 @@ class Context:
 						elif state == "blockcomment":
 							command = comment(text)
 						elif state == "dict":
-							args = eval(text, vars, vars)
+							args = eval(text, vars, self._locals)
 							command = Command.fromdict(args)
 						else:
-							command = eval(text, vars, vars)
+							command = eval(text, vars, self._locals)
 						command.location = self._location
 						yield command
 			except Exception as exc:
@@ -1326,7 +1327,7 @@ class literalpy(_DatabaseCommand):
 		connection = self.beginconnection(context, None, None)
 
 		vars = self.globals(context, connection)
-		exec(code + "\n", vars, vars)
+		exec(code + "\n", vars, context._locals)
 
 		context.count(connection.connectstring, self.__class__.__name__)
 		self.endconnection(context, connection)
