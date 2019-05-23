@@ -1073,7 +1073,7 @@ class _DatabaseCommand(Command):
 
 	def endconnection(self, context, connection):
 		if connection.commit == "record":
-			connection.connect.commit()
+			connection.connection.commit()
 		if self._single: # This was a connection just for this one command
 			self.connection.close()
 
