@@ -1309,6 +1309,10 @@ class literalpy(_DatabaseCommand):
 
 	def __init__(self, code):
 		super().__init__()
+		prefix = "#>>>\n"
+		suffix = "\n#<<<"
+		if not code.startswith(prefix) or not code.endswith(suffix):
+			raise ValueError(f"{self.__class__.__qualname__} code must start with {prefix!r} and end with {suffix!r}")
 		self.code = code
 
 	def __repr__(self):
