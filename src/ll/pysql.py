@@ -666,7 +666,7 @@ class Context:
 		# ``literalsql``: inside of literal SQL block
 		# ``literalpy``: inside of literal Python block
 		# ``comment``: inside of comment (lines starting with "#")
-		# ``blockcomment``: inside of block comment (lines delimited by "######")
+		# ``blockcomment``: inside of block comment (lines delimited by "###")
 		# ``dict``: inside of Python dict literal
 		# others: inside a PySQL command of that name
 		state = None
@@ -712,9 +712,9 @@ class Context:
 					if line.endswith("}"):
 						yield from makeblock()
 						state = None
-				elif line == "######":
+				elif line == "###":
 					state = "blockcomment"
-				elif line == "###>>>":
+				elif line == "#>>>":
 					lines.append((i, line))
 					state = "literalpy"
 				elif line.startswith("#"):
@@ -746,13 +746,13 @@ class Context:
 					lines.append((i, line))
 			elif state == "literalpy":
 				lines.append((i, line))
-				if line == "###<<<":
+				if line == "#<<<":
 					yield from makeblock()
 					state = None
 			elif state == "comment":
 				raise ValueError("This can't happen")
 			elif state == "blockcomment":
-				if line == "######":
+				if line == "###":
 					yield from makeblock()
 					state = None
 				else:
