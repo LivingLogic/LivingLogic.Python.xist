@@ -693,9 +693,13 @@ class Context:
 						elif state == "blockcomment":
 							command = comment(text)
 						elif state == "dict":
+							# Prepend empty lines, so in case of an exception the
+							# linenumbers in the stacktrace match
+							text = self._location.offsetsource(text)
 							args = eval(text, vars, self._locals)
 							command = Command.fromdict(args)
 						else:
+							text = self._location.offsetsource(text)
 							command = eval(text, vars, self._locals)
 						command.location = self._location
 						yield command
@@ -1331,6 +1335,9 @@ class literalpy(_DatabaseCommand):
 		connection = self.beginconnection(context, None, None)
 
 		vars = self.globals(context, connection)
+
+		if self.location is not None:
+			code = self.location.offsetsource(code)
 		exec(code + "\n", vars, context._locals)
 
 		context.count(connection.connectstring, self.__class__.__name__)
@@ -2133,6 +2140,10 @@ class Location:
 		else:
 			return f"{self.startline:,}-{self.endline:,}"
 
+	def offsetsource(self, source):
+		if self.startline is not None:
+			source = (self.startline-1) * "\n" + source
+		return source
 
 def define(arg):
 	(name, _, value) = arg.partition("=")
