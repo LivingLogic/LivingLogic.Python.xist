@@ -29,7 +29,7 @@ Changes in 5.44 (released 05/??/2019)
 	simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
 	``dbms_utility.compile_schema()``.
 
-*	The PySQL terminator comment (``-- @@@``) can now now longer be specified
+*	The PySQL terminator comment (``-- @@@``) can now no longer be specified
 	via a command line option.
 
 *	Running PySQL scripts in full mode now outputs timing information.

@@ -18,7 +18,7 @@ The PySQL command ``compileall`` has been removed. This same effect can
 simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
 ``dbms_utility.compile_schema()``.
 
-The PySQL terminator comment (``-- @@@``) can now now longer be specified
+The PySQL terminator comment (``-- @@@``) can now no longer be specified
 via a command line option.
 
 
