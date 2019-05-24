@@ -1264,7 +1264,7 @@ class sql(_SQLCommand):
 			raiseexceptions=self.raiseexceptions,
 			connectstring=self.connectstring,
 			connectname=self.connectname,
-			args=self.args,
+			args=self.args if self.args else None,
 		)
 
 
@@ -1891,7 +1891,7 @@ class loadstr(Command):
 		result = f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r}"
 		if self.encoding is not None:
 			result += f", encoding={self.encoding!r}"
-		if self.errors is not None:
+		if self.errors != "strict":
 			result += f", errors={self.errors!r}"
 		result += f"{self.location} at {id(self):#x}>"
 		return result
@@ -1913,7 +1913,7 @@ class loadstr(Command):
 		yield from self._source_format(
 			self.filename,
 			encoding=self.encoding,
-			errors=self.errors,
+			errors=self.errors if self.errors != "strict" else None,
 			raiseexceptions=self.raiseexceptions,
 		)
 
