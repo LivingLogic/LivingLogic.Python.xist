@@ -8,6 +8,20 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.44
+=========================
+
+Changes to ``ll.sisyphus``
+--------------------------
+
+The PySQL command ``compileall`` has been removed. This same effect can
+simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
+``dbms_utility.compile_schema()``.
+
+The PySQL terminator comment (``-- @@@``) can now now longer be specified
+via a command line option.
+
+
 Migrating to version 5.42
 =========================
 
