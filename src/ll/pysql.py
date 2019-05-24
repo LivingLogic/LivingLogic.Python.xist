@@ -1333,7 +1333,10 @@ class literalpy(_DatabaseCommand):
 		self.endconnection(context, connection)
 
 	def source(self, tabsize=None):
-		return self.code.expandtabs(tabsize)
+		code = self.code
+		if tabsize is not None:
+			code = code.expandtabs(tabsize)
+		return code
 
 
 @register
