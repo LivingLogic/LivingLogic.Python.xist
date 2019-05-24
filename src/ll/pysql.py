@@ -459,13 +459,13 @@ class Context:
 	A :class:`Context` objects contains the configuration and run time information
 	required for importing a PySQL file.
 	"""
-	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", terminator="-- @@@", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
 		self.keys = {v.key: v for v in vars} if vars else {}
 		self.connections = {}
 		self.commit = commit
 		self.scpdirectory = scpdirectory
 		self.filedirectory = filedirectory
-		self.terminator = terminator
+		self.terminator = "-- @@@"
 		self.tabsize = tabsize
 		self.context = context
 		self.raiseexceptions = [raiseexceptions]
@@ -2253,7 +2253,6 @@ def main(args=None):
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
-	p.add_argument("-t", "--terminator", dest="terminator", metavar="STRING", help="Terminator after an SQL command (should be a valid SQL comment; default %(default)r)", default="-- @@@")
 	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
 	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of lines when printing source code (default %(default)r)", type=int, default=None)
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
@@ -2266,7 +2265,6 @@ def main(args=None):
 		scpdirectory=args.scpdirectory,
 		filedirectory=args.filedirectory,
 		commit=args.commit,
-		terminator=args.terminator,
 		tabsize=args.tabsize,
 		context=args.context,
 		verbose=args.verbose,
