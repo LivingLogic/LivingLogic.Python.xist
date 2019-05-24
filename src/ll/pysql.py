@@ -819,7 +819,7 @@ class procedure(_SQLCommand):
 
 		connection = self.beginconnection(context, connectstring, connectname)
 
-		argsql = ", ".join(f"{an}=>{av}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
+		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
 		query = f"begin {name}({argsql}); end;"
 		result = self._executesql(context, connection, query)
 
