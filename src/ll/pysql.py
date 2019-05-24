@@ -454,390 +454,6 @@ class CommandStackEntry:
 				self = self.preventry
 
 
-class Context:
-	"""
-	A :class:`Context` objects contains the configuration and run time information
-	required for importing a PySQL file.
-	"""
-	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
-		self.keys = {v.key: v for v in vars} if vars else {}
-		self.connections = {}
-		self.commit = commit
-		self.scpdirectory = scpdirectory
-		self.filedirectory = filedirectory
-		self.terminator = "-- @@@"
-		self.tabsize = tabsize
-		self.context = context
-		self.raiseexceptions = [raiseexceptions]
-		self.verbose = verbose
-		self.summary = summary
-		self.commandcounts = collections.Counter()
-		self.errorcount = 0
-		self.totalcount = 0
-		self._location = None
-		self._runstarttime = None
-		self.basedir = pathlib.Path()
-		self._lastlocation = None
-		self._lastcommand = None
-		self._locals = {}
-		for fd in range(3):
-			try:
-				self._width = os.get_terminal_size(fd)[0]
-			except OSError:
-				pass
-			else:
-				break
-		else:
-			self._width = 80
-		if connectstring is not None:
-			self.pushconnection(None, self.connect(connectstring, commit))
-
-	def connect(self, connectstring, mode=None, commit="once"):
-		return Connection(connectstring, mode, commit)
-
-	def connection(self, connectname=None):
-		if connectname not in self.connections:
-			raise ValueError(f"no connection named {connectname!r}")
-		return self.connections[connectname][-1]
-
-	def pushconnection(self, connectname, connection):
-		if connectname not in self.connections:
-			self.connections[connectname] = []
-		self.connections[connectname].append(connection)
-
-	def popconnection(self, connectname):
-		if connectname not in self.connections:
-			raise ValueError(f"no connection named {connectname!r}")
-		if not self.connections[connectname]:
-			raise ValueError(f"connection stack for name {connectname!r} empty")
-		return self.connections[connectname].pop()
-
-	def logprefix(self, starttime, commandnumber, object):
-		if object.location is not None:
-			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,} :: [{object.location}]"
-		else:
-			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,}"
-
-	def rule(self, object):
-		if self._lastcommand is None or object is not self._lastcommand:
-			print("\u2501"*self._width, flush=True)
-			self._lastcommand = object
-
-	def source(self, object):
-		lines = object.source(self.tabsize).splitlines(False)
-		if object.location and object.location.startline and object.location.endline:
-			startline = object.location.startline
-			endline = object.location.endline
-			linenumberlen = len(f"{object.location.endline:,}")
-			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c" + "\u2500" * (self._width - 2 - linenumberlen)
-			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (self._width - 2 - linenumberlen)
-			print(ruletop, flush=True)
-
-			ellipsis = "\u22ee"
-			for (linenumber, line) in enumerate(lines, startline):
-				if self.context is not None and startline + self.context <= linenumber <= endline - self.context:
-					if startline + self.context == linenumber:
-						print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
-				else:
-					print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
-			print(rulebottom, flush=True)
-		else:
-			endline = len(lines) - 1
-			rule = "\u2500" * self._width
-			print(rule, flush=True)
-			for (linenumber, line) in enumerate(lines):
-				if self.context is not None and self.context <= linenumber <= endline - self.context:
-					if self.context == linenumber:
-						print(ellipsis, flush=True)
-				else:
-					print(line, flush=True)
-			print(rule, flush=True)
-
-	def execute(self, label, default, object):
-		if self._runstarttime is None:
-			self._runstarttime = datetime.datetime.now()
-
-		if not isinstance(object, Command):
-			return object
-
-		if isinstance(object, comment):
-			self.count("comment")
-			return None
-
-		commandnumber = self.totalcount + 1
-		if object.raiseexceptions is not None:
-			self.raiseexceptions.append(object.raiseexceptions)
-
-		starttime = datetime.datetime.now()
-
-		if self.verbose == "dot":
-			print(".", end="", flush=True)
-		elif self.verbose == "type":
-			print(f"{object.__class__.__name__}(", end="", flush=True)
-		elif self.verbose == "file":
-			endfile = False
-			if object.location is None:
-				pass # A command inside another command
-			elif self._lastlocation is None or object.location.filename != self._lastlocation.filename:
-				print(f" [{object.location.filename} :: {object.location.lines()}", end="", flush=True)
-				endfile = True
-			elif object.location.startline != self._lastlocation.startline or object.location.endline != self._lastlocation.endline:
-				print(f" [{object.location.lines()}", end="", flush=True)
-				endfile = True
-			else:
-				pass # still the same location
-		elif self.verbose == "line":
-			print(f"[t+{starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: [{object.location}] >> {object.__class__.__name__}(", end="", flush=True)
-		elif self.verbose == "full":
-			self.rule(object)
-			print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__}", flush=True)
-			self.source(object)
-
-		result = None
-		try:
-			result = object.execute(self)
-		except Exception as exc:
-			if self.raiseexceptions[-1]:
-				if self.verbose:
-					print(flush=True)
-				raise CommandError(object) from exc
-			else:
-				self.errorcount += 1
-				if self.verbose == "dot":
-					print("!", end="", flush=True)
-				elif self.verbose == "type":
-					print(f")->failed", end="", flush=True)
-				elif self.verbose == "file":
-					if endfile:
-						print(f"]->failed", end="", flush=True)
-				elif self.verbose == "full":
-					self.rule(object)
-					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
-					print(f"{self.logprefix(starttime, commandnumber, object)} >> ignored {format_class(exc.__class__)}: {exctext}", flush=True)
-		else:
-			now = datetime.datetime.now()
-			if self.verbose == "full":
-				self.rule(object)
-				if result is None:
-					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished in {now-starttime}", flush=True)
-				else:
-					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished with {shortrepr(result)} (in {now-starttime})", flush=True)
-			elif self.verbose == "file":
-				if endfile:
-					print(f"]", end="", flush=True)
-			elif self.verbose == "type":
-				print(f")", end="", flush=True)
-		finally:
-			if object.raiseexceptions is not None:
-				self.raiseexceptions.pop()
-		return result
-
-	@contextlib.contextmanager
-	def changed_basedir(self, dirpath):
-		oldbasedir = self.basedir
-		self.basedir = dirpath
-		try:
-			yield
-		finally:
-			self.basedir = oldbasedir
-
-	def globals(self):
-		vars = {command.__name__: command for command in Command.commands.values()}
-		vars["sqlexpr"] = sqlexpr
-		vars["datetime"] = datetime
-		return vars
-
-	def _load(self, stream):
-		"""
-		Load a PySQL file from :obj:`stream`. :obj:`stream` must be an iterable
-		over lines that contain the PySQL commands.
-
-		This function is a generator. Its output are the PySQL command objects
-		(i.e. instances of :class:`Command`).
-		"""
-		lines = []
-
-		vars = self.globals()
-
-		constructor_prefixes = tuple(f"{cname}(" for cname in Command.commands)
-
-		# ``state`` is the state of the "parser", values have the following meaning
-		# ``None``: outside of any block
-		# ``literalsql``: inside of literal SQL block
-		# ``literalpy``: inside of literal Python block
-		# ``comment``: inside of comment (lines starting with "#")
-		# ``blockcomment``: inside of block comment (lines delimited by "###")
-		# ``dict``: inside of Python dict literal
-		# others: inside a PySQL command of that name
-		state = None
-
-		def makeblock():
-			# Drop empty lines at the start
-			while lines and not lines[0][1].strip():
-				del lines[0]
-			# Drop empty lines at the end
-			while lines and not lines[-1][1].strip():
-				del lines[-1]
-			try:
-				if lines:
-					self._location = Location(stream.name, lines[0][0], lines[-1][0])
-					text = "\n".join(line[1] for line in lines).strip()
-					lines.clear()
-					if text:
-						if state == "literalsql":
-							command = literalsql(text)
-						elif state == "literalpy":
-							command = literalpy(text)
-						elif state == "comment":
-							command = comment(text)
-						elif state == "blockcomment":
-							command = comment(text)
-						elif state == "dict":
-							# Prepend empty lines, so in case of an exception the
-							# linenumbers in the stacktrace match
-							text = self._location.offsetsource(text)
-							args = eval(text, vars, self._locals)
-							command = Command.fromdict(args)
-						else:
-							text = self._location.offsetsource(text)
-							command = eval(text, vars, self._locals)
-						command.location = self._location
-						yield command
-			except Exception as exc:
-				raise LocationError(self._location) from exc
-
-
-		for (i, line) in enumerate(stream, 1):
-			line = line.rstrip()
-			if state is None:
-				if line.startswith("{"):
-					lines.append((i, line))
-					state = "dict"
-					if line.endswith("}"):
-						yield from makeblock()
-						state = None
-				elif line == "###":
-					state = "blockcomment"
-				elif line == "#>>>":
-					lines.append((i, line))
-					state = "literalpy"
-				elif line.startswith("#"):
-					state = "comment"
-					lines.append((i, line[1:].strip()))
-					yield from makeblock()
-					state = None
-				elif line == self.terminator:
-					pass # Still outside the block
-				elif line.startswith(constructor_prefixes): # PySQL command constructor?
-					lines.append((i, line))
-					state = line[:line.find("(")]
-					if line.endswith(")"):
-						yield from makeblock()
-						state = None
-				elif line:
-					lines.append((i, line))
-					state = "literalsql"
-			elif state == "dict":
-				lines.append((i, line))
-				if line == "}": # A single unindented ``}``
-					yield from makeblock()
-					state = None
-			elif state == "literalsql":
-				if line.startswith(self.terminator):
-					yield from makeblock()
-					state = None
-				else:
-					lines.append((i, line))
-			elif state == "literalpy":
-				lines.append((i, line))
-				if line == "#<<<":
-					yield from makeblock()
-					state = None
-			elif state == "comment":
-				raise ValueError("This can't happen")
-			elif state == "blockcomment":
-				if line == "###":
-					yield from makeblock()
-					state = None
-				else:
-					lines.append((i, line))
-			else:
-				lines.append((i, line))
-				if line == ")": # A single unindented ``)``
-					yield from makeblock()
-					state = None
-		yield from makeblock()
-
-	def executeall(self, stream):
-		"""
-		Execute all command in :obj:`stream`. :obj:`stream` must be an iterable
-		over lines that contain the PySQL commands.
-		"""
-		try:
-			if self.verbose == "type":
-				print("commands:", end="", flush=True)
-			elif self.verbose == "file":
-				print("files:", end="", flush=True)
-			for command in self._load(stream):
-				self.execute(None, None, command)
-			for connections in self.connections.values():
-				for connection in connections:
-					if connection.commit == "once":
-						connection.connection.commit()
-					elif connection.commit == "never":
-						connection.connection.rollback()
-		finally:
-			if self.verbose in {"dot", "type"}:
-				print(flush=True)
-			elif self.verbose == "full":
-				self.rule(None)
-		self._printsummary()
-
-	def _printsummary(self):
-		if self.summary:
-			if self._runstarttime is None:
-				self._runstarttime = datetime.datetime.now()
-			now = datetime.datetime.now()
-			if self.verbose == "full":
-				print(f"[t+{now-self._runstarttime}] >> Command summary", flush=True)
-			else:
-				print("Command summary", flush=True)
-			anyoutput = False
-			totallen = len(f"{self.totalcount:,}")
-
-			def sortkey(keyvalue):
-				(key, value) = keyvalue
-				if len(key) > 1: # db command
-					return (0, key[0], key[1] != "procedure", *key)
-				else:
-					return (1, *key)
-			lastconnection = None
-			for (key, count) in sorted(self.commandcounts.items(), key=sortkey):
-				connection = key[0] if len(key) > 1 else None
-				if not anyoutput or connection != lastconnection:
-					print(flush=True)
-					if connection:
-						print(f"Connection {connection}:", flush=True)
-					else:
-						print("Other commands:", flush=True)
-				lastconnection = connection
-				anyoutput = True
-				keys = " ".join(key[1:]) if len(key) > 1 else key[0]
-				print(f"    {count:>{totallen},} {keys}", flush=True)
-			if self.errorcount:
-				print(flush=True)
-				print(f"Exceptions: {self.errorcount:,} exception{'s' if self.errorcount != 1 else ''} ignored", flush=True)
-			if anyoutput:
-				print(flush=True)
-				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed", flush=True)
-			if not anyoutput:
-				print("    no commands executed", flush=True)
-
-	def count(self, *args):
-		self.commandcounts[args] += 1
-		self.totalcount += 1
-
-
 ###
 ### Command classes
 ###
@@ -2023,6 +1639,401 @@ class CommandExecutor:
 
 	def __call__(self, *args, **kwargs):
 		return self.command(*args, **kwargs).execute(self.context)
+
+
+###
+###
+###
+
+class Context:
+	"""
+	A :class:`Context` objects contains the configuration and run time information
+	required for importing a PySQL file.
+	"""
+
+	terminator = "-- @@@"
+	literalpy_begin = "#>>>"
+	literalpy_end = "#<<<"
+	comment_begin = "###"
+	comment_end = "###"
+
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
+		self.keys = {v.key: v for v in vars} if vars else {}
+		self.connections = {}
+		self.commit = commit
+		self.scpdirectory = scpdirectory
+		self.filedirectory = filedirectory
+		self.terminator = "-- @@@"
+		self.tabsize = tabsize
+		self.context = context
+		self.raiseexceptions = [raiseexceptions]
+		self.verbose = verbose
+		self.summary = summary
+		self.commandcounts = collections.Counter()
+		self.errorcount = 0
+		self.totalcount = 0
+		self._location = None
+		self._runstarttime = None
+		self.basedir = pathlib.Path()
+		self._lastlocation = None
+		self._lastcommand = None
+		self._locals = {}
+		for fd in range(3):
+			try:
+				self._width = os.get_terminal_size(fd)[0]
+			except OSError:
+				pass
+			else:
+				break
+		else:
+			self._width = 80
+		if connectstring is not None:
+			self.pushconnection(None, self.connect(connectstring, commit))
+
+	def connect(self, connectstring, mode=None, commit="once"):
+		return Connection(connectstring, mode, commit)
+
+	def connection(self, connectname=None):
+		if connectname not in self.connections:
+			raise ValueError(f"no connection named {connectname!r}")
+		return self.connections[connectname][-1]
+
+	def pushconnection(self, connectname, connection):
+		if connectname not in self.connections:
+			self.connections[connectname] = []
+		self.connections[connectname].append(connection)
+
+	def popconnection(self, connectname):
+		if connectname not in self.connections:
+			raise ValueError(f"no connection named {connectname!r}")
+		if not self.connections[connectname]:
+			raise ValueError(f"connection stack for name {connectname!r} empty")
+		return self.connections[connectname].pop()
+
+	def logprefix(self, starttime, commandnumber, object):
+		if object.location is not None:
+			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,} :: [{object.location}]"
+		else:
+			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,}"
+
+	def rule(self, object):
+		if self._lastcommand is None or object is not self._lastcommand:
+			print("\u2501"*self._width, flush=True)
+			self._lastcommand = object
+
+	def source(self, object):
+		lines = object.source(self.tabsize).splitlines(False)
+		if object.location and object.location.startline and object.location.endline:
+			startline = object.location.startline
+			endline = object.location.endline
+			linenumberlen = len(f"{object.location.endline:,}")
+			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c" + "\u2500" * (self._width - 2 - linenumberlen)
+			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (self._width - 2 - linenumberlen)
+			print(ruletop, flush=True)
+
+			ellipsis = "\u22ee"
+			for (linenumber, line) in enumerate(lines, startline):
+				if self.context is not None and startline + self.context <= linenumber <= endline - self.context:
+					if startline + self.context == linenumber:
+						print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
+				else:
+					print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
+			print(rulebottom, flush=True)
+		else:
+			endline = len(lines) - 1
+			rule = "\u2500" * self._width
+			print(rule, flush=True)
+			for (linenumber, line) in enumerate(lines):
+				if self.context is not None and self.context <= linenumber <= endline - self.context:
+					if self.context == linenumber:
+						print(ellipsis, flush=True)
+				else:
+					print(line, flush=True)
+			print(rule, flush=True)
+
+	def execute(self, label, default, object):
+		if self._runstarttime is None:
+			self._runstarttime = datetime.datetime.now()
+
+		if not isinstance(object, Command):
+			return object
+
+		if isinstance(object, comment):
+			self.count("comment")
+			return None
+
+		commandnumber = self.totalcount + 1
+		if object.raiseexceptions is not None:
+			self.raiseexceptions.append(object.raiseexceptions)
+
+		starttime = datetime.datetime.now()
+
+		if self.verbose == "dot":
+			print(".", end="", flush=True)
+		elif self.verbose == "type":
+			print(f"{object.__class__.__name__}(", end="", flush=True)
+		elif self.verbose == "file":
+			endfile = False
+			if object.location is None:
+				pass # A command inside another command
+			elif self._lastlocation is None or object.location.filename != self._lastlocation.filename:
+				print(f" [{object.location.filename} :: {object.location.lines()}", end="", flush=True)
+				endfile = True
+			elif object.location.startline != self._lastlocation.startline or object.location.endline != self._lastlocation.endline:
+				print(f" [{object.location.lines()}", end="", flush=True)
+				endfile = True
+			else:
+				pass # still the same location
+		elif self.verbose == "line":
+			print(f"[t+{starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: [{object.location}] >> {object.__class__.__name__}(", end="", flush=True)
+		elif self.verbose == "full":
+			self.rule(object)
+			print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__}", flush=True)
+			self.source(object)
+
+		result = None
+		try:
+			result = object.execute(self)
+		except Exception as exc:
+			if self.raiseexceptions[-1]:
+				if self.verbose:
+					print(flush=True)
+				raise CommandError(object) from exc
+			else:
+				self.errorcount += 1
+				if self.verbose == "dot":
+					print("!", end="", flush=True)
+				elif self.verbose == "type":
+					print(f")->failed", end="", flush=True)
+				elif self.verbose == "file":
+					if endfile:
+						print(f"]->failed", end="", flush=True)
+				elif self.verbose == "full":
+					self.rule(object)
+					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+					print(f"{self.logprefix(starttime, commandnumber, object)} >> ignored {format_class(exc.__class__)}: {exctext}", flush=True)
+		else:
+			now = datetime.datetime.now()
+			if self.verbose == "full":
+				self.rule(object)
+				if result is None:
+					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished in {now-starttime}", flush=True)
+				else:
+					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished with {shortrepr(result)} (in {now-starttime})", flush=True)
+			elif self.verbose == "file":
+				if endfile:
+					print(f"]", end="", flush=True)
+			elif self.verbose == "type":
+				print(f")", end="", flush=True)
+		finally:
+			if object.raiseexceptions is not None:
+				self.raiseexceptions.pop()
+		return result
+
+	@contextlib.contextmanager
+	def changed_basedir(self, dirpath):
+		oldbasedir = self.basedir
+		self.basedir = dirpath
+		try:
+			yield
+		finally:
+			self.basedir = oldbasedir
+
+	def globals(self):
+		vars = {command.__name__: command for command in Command.commands.values()}
+		vars["sqlexpr"] = sqlexpr
+		vars["datetime"] = datetime
+		return vars
+
+	def _load(self, stream):
+		"""
+		Load a PySQL file from :obj:`stream`. :obj:`stream` must be an iterable
+		over lines that contain the PySQL commands.
+
+		This function is a generator. Its output are the PySQL command objects
+		(i.e. instances of :class:`Command`).
+		"""
+		lines = []
+
+		vars = self.globals()
+
+		constructor_prefixes = tuple(f"{cname}(" for cname in Command.commands)
+
+		# ``state`` is the state of the "parser", values have the following meaning
+		# ``None``: outside of any block
+		# ``literalsql``: inside of literal SQL block
+		# ``literalpy``: inside of literal Python block
+		# ``comment``: inside of comment (lines starting with "#")
+		# ``blockcomment``: inside of block comment (lines delimited by "###")
+		# ``dict``: inside of Python dict literal
+		# others: inside a PySQL command of that name
+		state = None
+
+		def makeblock():
+			# Drop empty lines at the start
+			while lines and not lines[0][1].strip():
+				del lines[0]
+			# Drop empty lines at the end
+			while lines and not lines[-1][1].strip():
+				del lines[-1]
+			try:
+				if lines:
+					self._location = Location(stream.name, lines[0][0], lines[-1][0])
+					text = "\n".join(line[1] for line in lines).strip()
+					lines.clear()
+					if text:
+						if state == "literalsql":
+							command = literalsql(text)
+						elif state == "literalpy":
+							command = literalpy(text)
+						elif state == "comment":
+							command = comment(text)
+						elif state == "blockcomment":
+							command = comment(text)
+						elif state == "dict":
+							# Prepend empty lines, so in case of an exception the
+							# linenumbers in the stacktrace match
+							text = self._location.offsetsource(text)
+							args = eval(text, vars, self._locals)
+							command = Command.fromdict(args)
+						else:
+							text = self._location.offsetsource(text)
+							command = eval(text, vars, self._locals)
+						command.location = self._location
+						yield command
+			except Exception as exc:
+				raise LocationError(self._location) from exc
+
+
+		for (i, line) in enumerate(stream, 1):
+			line = line.rstrip()
+			if state is None:
+				if line.startswith("{"):
+					lines.append((i, line))
+					state = "dict"
+					if line.endswith("}"):
+						yield from makeblock()
+						state = None
+				elif line == self.comment_begin:
+					state = "blockcomment"
+				elif line == self.literalpy_begin:
+					lines.append((i, line))
+					state = "literalpy"
+				elif line.startswith("#"):
+					state = "comment"
+					lines.append((i, line[1:].strip()))
+					yield from makeblock()
+					state = None
+				elif line == self.terminator:
+					pass # Still outside the block
+				elif line.startswith(constructor_prefixes): # PySQL command constructor?
+					lines.append((i, line))
+					state = line[:line.find("(")]
+					if line.endswith(")"):
+						yield from makeblock()
+						state = None
+				elif line:
+					lines.append((i, line))
+					state = "literalsql"
+			elif state == "dict":
+				lines.append((i, line))
+				if line == "}": # A single unindented ``}``
+					yield from makeblock()
+					state = None
+			elif state == "literalsql":
+				if line.startswith(self.terminator):
+					yield from makeblock()
+					state = None
+				else:
+					lines.append((i, line))
+			elif state == "literalpy":
+				lines.append((i, line))
+				if line == self.literalpy_end:
+					yield from makeblock()
+					state = None
+			elif state == "comment":
+				raise ValueError("This can't happen")
+			elif state == "blockcomment":
+				if line == self.comment_end:
+					yield from makeblock()
+					state = None
+				else:
+					lines.append((i, line))
+			else:
+				lines.append((i, line))
+				if line == ")": # A single unindented ``)``
+					yield from makeblock()
+					state = None
+		yield from makeblock()
+
+	def executeall(self, stream):
+		"""
+		Execute all command in :obj:`stream`. :obj:`stream` must be an iterable
+		over lines that contain the PySQL commands.
+		"""
+		try:
+			if self.verbose == "type":
+				print("commands:", end="", flush=True)
+			elif self.verbose == "file":
+				print("files:", end="", flush=True)
+			for command in self._load(stream):
+				self.execute(None, None, command)
+			for connections in self.connections.values():
+				for connection in connections:
+					if connection.commit == "once":
+						connection.connection.commit()
+					elif connection.commit == "never":
+						connection.connection.rollback()
+		finally:
+			if self.verbose in {"dot", "type"}:
+				print(flush=True)
+			elif self.verbose == "full":
+				self.rule(None)
+		self._printsummary()
+
+	def _printsummary(self):
+		if self.summary:
+			if self._runstarttime is None:
+				self._runstarttime = datetime.datetime.now()
+			now = datetime.datetime.now()
+			if self.verbose == "full":
+				print(f"[t+{now-self._runstarttime}] >> Command summary", flush=True)
+			else:
+				print("Command summary", flush=True)
+			anyoutput = False
+			totallen = len(f"{self.totalcount:,}")
+
+			def sortkey(keyvalue):
+				(key, value) = keyvalue
+				if len(key) > 1: # db command
+					return (0, key[0], key[1] != "procedure", *key)
+				else:
+					return (1, *key)
+			lastconnection = None
+			for (key, count) in sorted(self.commandcounts.items(), key=sortkey):
+				connection = key[0] if len(key) > 1 else None
+				if not anyoutput or connection != lastconnection:
+					print(flush=True)
+					if connection:
+						print(f"Connection {connection}:", flush=True)
+					else:
+						print("Other commands:", flush=True)
+				lastconnection = connection
+				anyoutput = True
+				keys = " ".join(key[1:]) if len(key) > 1 else key[0]
+				print(f"    {count:>{totallen},} {keys}", flush=True)
+			if self.errorcount:
+				print(flush=True)
+				print(f"Exceptions: {self.errorcount:,} exception{'s' if self.errorcount != 1 else ''} ignored", flush=True)
+			if anyoutput:
+				print(flush=True)
+				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed", flush=True)
+			if not anyoutput:
+				print("    no commands executed", flush=True)
+
+	def count(self, *args):
+		self.commandcounts[args] += 1
+		self.totalcount += 1
 
 
 ###
