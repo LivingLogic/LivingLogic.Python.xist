@@ -929,8 +929,8 @@ class literalpy(_DatabaseCommand):
 
 	def __init__(self, code):
 		super().__init__()
-		prefix = "#>>>\n"
-		suffix = "\n#<<<"
+		prefix = f"{Context.literalpy_begin}\n"
+		suffix = f"\n{Context.literalpy_end}"
 		if not code.startswith(prefix) or not code.endswith(suffix):
 			raise ValueError(f"{self.__class__.__qualname__} code must start with {prefix!r} and end with {suffix!r}")
 		self.code = code
@@ -1656,6 +1656,8 @@ class Context:
 	literalpy_end = "#<<<"
 	comment_begin = "###"
 	comment_end = "###"
+	command_begin = tuple(f"{cname}(" for cname in Command.commands)
+	command_end = ")"
 
 	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
 		self.keys = {v.key: v for v in vars} if vars else {}
@@ -1857,8 +1859,6 @@ class Context:
 
 		vars = self.globals()
 
-		constructor_prefixes = tuple(f"{cname}(" for cname in Command.commands)
-
 		# ``state`` is the state of the "parser", values have the following meaning
 		# ``None``: outside of any block
 		# ``literalsql``: inside of literal SQL block
@@ -1926,10 +1926,10 @@ class Context:
 					state = None
 				elif line == self.terminator:
 					pass # Still outside the block
-				elif line.startswith(constructor_prefixes): # PySQL command constructor?
+				elif line.startswith(self.command_begin): # PySQL command constructor?
 					lines.append((i, line))
 					state = line[:line.find("(")]
-					if line.endswith(")"):
+					if line.endswith(self.command_end):
 						yield from makeblock()
 						state = None
 				elif line:
@@ -1960,8 +1960,9 @@ class Context:
 				else:
 					lines.append((i, line))
 			else:
+				# Inside any of the PySQL commands as a function call
 				lines.append((i, line))
-				if line == ")": # A single unindented ``)``
+				if line == self.command_end: # A single unindented ``)``
 					yield from makeblock()
 					state = None
 		yield from makeblock()
