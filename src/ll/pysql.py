@@ -407,33 +407,11 @@ def shortrepr(value):
 		return repr(value)
 
 
-class Connection:
-	def __init__(self, connectstring, mode, commit):
-		self.mode = mode
-		mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
-		self.connection = cx_Oracle.connect(connectstring, mode=mode)
-		self.connectstring = f"{self.connection.username}@{self.connection.tnsentry}"
-		self.cursor = self.connection.cursor()
-		self.commit = commit
-
-	def close(self):
-		if self.connection is not None:
-			if self.commit == "once":
-				self.connection.commit()
-			elif self.commit == "never":
-				self.connection.rollback()
-			self.cursor.close()
-			self.cursor = None
-			self.connection.close()
-			self.connection = None
-
-	def __str__(self):
-		state = "open" if self.connection is not None else "closed"
-		return f"{state} connection {self.connectstring!r}"
-
-	def __repr__(self):
-		state = "open" if self.connection is not None else "closed"
-		return f"<{state} connection to {self.connectstring!r}>"
+def connectstring(connection):
+	if connection is None:
+		return None
+	else:
+		return f"{connection.username}@{connection.tnsentry}"
 
 
 class CommandStackEntry:
@@ -460,7 +438,7 @@ class CommandStackEntry:
 
 class Command:
 	"""
-	The base class of all commands. A :class:`Command` object is created from
+	The base class of all commands. A :class:`Command` object is created from a
 	function call in a PySQL file. The only parameter in the call that is
 	supported by all commands is the following:
 
@@ -601,77 +579,70 @@ class include(Command):
 
 
 @register
-class pushconnection(Command):
+class connect(Command):
 	"""
-	The :class:`!pushconnection` command connects to the database given in the
-	connectstring in the parameter ``connectstring`` and pushes the connection
-	under the name from the parameter ``connectname``. (If ``connectname`` is
-	not given or is ``None``, the connection will be pushed as the default
-	connection). ``commit`` can be given to specify the commit mode for this
-	connection (``"record"``, ``"once"`` or ``"never"``).
+	The :class:`!connect` command connects to the database given in the
+	connectstring in the parameter ``connectstring``. After the :class:`!connect`
+	command until the matching :class:`disconnect` command, all commands that
+	talk to the database will use this connection. After a :class:`disconnect`
+	command :mod:`!pysql` will revert back to the previously active database
+	connection.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, raiseexceptions=None, connectname=None, commit=None):
+	def __init__(self, connectstring, *, mode=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.connectstring = connectstring
 		self.mode = mode
-		self.connectname = connectname
-		self.commit = commit
 
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectname={self.connectname!r} connectstring={self.connectstring!r} location={self.location} at {id(self):#x}>"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectstring={self.connectstring!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connectname = context.execute("connectname", None, self.connectname)
 		connectstring = context.execute("connectstring", None, self.connectstring)
 		mode = context.execute("mode", None, self.mode)
-		commit = context.execute("commit", None, self.commit)
 
-		connection = context.connect(connectstring, mode=mode, commit=commit if commit is not None else context.commit)
-		context.pushconnection(connectname, connection)
+		connection = context.connect(connectstring, mode=mode, commit=commit)
 		context.count(self.__class__.__name__)
 		return connection
 
 	def source_format(self):
 		yield from self._source_format(
-			connectname=self.connectname,
 			connectstring=self.connectstring,
 			raiseexceptions=self.raiseexceptions,
-			commit=self.commit,
 		)
 
 
 @register
-class popconnection(Command):
+class disconnect(Command):
 	"""
-	The :class:`!popconnection` command disconnects from the database connection
-	with the name ``connectname`` and reverts to the previous connection
-	registered for that name. (If ``connectname`` is ``None`` the default
-	connection will be used). If the commit mode for the connection is ``"once"``
-	the transaction will be committed before closing the connection.
+	The :class:`!disconnect` command disconnects from the active database
+	connection and reverts back to the previously active database connection.
+
+	``commit`` specifies whether the transaction should be committed. If
+	``commit`` is :const:`None`, the default commit mode is used (specified
+	on the command line).
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, *, connectname=None, raiseexceptions=None):
+	def __init__(self, *, commit=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
-		self.connectname = connectname
+		self.commit = commit
 
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectname={self.connectname!r} location={self.location} at {id(self):#x}>"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} commit={self.connectname!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connectname = context.execute("connectname", None, self.connectname)
-		connection = context.popconnection(connectname)
-		connection.close()
+		commit = context.execute("commit", None, self.commit)
+		connection = context.disconnect(commit)
 		context.count(self.__class__.__name__)
 		return connection
 
 	def source_format(self):
 		yield from self._source_format(
-			connectname=self.connectname,
+			commit=self.commit,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -680,42 +651,18 @@ class _DatabaseCommand(Command):
 	"""
 	Base class of all commands that use a database connection.
 
-	All database commands support the following parameters:
+	All database commands support the following parameter:
 
-	``connectname`` : string (optional)
-		The name of the connection to use for this command. (This connection must
-		have been pushed by a :class:`pushconnection` command previously). Also
-		``None`` can be specified explicitely to use the default connection.
-
-	``connectstring`` : string (optional)
-		If a ``connectstring`` is given a new connection to this database will
-		be created just for this one command.
-
-	If neither of these parameters is given, the default connection is used (and
-	giving both is an error).
+	``connection`` : database connection (optional)
+		The database connection the use for the database command. If :const:`None`
+		the currently activve database connection will be used.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, *, raiseexceptions=None, connectstring=None, connectname=None):
+	def __init__(self, *, connection=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
-		self.connectstring = connectstring
-		self.connectname = connectname
-		self._single = False
-
-	def beginconnection(self, context, connectstring, connectname):
-		if connectstring is not None:
-			self._single = True
-			return context.connect(connectstring, context.commit)
-		else:
-			self._single = False
-			return context.connection(connectname)
-
-	def endconnection(self, context, connection):
-		if connection.commit == "record":
-			connection.connection.commit()
-		if self._single: # This was a connection just for this one command
-			self.connection.close()
+		self.connection = connection
 
 
 class _SQLCommand(_DatabaseCommand):
@@ -730,7 +677,7 @@ class _SQLCommand(_DatabaseCommand):
 		return var
 
 	def _executesql(self, context, connection, query):
-		cursor = connection.cursor
+		cursor = connection.cursor()
 
 		queryargvars = {}
 		varargs = {}
@@ -804,8 +751,8 @@ class procedure(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None, connectstring=None, connectname=None, args=None):
-		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
+	def __init__(self, name, *, connection=None, raiseexceptions=None, args=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
 		self.name = name
 		self.args = args or {}
 
@@ -814,27 +761,22 @@ class procedure(_SQLCommand):
 
 	def execute(self, context):
 		name = context.execute(None, None, self.name)
-		connectstring = context.execute("connectstring", None, self.connectstring)
-		connectname = context.execute("connectname", None, self.connectname)
-
-		connection = self.beginconnection(context, connectstring, connectname)
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
 
 		argsql = ", ".join(f"{an}=>{av}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
 		query = f"begin {name}({argsql}); end;"
 		result = self._executesql(context, connection, query)
 
-		context.count(connection.connectstring, self.__class__.__name__, name)
-
-		self.endconnection(context, connection)
+		context.count(connectstring(connection), self.__class__.__name__, name)
 
 		return result or None
 
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
+			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
-			connectstring=self.connectstring,
-			connectname=self.connectname,
 			args=self.args,
 		)
 
@@ -859,8 +801,8 @@ class sql(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, raiseexceptions=None, connectstring=None, connectname=None, args=None):
-		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
+	def __init__(self, sql, *, connection=None, raiseexceptions=None, args=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
 		self.sql = sql
 		self.args = args or {}
 
@@ -869,21 +811,18 @@ class sql(_SQLCommand):
 
 	def execute(self, context):
 		sql = context.execute(None, None, self.sql)
-		connectstring = context.execute("connectstring", None, self.connectstring)
-		connectname = context.execute("connectname", None, self.connectname)
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
 
-		connection = self.beginconnection(context, connectstring, connectname)
 		result = self._executesql(context, connection, sql)
-		context.count(connection.connectstring, self.__class__.__name__)
-		self.endconnection(context, connection)
+		context.count(connectstring(connection), self.__class__.__name__)
 		return result or None
 
 	def source_format(self):
 		yield from self._source_format(
 			self.sql,
+			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
-			connectstring=self.connectstring,
-			connectname=self.connectname,
 			args=self.args if self.args else None,
 		)
 
@@ -892,8 +831,7 @@ class literalsql(_SQLCommand):
 	"""
 	A :class:`!sql` is used for SQL that appears literally in the
 	PySQL file. So apart from the ``sql`` attribute is has no further usable
-	attributes (i.e. ``raiseexceptions``, ``connectname`` and ``connectstring``
-	from the base classes are all ``None``).
+	attributes (i.e. ``raiseexceptions`` and ``connectionname``).
 	"""
 
 	def __init__(self, sql):
@@ -907,10 +845,9 @@ class literalsql(_SQLCommand):
 		sql = context.execute(None, None, self.sql)
 		if sql.endswith((";", "/")):
 			sql = sql[:-1]
-		connection = self.beginconnection(context, None, None)
-		connection.cursor.execute(sql)
-		context.count(connection.connectstring, self.__class__.__name__)
-		self.endconnection(context, connection)
+		connection = context.getconnection(None)
+		connection.cursor().execute(sql)
+		context.count(connectstring(connection), self.__class__.__name__)
 
 	def source(self, tabsize=None):
 		sql = (self.sql or "").strip()
@@ -923,8 +860,8 @@ class literalpy(_DatabaseCommand):
 	"""
 	A :class:`!literalpy` is used for Python code that appears literally in the
 	PySQL file. So apart from the ``code`` attribute is has no further usable
-	attributes (i.e. ``raiseexceptions``, ``connectname`` and ``connectstring``
-	from the base classes are all ``None``).
+	attributes (i.e. ``connection`` and ``raiseexceptions`` from the base class
+	are all ``None``).
 	"""
 
 	def __init__(self, code):
@@ -942,12 +879,15 @@ class literalpy(_DatabaseCommand):
 		vars = {command.__name__: CommandExecutor(command, context) for command in Command.commands.values()}
 		vars["sqlexpr"] = sqlexpr
 		vars["datetime"] = datetime
-		vars["connection"] = connection.connection
+		vars["connection"] = connection
 		return vars
 
 	def execute(self, context):
 		code = context.execute(None, None, self.code)
-		connection = self.beginconnection(context, None, None)
+		if context.connections:
+			connection = context.connections[-1]
+		else:
+			connection = None
 
 		vars = self.globals(context, connection)
 
@@ -955,8 +895,7 @@ class literalpy(_DatabaseCommand):
 			code = self.location.offsetsource(code)
 		exec(code + "\n", vars, context._locals)
 
-		context.count(connection.connectstring, self.__class__.__name__)
-		self.endconnection(context, connection)
+		context.count(connectstring(connection), self.__class__.__name__)
 
 	def source(self, tabsize=None):
 		code = self.code
@@ -1157,14 +1096,11 @@ class checkerrors(_DatabaseCommand):
 
 	def execute(self, context):
 		connectstring = context.execute("connectstring", None, self.connectstring)
-		connectname = context.execute("connectname", None, self.connectname)
 
-		connection = self.beginconnection(context, connectstring, connectname)
-		connectstring = connection.connectstring
-		connection.cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+		connection = context.getconnection(None)
+		connection.cursor().execute("select lower(type), name from user_errors group by lower(type), name")
 		invalid_objects = [tuple(r) for r in connection.cursor]
-		self.endconnection(context, connection)
-		context.count(connectstring, self.__class__.__name__)
+		context.count(connectstring(connection), self.__class__.__name__)
 
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
@@ -1350,8 +1286,8 @@ class resetsequence(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, connectstring=None, connectname=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions, connectstring=connectstring, connectname=connectname)
+	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, connection=None, raiseexceptions=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
@@ -1367,12 +1303,10 @@ class resetsequence(_DatabaseCommand):
 		field = context.execute(None, None, self.field)
 		minvalue = context.execute("minvalue", None, self.minvalue)
 		increment = context.execute("increment", None, self.increment)
-		connectstring = context.execute("connectstring", None, self.connectstring)
-		connectname = context.execute("connectname", None, self.connectname)
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
 
-		connection = self.beginconnection(context, connectstring, connectname)
-
-		cursor = connection.cursor
+		cursor = connection.cursor()
 
 		# Fetch information about the sequence
 		cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
@@ -1401,9 +1335,7 @@ class resetsequence(_DatabaseCommand):
 		else:
 			seqvalue = None
 
-		context.count(connection.connectstring, self.__class__.__name__)
-
-		self.endconnection(context, connection)
+		context.count(connectstring(connection), self.__class__.__name__)
 
 		return seqvalue
 
@@ -1412,13 +1344,9 @@ class resetsequence(_DatabaseCommand):
 			self.sequence,
 			self.table,
 			self.field,
-			mode=self.mode,
-			owner=self.owner,
-			group=self.group,
 			minvalue=self.minvalue,
 			increment=self.increment,
-			connectstring=self.connectstring,
-			connectname=self.connectname,
+			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -1658,12 +1586,11 @@ class Context:
 	command_begin = tuple(f"{cname}(" for cname in Command.commands)
 	command_end = ")"
 
-	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
-		self.connections = {}
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit=True, tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
+		self.connections = []
 		self.commit = commit
 		self.scpdirectory = scpdirectory
 		self.filedirectory = filedirectory
-		self.terminator = "-- @@@"
 		self.tabsize = tabsize
 		self.context = context
 		self.raiseexceptions = [raiseexceptions]
@@ -1688,27 +1615,34 @@ class Context:
 		else:
 			self._width = 80
 		if connectstring is not None:
-			self.pushconnection(None, self.connect(connectstring, commit))
+			self.connections.append(Connection(connectstring, None, self.commit))
 
-	def connect(self, connectstring, mode=None, commit="once"):
-		return Connection(connectstring, mode, commit)
+	def connect(self, connectstring, mode=None, commit=None):
+		if commit is None:
+			commit = self.commit
+		connection = Connection(connectstring, mode, commit)
+		self.connections.append(connection)
+		return connection.connection
 
-	def connection(self, connectname=None):
-		if connectname not in self.connections:
-			raise ValueError(f"no connection named {connectname!r}")
-		return self.connections[connectname][-1]
+	def disconnect(self, commit=None):
+		if commit is None:
+			commit = self.commit
+		if not self.connections:
+			raise ValueError(f"no connection available")
+		connection = self.connections.pop().connection
+		if commit:
+			connection.commit()
+		else:
+			connection.rollback()
+		connection.close()
+		return connection
 
-	def pushconnection(self, connectname, connection):
-		if connectname not in self.connections:
-			self.connections[connectname] = []
-		self.connections[connectname].append(connection)
-
-	def popconnection(self, connectname):
-		if connectname not in self.connections:
-			raise ValueError(f"no connection named {connectname!r}")
-		if not self.connections[connectname]:
-			raise ValueError(f"connection stack for name {connectname!r} empty")
-		return self.connections[connectname].pop()
+	def getconnection(self, connection):
+		if connection is not None:
+			return connection
+		if not self.connections:
+			raise ValueError(f"no connection available")
+		return self.connections[-1]
 
 	def logprefix(self, starttime, commandnumber, object):
 		if object.location is not None:
@@ -1985,12 +1919,11 @@ class Context:
 			else:
 				for command in self._load(sys.stdin):
 					self.execute(None, None, command)
-			for connections in self.connections.values():
-				for connection in connections:
-					if connection.commit == "once":
-						connection.connection.commit()
-					elif connection.commit == "never":
-						connection.connection.rollback()
+			for connections in self.connections:
+				if self.commit:
+					connection.commit()
+				else:
+					connection.rollback()
 		finally:
 			if self.verbose in {"dot", "type"}:
 				print(flush=True)
