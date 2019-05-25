@@ -25,6 +25,9 @@ Changes in 5.44 (released 05/??/2019)
 *	The ``owner`` argument for various :mod:`ll.orasql` methods now supports
 	passing a set or tuple of owner names.
 
+*	Since PySQL scripts can open their own database connections the
+	``connectstring`` argument for the ``pysql`` script is now optional.
+
 *	The PySQL command ``compileall`` has been removed. This same effect can
 	simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
 	``dbms_utility.compile_schema()``.

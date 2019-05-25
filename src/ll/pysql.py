@@ -1965,18 +1965,26 @@ class Context:
 					state = None
 		yield from makeblock()
 
-	def executeall(self, stream):
+	def executeall(self, *filenames):
 		"""
-		Execute all command in :obj:`stream`. :obj:`stream` must be an iterable
-		over lines that contain the PySQL commands.
+		Execute all commands in the PySQL files specified by :obj:`filenames`.
+		If :obj:`filename` is empty :obj:`sys.stdin` is read.
 		"""
 		try:
 			if self.verbose == "type":
 				print("commands:", end="", flush=True)
 			elif self.verbose == "file":
 				print("files:", end="", flush=True)
-			for command in self._load(stream):
-				self.execute(None, None, command)
+			if filenames:
+				for filename in filenames:
+					filename = pathlib.Path(filename)
+					with self.changed_basedir(filename):
+						with filename.open("r") as f:
+							for command in self._load(f):
+								self.execute(None, None, command)
+			else:
+				for command in self._load(sys.stdin):
+					self.execute(None, None, command)
 			for connections in self.connections.values():
 				for connection in connections:
 					if connection.commit == "once":
@@ -2268,8 +2276,8 @@ def source(object, tabsize=None):
 
 def main(args=None):
 	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://python.livinglogic.de/pysql.html")
-	p.add_argument("connectstring", help="Oracle connect string")
-	p.add_argument("file", nargs="?", help="Name of the pysql file (default: read from stdin)", type=argparse.FileType("r"), default=sys.stdin)
+	p.add_argument("files", nargs="*", help="PySQL files (none: read from stdin)")
+	p.add_argument("-d", "--database", dest="connectstring", metavar="CONNECTSTRING", help="Oracle connect string specifying the default database connection (default %(default)s)", default=None)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "file", "line", "full"))
 	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
@@ -2292,7 +2300,7 @@ def main(args=None):
 		summary=args.summary,
 		vars=args.defines
 	)
-	context.executeall(args.file)
+	context.executeall(*args.files)
 
 
 if __name__ == "__main__":

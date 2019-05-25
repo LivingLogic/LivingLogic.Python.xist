@@ -21,6 +21,9 @@ simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
 The PySQL terminator comment (``-- @@@``) can now no longer be specified
 via a command line option.
 
+The ``connectstring`` argument for the ``pysql`` script is now optional,
+so it has to be specified via the optional argument ``-d``/``--database``.
+
 
 Migrating to version 5.42
 =========================
