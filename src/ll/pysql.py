@@ -740,8 +740,8 @@ class _SQLCommand(_DatabaseCommand):
 				continue # no value
 			if isinstance(argvalue, var):
 				varargs[argname] = argvalue
-				if argvalue.key is not None and argvalue.key in context.keys:
-					argvalue = context.keys[argvalue.key]
+				if argvalue.key is not None and argvalue.key in context._locals:
+					argvalue = context._locals[argvalue.key]
 				else:
 					argvalue = cursor.var(argvalue.type)
 			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
@@ -754,11 +754,11 @@ class _SQLCommand(_DatabaseCommand):
 
 		newkeys = {}
 		for (argname, argvalue) in varargs.items():
-			if argvalue.key not in context.keys:
+			if argvalue.key not in context._locals:
 				value = queryargvars[argname].getvalue(0)
 				newkeys[argname] = value
 				if argvalue.key is not None:
-					context.keys[argvalue.key] = value
+					context._locals[argvalue.key] = value
 		return newkeys
 
 
@@ -942,7 +942,6 @@ class literalpy(_DatabaseCommand):
 		vars = {command.__name__: CommandExecutor(command, context) for command in Command.commands.values()}
 		vars["sqlexpr"] = sqlexpr
 		vars["datetime"] = datetime
-		vars["vars"] = context.keys
 		vars["connection"] = connection.connection
 		return vars
 
@@ -993,7 +992,7 @@ class setvar(Command):
 		name = context.execute(None, None, self.name)
 		value = context.execute(None, None, self.value)
 
-		context.keys[name] = value
+		context._locals[name] = value
 		context.count(self.__class__.__name__)
 
 	def source_format(self):
@@ -1023,7 +1022,7 @@ class unsetvar(Command):
 	def execute(self, context):
 		name = context.execute(None, None, self.name)
 
-		context.keys.pop(name, None)
+		context._locals.pop(name, None)
 		context.count(self.__class__.__name__)
 
 	def source_format(self):
@@ -1208,7 +1207,7 @@ class scp(Command):
 		name = context.execute(None, None, self.name)
 		content = context.execute(None, None, self.content)
 
-		filename = context.scpdirectory + name.format(**context.keys)
+		filename = context.scpdirectory + name.format(**context._locals)
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(self.content)
@@ -1280,7 +1279,7 @@ class file(Command):
 		owner = context.execute("owner", None, self.owner)
 		group = context.execute("group", None, self.group)
 
-		filename = pathlib.Path(context.filedirectory + name.format(**context.keys))
+		filename = pathlib.Path(context.filedirectory + name.format(**context._locals))
 
 		try:
 			filename.write_bytes(content)
@@ -1587,8 +1586,8 @@ class var(Command):
 
 		context.count(self.__class__.__name__)
 
-		if key in context.keys:
-			value = context.keys[key]
+		if key in context._locals:
+			value = context._locals[key]
 			if value is not None and not isinstance(value, type):
 				raise TypeError(f"{value!r} is not of type {format_class(type)}")
 			return value
@@ -1660,7 +1659,6 @@ class Context:
 	command_end = ")"
 
 	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit="once", tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
-		self.keys = {v.key: v for v in vars} if vars else {}
 		self.connections = {}
 		self.commit = commit
 		self.scpdirectory = scpdirectory
@@ -1679,7 +1677,7 @@ class Context:
 		self.basedir = pathlib.Path()
 		self._lastlocation = None
 		self._lastcommand = None
-		self._locals = {}
+		self._locals = {v.key: v for v in vars} if vars else {}
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
