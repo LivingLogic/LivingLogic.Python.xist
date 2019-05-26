@@ -1084,9 +1084,9 @@ class checkerrors(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connectstring = context.execute("connectstring", None, self.connectstring)
-
+		connection = context.execute("connection", None, self.connection)
 		connection = context.getconnection(None)
+
 		connection.cursor().execute("select lower(type), name from user_errors group by lower(type), name")
 		invalid_objects = [tuple(r) for r in connection.cursor]
 		context.count(connectstring(connection), self.__class__.__name__)
@@ -1094,7 +1094,7 @@ class checkerrors(_DatabaseCommand):
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
 
-		return pyexpr(f"no errors in {connectstring}")
+		return pyexpr(f"no errors in {connectstring(connection)}")
 
 	def source_format(self):
 		yield from self._source_format()
