@@ -401,7 +401,7 @@ reprthreshold = 100
 def shortrepr(value):
 	if isinstance(value, bytes) and len(value) > reprthreshold:
 		return f"<{bytes.__repr__(value[:reprthreshold])} ... ({len(value):,} bytes)>"
-	elif isinstance(value, str) and  len(value) > reprthreshold:
+	elif isinstance(value, str) and len(value) > reprthreshold:
 		return f"<{str.__repr__(value[:reprthreshold])} ... ({len(value):,} characters)>"
 	else:
 		return repr(value)
@@ -1836,7 +1836,6 @@ class Context:
 			except Exception as exc:
 				raise LocationError(self._location) from exc
 
-
 		for (i, line) in enumerate(stream, 1):
 			line = line.rstrip()
 			if state is None:
@@ -2095,6 +2094,7 @@ class Location:
 		if self.startline is not None:
 			source = (self.startline-1) * "\n" + source
 		return source
+
 
 def define(arg):
 	(name, _, value) = arg.partition("=")
