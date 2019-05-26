@@ -845,6 +845,65 @@ class literalsql(_SQLCommand):
 		return sql
 
 
+@register
+class commit(_SQLCommand):
+	"""
+	A :class:`!commit` command commits the current transaction in the activate
+	database connection (or the one specified via the ``connection`` parameter).
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, sql, *, connection=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
+		connection.commit()
+		context.count(connectstring(connection), self.__class__.__name__)
+		return None
+
+	def source_format(self):
+		yield from self._source_format(
+			self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
+class rollback(_SQLCommand):
+	"""
+	A :class:`!rollback` command rolls back the current transaction in the
+	activate database connection (or the one specified via the ``connection``
+	parameter).
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, sql, *, connection=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
+		connection.rollback()
+		context.count(connectstring(connection), self.__class__.__name__)
+		return None
+
+	def source_format(self):
+		yield from self._source_format(
+			self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
 class literalpy(_DatabaseCommand):
 	"""
 	A :class:`!literalpy` is used for Python code that appears literally in the
