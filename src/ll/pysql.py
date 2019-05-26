@@ -385,6 +385,11 @@ except ImportError:
 
 import cx_Oracle
 
+try:
+	from ll import orasql
+except ImportError:
+	orasql = None
+
 __docformat__ = "reStructuredText"
 
 
@@ -1663,21 +1668,25 @@ class Context:
 		else:
 			self._width = 80
 		if connectstring is not None:
-			self.connections.append(Connection(connectstring, None, self.commit))
+			self.connect(connectstring, None)
 
 	def connect(self, connectstring, mode=None, commit=None):
 		if commit is None:
 			commit = self.commit
-		connection = Connection(connectstring, mode, commit)
+		mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
+		if orasql is not None:
+			connection = orasql.connect(connectstring, mode=mode, readlobs=True)
+		else:
+			connection = cx_Oracle.connect(connectstring, mode=mode)
 		self.connections.append(connection)
-		return connection.connection
+		return connection
 
 	def disconnect(self, commit=None):
 		if commit is None:
 			commit = self.commit
 		if not self.connections:
 			raise ValueError(f"no connection available")
-		connection = self.connections.pop().connection
+		connection = self.connections.pop()
 		if commit:
 			connection.commit()
 		else:
