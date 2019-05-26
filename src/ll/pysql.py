@@ -420,17 +420,6 @@ class CommandStackEntry:
 		self.command = command
 		self.output = False
 
-	def sep(self, context):
-		if self.output:
-			if context.verbose == "full":
-				print(", ", end="", flush=True)
-			elif context.verbose == "type":
-				print(" ", end="", flush=True)
-		else:
-			while self is not None:
-				self.output = True
-				self = self.preventry
-
 
 ###
 ### Command classes
