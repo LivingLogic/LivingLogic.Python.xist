@@ -1966,7 +1966,7 @@ class Context:
 			else:
 				for command in self._load(sys.stdin):
 					self.execute(None, None, command)
-			for connections in self.connections:
+			for connection in self.connections:
 				if self.commit:
 					connection.commit()
 				else:
