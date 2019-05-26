@@ -2212,7 +2212,7 @@ def main(args=None):
 	p.add_argument("files", nargs="*", help="PySQL files (none: read from stdin)")
 	p.add_argument("-d", "--database", dest="connectstring", metavar="CONNECTSTRING", help="Oracle connect string specifying the default database connection (default %(default)s)", default=None)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "file", "line", "full"))
-	p.add_argument("-c", "--commit", dest="commit", help="When should database transactions be committed? (default %(default)s)", default="once", choices=("record", "once", "never"))
+	p.add_argument("-r", "--rollback", dest="rollback", help="Should database transactions be rolled back? (default: commit on disconnect/after run)", default=False, action="store_true")
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
@@ -2226,7 +2226,7 @@ def main(args=None):
 		connectstring=args.connectstring,
 		scpdirectory=args.scpdirectory,
 		filedirectory=args.filedirectory,
-		commit=args.commit,
+		commit=not args.rollback,
 		tabsize=args.tabsize,
 		context=args.context,
 		verbose=args.verbose,
