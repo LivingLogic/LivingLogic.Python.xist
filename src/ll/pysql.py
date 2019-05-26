@@ -621,7 +621,7 @@ class disconnect(Command):
 		self.commit = commit
 
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} commit={self.connectname!r} location={self.location} at {id(self):#x}>"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} commit={self.commit!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
 		commit = context.execute("commit", None, self.commit)
@@ -1384,7 +1384,7 @@ class loadbytes(Command):
 		self.filename = filename
 
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.name!r} {self.location} at {id(self):#x}>"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r} {self.location} at {id(self):#x}>"
 
 	def execute(self, context):
 		"""
