@@ -1595,7 +1595,7 @@ class loadbytes(Command):
 
 	:obj:`filename` : string (required)
 		The name of the file to be loaded. The filename is treated as being
-		relative to the directory containing the pysql file that contains 
+		relative to the directory containing the pysql file that contains
 		:class:`loadbytes` command.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
