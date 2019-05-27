@@ -25,6 +25,20 @@ Changes in 5.44 (released 05/??/2019)
 *	The ``owner`` argument for various :mod:`ll.orasql` methods now supports
 	passing a set or tuple of owner names.
 
+*	PySQL scripts now can contains PySQL commands in "function call form", i.e.
+	``checkerrors()`` instead of ``{'type': 'çheckerrors'}``.
+
+*	PySQL scripts can now contains literal Python source code (between lines
+	with ``#>>>`` and ``#<<<``, e.g.::
+
+		#>>>
+		cursor = connection.cursor()
+		cursor.execute("drop user foo cascade")
+		#<<<
+
+*	Comments in PySQL scripts are supported now (either via lines starting with
+	``#`` or delimited by lines consisting of ``###``).
+
 *	Since PySQL scripts can open their own database connections the
 	``connectstring`` argument for the ``pysql`` script is now optional.
 
