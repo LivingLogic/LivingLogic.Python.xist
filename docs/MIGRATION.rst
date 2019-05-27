@@ -21,6 +21,14 @@ simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
 The PySQL terminator comment (``-- @@@``) can now no longer be specified
 via a command line option.
 
+The ``connectstring`` argument for the ``pysql`` script is now optional,
+so it has to be specified via the optional argument ``-d``/``--database``.
+
+The ``--commit`` argument (with the options ``record``, ``once`` and ``never``)
+has been replaced with a flag option ``--rollback``. Automatically committing
+after every record is no longer available. However manual committing is
+available via the :class:`~ll.pysql.commit` command.
+
 
 Migrating to version 5.42
 =========================
