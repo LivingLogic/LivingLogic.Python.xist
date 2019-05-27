@@ -1406,6 +1406,72 @@ class resetsequence(_DatabaseCommand):
 
 
 @register
+class drop(_DatabaseCommand):
+	"""
+	The :class:`!drop` command drops database objects. Unlike all other commands
+	this command requires the :mod:`ll.orasql` module. :class:`!drop` supports
+	the following parameters:
+
+	``droptypes``: list of strings (optional)
+		The types of objects to drop (value must be names for :mod:`ll.orasql`
+		object types.
+
+	``keeptypes``: list string (required)
+		The types of objects to keep (value must be names for :mod:`ll.orasql`
+		object types. ``droptypes`` and ``keeptypes`` are mutually exclusive.
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, *, droptypes=None, keeptypes=None, connection=None, raiseexceptions=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+		self.droptypes = droptypes
+		self.keeptypes = keeptypes
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		droptypes = context.execute("droptypes", None, self.droptypes)
+		keeptypes = context.execute("keeptypes", None, self.keeptypes)
+		if droptypes is not None and keeptypes is not None:
+			raise ValueError("The parameters 'droptypes' and 'keeptypes' are mutually exclusive")
+
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
+		cursor = connection.cursor()
+
+		def drop(obj):
+			if droptypes is not None:
+				return obj.type in droptypes
+			elif keeptypes is not None:
+				return obj.type not in keeptypes
+			else:
+				return True
+
+		count = 0
+		for (i, obj) in enumerate(connection.objects(owner=None, mode="drop")):
+			if obj.owner is None:
+				if drop(obj):
+					ddl = obj.dropsql(connection, False)
+					if ddl:
+						cursor.execute(ddl)
+						count += 1
+
+		context.count(connectstring(connection), self.__class__.__name__)
+
+		return pyexpr(f"{count:,} objects dropped")
+
+	def source_format(self):
+		yield from self._source_format(
+			droptypes=self.droptypes,
+			keeptypes=self.keeptypes,
+			connection=self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
 class comment(Command):
 	"""
 	The :class:`!comment` command does nothing.
