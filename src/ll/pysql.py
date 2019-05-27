@@ -1968,7 +1968,7 @@ class Context:
 			if filenames:
 				for filename in filenames:
 					filename = pathlib.Path(filename)
-					with self.changed_basedir(filename):
+					with self.changed_basedir(filename.parent):
 						with filename.open("r") as f:
 							for command in self._load(f):
 								self.execute(None, None, command)
