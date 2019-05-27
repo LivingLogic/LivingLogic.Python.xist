@@ -1151,8 +1151,9 @@ class checkerrors(_DatabaseCommand):
 		connection = context.execute("connection", None, self.connection)
 		connection = context.getconnection(None)
 
-		connection.cursor().execute("select lower(type), name from user_errors group by lower(type), name")
-		invalid_objects = [tuple(r) for r in connection.cursor]
+		cursor = connection.cursor()
+		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+		invalid_objects = [tuple(r) for r in cursor]
 		context.count(connectstring(connection), self.__class__.__name__)
 
 		if invalid_objects:
