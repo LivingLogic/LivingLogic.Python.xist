@@ -2080,7 +2080,7 @@ class Context:
 					if connection:
 						print(f"Connection {connection}:", flush=True)
 					elif connection is not None:
-						print(f"Unknown connection:", flush=True)
+						print(f"Without connection:", flush=True)
 					else:
 						print("Other commands:", flush=True)
 				lastconnection = connection
