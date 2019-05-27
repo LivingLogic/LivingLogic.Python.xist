@@ -821,6 +821,7 @@ class sql(_SQLCommand):
 		)
 
 
+@register
 class literalsql(_SQLCommand):
 	"""
 	A :class:`!sql` is used for SQL that appears literally in the
@@ -1400,6 +1401,96 @@ class resetsequence(_DatabaseCommand):
 			self.field,
 			minvalue=self.minvalue,
 			increment=self.increment,
+			connection=self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
+class user_exists(_DatabaseCommand):
+	"""
+	The :class:`!user_exists` command return whether a user with a
+	specified name exists in the database. It supports the following parameters:
+
+	``name``: string (required)
+		The name of the user to be checked for existence.
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, name, *, connection=None, raiseexceptions=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+		self.name = name
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		name = context.execute("name", None, self.name)
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
+		cursor = connection.cursor()
+
+		cursor.execute("select count(*) from all_users where username = :name", name=name)
+		result = cursor.fetchone()[0] > 0
+
+		context.count(connectstring(connection), self.__class__.__name__)
+
+		return result
+
+	def source_format(self):
+		yield from self._source_format(
+			self.name,
+			connection=self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
+class object_exists(_DatabaseCommand):
+	"""
+	The :class:`!object_exists` command return whether an object with a
+	specified name exists in the database. It supports the following parameters:
+
+	``name``: string (required)
+		The name of the object to be checked for existence.
+
+	``owner``: string (optional)
+		The owner of the object (defaults to the current user if not specified
+		or :const:`None`).
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, name, *, owner=None, connection=None, raiseexceptions=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+		self.name = name
+		self.owner = owner
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		name = context.execute("name", None, self.name)
+		owner = context.execute("owner", None, self.owner)
+		connection = context.execute("connection", None, self.connection)
+		connection = context.getconnection(connection)
+		cursor = connection.cursor()
+
+		if owner is None:
+			cursor.execute("select count(*) from user_objects where object_name = :name", name=name)
+		else:
+			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=owner, name=name)
+		result = cursor.fetchone()[0] > 0
+
+		context.count(connectstring(connection), self.__class__.__name__)
+
+		return result
+
+	def source_format(self):
+		yield from self._source_format(
+			self.name,
+			owner=self.owner,
 			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
