@@ -414,7 +414,7 @@ def shortrepr(value):
 
 def connectstring(connection):
 	if connection is None:
-		return None
+		return ""
 	else:
 		return f"{connection.username}@{connection.tnsentry}"
 
