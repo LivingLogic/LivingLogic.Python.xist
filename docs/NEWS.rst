@@ -32,15 +32,13 @@ Changes in 5.44 (released 05/??/2019)
 	simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
 	``dbms_utility.compile_schema()``.
 
-*	New PySQL commands have been added: ``commit``, ``rollback``, ``drop``,
-	``user_exists`` and ``object_exists``.
+*	Added several new PySQL commands: :class:`~ll.pysql.commit` and
+	:class:`~ll.pysql.rollback`, :class:`~ll.pysql.drop`,
+	:class:`~ll.pysql.user_exists` and :class:`~ll.pysql.object_exists`
 
 *	The ``--commit`` argument for the pysql script (with the options ``record``,
 	``once`` and ``never``) has been replaced with a flag option ``--rollback``.
 	Automatically committing after every record is no longer available.
-
-*	Added two new PySQL commands: :class:`~ll.pysql.commit` and
-	:class:`~ll.pysql.rollback`.
 
 *	The PySQL terminator comment (``-- @@@``) can now no longer be specified
 	via a command line option.
