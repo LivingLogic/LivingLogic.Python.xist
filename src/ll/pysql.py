@@ -2283,6 +2283,7 @@ class Context:
 			if self.verbose == "full":
 				print(f"[t+{now-self._runstarttime}] >> Command summary", flush=True)
 			else:
+				print()
 				print("Command summary", flush=True)
 			anyoutput = False
 			totallen = len(f"{self.totalcount:,}")
