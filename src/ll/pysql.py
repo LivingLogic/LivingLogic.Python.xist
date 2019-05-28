@@ -532,9 +532,9 @@ def register(cls):
 class include(Command):
 	"""
 	The :class:`!include` command includes another PySQL file. The filename is
-	passed in the first parameter ``name``. This name is interpreted as being
-	relative to the directory with the file containing the :class:`!include`
-	command.
+	passed in the first parameter ``filename``. This filename is interpreted as
+	being relative to the directory with the file containing the
+	:class:`!include` command.
 
 	The parameter ``cond`` specifies whether this :class:`!include` command
 	should be executed or not. If ``cond`` is ``None`` or true, the
@@ -543,22 +543,23 @@ class include(Command):
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, name, *, cond=None, raiseexceptions=None):
+	def __init__(self, filename, *, cond=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
-		self.name = name
+		self.filename = filename
 		self.cond = cond
 
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute(self.name)
+		filename = context.execute(self.filename)
 		cond = context.execute(self.cond)
 
-		filename = context.basedir/name
+		if context.filename is not None:
+			filename = context.filename.parent/filename
 
 		if cond is None or cond:
-			with context.changed_basedir(filename.parent):
+			with context.changed_filename(filename):
 				with filename.open("r", encoding="utf-8") as f:
 					for command in context._load(f):
 						context.execute(command)
@@ -943,7 +944,9 @@ class literalpy(_DatabaseCommand):
 
 		if self.location is not None:
 			code = self.location.offsetsource(code)
-		exec(code + "\n", vars, context._locals)
+		code += "\n"
+		code = compile(code, context.filename, "exec")
+		exec(code, vars, context._locals)
 
 		context.count(connectstring(connection), self.__class__.__name__)
 
@@ -1609,7 +1612,8 @@ class loadbytes(Command):
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
 		filename = context.execute(self.filename)
-		filename = context.basedir/filename
+		if context.filename is not None:
+			filename = context.filename.parent/filename
 		data = filename.read_bytes()
 		context.count(self.__class__.__name__)
 		return data
@@ -1665,7 +1669,8 @@ class loadstr(Command):
 		encoding = context.execute(self.encoding)
 		errors = context.execute(self.errors)
 
-		filename = context.basedir/filename
+		if context.filename is not None:
+			filename = context.filename.parent/filename
 		data = filename.read_text(encoding=encoding, errors=errors)
 		context.count(self.__class__.__name__)
 		return data
@@ -1814,7 +1819,7 @@ class Context:
 		self.totalcount = 0
 		self._location = None
 		self._runstarttime = None
-		self.basedir = pathlib.Path()
+		self.filename = None
 		self._lastlocation = None
 		self._lastcommand = None
 		self._locals = {v.key: v for v in vars} if vars else {}
@@ -1982,13 +1987,14 @@ class Context:
 		return result
 
 	@contextlib.contextmanager
-	def changed_basedir(self, dirpath):
-		oldbasedir = self.basedir
-		self.basedir = dirpath
+	def changed_filename(self, filename):
+		filename = pathlib.Path(filename)
+		oldfilename = self.filename
+		self.filename = filename
 		try:
 			yield
 		finally:
-			self.basedir = oldbasedir
+			self.filename = oldfilename
 
 	def globals(self):
 		vars = {command.__name__: command for command in Command.commands.values()}
@@ -2043,10 +2049,12 @@ class Context:
 							# Prepend empty lines, so in case of an exception the
 							# linenumbers in the stacktrace match
 							text = self._location.offsetsource(text)
-							args = eval(text, vars, self._locals)
+							code = compile(text, self._location.filename, "eval")
+							args = eval(code, vars, self._locals)
 							command = Command.fromdict(args)
 						else:
 							text = self._location.offsetsource(text)
+							code = compile(text, self._location.filename, "eval")
 							command = eval(text, vars, self._locals)
 						command.location = self._location
 						yield command
@@ -2128,7 +2136,7 @@ class Context:
 			if filenames:
 				for filename in filenames:
 					filename = pathlib.Path(filename)
-					with self.changed_basedir(filename.parent):
+					with self.changed_filename(filename):
 						with filename.open("r") as f:
 							for command in self._load(f):
 								self.execute(command)
