@@ -566,7 +566,7 @@ class include(Command):
 		context.count(self.__class__.__name__)
 
 	def source_format(self):
-		yield from self._source_format(self.name, raiseexceptions=self.raiseexceptions)
+		yield from self._source_format(self.filename, raiseexceptions=self.raiseexceptions)
 
 
 @register
