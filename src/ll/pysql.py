@@ -75,7 +75,7 @@ procedure and will call the procedure to insert data into the table::
 		noorder
 	;
 
-	-- @@@ person: table
+	-- @@@
 
 	create table person
 	(
@@ -84,11 +84,11 @@ procedure and will call the procedure to insert data into the table::
 		per_lastname varchar2(200)
 	);
 
-	-- @@@ person: primary key
+	-- @@@
 
 	alter table person add constraint person_pk primary key(per_id);
 
-	-- @@@ contact: table
+	-- @@@
 
 	create table contact
 	(
@@ -98,11 +98,11 @@ procedure and will call the procedure to insert data into the table::
 		con_value varchar2(200)
 	);
 
-	-- @@@ contact: primary key
+	-- @@@
 
 	alter table contact add constraint contact_pk primary key(con_id);
 
-	-- @@@ person: insert procedure
+	-- @@@
 
 	create or replace procedure person_insert
 	(
@@ -132,7 +132,7 @@ procedure and will call the procedure to insert data into the table::
 	end;
 	/
 
-	-- @@@ contact: insert procedure
+	-- @@@
 
 	create or replace procedure contact_insert
 	(
