@@ -344,10 +344,6 @@ it supports the following command line options:
 		The base directory for :class:`file` file save commands. It must include
 		a trailing ``/``.
 
-	``-t``, ``--terminator``
-		The terminator after an SQL command (should be a valid SQL comment;
-		default ``-- @@@``).
-
 	``-D``, ``--define``
 		Can be used multiple times to define variables. Supported formats are:
 
