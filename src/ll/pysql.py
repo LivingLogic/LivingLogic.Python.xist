@@ -694,12 +694,21 @@ class connect(Command):
 	command until the matching :class:`disconnect` command, all commands that
 	talk to the database will use this connection. After a :class:`disconnect`
 	command :mod:`!pysql` will revert back to the previously active database
-	connection.
+	connection. Parameter have the following meaning:
+
+	``mode`` : string or :const:`None` (optional)
+		The connection mode: This can be either ``'sysdba'`` or :const:`None`.
+
+	``retry`` : int (optional)
+		The number of times PySQL tries to get a database connection.
+
+	``retrydelay`` : int (optional)
+		The number of second to wait between connection tries.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, retry=0, retrydelay=10, raiseexceptions=None):
+	def __init__(self, connectstring, *, mode=None, retry=1, retrydelay=10, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.connectstring = connectstring
 		self.mode = mode
@@ -715,7 +724,17 @@ class connect(Command):
 		retry = context.execute(self.retry)
 		retrydelay = context.execute(self.retrydelay)
 
-		connection = context.connect(connectstring, mode=mode)
+		for i in range(retry):
+			if i == retry-1:
+				connection = context.connect(connectstring, mode=mode)
+			else:
+				try:
+					connection = context.connect(connectstring, mode=mode)
+				except cx_Oracle.DatabaseException:
+					time.sleep(self.retrydelay)
+				else:
+					break
+
 		context.count(self.__class__.__name__)
 		return connection
 
