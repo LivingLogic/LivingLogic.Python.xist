@@ -594,7 +594,7 @@ class connect(Command):
 		connectstring = context.execute(self.connectstring)
 		mode = context.execute(self.mode)
 
-		connection = context.connect(connectstring, mode=mode, commit=commit)
+		connection = context.connect(connectstring, mode=mode)
 		context.count(self.__class__.__name__)
 		return connection
 
@@ -1835,9 +1835,7 @@ class Context:
 		if connectstring is not None:
 			self.connect(connectstring, None)
 
-	def connect(self, connectstring, mode=None, commit=None):
-		if commit is None:
-			commit = self.commit
+	def connect(self, connectstring, mode=None):
 		mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
 		if orasql is not None:
 			connection = orasql.connect(connectstring, mode=mode, readlobs=True)
