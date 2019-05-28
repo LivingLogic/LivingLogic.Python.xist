@@ -12,16 +12,16 @@
 Overview
 ========
 The module/script :mod:`pysql` can be used to import data into an Oracle
-database. It reads ``pysql`` files which are a variant of normal Oracle SQL
+database. It reads ``pysql`` files which are an extension of normal Oracle SQL
 files.
 
-A PySQL file can contain two different types of commands.
+A PySQL file can contain different types of commands.
 
 
 SQL commands
 ------------
 
-A PySQL file may contain normal SQL commands. For the :mod:`pysql` script
+A PySQL file may contain normal SQL commands. For the :mod:`!pysql` script
 to be able to execute these commands they must be terminated with a comment
 line ``-- @@@``. :mod:`pysql` will strip off a trailing ``;`` or ``/`` from
 the command and execute it. Any exception that is raised as a result of
@@ -35,16 +35,134 @@ A PySQL file that only contains SQL commands is still a valid SQL file from
 the perspective of Oracle, so it still can be executed via ``sqlplus``.
 
 
+Literal Python block
+--------------------
+
+A literal Python block starts with a line that only contains ``#>>>`` and
+ends with a line that only contains ``#<<<``. Python code within the block
+gets executed when the block is encountered. The following objects are available
+within the block as global variables:
+
+:class:`sqlexpr`
+	Can be used to specify that an argument for a :class:`procedure` should be
+	an SQL expression instead of a Python value or a :class:`var` object;
+
+:mod:`datetime`
+	Python's datetime module;
+
+:obj:`connection`
+	The active database connection (or :const:`None` if there is no active
+	database connection).
+
+Furthermore all PySQL commands (see below) are available.
+
+Variables that get set within a literal Python block will be available (and
+retain their value) in subsequent literal Python blocks or PySQL commands.
+
+
 PySQL commands
 --------------
 
-A PySQL file may also contain PySQL commands. A PySQL command looks like a
-Python function call. This function call must either be contained in a single
-line or it must start with a line that only contains ``name(`` and end at a
-line that only contains ``)``. (``name`` must be the name of a PySQL command).
+A PySQL file may also contain PySQL commands. A PySQL command looks and behaves
+like a Python function call. This function call must either be contained in a
+single line (i.e. start with ``name(`` and end with ``)`` or it must start with
+a line that only contains ``name(`` and end at a line that only contains ``)``.
+(``name`` must be the name of a PySQL command).
 
-For further information about the different commands and which arguments they
-support, see the class :class:`Command` and its subclasses.
+The following commands are available:
+
+:class:`include`
+	Includes another PySQL file;
+
+:class:`connect`
+	Connects to a database;
+
+:class:`disconnect`
+	Disconnects from the active database connection;
+
+:class:`procedure`
+	Call a procedure in the database (and handles OUT parameter via :class:`var`
+	objects);
+
+:class:`sql`
+	Executes an SQL statement in the database (and handles OUT parameter via
+	:class:`var` objects);
+
+:class:`literalsql`
+	Executes an SQL statement in the database (this is what SQL commands get
+	converted to);
+
+:class:`commit`
+	Commits the transaction in the active database connection;
+
+:class:`rollback`
+	Rolls back the transaction in the active database connection;
+
+:class:`literalpy`
+	Executes Python code (this is what literal Python blocks get converted to);
+
+:class:`setvar`
+	Sets a variable;
+
+:class:`unsetvar`
+	Deletes a variable;
+
+:class:`raiseexceptions`
+	Set the exception handling mode;
+
+:class:`pushraiseexceptions`
+	Temporarily modifies the exception handling mode;
+
+:class:`popraiseexceptions`
+	Reverts to the previously active exception handling mode;
+
+:class:`checkerrors`
+	Checks whether there are invalid database objects;
+
+:class:`scp`
+	Create a file on a remote host via the :program:`scp` command;
+
+:class:`file`
+	Create a file on the local remote;
+
+:class:`resetsequence`
+	Resets a database sequence to the maximum value of a field in a table;
+
+:class:`user_exists`
+	Test whether a database user exists;
+
+:class:`object_exists`
+	Test whether a database object (table, package, procedure, etc.) exists;
+
+:class:`drop`
+	Drops all database objects of a certain type;
+
+:class:`comment`
+	A comment
+
+:class:`loadbytes`
+	Loads the binary content of a file;
+
+:class:`loadstr`
+	Loads the text content of a file;
+
+:class:`var`
+	Mark an argument for a :class:`procedure` or :class:`sql` command as being
+	an OUT parameter (or passes the value of the variable in subsequent
+	:class:`procedure`/:class:`sql` commands);
+
+:class:`env`
+	Returns the value of an environment variable.
+
+
+Comments
+--------
+
+A line starting with '#' (outside of a SQL command or literal Python block) is
+considered a comment and will be ignored.
+
+Also a block that starts and ends with a line that only contains ``###``
+is also considered to be a comment.
 
 
 Example
@@ -206,7 +324,7 @@ procedure and will call the procedure to insert data into the table::
 This file can then be imported into an Oracle database with the following
 command::
 
-	python pysql.py user/pwd@database data.pysql
+	python -m ll.pysql data.pysql -d user/pwd@database
 
 This will create two sequences, two tables and two procedures. Then it will
 import two records, one by calling ``person_insert`` and one by calling
@@ -239,22 +357,17 @@ Multiple database connections
 =============================
 
 PySQL can handle multiple database connections. New database connections can be
-opened with the ``pushconnnection`` command. This command opens a new database
-connection and stores it under a name. Subsequent commands can refer to that
-name to specify the database connection to use. The ``popconnection`` command
-disconnects from the database and reverts to the previous connection for that
-name (which might not exist). An example looks like this::
+opened with the ``connect`` command. This command opens a new database
+connection. Subsequent commands that talk to the database will use this
+connection until a ``disconnect`` command disconnects from the database and
+reverts to the previous connection (which might not exist). An example looks
+like this::
 
-	pushconnection(connectstring="user/pwd@db", connectname=db")
+	connect("user/pwd@db")
 
-	procedure("test", connectname="db")
+	procedure("test")
 
-	popconnection(connectname="db")
-
-The connection with the name ``None`` is the "default connection". This
-connection will be used for all normal SQL commands and all PySQL commands that
-don't have a ``connectname`` parameter (or where the ``connectname`` parameter
-is ``None``).
+	disconnect()
 
 
 Variables
@@ -276,48 +389,40 @@ passed when creating the object like this: ``var("foo", str)``.
 It is also possible to create variable objects via command line parameters.
 
 As a PySQL command is a Python literal, it is possible to use Python expressions
-inside a PySQL command. A variable object that has a value will be replaced by
-that value in such an expression, so stuff like ``2*var("foo")`` can be used.
-
-An uninitialized variable object is considered "false", This makes it possible
-to default to another value if a variable is uninitialized::
-
-	var('foo', int) or 42
+inside a PySQL command.
 
 
 External files
 ==============
 
 Inside a PySQL command it is possible to load values from external files.
-The ``loadbytes`` command loads a ``bytes`` object from an external file
-like this::
+The :class:`loadbytes` command loads a :class:`bytes` object from an external
+file like this::
 
 	loadbytes("path/to/file.png")
 
-A string can be loaded with the ``loadstr`` function like this::
+A string can be loaded with the :class:`loadstr` command like this::
 
-	loadstr("path/to/file.txt", "utf-8", "replace")
+	loadstr("path/to/file.txt", encoding="utf-8", errors="replace")
 
 The second and third argument are the encoding and error handling name
 respectively.
 
 The filename is treated as being relative to the file containing the
-``loadbytes`` or ``loadstr`` call.
+:class:`loadbytes` or :class:`loadstr` call.
 
 
 Command line usage
 ==================
 
 ``pysql.py`` has no external dependencies except for :mod:`cx_Oracle` and can
-be used as a script for importing a PySQL file into the database. As a script
-it supports the following command line options:
-
-	``connectstring``
-		An Oracle connectstring.
+be used as a script for importing a PySQL file into the database (However some
+commands require :mod:`ll.orasql`). As a script it supports the following
+command line options:
 
 	``file``
-		The name of the PySQL file that will be read and imported. If ``file``
-		isn't specified the commands are read from ``stdin``.
+		The name of one or more PySQL files that will be read and imported.
+		If no filename is given, commands are read from ``stdin``.
 
 	``-v``, ``--verbose``
 		Gives different levels of output while data is being imported to the
@@ -326,14 +431,19 @@ it supports the following command line options:
 		``line`` (each top level command as a line), ``file`` (the file location
 		of each command) or ``full`` (detailed output for each command)
 
+	``-d``, ``--database``
+		The value is an Oracle connectstring to specify the initial database
+		connection that will be used before any additional :class:`connect`
+		commands.
+
 	``-z``, ``--summary``
 		Give a summary of the number of commands executed and procedures called.
 
-	``-c``, ``--commit``
-		Specifies when to commit database transactions. ``record`` commits after
-		every command. ``once`` (the default) commits at the end of the script
-		(or when a connection is popped) and ``never`` rolls back the transaction
-		after all commands.
+	``-r``, ``--rollback``
+		Specifies that transactions should be rolled back at the end of the script
+		run, or when a :class:`disconnect` command disconnect from the database.
+		The default is to commit at the end or on disconnect. (But note that DDL
+		in the script will still commit everything up to the DDL statement.)
 
 	``-s``, ``--scpdirectory``
 		The base directory for :class:`scp` file copy commands. As files are
@@ -343,6 +453,13 @@ it supports the following command line options:
 	``-f``, ``--filedirectory``
 		The base directory for :class:`file` file save commands. It must include
 		a trailing ``/``.
+
+	``--tabsize``
+		The tab size when PySQL source is printed in ``full`` mode.
+
+	``--context``
+		The number of lines at the start and end of the source code of a block to
+		print in ``full`` mode. The default is to print the complete source code.
 
 	``-D``, ``--define``
 		Can be used multiple times to define variables. Supported formats are:
@@ -366,7 +483,7 @@ it supports the following command line options:
 			``false``, ``False``, ``1``, ``yes``, ``true`` and ``True``.
 """
 
-# We're importing :mod:`datetime` to make it available to ``eval()``
+# We're importing :mod:`datetime` to make it available to :func:`eval` and :func:`exec`
 import sys, os, os.path, argparse, collections, datetime, pathlib, tempfile, subprocess, contextlib
 
 try:
@@ -582,10 +699,12 @@ class connect(Command):
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, raiseexceptions=None):
+	def __init__(self, connectstring, *, mode=None, retry=0, retrydelay=10, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.connectstring = connectstring
 		self.mode = mode
+		self.retry = retry
+		self.retrydelay = retrydelay
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectstring={self.connectstring!r} location={self.location} at {id(self):#x}>"
@@ -593,6 +712,8 @@ class connect(Command):
 	def execute(self, context):
 		connectstring = context.execute(self.connectstring)
 		mode = context.execute(self.mode)
+		retry = context.execute(self.retry)
+		retrydelay = context.execute(self.retrydelay)
 
 		connection = context.connect(connectstring, mode=mode)
 		context.count(self.__class__.__name__)
@@ -612,8 +733,8 @@ class disconnect(Command):
 	connection and reverts back to the previously active database connection.
 
 	``commit`` specifies whether the transaction should be committed. If
-	``commit`` is :const:`None`, the default commit mode is used (specified
-	on the command line).
+	``commit`` is :const:`None`, the default commit mode is used (which can be
+	change on the command line via the ``-r``/``--rollback`` option).
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
@@ -646,7 +767,7 @@ class _DatabaseCommand(Command):
 
 	``connection`` : database connection (optional)
 		The database connection the use for the database command. If :const:`None`
-		the currently activve database connection will be used.
+		the currently active database connection will be used.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
@@ -658,7 +779,7 @@ class _DatabaseCommand(Command):
 
 class _SQLCommand(_DatabaseCommand):
 	"""
-	Common base class of :class:`ProcedureCommand` and :class:`SQLCommand`.
+	Common base class of :class:`procedure` and :class:`sql`.
 	"""
 
 	@staticmethod
@@ -1032,8 +1153,8 @@ class raiseexceptions(Command):
 
 		raiseexceptions(False)
 
-	for all subsequent commands any exception will be reported and command
-	execution will continue with the next command. ::
+	for all subsequent commands any exception will be ignored and reported and
+	command execution will continue with the next command. ::
 
 		raiseexceptions(True)
 
@@ -1074,9 +1195,9 @@ class pushraiseexceptions(Command):
 
 		pushraiseexceptions(False)
 
-	for all subsequent commands any exception will be ignored and command
-	execution will continue with the next command. It is possible to switch back
-	to the previous exception handling mode via::
+	for all subsequent commands any exception will be ignored and reported and
+	command execution will continue with the next command. It is possible to
+	switch back to the previous exception handling mode via::
 
 		popraiseexceptions()
 
@@ -1168,15 +1289,15 @@ class checkerrors(_DatabaseCommand):
 @register
 class scp(Command):
 	"""
-	The :class:`!scp` command creates a file by copying it via the ``scp``
+	The :class:`!scp` command creates a file by copying it via the :program:`scp`
 	command. The following parameters are supported:
 
 	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a :class:`procedure`
-		or :class:`sql` command. These specifiers will be replaced by the correct
-		key values. As these files will be copied via the ``scp`` command,
-		ssh file names can be used.
+		specifications containing any variable (for example those that appeared
+		in a :class:`procedure` or :class:`sql` command). These specifiers will be
+		replaced by the correct variable values. As these files will be copied via
+		the :program:`scp` command, ssh file names can be used.
 
 	``content``: bytes (required)
 		The content of the file to be created. This can also be a
@@ -1228,9 +1349,9 @@ class file(Command):
 
 	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
-		specifications containing any key that appeared in a :class:`procedure` or
-		:class:`sql` command. These specifiers will be replaced by the correct
-		key values.
+		specifications containing any variable (for example those that appeared
+		in a :class:`procedure` or :class:`sql` command). These specifiers will
+		replaced by the correct variable values.
 
 	``content``: bytes (required)
 		The content of the file to be created. This can also be a
@@ -1408,8 +1529,8 @@ class resetsequence(_DatabaseCommand):
 @register
 class user_exists(_DatabaseCommand):
 	"""
-	The :class:`!user_exists` command return whether a user with a
-	specified name exists in the database. It supports the following parameters:
+	The :class:`!user_exists` command returns whether a user with a specified
+	name exists in the database. It supports the following parameters:
 
 	``name``: string (required)
 		The name of the user to be checked for existence.
@@ -1508,7 +1629,10 @@ class drop(_DatabaseCommand):
 
 	``keeptypes``: list string (required)
 		The types of objects to keep (value must be names for :mod:`ll.orasql`
-		object types. ``droptypes`` and ``keeptypes`` are mutually exclusive.
+		object types.
+
+	``droptypes`` and ``keeptypes`` are mutually exclusive. When neither of them
+	is specified *all* database objects will be dropped.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
@@ -1565,8 +1689,6 @@ class drop(_DatabaseCommand):
 class comment(Command):
 	"""
 	The :class:`!comment` command does nothing.
-
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
 	def __init__(self, comment=None):
@@ -1594,7 +1716,7 @@ class loadbytes(Command):
 
 	:obj:`filename` : string (required)
 		The name of the file to be loaded. The filename is treated as being
-		relative to the directory containing the pysql file that contains
+		relative to the directory containing the PySQL file that contains
 		:class:`loadbytes` command.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
@@ -1776,7 +1898,7 @@ class CommandExecutor:
 	using the specified context and returns the command result.
 
 	This is used to allow calling commands in the Python source code of
-	by :class:`literalpy` commands.
+	:class:`literalpy` commands.
 	"""
 	def __init__(self, command, context):
 		self.command = command
@@ -1792,8 +1914,8 @@ class CommandExecutor:
 
 class Context:
 	"""
-	A :class:`Context` objects contains the configuration and run time information
-	required for importing a PySQL file.
+	A :class:`Context` objects contains the configuration and run time
+	information required for importing a PySQL file.
 	"""
 
 	terminator = "-- @@@"
@@ -2124,7 +2246,7 @@ class Context:
 	def executeall(self, *filenames):
 		"""
 		Execute all commands in the PySQL files specified by :obj:`filenames`.
-		If :obj:`filename` is empty :obj:`sys.stdin` is read.
+		If :obj:`filenames` is empty :obj:`sys.stdin` is read.
 		"""
 		try:
 			if self.verbose == "type":
@@ -2290,7 +2412,7 @@ class SCPError(Exception):
 
 class Location:
 	"""
-	The location of a PySQL/SQL command in a pysql file.
+	The location of a PySQL/SQL command in a PySQL file.
 	"""
 
 	def __init__(self, filename, startline, endline):
@@ -2433,7 +2555,7 @@ def source(object, tabsize=None):
 ###
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Import a pysql file into an Oracle database", epilog="For more info see http://python.livinglogic.de/pysql.html")
+	p = argparse.ArgumentParser(description="Import a PySQL file into an Oracle database", epilog="For more info see http://python.livinglogic.de/pysql.html")
 	p.add_argument("files", nargs="*", help="PySQL files (none: read from stdin)")
 	p.add_argument("-d", "--database", dest="connectstring", metavar="CONNECTSTRING", help="Oracle connect string specifying the default database connection (default %(default)s)", default=None)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "file", "line", "full"))
@@ -2441,7 +2563,7 @@ def main(args=None):
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
-	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of lines when printing source code (default %(default)r)", type=int, default=None)
+	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of context lines when printing source code (default %(default)r)", type=int, default=None)
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
 	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
 
