@@ -1741,18 +1741,24 @@ class env(Command):
 
 	:obj:`name` : string (required)
 		The name of the environment variable.
+
+	:obj:`default` : string (optional)
+		The default to use, if the environment variable isn't set.
+		This defaults to :const:`None`.
 	"""
 
-	def __init__(self, name):
+	def __init__(self, name, default=None):
 		super().__init__(raiseexceptions=None)
 		self.name = name
+		self.default = default
 
 	def __repr__(self):
 		return f"env({self.name!r})"
 
 	def execute(self, context):
 		name = context.execute(self.name)
-		return os.environ.get(name, None)
+		default = context.execute(self.default)
+		return os.environ.get(name, self.default)
 
 	def source_format(self):
 		yield repr(self)
