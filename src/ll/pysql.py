@@ -552,8 +552,8 @@ class include(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute("name", None, self.name)
-		cond = context.execute("cond", None, self.cond)
+		name = context.execute(self.name)
+		cond = context.execute(self.cond)
 
 		filename = context.basedir/name
 
@@ -561,7 +561,7 @@ class include(Command):
 			with context.changed_basedir(filename.parent):
 				with filename.open("r", encoding="utf-8") as f:
 					for command in context._load(f):
-						context.execute(None, None, command)
+						context.execute(command)
 		context.count(self.__class__.__name__)
 
 	def source_format(self):
@@ -590,8 +590,8 @@ class connect(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectstring={self.connectstring!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connectstring = context.execute("connectstring", None, self.connectstring)
-		mode = context.execute("mode", None, self.mode)
+		connectstring = context.execute(self.connectstring)
+		mode = context.execute(self.mode)
 
 		connection = context.connect(connectstring, mode=mode, commit=commit)
 		context.count(self.__class__.__name__)
@@ -625,7 +625,7 @@ class disconnect(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} commit={self.commit!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		commit = context.execute("commit", None, self.commit)
+		commit = context.execute(self.commit)
 		connection = context.disconnect(commit)
 		context.count(self.__class__.__name__)
 		return connection
@@ -672,7 +672,7 @@ class _SQLCommand(_DatabaseCommand):
 		queryargvars = {}
 		varargs = {}
 		for (argname, argvalue) in self.args.items():
-			argvalue = context.execute(f"args.{argname}", None, argvalue)
+			argvalue = context.execute(argvalue)
 			if isinstance(argvalue, sqlexpr):
 				continue # no value
 			if isinstance(argvalue, var):
@@ -750,8 +750,8 @@ class procedure(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute(None, None, self.name)
-		connection = context.execute("connection", None, self.connection)
+		name = context.execute(self.name)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 
 		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
@@ -800,8 +800,8 @@ class sql(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		sql = context.execute(None, None, self.sql)
-		connection = context.execute("connection", None, self.connection)
+		sql = context.execute(self.sql)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 
 		result = self._executesql(context, connection, sql)
@@ -833,7 +833,7 @@ class literalsql(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		sql = context.execute(None, None, self.sql)
+		sql = context.execute(self.sql)
 		if sql.endswith((";", "/")):
 			sql = sql[:-1]
 		connection = context.getconnection(None)
@@ -863,7 +863,7 @@ class commit(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.execute("connection", None, self.connection)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 		connection.commit()
 		context.count(connectstring(connection), self.__class__.__name__)
@@ -893,7 +893,7 @@ class rollback(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.execute("connection", None, self.connection)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 		connection.rollback()
 		context.count(connectstring(connection), self.__class__.__name__)
@@ -933,7 +933,7 @@ class literalpy(_DatabaseCommand):
 		return vars
 
 	def execute(self, context):
-		code = context.execute(None, None, self.code)
+		code = context.execute(self.code)
 		if context.connections:
 			connection = context.connections[-1]
 		else:
@@ -978,8 +978,8 @@ class setvar(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} value={self.value!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute(None, None, self.name)
-		value = context.execute(None, None, self.value)
+		name = context.execute(self.name)
+		value = context.execute(self.value)
 
 		context._locals[name] = value
 		context.count(self.__class__.__name__)
@@ -1009,7 +1009,7 @@ class unsetvar(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute(None, None, self.name)
+		name = context.execute(self.name)
 
 		context._locals.pop(name, None)
 		context.count(self.__class__.__name__)
@@ -1051,7 +1051,7 @@ class raiseexceptions(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		value = context.execute(None, None, self.value)
+		value = context.execute(self.value)
 		context.raiseexceptions[-1] = value
 		context.count(self.__class__.__name__)
 
@@ -1091,7 +1091,7 @@ class pushraiseexceptions(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		value = context.execute(None, None, self.value)
+		value = context.execute(self.value)
 		context.raiseexceptions.append(value)
 		context.count(self.__class__.__name__)
 
@@ -1145,7 +1145,7 @@ class checkerrors(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.execute("connection", None, self.connection)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(None)
 
 		cursor = connection.cursor()
@@ -1191,8 +1191,8 @@ class scp(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute(None, None, self.name)
-		content = context.execute(None, None, self.content)
+		name = context.execute(self.name)
+		content = context.execute(self.content)
 
 		filename = context.scpdirectory + name.format(**context._locals)
 
@@ -1260,11 +1260,11 @@ class file(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute(None, None, self.name)
-		content = context.execute(None, None, self.content)
-		mode = context.execute("mode", None, self.mode)
-		owner = context.execute("owner", None, self.owner)
-		group = context.execute("group", None, self.group)
+		name = context.execute(self.name)
+		content = context.execute(self.content)
+		mode = context.execute(self.mode)
+		owner = context.execute(self.owner)
+		group = context.execute(self.group)
 
 		filename = pathlib.Path(context.filedirectory + name.format(**context._locals))
 
@@ -1349,12 +1349,12 @@ class resetsequence(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sequence={self.sequence!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		sequence = context.execute(None, None, self.sequence)
-		table = context.execute(None, None, self.table)
-		field = context.execute(None, None, self.field)
-		minvalue = context.execute("minvalue", None, self.minvalue)
-		increment = context.execute("increment", None, self.increment)
-		connection = context.execute("connection", None, self.connection)
+		sequence = context.execute(self.sequence)
+		table = context.execute(self.table)
+		field = context.execute(self.field)
+		minvalue = context.execute(self.minvalue)
+		increment = context.execute(self.increment)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 
 		cursor = connection.cursor()
@@ -1422,8 +1422,8 @@ class user_exists(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute("name", None, self.name)
-		connection = context.execute("connection", None, self.connection)
+		name = context.execute(self.name)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 		cursor = connection.cursor()
 
@@ -1467,9 +1467,9 @@ class object_exists(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		name = context.execute("name", None, self.name)
-		owner = context.execute("owner", None, self.owner)
-		connection = context.execute("connection", None, self.connection)
+		name = context.execute(self.name)
+		owner = context.execute(self.owner)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 		cursor = connection.cursor()
 
@@ -1519,12 +1519,12 @@ class drop(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		droptypes = context.execute("droptypes", None, self.droptypes)
-		keeptypes = context.execute("keeptypes", None, self.keeptypes)
+		droptypes = context.execute(self.droptypes)
+		keeptypes = context.execute(self.keeptypes)
 		if droptypes is not None and keeptypes is not None:
 			raise ValueError("The parameters 'droptypes' and 'keeptypes' are mutually exclusive")
 
-		connection = context.execute("connection", None, self.connection)
+		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 		cursor = connection.cursor()
 
@@ -1608,7 +1608,7 @@ class loadbytes(Command):
 		"""
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
-		filename = context.execute(None, None, self.filename)
+		filename = context.execute(self.filename)
 		filename = context.basedir/filename
 		data = filename.read_bytes()
 		context.count(self.__class__.__name__)
@@ -1661,9 +1661,9 @@ class loadstr(Command):
 		"""
 		Read the file and return the file content as a :class:`str` object.
 		"""
-		filename = context.execute(None, None, self.filename)
-		encoding = context.execute("encoding", None, self.encoding)
-		errors = context.execute("errors", "strict", self.errors)
+		filename = context.execute(self.filename)
+		encoding = context.execute(self.encoding)
+		errors = context.execute(self.errors)
 
 		filename = context.basedir/filename
 		data = filename.read_text(encoding=encoding, errors=errors)
@@ -1716,8 +1716,8 @@ class var(Command):
 		return False
 
 	def execute(self, context):
-		key = context.execute(None, None, self.key)
-		type = context.execute(None, str, self.type)
+		key = context.execute(self.key)
+		type = context.execute(self.type)
 
 		context.count(self.__class__.__name__)
 
@@ -1751,7 +1751,7 @@ class env(Command):
 		return f"env({self.name!r})"
 
 	def execute(self, context):
-		name = context.execute(None, None, self.name)
+		name = context.execute(self.name)
 		return os.environ.get(name, None)
 
 	def source_format(self):
@@ -1896,7 +1896,7 @@ class Context:
 					print(line, flush=True)
 			print(rule, flush=True)
 
-	def execute(self, label, default, object):
+	def execute(self, object):
 		if self._runstarttime is None:
 			self._runstarttime = datetime.datetime.now()
 
@@ -2125,7 +2125,7 @@ class Context:
 					with self.changed_basedir(filename.parent):
 						with filename.open("r") as f:
 							for command in self._load(f):
-								self.execute(None, None, command)
+								self.execute(command)
 			else:
 				for command in self._load(sys.stdin):
 					self.execute(None, None, command)
