@@ -11,8 +11,8 @@ incompatible changes are listed here. For a list of all changes see
 Migrating to version 5.44
 =========================
 
-Changes to ``ll.sisyphus``
---------------------------
+Changes to ``ll.pysql``
+-----------------------
 
 The PySQL command ``compileall`` has been removed. This same effect can
 simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
@@ -28,6 +28,11 @@ The ``--commit`` argument (with the options ``record``, ``once`` and ``never``)
 has been replaced with a flag option ``--rollback``. Automatically committing
 after every record is no longer available. However manual committing is
 available via the :class:`~ll.pysql.commit` command.
+
+PySQL no longer support multiple active database connect via the ``connectname``
+key. When using literal SQL this couldn't be used anyway, so it has been
+dropped. If you really need this feature you can implement a workaround in
+literal Python blocks.
 
 
 Migrating to version 5.42

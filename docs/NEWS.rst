@@ -48,7 +48,8 @@ Changes in 5.44 (released 05/??/2019)
 
 *	Added several new PySQL commands: :class:`~ll.pysql.commit` and
 	:class:`~ll.pysql.rollback`, :class:`~ll.pysql.drop`,
-	:class:`~ll.pysql.user_exists` and :class:`~ll.pysql.object_exists`
+	:class:`~ll.pysql.user_exists`, :class:`~ll.pysql.object_exists` and
+	 :class:`~ll.pysql.env`.
 
 *	The ``--commit`` argument for the pysql script (with the options ``record``,
 	``once`` and ``never``) has been replaced with a flag option ``--rollback``.
