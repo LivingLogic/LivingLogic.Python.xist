@@ -579,7 +579,7 @@ class Connection(Connection):
 		:obj:`owner` specifies from which schema objects should be yielded.
 		For more information see :func:`owned`.
 		"""
-		if mode not in ("create", "drop", "flat"):
+		if mode not in {"create", "drop", "flat"}:
 			raise UnknownModeError(mode)
 
 		done = set()
