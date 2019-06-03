@@ -708,7 +708,7 @@ class connect(Command):
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, retry=1, retrydelay=10, raiseexceptions=None):
+	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raiseexceptions=None):
 		super().__init__(raiseexceptions=raiseexceptions)
 		self.connectstring = connectstring
 		self.mode = mode
@@ -724,6 +724,11 @@ class connect(Command):
 		retry = context.execute(self.retry)
 		retrydelay = context.execute(self.retrydelay)
 
+		if retry is None:
+			retry = 1
+		if retrydelay is None:
+			retrydelay = 30
+
 		for i in range(retry):
 			if i == retry-1:
 				connection = context.connect(connectstring, mode=mode)
@@ -731,7 +736,8 @@ class connect(Command):
 				try:
 					connection = context.connect(connectstring, mode=mode)
 				except cx_Oracle.DatabaseError:
-					time.sleep(self.retrydelay)
+					if retrydelay > 0:
+						time.sleep(retrydelay)
 				else:
 					break
 
@@ -741,6 +747,9 @@ class connect(Command):
 	def source_format(self):
 		yield from self._source_format(
 			connectstring=self.connectstring,
+			mode=self.mode,
+			retry=self.retry,
+			retrydelay=self.retrydelay,
 			raiseexceptions=self.raiseexceptions,
 		)
 
