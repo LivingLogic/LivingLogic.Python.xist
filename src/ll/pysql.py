@@ -730,7 +730,7 @@ class connect(Command):
 			else:
 				try:
 					connection = context.connect(connectstring, mode=mode)
-				except cx_Oracle.DatabaseException:
+				except cx_Oracle.DatabaseError:
 					time.sleep(self.retrydelay)
 				else:
 					break
