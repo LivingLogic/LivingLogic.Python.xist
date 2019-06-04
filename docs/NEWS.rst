@@ -47,7 +47,7 @@ Changes in 5.44 (released 05/??/2019)
 	``dbms_utility.compile_schema()``.
 
 *	Added several new PySQL commands: :class:`~ll.pysql.commit` and
-	:class:`~ll.pysql.rollback`, :class:`~ll.pysql.drop`,
+	:class:`~ll.pysql.rollback`, :class:`~ll.pysql.drop_types`,
 	:class:`~ll.pysql.user_exists`, :class:`~ll.pysql.object_exists` and
 	 :class:`~ll.pysql.env`.
 
