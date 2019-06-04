@@ -134,7 +134,7 @@ The following commands are available:
 :class:`object_exists`
 	Test whether a database object (table, package, procedure, etc.) exists;
 
-:class:`drop`
+:class:`drop_types`
 	Drops all database objects of a certain type;
 
 :class:`comment`
@@ -484,7 +484,7 @@ command line options:
 """
 
 # We're importing :mod:`datetime` to make it available to :func:`eval` and :func:`exec`
-import sys, os, os.path, argparse, collections, datetime, pathlib, tempfile, subprocess, contextlib
+import sys, os, os.path, argparse, collections, time, datetime, pathlib, tempfile, subprocess, contextlib
 
 try:
 	import pwd
@@ -1645,56 +1645,56 @@ class object_exists(_DatabaseCommand):
 
 
 @register
-class drop(_DatabaseCommand):
+class drop_types(_DatabaseCommand):
 	"""
-	The :class:`!drop` command drops database objects. Unlike all other commands
-	this command requires the :mod:`ll.orasql` module. :class:`!drop` supports
-	the following parameters:
+	The :class:`!drop_types` command drops database objects. Unlike all other
+	commands this command requires the :mod:`ll.orasql` module.
+	:class:`!drop_types` supports the following parameters:
 
-	``droptypes``: list of strings (optional)
+	``drop``: list of strings (optional)
 		The types of objects to drop (value must be names for :mod:`ll.orasql`
 		object types.
 
-	``keeptypes``: list string (required)
+	``keep``: list string (required)
 		The types of objects to keep (value must be names for :mod:`ll.orasql`
 		object types.
 
-	``droptypes`` and ``keeptypes`` are mutually exclusive. When neither of them
+	``drop`` and ``keep`` are mutually exclusive. When neither of them
 	is specified *all* database objects will be dropped.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, *, droptypes=None, keeptypes=None, connection=None, raiseexceptions=None):
+	def __init__(self, *, drop=None, keep=None, connection=None, raiseexceptions=None):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
-		self.droptypes = droptypes
-		self.keeptypes = keeptypes
+		self.drop = drop
+		self.keep = keep
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		droptypes = context.execute(self.droptypes)
-		keeptypes = context.execute(self.keeptypes)
-		if droptypes is not None and keeptypes is not None:
-			raise ValueError("The parameters 'droptypes' and 'keeptypes' are mutually exclusive")
+		drop = context.execute(self.drop)
+		keep = context.execute(self.keep)
+		if drop is not None and keep is not None:
+			raise ValueError("The parameters 'drop' and 'keep' are mutually exclusive")
 
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 		cursor = connection.cursor()
 
-		def drop(obj):
-			if droptypes is not None:
-				return obj.type in droptypes
-			elif keeptypes is not None:
-				return obj.type not in keeptypes
+		def drop_obj(obj):
+			if drop is not None:
+				return obj.type in drop
+			elif keep is not None:
+				return obj.type not in keep
 			else:
 				return True
 
 		count = 0
 		for (i, obj) in enumerate(connection.objects(owner=None, mode="drop")):
 			if obj.owner is None:
-				if drop(obj):
+				if drop_obj(obj):
 					ddl = obj.dropsql(connection, False)
 					if ddl:
 						cursor.execute(ddl)
@@ -1706,8 +1706,8 @@ class drop(_DatabaseCommand):
 
 	def source_format(self):
 		yield from self._source_format(
-			droptypes=self.droptypes,
-			keeptypes=self.keeptypes,
+			drop=self.drop,
+			keep=self.keep,
 			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
