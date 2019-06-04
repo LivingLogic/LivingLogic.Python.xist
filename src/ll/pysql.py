@@ -161,9 +161,6 @@ Comments
 A line starting with '#' (outside of a SQL command or literal Python block) is
 considered a comment and will be ignored.
 
-Also a block that starts and ends with a line that only contains ``###``
-is also considered to be a comment.
-
 
 Example
 =======
@@ -1719,8 +1716,10 @@ class comment(Command):
 	The :class:`!comment` command does nothing.
 	"""
 
-	def __init__(self, comment=None):
+	def __init__(self, comment):
 		super().__init__()
+		if not all(line.startswith("#") for line in comment.splitlines()):
+			raise ValueError("All lines in comment must start with '#")
 		self.comment = comment
 
 	def __str__(self):
@@ -1949,8 +1948,6 @@ class Context:
 	terminator = "-- @@@"
 	literalpy_begin = "#>>>"
 	literalpy_end = "#<<<"
-	comment_begin = "###"
-	comment_end = "###"
 	command_begin = tuple(f"{cname}(" for cname in Command.commands)
 	command_end = ")"
 
@@ -2166,8 +2163,6 @@ class Context:
 		# ``None``: outside of any block
 		# ``literalsql``: inside of literal SQL block
 		# ``literalpy``: inside of literal Python block
-		# ``comment``: inside of comment (lines starting with "#")
-		# ``blockcomment``: inside of block comment (lines delimited by "###")
 		# ``dict``: inside of Python dict literal
 		# others: inside a PySQL command of that name
 		state = None
@@ -2189,10 +2184,6 @@ class Context:
 							command = literalsql(text)
 						elif state == "literalpy":
 							command = literalpy(text)
-						elif state == "comment":
-							command = comment(text)
-						elif state == "blockcomment":
-							command = comment(text)
 						elif state == "dict":
 							# Prepend empty lines, so in case of an exception the
 							# linenumbers in the stacktrace match
@@ -2218,16 +2209,11 @@ class Context:
 					if line.endswith("}"):
 						yield from makeblock()
 						state = None
-				elif line == self.comment_begin:
-					state = "blockcomment"
 				elif line == self.literalpy_begin:
 					lines.append((i, line))
 					state = "literalpy"
 				elif line.startswith("#"):
-					state = "comment"
-					lines.append((i, line[1:].strip()))
-					yield from makeblock()
-					state = None
+					pass # Ignore comments
 				elif line == self.terminator:
 					pass # Still outside the block
 				elif line.startswith(self.command_begin): # PySQL command constructor?
@@ -2255,14 +2241,6 @@ class Context:
 				if line == self.literalpy_end:
 					yield from makeblock()
 					state = None
-			elif state == "comment":
-				raise ValueError("This can't happen")
-			elif state == "blockcomment":
-				if line == self.comment_end:
-					yield from makeblock()
-					state = None
-				else:
-					lines.append((i, line))
 			else:
 				# Inside any of the PySQL commands as a function call
 				lines.append((i, line))
