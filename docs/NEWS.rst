@@ -61,9 +61,9 @@ Changes in 5.44 (released 05/??/2019)
 *	Running PySQL scripts in full mode now outputs much more information.
 
 *	The :class:`~ll.url.URL` methods :meth:`~ll.url.URL.owner` and
-	:meth:`~ll.url.URL.group` now will return the ``uid`` or ``gid`` respectively
-	when the user or group name can't be determined instead of raising a
-	:exc:`KeyError`.
+	:meth:`~ll.url.URL.group` now will return the ``uid`` or ``gid``
+	respectively when the user or group name can't be determined instead of
+	raising a :exc:`KeyError`.
 
 *	Fixed SQL statement for dropping :class:`ll.orasql.Job` objects.
 
