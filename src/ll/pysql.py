@@ -28,15 +28,15 @@ the command and execute it. Any exception that is raised as a result of
 executing the command will stop the script and be reported. This is in
 contrast to how ``sqlplus`` executes SQL commands. ``sqlplus`` would continue
 after an error and exit with status code 0 even if there were errors.
-It is also possible to explicitely ignore any exception raised by the
-command by specifying a different exception handling mode.
+(It is also possible to explicitely ignore any exception raised by the
+command by specifying a different exception handling mode.)
 
 A PySQL file that only contains SQL commands is still a valid SQL file from
 the perspective of Oracle, so it still can be executed via ``sqlplus``.
 
 
-Literal Python block
---------------------
+Literal Python blocks
+---------------------
 
 A literal Python block starts with a line that only contains ``#>>>`` and
 ends with a line that only contains ``#<<<``. Python code within the block
@@ -57,7 +57,7 @@ within the block as global variables:
 Furthermore all PySQL commands (see below) are available.
 
 Variables that get set within a literal Python block will be available (and
-retain their value) in subsequent literal Python blocks or PySQL commands.
+retain their value) in subsequent literal Python blocks or other PySQL commands.
 
 
 PySQL commands
@@ -120,19 +120,19 @@ The following commands are available:
 	Checks whether there are invalid database objects;
 
 :class:`scp`
-	Create a file on a remote host via the :program:`scp` command;
+	Creates a file on a remote host via :program:`scp`;
 
 :class:`file`
-	Create a file on the local remote;
+	Creates a file on the local machine;
 
 :class:`resetsequence`
 	Resets a database sequence to the maximum value of a field in a table;
 
 :class:`user_exists`
-	Test whether a database user exists;
+	Tests whether a database user exists;
 
 :class:`object_exists`
-	Test whether a database object (table, package, procedure, etc.) exists;
+	Tests whether a database object (table, package, procedure, etc.) exists;
 
 :class:`drop_types`
 	Drops all database objects of a certain type;
@@ -147,7 +147,7 @@ The following commands are available:
 	Loads the text content of a file;
 
 :class:`var`
-	Mark an argument for a :class:`procedure` or :class:`sql` command as being
+	Marks an argument for a :class:`procedure` or :class:`sql` command as being
 	an OUT parameter (or passes the value of the variable in subsequent
 	:class:`procedure`/:class:`sql` commands);
 
@@ -408,6 +408,10 @@ respectively.
 The filename is treated as being relative to the file containing the
 :class:`loadbytes` or :class:`loadstr` call.
 
+This file content can then be used in other PySQL commands (e.g. as parameters
+in :class:`procedure` commands, or as file content in :class:`scp` or
+:class:`file` commands).
+
 
 Command line usage
 ==================
@@ -440,13 +444,13 @@ command line options:
 
 	``-r``, ``--rollback``
 		Specifies that transactions should be rolled back at the end of the script
-		run, or when a :class:`disconnect` command disconnect from the database.
-		The default is to commit at the end or on disconnect. (But note that DDL
-		in the script will still commit everything up to the DDL statement.)
+		run, or when a :class:`disconnect` command disconnects from the database.
+		The default is to commit at the end or on each disconnect. (But note that
+		DDL in the script will still commit everything up to the DDL statement.)
 
 	``-s``, ``--scpdirectory``
 		The base directory for :class:`scp` file copy commands. As files are
-		copied via ``scp`` this can be a remote filename (like
+		copied via :program:`scp` this can be a remote filename (like
 		``root@www.example.org:~/uploads/``) and must include a trailing ``/``.
 
 	``-f``, ``--filedirectory``
