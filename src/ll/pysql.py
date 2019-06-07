@@ -615,6 +615,11 @@ class Command:
 
 
 def register(cls):
+	"""
+	Register a :class:`Command` subclass as a PySQL command.
+
+	This is used as a class decorator.
+	"""
 	Command.commands[cls.__name__] = cls
 	return cls
 
@@ -675,7 +680,7 @@ class connect(Command):
 		The number of times PySQL tries to get a database connection.
 
 	``retrydelay`` : int (optional)
-		The number of second to wait between connection tries.
+		The number of seconds to wait between connection tries.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
@@ -740,7 +745,7 @@ class disconnect(Command):
 
 	``commit`` specifies whether the transaction should be committed. If
 	``commit`` is :const:`None`, the default commit mode is used (which can be
-	change on the command line via the ``-r``/``--rollback`` option).
+	changed on the command line via the ``-r``/``--rollback`` option).
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
@@ -871,7 +876,7 @@ class procedure(_SQLCommand):
 			object). If a :class:`str` object is required, :class:`loadstr` can
 			be used. Encoding info can be passed like this::
 
-				loadstr("foo/bar.txt", "utf-8", "replace")
+				loadstr("foo/bar.txt", encoding="utf-8", errors="replace")
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
@@ -1165,7 +1170,7 @@ class raiseexceptions(Command):
 	exception is encountered.
 
 	Note that the global configuration will only be relevant for commands that
-	don't specify the ``raiseexceptions`` paramter themselves.
+	don't specify the ``raiseexceptions`` parameter themselves.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
@@ -1260,7 +1265,7 @@ class popraiseexceptions(Command):
 class checkerrors(_DatabaseCommand):
 	"""
 	The :class:`!checkerrors` command checks that there are no compilation errors
-	in the target schema. If there are, an exception will be raised.
+	in the active database schema. If there are, an exception will be raised.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`
 	(but the value of the ``raiseexceptions`` key will be ignored).
@@ -1292,18 +1297,18 @@ class checkerrors(_DatabaseCommand):
 class scp(Command):
 	"""
 	The :class:`!scp` command creates a file by copying it via the :program:`scp`
-	command. The following parameters are supported:
+	program. The following parameters are supported:
 
 	``name`` : string (required)
 		The name of the file to be created. It may contain ``format()`` style
 		specifications containing any variable (for example those that appeared
 		in a :class:`procedure` or :class:`sql` command). These specifiers will be
 		replaced by the correct variable values. As these files will be copied via
-		the :program:`scp` command, ssh file names can be used.
+		the :program:`scp` program, ssh file names can be used.
 
 	``content``: bytes (required)
 		The content of the file to be created. This can also be a
-		:class:`loadbytes` command, to load the content from an external file.
+		:class:`loadbytes` command to load the content from an external file.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
@@ -1349,14 +1354,14 @@ class file(Command):
 		The name of the file to be created. It may contain ``format()`` style
 		specifications containing any variable (for example those that appeared
 		in a :class:`procedure` or :class:`sql` command). These specifiers will
-		replaced by the correct variable values.
+		be replaced by the correct variable values.
 
 	``content``: bytes (required)
 		The content of the file to be created. This can also be a
-		:class:`loadbytes` command, to load the content from an external file.
+		:class:`loadbytes` command to load the content from an external file.
 
 	``mode``: integer (optional)
-		The file mode for the new file. If the mode is specified :func:`os.chmod`
+		The file mode for the new file. If the mode is specified, :func:`os.chmod`
 		will be called on the file.
 
 	``owner``: integer or string (optional)
@@ -1427,8 +1432,8 @@ class file(Command):
 @register
 class resetsequence(_DatabaseCommand):
 	"""
-	The :class:`!resetsequence` command resets a sequence in the Oracle database
-	to the maximum value of a field in a table. The following parameters are
+	The :class:`!resetsequence` command resets a sequence in the database to
+	the maximum value of a field in a table. The following parameters are
 	supported:
 
 	``sequence``: string (required)
@@ -1601,8 +1606,10 @@ class object_exists(_DatabaseCommand):
 @register
 class drop_types(_DatabaseCommand):
 	"""
-	The :class:`!drop_types` command drops database objects. Unlike all other
-	commands this command requires the :mod:`ll.orasql` module.
+	The :class:`!drop_types` command drops database objects.
+
+	Unlike all other commands this command requires the :mod:`ll.orasql` module.
+
 	:class:`!drop_types` supports the following parameters:
 
 	``drop``: list of strings (optional)
@@ -1805,7 +1812,7 @@ class var(Command):
 	:obj:`key` : string (required)
 		A unique name for the value.
 
-	:obj:`type` : class )optional)
+	:obj:`type` : class (optional)
 		The type of the value (defaulting to :class:`int`).
 
 	Note that when the :obj:`key` is :const:`None`, PySQL will *not* remember
@@ -1844,7 +1851,8 @@ class var(Command):
 @register
 class env(Command):
 	"""
-	:class:`env` commands return an environment variable:
+	A :class:`env` command returns the value of an environment variable.
+
 	The following parameters are supported:
 
 	:obj:`name` : string (required)
@@ -1874,14 +1882,12 @@ class env(Command):
 class log(Command):
 	"""
 	:class:`log` commands generate logging output.
+
 	The following parameters are supported:
 
-	:obj:`name` : string (required)
-		The name of the environment variable.
-
-	:obj:`default` : string (optional)
-		The default to use, if the environment variable isn't set.
-		This defaults to :const:`None`.
+	:obj:`objects` : Any
+		The objects to log. String will be logged directly. For all other
+		objects :func:`repr` will be called.
 	"""
 
 	def __init__(self, *objects):
@@ -1901,8 +1907,14 @@ class CommandExecutor:
 	callable. Calling the :class:`!CommandExecutor` object executes the command
 	using the specified context and returns the command result.
 
-	This is used to allow calling commands in the Python source code of
-	:class:`literalpy` commands.
+	This class exists because :class:`Command` objects serve two purposes:
+
+	1.	They can be created to print them to a file (via the method
+		:meth:`Command.source`);
+
+	2.	They can be put into a PySQL file which will then be read and executed,
+		with must then create the :class:`Command` object and execute it
+		immediately. This is the job of :class:`!CommandExecutor` objects.
 	"""
 	def __init__(self, command, context):
 		self.command = command
@@ -2293,9 +2305,9 @@ class pyexpr:
 	in a PySQL file.
 
 	.. note::
-		As PySQL source code is evaluated via :func:`eval` anyway, it it always
-		possible to embed Python expressions in PySQL source code. However this
-		doesn't roundtrip, i.e. printing the PySQL command via
+		As PySQL source code is evaluated via :func:`eval`/:func:`exec` anyway,
+		it it always possible to embed Python expressions in PySQL source code.
+		However this doesn't roundtrip, i.e. printing the PySQL command via
 		:meth:`~Command.source` outputs the value of a "literal" Python expression.
 	"""
 
