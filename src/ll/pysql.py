@@ -555,6 +555,12 @@ class Command:
 	def __init__(self, *, raiseexceptions=None):
 		self.location = None
 		self.raiseexceptions = raiseexceptions
+		self._context = None
+		self._startime = None
+		self._stopime = None
+		self._nr = None
+		self._message = None # Final message of the command
+		self._counter = () # Additional keys for counting
 
 	commands = {}
 
@@ -570,6 +576,90 @@ class Command:
 			return f"{self.__class__.__name__} command"
 		else:
 			return f"{self.__class__.__name__} command in {self.location}"
+
+	@contextlib.contextmanager
+	def run(self, context):
+		self._context = context
+		self._starttime = datetime.datetime.now()
+		if context._runstarttime is None:
+			context._runstarttime = self._starttime
+			first = True
+		else:
+			first = False
+		self._nr = context.totalcount + 1
+		if self.raiseexceptions is not None:
+			context.raiseexceptions.append(self.raiseexceptions)
+
+		if context.verbose == "dot":
+			print(".", end="", flush=True)
+		elif context.verbose == "type":
+			print(f"{self.__class__.__qualname__}(", end="", flush=True)
+		elif context.verbose == "file":
+			endfile = False
+			if self.location is None:
+				pass # A command inside another command
+			elif context._lastlocation is None or self.location.filename != context._lastlocation.filename:
+				print(f" [{self.location.filename} :: {self.location.lines()}", end="", flush=True)
+				endfile = True
+			elif s.location.startline != context._lastlocation.startline or self.location.endline != context._lastlocation.endline:
+				print(f" [{self.location.lines()}", end="", flush=True)
+				endfile = True
+			else:
+				pass # still the same location
+		elif context.verbose == "line":
+			print(f"[t+{self._starttime-context._runstarttime}] :: #{self._nr:,} :: [{self.location}] >> {self.__class__.__name__}(", end="", flush=True)
+		elif context.verbose == "full":
+			if self.location is not None:
+				if not first:
+					print(flush=True)
+				context.source(self)
+
+		try:
+			yield
+		except Exception as exc:
+			now = datetime.datetime.now()
+			if context.raiseexceptions[-1]:
+				if context.verbose:
+					print(flush=True)
+				raise CommandError(self) from exc
+			else:
+				context.errorcount += 1
+				if context.verbose == "dot":
+					print("!", end="", flush=True)
+				elif context.verbose == "type":
+					print(f")->failed", end="", flush=True)
+				elif context.verbose == "file":
+					if endfile:
+						print(f"]->failed", end="", flush=True)
+				elif context.verbose == "full":
+					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+					self.log(f"ignored {format_class(exc.__class__)}: {exctext}")
+		else:
+			now = datetime.datetime.now()
+			if context.verbose == "full":
+				pass
+			elif context.verbose == "file":
+				if endfile:
+					print(f"]", end="", flush=True)
+			elif context.verbose == "type":
+				print(f")", end="", flush=True)
+		finally:
+			context.totalcount += 1
+			self._stoptime = datetime.datetime.now()
+			if self.raiseexceptions is not None:
+				context.raiseexceptions.pop()
+			if self._message is not None:
+				self.log(self._message, f"(in {self._stoptime-self._starttime})")
+		self._context.count(self.__class__.__qualname__, *self._counter)
+
+	def finish(self, message):
+		self._message = message
+
+	def count(self, *keys):
+		self._counter = keys
+
+	def log(self, *objects):
+		self._context.log(self, *objects)
 
 	def _value(self, output, key, value):
 		if key is not None:
@@ -669,15 +759,17 @@ class include(Command):
 		filename = context.execute(self.filename)
 		cond = context.execute(self.cond)
 
-		if context.filename is not None:
-			filename = context.filename.parent/filename
+		with self.run(context):
+			if context.filename is not None:
+				filename = context.filename.parent/filename
 
-		if cond is None or cond:
-			with context.changed_filename(filename):
-				with filename.open("r", encoding="utf-8") as f:
-					for command in context._load(f):
-						context.execute(command)
-		context.count(self.__class__.__name__)
+			if cond is None or cond:
+				self.log(f"Including file {str(filename)!r}")
+				with context.changed_filename(filename):
+					with filename.open("r", encoding="utf-8") as f:
+						for command in context._load(f):
+							context.execute(command)
+			self.finish(f"Included file {str(filename)!r}")
 
 	def source_format(self):
 		yield from self._source_format(self.filename, raiseexceptions=self.raiseexceptions)
@@ -721,24 +813,39 @@ class connect(Command):
 		retry = context.execute(self.retry)
 		retrydelay = context.execute(self.retrydelay)
 
-		if retry is None:
-			retry = 1
-		if retrydelay is None:
-			retrydelay = 30
+		with self.run(context):
 
-		for i in range(retry):
-			if i == retry-1:
-				connection = context.connect(connectstring, mode=mode)
-			else:
-				try:
+			if retry is None:
+				retry = 1
+			if retrydelay is None:
+				retrydelay = 30
+
+			for i in range(retry):
+				if i == retry-1:
 					connection = context.connect(connectstring, mode=mode)
-				except cx_Oracle.DatabaseError:
-					if retrydelay > 0:
-						time.sleep(retrydelay)
 				else:
-					break
+					try:
+						connection = context.connect(connectstring, mode=mode)
+					except cx_Oracle.DatabaseError as exc:
+						if mode is not None:
+							self.log(f"Connection #{i+1:,} to {connectstring!r} as {mode} failed:")
+						else:
+							self.log(f"Connection #{i+1:,} to {connectstring!r} failed:")
+						exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+						self.log(f"{format_class(exc.__class__)}: {exctext}")
+						if retrydelay > 0:
+							self.log(f"Retrying after {retrydelay!r} seconds")
+							time.sleep(retrydelay)
+						else:
+							self.log(f"Retrying immediately")
+					else:
+						break
 
-		context.count(self.__class__.__name__)
+			if mode is not None:
+				self.finish(f"Connected to {connectstring!r} as {mode}")
+			else:
+				self.finish(f"Connected to {connectstring!r}")
+
 		return connection
 
 	def source_format(self):
@@ -773,8 +880,20 @@ class disconnect(Command):
 
 	def execute(self, context):
 		commit = context.execute(self.commit)
-		connection = context.disconnect(commit)
-		context.count(self.__class__.__name__)
+
+		with self.run(context):
+			if not context.connections:
+				raise ValueError(f"no connection available")
+
+			if commit is None:
+				commit = context.commit
+			connection = context.connections[-1]
+			context.disconnect(commit)
+			if commit:
+				self.finish(f"Disconnected from {connectstring(connection)!r} (transaction committed")
+			else:
+				self.finish(f"Disconnected from {connectstring(connection)!r} (transaction rolled back")
+
 		return connection
 
 	def source_format(self):
@@ -901,11 +1020,12 @@ class procedure(_SQLCommand):
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 
-		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
-		query = f"begin {name}({argsql}); end;"
-		result = self._executesql(context, connection, query)
-
-		context.count(connectstring(connection), self.__class__.__name__, name)
+		with self.run(context):
+			argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
+			query = f"begin {name}({argsql}); end;"
+			result = self._executesql(context, connection, query)
+			self.finish(f"Called procedure {name!r} in {connection.connectstring()!r}")
+			self.count(connectstring(connection), name)
 
 		return result or None
 
@@ -951,8 +1071,10 @@ class sql(_SQLCommand):
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 
-		result = self._executesql(context, connection, sql)
-		context.count(connectstring(connection), self.__class__.__name__)
+		with self.run(context):
+			result = self._executesql(context, connection, sql)
+			self.finish(f"Executed SQL")
+			self.count(connectstring(connection))
 		return result or None
 
 	def source_format(self):
@@ -981,11 +1103,14 @@ class literalsql(_SQLCommand):
 
 	def execute(self, context):
 		sql = context.execute(self.sql)
-		if sql.endswith((";", "/")):
-			sql = sql[:-1]
-		connection = context.getconnection(None)
-		connection.cursor().execute(sql)
-		context.count(connectstring(connection), self.__class__.__name__)
+
+		with self.run(context):
+			if sql.endswith((";", "/")):
+				sql = sql[:-1]
+			connection = context.getconnection(None)
+			connection.cursor().execute(sql)
+			self.finish(f"Executed literal SQL")
+			self.count(connectstring(connection))
 
 	def source(self, tabsize=None):
 		sql = (self.sql or "").strip()
@@ -1012,9 +1137,11 @@ class commit(_SQLCommand):
 	def execute(self, context):
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
-		connection.commit()
-		context.count(connectstring(connection), self.__class__.__name__)
-		return None
+		with self.run(context):
+			self.log(f"Committing transaction in {connection.connectstring()!r}")
+			connection.commit()
+			self.finish(f"Committed transaction in {connection.connectstring()!r}")
+			self.count(connectstring(connection))
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1042,9 +1169,11 @@ class rollback(_SQLCommand):
 	def execute(self, context):
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
-		connection.rollback()
-		context.count(connectstring(connection), self.__class__.__name__)
-		return None
+		with self.run(context):
+			context.log(f"Rolling back transaction in {connection.connectstring()!r}")
+			connection.rollback()
+			self.finish(f"Rolled back transaction in {connection.connectstring()!r}")
+			self.count(connectstring(connection))
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1081,20 +1210,22 @@ class literalpy(_DatabaseCommand):
 
 	def execute(self, context):
 		code = context.execute(self.code)
-		if context.connections:
-			connection = context.connections[-1]
-		else:
-			connection = None
 
-		vars = self.globals(context, connection)
+		with self.run(context):
+			if context.connections:
+				connection = context.connections[-1]
+			else:
+				connection = None
 
-		if self.location is not None:
-			code = self.location.offsetsource(code)
-		code += "\n"
-		code = compile(code, context.filename, "exec")
-		exec(code, vars, context._locals)
+			vars = self.globals(context, connection)
 
-		context.count(connectstring(connection), self.__class__.__name__)
+			if self.location is not None:
+				code = self.location.offsetsource(code)
+			code += "\n"
+			code = compile(code, context.filename, "exec")
+			exec(code, vars, context._locals)
+			self.finish(f"Executed Python block")
+			self.count(connectstring(connection))
 
 	def source(self, tabsize=None):
 		code = self.code
@@ -1130,8 +1261,8 @@ class setvar(Command):
 		name = context.execute(self.name)
 		value = context.execute(self.value)
 
-		context._locals[name] = value
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			context._locals[name] = value
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1159,9 +1290,8 @@ class unsetvar(Command):
 
 	def execute(self, context):
 		name = context.execute(self.name)
-
-		context._locals.pop(name, None)
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			context._locals.pop(name, None)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1201,8 +1331,9 @@ class raiseexceptions(Command):
 
 	def execute(self, context):
 		value = context.execute(self.value)
-		context.raiseexceptions[-1] = value
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			self.log(f"Setting raiseexceptions to {value}")
+			context.raiseexceptions[-1] = value
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1241,8 +1372,9 @@ class pushraiseexceptions(Command):
 
 	def execute(self, context):
 		value = context.execute(self.value)
-		context.raiseexceptions.append(value)
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			self.log(f"Pushing raiseexceptions value {value}")
+			context.raiseexceptions.append(value)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1268,10 +1400,12 @@ class popraiseexceptions(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if len(context.raiseexceptions) <= 1:
-			raise ValueError("raiseexception stack empty")
-		oldvalue = context.raiseexceptions.pop()
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			if len(context.raiseexceptions) <= 1:
+				raise ValueError("raiseexception stack empty")
+			oldvalue = context.raiseexceptions.pop()
+			self.finish(f"Popped raiseexceptions value {oldvalue}: returning to {context.raiseexceptions[-1]}")
+
 		return oldvalue
 
 	def source_format(self):
@@ -1297,15 +1431,18 @@ class checkerrors(_DatabaseCommand):
 		connection = context.execute(self.connection)
 		connection = context.getconnection(None)
 
-		cursor = connection.cursor()
-		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
-		invalid_objects = [tuple(r) for r in cursor]
-		context.count(connectstring(connection), self.__class__.__name__)
+		with self.run(context):
+			self.log(f"Checking errors in {connection.connectstring()!r}")
 
-		if invalid_objects:
-			raise CompilationError(invalid_objects)
+			cursor = connection.cursor()
+			cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+			invalid_objects = [tuple(r) for r in cursor]
 
-		return pyexpr(f"no errors in {connectstring(connection)}")
+			if invalid_objects:
+				raise CompilationError(invalid_objects)
+
+			self.finish(f"No errors in {connection.connectstring()!r}")
+			self.count(connectstring(connection))
 
 	def source_format(self):
 		yield from self._source_format()
@@ -1343,19 +1480,21 @@ class scp(Command):
 		name = context.execute(self.name)
 		content = context.execute(self.content)
 
-		filename = context.scpdirectory + name.format(**context._locals)
+		with self.run(context):
+			filename = context.scpdirectory + name.format(**context._locals)
+			self.log("Copying file {filename!r}")
 
-		with tempfile.NamedTemporaryFile(delete=False) as f:
-			f.write(self.content)
-			tempname = f.name
-		try:
-			result = subprocess.run(["scp", "-q", tempname, filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-			if result.returncode:
-				raise SCPError(result.returncode, (result.stdout or result.stderr).decode(errors="replace"))
-		finally:
-			os.remove(tempname)
+			with tempfile.NamedTemporaryFile(delete=False) as f:
+				f.write(self.content)
+				tempname = f.name
+			try:
+				result = subprocess.run(["scp", "-q", tempname, filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+				if result.returncode:
+					raise SCPError(result.returncode, (result.stdout or result.stderr).decode(errors="replace"))
+			finally:
+				os.remove(tempname)
+			self.finish(f"Copied {filename!r}")
 
-		context.count(self.__class__.__name__)
 		return content
 
 	def source_format(self):
@@ -1415,36 +1554,38 @@ class file(Command):
 		owner = context.execute(self.owner)
 		group = context.execute(self.group)
 
-		filename = pathlib.Path(context.filedirectory + name.format(**context._locals))
+		with self.run(context):
+			filename = pathlib.Path(context.filedirectory + name.format(**context._locals))
 
-		try:
-			filename.write_bytes(content)
-		except FileNotFoundError: # probably the directory doesn't exist
-			parent = filename.parent
-			if parent != filename:
-				parent.mkdir(parents=True)
+			self.log("Saving file {filename!r}")
+			try:
 				filename.write_bytes(content)
-			else:
-				raise # we don't have a directory to make so pass the error on
+			except FileNotFoundError: # probably the directory doesn't exist
+				parent = filename.parent
+				if parent != filename:
+					parent.mkdir(parents=True)
+					filename.write_bytes(content)
+				else:
+					raise # we don't have a directory to make so pass the error on
 
-		if mode:
-			os.chmod(filename, mode)
-		if owner or group:
-			if owner:
-				uid = owner
-				if isinstance(uid, str):
-					uid = pwd.getpwnam(uid)[2]
-			else:
-				uid = -1
-			if group:
-				gid = group
-				if isinstance(gid, str):
-					gid = grp.getgrnam(gid)[2]
-			else:
-				gid = -1
-			os.chown(filename, uid, gid)
+			if mode:
+				os.chmod(filename, mode)
+			if owner or group:
+				if owner:
+					uid = owner
+					if isinstance(uid, str):
+						uid = pwd.getpwnam(uid)[2]
+				else:
+					uid = -1
+				if group:
+					gid = group
+					if isinstance(gid, str):
+						gid = grp.getgrnam(gid)[2]
+				else:
+					gid = -1
+				os.chown(filename, uid, gid)
+			self.finish(f"Saved {len(content):,} bytes to {filename}")
 
-		context.count(self.__class__.__name__)
 		return content
 
 	def source_format(self):
@@ -1506,36 +1647,40 @@ class resetsequence(_DatabaseCommand):
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
 
-		cursor = connection.cursor()
+		with self.run(context):
+			cursor = connection.cursor()
 
-		# Fetch information about the sequence
-		cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
-		oldvalues = cursor.fetchone()
-		if oldvalues is None:
-			raise ValueError(f"sequence {sequence!r} unknown")
-		increment = self.increment
-		if increment is None:
-			increment = oldvalues[1]
-		minvalue = self.minvalue
-		if minvalue is None:
-			minvalue = oldvalues[0]
-		cursor.execute(f"select {sequence}.nextval from dual")
-		seqvalue = cursor.fetchone()[0]
-
-		# Fetch information about the table values
-		cursor.execute(f"select nvl(max({field}), 0) from {table}")
-		tabvalue = cursor.fetchone()[0]
-
-		step = max(tabvalue, minvalue) - seqvalue
-		if step:
-			cursor.execute(f"alter sequence {sequence} increment by {step}")
+			self.log(f"Resetting sequence {sequence}")
+			# Fetch information about the sequence
+			cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=sequence)
+			oldvalues = cursor.fetchone()
+			if oldvalues is None:
+				raise ValueError(f"sequence {sequence!r} unknown")
+			increment = self.increment
+			if increment is None:
+				increment = oldvalues[1]
+			minvalue = self.minvalue
+			if minvalue is None:
+				minvalue = oldvalues[0]
 			cursor.execute(f"select {sequence}.nextval from dual")
 			seqvalue = cursor.fetchone()[0]
-			cursor.execute(f"alter sequence {sequence} increment by {increment}")
-		else:
-			seqvalue = None
 
-		context.count(connectstring(connection), self.__class__.__name__)
+			# Fetch information about the table values
+			cursor.execute(f"select nvl(max({field}), 0) from {table}")
+			tabvalue = cursor.fetchone()[0]
+
+			step = max(tabvalue, minvalue) - seqvalue
+			if step:
+				cursor.execute(f"alter sequence {sequence} increment by {step}")
+				cursor.execute(f"select {sequence}.nextval from dual")
+				seqvalue = cursor.fetchone()[0]
+				cursor.execute(f"alter sequence {sequence} increment by {increment}")
+				self.finish(f"Reset sequence {sequence} to {seqvalue}")
+			else:
+				seqvalue = None
+				self.finish(f"Resetting sequence {sequence} skipped")
+
+			self.count(connectstring(connection))
 
 		return seqvalue
 
@@ -1574,12 +1719,12 @@ class user_exists(_DatabaseCommand):
 		name = context.execute(self.name)
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
-		cursor = connection.cursor()
 
-		cursor.execute("select count(*) from all_users where username = :name", name=name)
-		result = cursor.fetchone()[0] > 0
-
-		context.count(connectstring(connection), self.__class__.__name__)
+		with self.run(context):
+			cursor = connection.cursor()
+			cursor.execute("select count(*) from all_users where username = :name", name=name)
+			result = cursor.fetchone()[0] > 0
+			self.count(connectstring(connection))
 
 		return result
 
@@ -1620,15 +1765,16 @@ class object_exists(_DatabaseCommand):
 		owner = context.execute(self.owner)
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
-		cursor = connection.cursor()
 
-		if owner is None:
-			cursor.execute("select count(*) from user_objects where object_name = :name", name=name)
-		else:
-			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=owner, name=name)
-		result = cursor.fetchone()[0] > 0
+		with self.run(context):
+			cursor = connection.cursor()
 
-		context.count(connectstring(connection), self.__class__.__name__)
+			if owner is None:
+				cursor.execute("select count(*) from user_objects where object_name = :name", name=name)
+			else:
+				cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=owner, name=name)
+			result = cursor.fetchone()[0] > 0
+			self.count(connectstring(connection))
 
 		return result
 
@@ -1673,33 +1819,46 @@ class drop_types(_DatabaseCommand):
 	def execute(self, context):
 		drop = context.execute(self.drop)
 		keep = context.execute(self.keep)
-		if drop is not None and keep is not None:
-			raise ValueError("The parameters 'drop' and 'keep' are mutually exclusive")
 
 		connection = context.execute(self.connection)
 		connection = context.getconnection(connection)
-		cursor = connection.cursor()
 
-		def drop_obj(obj):
+		with self.run(context):
+			if drop is not None and keep is not None:
+				raise ValueError("The parameters 'drop' and 'keep' are mutually exclusive")
+
 			if drop is not None:
-				return obj.type in drop
+				dropstr = " ".join(drop)
+				self.log(f"Dropping {dropstr} from {connectstring(connection)!r}")
 			elif keep is not None:
-				return obj.type not in keep
+				keepstr = " ".join(keep)
+				self.log(f"Dropping everything except {keepstr} from {connectstring(connection)!r}")
 			else:
-				return True
+				self.log(f"Dropping everything from {connectstring(connection)!r}")
 
-		count = 0
-		for (i, obj) in enumerate(connection.objects(owner=None, mode="drop")):
-			if obj.owner is None:
-				if drop_obj(obj):
-					ddl = obj.dropsql(connection, False)
-					if ddl:
-						cursor.execute(ddl)
-						count += 1
+			cursor = connection.cursor()
 
-		context.count(connectstring(connection), self.__class__.__name__)
+			def drop_obj(obj):
+				if drop is not None:
+					return obj.type in drop
+				elif keep is not None:
+					return obj.type not in keep
+				else:
+					return True
 
-		return pyexpr(f"{count:,} objects dropped")
+			count = 0
+			for (i, obj) in enumerate(connection.objects(owner=None, mode="drop")):
+				if obj.owner is None:
+					if drop_obj(obj):
+						ddl = obj.dropsql(connection, False)
+						if ddl:
+							cursor.execute(ddl)
+							count += 1
+
+			self.finish(f"Dropped {count:,} objects from {connectstring(connection)!r}")
+			self.count(connectstring(connection))
+
+		return count
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1726,7 +1885,8 @@ class comment(Command):
 		return f"comment {self.location}"
 
 	def execute(self, context):
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			pass
 
 	def source(self, tabsize=None):
 		comment = self.comment
@@ -1760,11 +1920,11 @@ class loadbytes(Command):
 		"""
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
-		filename = context.execute(self.filename)
-		if context.filename is not None:
-			filename = context.filename.parent/filename
-		data = filename.read_bytes()
-		context.count(self.__class__.__name__)
+		with self.run(context):
+			filename = context.execute(self.filename)
+			if context.filename is not None:
+				filename = context.filename.parent/filename
+			data = filename.read_bytes()
 		return data
 
 	def source_format(self):
@@ -1818,11 +1978,10 @@ class loadstr(Command):
 		encoding = context.execute(self.encoding)
 		errors = context.execute(self.errors)
 
-		if context.filename is not None:
-			filename = context.filename.parent/filename
-		data = filename.read_text(encoding=encoding, errors=errors)
-		context.count(self.__class__.__name__)
-		return data
+		with self.run(context):
+			if context.filename is not None:
+				filename = context.filename.parent/filename
+			return filename.read_text(encoding=encoding, errors=errors)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1873,15 +2032,14 @@ class var(Command):
 		key = context.execute(self.key)
 		type = context.execute(self.type)
 
-		context.count(self.__class__.__name__)
-
-		if key in context._locals:
-			value = context._locals[key]
-			if value is not None and not isinstance(value, type):
-				raise TypeError(f"{value!r} is not of type {format_class(type)}")
-			return value
-		else:
-			return self
+		with self.run(context):
+			if key in context._locals:
+				value = context._locals[key]
+				if value is not None and not isinstance(value, type):
+					raise TypeError(f"{value!r} is not of type {format_class(type)}")
+				return value
+			else:
+				return self
 
 	def source_format(self):
 		yield repr(self)
@@ -1912,10 +2070,40 @@ class env(Command):
 	def execute(self, context):
 		name = context.execute(self.name)
 		default = context.execute(self.default)
-		return os.environ.get(name, self.default)
+		with self.run(context):
+			return os.environ.get(name, default)
 
 	def source_format(self):
 		yield repr(self)
+
+
+@register
+class log(Command):
+	"""
+	:class:`log` commands generate logging output.
+	The following parameters are supported:
+
+	:obj:`name` : string (required)
+		The name of the environment variable.
+
+	:obj:`default` : string (optional)
+		The default to use, if the environment variable isn't set.
+		This defaults to :const:`None`.
+	"""
+
+	def __init__(self, *objects):
+		super().__init__(raiseexceptions=None)
+		self.objects = objects
+
+	def __repr__(self):
+		return f"env({self.name!r})"
+
+	def execute(self, context):
+		with self.run(context):
+			self.log(*self.objects)
+
+	def source_format(self):
+		yield from self._source_format(*self.objects)
 
 
 class CommandExecutor:
@@ -2017,22 +2205,38 @@ class Context:
 		else:
 			return f"[t+{starttime-self._runstarttime}] :: #{commandnumber:,}"
 
+	def log(self, command, *objects):
+		if self.verbose == "full":
+			now = datetime.datetime.now()
+			print(f"[t+{now-self._runstarttime}] :: #{command._nr:,} >>", end="", flush=True)
+			for (i, obj) in enumerate(objects):
+				print(" ", end="", flush=True)
+				if isinstance(obj, str):
+					print(obj, end="", flush=True)
+				elif isinstance(obj, int):
+					print(f"{obj:,}", end="", flush=True)
+				else:
+					print(repr(obj), end="", flush=True)
+			print(flush=True)
+
 	def rule(self, object):
 		if self._lastcommand is None or object is not self._lastcommand:
 			print("\u2501"*self._width, flush=True)
 			self._lastcommand = object
 
 	def source(self, object):
+		ellipsis = "\u22ee"
 		lines = object.source(self.tabsize).splitlines(False)
 		if object.location and object.location.startline and object.location.endline:
 			startline = object.location.startline
 			endline = object.location.endline
 			linenumberlen = len(f"{object.location.endline:,}")
-			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c" + "\u2500" * (self._width - 2 - linenumberlen)
+			filename = str(object.location.filename)
+			filenamelen = len(filename)
+			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c[ " + filename + " ]" + "\u2500" * (self._width - 2 - linenumberlen - 4 - filenamelen)
 			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (self._width - 2 - linenumberlen)
 			print(ruletop, flush=True)
 
-			ellipsis = "\u22ee"
 			for (linenumber, line) in enumerate(lines, startline):
 				if self.context is not None and startline + self.context <= linenumber <= endline - self.context:
 					if startline + self.context == linenumber:
@@ -2053,83 +2257,10 @@ class Context:
 			print(rule, flush=True)
 
 	def execute(self, object):
-		if self._runstarttime is None:
-			self._runstarttime = datetime.datetime.now()
-
-		if not isinstance(object, Command):
-			return object
-
-		if isinstance(object, comment):
-			self.count("comment")
-			return None
-
-		commandnumber = self.totalcount + 1
-		if object.raiseexceptions is not None:
-			self.raiseexceptions.append(object.raiseexceptions)
-
-		starttime = datetime.datetime.now()
-
-		if self.verbose == "dot":
-			print(".", end="", flush=True)
-		elif self.verbose == "type":
-			print(f"{object.__class__.__name__}(", end="", flush=True)
-		elif self.verbose == "file":
-			endfile = False
-			if object.location is None:
-				pass # A command inside another command
-			elif self._lastlocation is None or object.location.filename != self._lastlocation.filename:
-				print(f" [{object.location.filename} :: {object.location.lines()}", end="", flush=True)
-				endfile = True
-			elif object.location.startline != self._lastlocation.startline or object.location.endline != self._lastlocation.endline:
-				print(f" [{object.location.lines()}", end="", flush=True)
-				endfile = True
-			else:
-				pass # still the same location
-		elif self.verbose == "line":
-			print(f"[t+{starttime-self._runstarttime}] :: #{self.totalcount+1:,} :: [{object.location}] >> {object.__class__.__name__}(", end="", flush=True)
-		elif self.verbose == "full":
-			self.rule(object)
-			print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__}", flush=True)
-			self.source(object)
-
-		result = None
-		try:
-			result = object.execute(self)
-		except Exception as exc:
-			if self.raiseexceptions[-1]:
-				if self.verbose:
-					print(flush=True)
-				raise CommandError(object) from exc
-			else:
-				self.errorcount += 1
-				if self.verbose == "dot":
-					print("!", end="", flush=True)
-				elif self.verbose == "type":
-					print(f")->failed", end="", flush=True)
-				elif self.verbose == "file":
-					if endfile:
-						print(f"]->failed", end="", flush=True)
-				elif self.verbose == "full":
-					self.rule(object)
-					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
-					print(f"{self.logprefix(starttime, commandnumber, object)} >> ignored {format_class(exc.__class__)}: {exctext}", flush=True)
+		if isinstance(object, Command):
+			return object.execute(self)
 		else:
-			now = datetime.datetime.now()
-			if self.verbose == "full":
-				self.rule(object)
-				if result is None:
-					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished in {now-starttime}", flush=True)
-				else:
-					print(f"{self.logprefix(starttime, commandnumber, object)} >> {object.__class__.__name__} finished with {shortrepr(result)} (in {now-starttime})", flush=True)
-			elif self.verbose == "file":
-				if endfile:
-					print(f"]", end="", flush=True)
-			elif self.verbose == "type":
-				print(f")", end="", flush=True)
-		finally:
-			if object.raiseexceptions is not None:
-				self.raiseexceptions.pop()
-		return result
+			return object
 
 	@contextlib.contextmanager
 	def changed_filename(self, filename):
@@ -2277,8 +2408,6 @@ class Context:
 		finally:
 			if self.verbose in {"dot", "type"}:
 				print(flush=True)
-			elif self.verbose == "full":
-				self.rule(None)
 		self._printsummary()
 
 	def _printsummary(self):
@@ -2287,9 +2416,11 @@ class Context:
 				self._runstarttime = datetime.datetime.now()
 			now = datetime.datetime.now()
 			if self.verbose == "full":
+				print(flush=True)
+				self.rule(None)
 				print(f"[t+{now-self._runstarttime}] >> Command summary", flush=True)
 			else:
-				print()
+				print(flush=True)
 				print("Command summary", flush=True)
 			anyoutput = False
 			totallen = len(f"{self.totalcount:,}")
@@ -2297,12 +2428,12 @@ class Context:
 			def sortkey(keyvalue):
 				(key, value) = keyvalue
 				if len(key) > 1: # db command
-					return (0, key[0], key[1] != "procedure", *key)
+					return (0, key[1], key[0] != "procedure", *key)
 				else:
 					return (1, *key)
 			lastconnection = None
 			for (key, count) in sorted(self.commandcounts.items(), key=sortkey):
-				connection = key[0] if len(key) > 1 else None
+				connection = key[1] if len(key) > 1 else None
 				if not anyoutput or connection != lastconnection:
 					print(flush=True)
 					if connection:
@@ -2313,7 +2444,7 @@ class Context:
 						print("Other commands:", flush=True)
 				lastconnection = connection
 				anyoutput = True
-				keys = " ".join(key[1:]) if len(key) > 1 else key[0]
+				keys = " ".join((key[0], *key[2:])) if len(key) > 1 else key[0]
 				print(f"    {count:>{totallen},} {keys}", flush=True)
 			if self.errorcount:
 				print(flush=True)
@@ -2326,7 +2457,6 @@ class Context:
 
 	def count(self, *args):
 		self.commandcounts[args] += 1
-		self.totalcount += 1
 
 
 ###
