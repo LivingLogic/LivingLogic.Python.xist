@@ -36,8 +36,8 @@ Changes in 5.44 (released 05/??/2019)
 		cursor.execute("drop user foo cascade")
 		#<<<
 
-*	Comments in PySQL scripts are supported now (either via lines starting with
-	``#`` or delimited by lines consisting of ``###``).
+*	Comments in PySQL scripts are supported now (via lines starting with
+	``#``).
 
 *	Since PySQL scripts can open their own database connections the
 	``connectstring`` argument for the ``pysql`` script is now optional.
@@ -58,7 +58,8 @@ Changes in 5.44 (released 05/??/2019)
 *	The PySQL terminator comment (``-- @@@``) can now no longer be specified
 	via a command line option.
 
-*	Running PySQL scripts in full mode now outputs much more information.
+*	The ``-v``/``--verbose`` option for :mod:`ll.pysql` now supports new output
+	modes (``file`` and ``log``) and full mode now outputs much more information.
 
 *	The :class:`~ll.url.URL` methods :meth:`~ll.url.URL.owner` and
 	:meth:`~ll.url.URL.group` now will return the ``uid`` or ``gid``
