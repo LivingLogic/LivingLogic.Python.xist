@@ -1089,7 +1089,6 @@ class literalpy(_DatabaseCommand):
 		prefix = f"{Context.literalpy_begin}\n"
 		suffix = f"\n{Context.literalpy_end}"
 		if not code.startswith(prefix) or not code.endswith(suffix):
-			print(repr(code))
 			raise ValueError(f"{self.__class__.__qualname__} code must start with {prefix!r} and end with {suffix!r}")
 		self.code = code
 
