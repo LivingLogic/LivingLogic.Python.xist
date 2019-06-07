@@ -581,39 +581,6 @@ class Command:
 	def log(self, *objects):
 		self._context.log(self, *objects)
 
-	def _value(self, output, key, value):
-		if key is not None:
-			output.append(f"{key}=")
-		if isinstance(value, str):
-			value = value.replace("\r\n", "\n").replace("\r", "\n")
-		if isinstance(value, str) and "\n" in value:
-			if key is not None:
-				output.append(1)
-				output.append(None)
-			lines = value.splitlines(True)
-			for (i, line) in enumerate(lines):
-				last = i == len(lines)-1
-				if last:
-					output.append(f"{line!r},")
-				else:
-					output.append(repr(line))
-				output.append(None)
-			output.append(-1)
-			return
-		elif isinstance(value, dict):
-			output.append("dict(")
-			output.append(1)
-			output.append(None)
-			for (dictkey, dictvalue) in value.items():
-				self._value(output, dictkey, dictvalue)
-			output.append(-1)
-			output.append("),")
-			output.append(None)
-			return
-		output.append(f"{value!r},")
-		output.append("")
-		output.append(None)
-
 	def _source_format(self, *args, **kwargs):
 		yield f"{self.__class__.__name__}("
 		yield 1
