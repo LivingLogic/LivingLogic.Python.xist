@@ -542,8 +542,11 @@ def connectstring(connection):
 class Command:
 	"""
 	The base class of all commands. A :class:`Command` object is created from a
-	function call in a PySQL file. The only parameter in the call that is
-	supported by all commands is the following:
+	function call in a PySQL file and then immediatetel the method
+	:meth:`execute` will be called to execute the command.
+
+	The only parameter in the call that is supported by all commands is the
+	following:
 
 	``raiseexceptions`` : bool (optional)
 		Specifies whether exceptions that happen during the execution of the
@@ -561,7 +564,7 @@ class Command:
 		self._message = None # Final message of the command
 		self._counter = () # Additional keys for counting
 
-	commands = {}
+	commands = {} # Maps command names to command classes.
 
 	def __str__(self):
 		if self.location is None:
