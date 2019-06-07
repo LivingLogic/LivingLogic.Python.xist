@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.44 (released 05/??/2019)
+Changes in 5.44 (released 06/07/2019)
 -------------------------------------
 
 *	:meth:`ll.orasql.Connection.objects` now outputs :class:`Job` objects too.
