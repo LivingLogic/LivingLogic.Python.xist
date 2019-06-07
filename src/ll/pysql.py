@@ -535,13 +535,6 @@ def connectstring(connection):
 		return f"{connection.username}@{connection.tnsentry}"
 
 
-class CommandStackEntry:
-	def __init__(self, command):
-		self.starttime = datetime.datetime.now()
-		self.command = command
-		self.output = False
-
-
 ###
 ### Command classes
 ###
