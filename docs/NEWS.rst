@@ -26,7 +26,7 @@ Changes in 5.44 (released 06/07/2019)
 	passing a set or tuple of owner names.
 
 *	PySQL scripts now can contains PySQL commands in "function call form", i.e.
-	``checkerrors()`` instead of ``{'type': 'çheckerrors'}``.
+	``checkerrors()`` instead of ``{'type': 'checkerrors'}``.
 
 *	PySQL scripts can now contains literal Python source code (between lines
 	with ``#>>>`` and ``#<<<``, e.g.::
