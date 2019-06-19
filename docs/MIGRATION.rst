@@ -8,6 +8,17 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.45
+=========================
+
+Changes to ``ll.ul4c``
+----------------------
+
+*	The attribute ``pos`` of UL4 AST nodes has beedn renamed to ``startpos``.
+	The attributes ``sourceprefix`` and ``sourcesuffix`` have been renamed to
+	``startsourceprefix`` and ``startsourcesuffix``.
+
+
 Migrating to version 5.44
 =========================
 

@@ -470,10 +470,10 @@ template_params = [
 	"python",
 	"python_dumps",
 	"python_dump",
-	pytest.param("java_compiled_by_python", marks=pytest.mark.java),
-	pytest.param("java_compiled_by_java", marks=pytest.mark.java),
-	pytest.param("js_v8", marks=pytest.mark.js),
-	pytest.param("js_node", marks=pytest.mark.js),
+	# pytest.param("java_compiled_by_python", marks=pytest.mark.java),
+	# pytest.param("java_compiled_by_java", marks=pytest.mark.java),
+	# pytest.param("js_v8", marks=pytest.mark.js),
+	# pytest.param("js_node", marks=pytest.mark.js),
 	# pytest.param("php", marks=pytest.mark.php),
 ]
 
@@ -5004,12 +5004,13 @@ def test_astattributes(T):
 	s3 = "[<?print x?>]"
 	t3 = ul4c.Template(s3, name="t")
 
-	assert "slice(9, 10, None)" == T("<?print template.content[2].obj.pos?>").renders(template=t3)
-	assert "1" == T("<?print template.content[2].obj.line?>").renders(template=t3)
-	assert "10" == T("<?print template.content[2].obj.col?>").renders(template=t3)
-	assert "[<?print " == T("<?print template.content[2].obj.sourceprefix?>").renders(template=t3)
+	assert "slice(9, 10, None)" == T("<?print template.content[2].obj.startpos?>").renders(template=t3)
+	assert "1" == T("<?print template.content[2].obj.startline?>").renders(template=t3)
+	assert "10" == T("<?print template.content[2].obj.startcol?>").renders(template=t3)
+	assert "[<?print " == T("<?print template.content[2].obj.startsourceprefix?>").renders(template=t3)
+	assert "?>]" == T("<?print template.content[2].obj.startsourcesuffix?>").renders(template=t3)
+	assert "x" == T("<?print template.content[2].obj.startsource?>").renders(template=t3)
 	assert "x" == T("<?print template.content[2].obj.source?>").renders(template=t3)
-	assert "?>]" == T("<?print template.content[2].obj.sourcesuffix?>").renders(template=t3)
 
 
 @pytest.mark.ul4
@@ -5017,8 +5018,11 @@ def test_astattribute_source_node(T):
 	s = "<?print x?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "slice(0, 11, None)" == T("<?print template.content[-1].startpos?>").renders(template=t)
+	assert s == T("<?print template.content[-1].startsource?>").renders(template=t)
 	assert s == T("<?print template.content[-1].source?>").renders(template=t)
 	assert "x" == T("<?print template.content[-1].obj.source?>").renders(template=t)
+	assert "x" == T("<?print template.content[-1].obj.startsource?>").renders(template=t)
 	assert s == T("<?print template.content[-1].fullsource?>").renders(template=t)
 
 
@@ -5027,7 +5031,13 @@ def test_astattribute_source_template(T):
 	s = "<?print x?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "slice(0, 0, None)" == T("<?print template.startpos?>").renders(template=t)
+	assert "slice(11, 11, None)" == T("<?print template.stoppos?>").renders(template=t)
+	assert "" == T("<?print template.startsource?>").renders(template=t)
+	assert "" == T("<?print template.startsourceprefix?>").renders(template=t)
+	assert s == T("<?print template.startsourcesuffix?>").renders(template=t)
 	assert s == T("<?print template.source?>").renders(template=t)
+	assert "" == T("<?print template.stopsource?>").renders(template=t)
 	assert s == T("<?print template.fullsource?>").renders(template=t)
 
 
@@ -5036,8 +5046,16 @@ def test_astattribute_source_renderblock(T):
 	s = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblock b()?>foo<?end renderblock?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "slice(56, 75, None)" == T("<?print template.content[-1].startpos?>", name="foo").renders(template=t)
+	assert "slice(78, 97, None)" == T("<?print template.content[-1].stoppos?>", name="foo").renders(template=t)
+	assert "<?renderblock b()?>" == T("<?print template.content[-1].startsource?>", name="foo").renders(template=t)
 	assert "<?renderblock b()?>foo<?end renderblock?>" == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "<?end renderblock?>" == T("<?print template.content[-1].stopsource?>", name="foo").renders(template=t)
+	assert "slice(75, 75, None)" == T("<?print template.content[-1].content.startpos?>", name="foo").renders(template=t)
+	assert "slice(78, 78, None)" == T("<?print template.content[-1].content.stoppos?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].content.startsource?>", name="foo").renders(template=t)
 	assert "foo" == T("<?print template.content[-1].content.source?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].content.stopsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].content.fullsource?>", name="foo").renders(template=t)
 
 
@@ -5046,6 +5064,11 @@ def test_astattribute_source_renderblocks(T):
 	s = "<?def b(content)?><b><?render content()?></b><?end def?><?renderblocks b()?><?def content?>foo<?end def?><?end renderblocks?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "slice(56, 76, None)" == T("<?print template.content[-1].startpos?>", name="foo").renders(template=t)
+	assert "slice(105, 125, None)" == T("<?print template.content[-1].stoppos?>", name="foo").renders(template=t)
+	assert "<?renderblocks b()?>" == T("<?print template.content[-1].startsource?>", name="foo").renders(template=t)
+	assert "<?renderblocks b()?><?def content?>foo<?end def?><?end renderblocks?>" == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "<?end renderblocks?>" == T("<?print template.content[-1].stopsource?>", name="foo").renders(template=t)
 	assert "<?def content?>foo<?end def?>" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].content[0].fullsource?>", name="foo").renders(template=t)
 
@@ -5055,7 +5078,9 @@ def test_astattribute_source_for(T):
 	s = "<?for i in range(10)?><?printx i?><?end for?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "<?for i in range(10)?>" == T("<?print template.content[-1].startsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "<?end for?>" == T("<?print template.content[-1].stopsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].fullsource?>", name="foo").renders(template=t)
 
 
@@ -5064,7 +5089,9 @@ def test_astattribute_source_while(T):
 	s = "<?while now() < @(2020-02-02)?>wait<?end while?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "<?while now() < @(2020-02-02)?>" == T("<?print template.content[-1].startsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "<?end while?>" == T("<?print template.content[-1].stopsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].fullsource?>", name="foo").renders(template=t)
 
 
@@ -5073,10 +5100,18 @@ def test_astattribute_source_if(T):
 	s = "<?if 1?>1<?elif 2?>2<?else?>3<?end if?>"
 	t = ul4c.Template(s, name="t")
 
+	assert "<?if 1?>" == T("<?print template.content[-1].startsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].source?>", name="foo").renders(template=t)
+	assert "<?end if?>" == T("<?print template.content[-1].stopsource?>", name="foo").renders(template=t)
+	assert "<?if 1?>" == T("<?print template.content[-1].content[0].startsource?>", name="foo").renders(template=t)
 	assert "<?if 1?>1" == T("<?print template.content[-1].content[0].source?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].content[0].stopsource?>", name="foo").renders(template=t)
+	assert "<?elif 2?>" == T("<?print template.content[-1].content[1].startsource?>", name="foo").renders(template=t)
 	assert "<?elif 2?>2" == T("<?print template.content[-1].content[1].source?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].content[1].stopsource?>", name="foo").renders(template=t)
+	assert "<?else?>" == T("<?print template.content[-1].content[2].startsource?>", name="foo").renders(template=t)
 	assert "<?else?>3" == T("<?print template.content[-1].content[2].source?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].content[2].stopsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].fullsource?>", name="foo").renders(template=t)
 
 
@@ -5085,10 +5120,12 @@ def test_templateattributes_localtemplate(T):
 	# This checks that template attributes work on a closure
 	source = "<?def lower?><?print t.lower()?><?end def?>"
 
+	assert "<?def lower?>" == T(source + "<?print lower.startsource?>").renders()
 	assert source == T(source + "<?print lower.source?>").renders()
+	assert "<?end def?>" == T(source + "<?print lower.stopsource?>").renders()
 	assert source == T(source + "<?print lower.template.source?>").renders()
 	assert source + "<?print lower.parenttemplate.source?>" == T(source + "<?print lower.parenttemplate.source?>").renders()
-	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.content[0].pos.start:lower.content[-1].pos.stop]?>").renders()
+	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.content[0].startpos.start:lower.content[-1].startpos.stop]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
 
 

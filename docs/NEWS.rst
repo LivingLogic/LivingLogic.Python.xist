@@ -8,6 +8,25 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.45 (released ??/??/2019)
+-------------------------------------
+
+*	UL4 AST nodes for blocks now have an additional attribute ``stoppos`` (and
+	``pos`` has been renamed to ``startpos``). ``startpos`` is the position of
+	the start tag and ``stoppos`` is the position of the end tag.
+
+	Furthermore two attributes ``startsource`` and ``stopsource`` have been
+	added. They return the source code of the start tag and the end tag. So for
+	example for the loop ``<?for i in range(10)?><?print i?><?end for?>`` the
+	``startsource`` is ``<?for i in range(10)?>`` and the ``stopsource`` is
+	``<?end for?>``.
+
+	The attributes ``sourceprefix`` and ``sourcesuffix`` have been renamed to
+	``startsourceprefix`` and ``startsourcesuffix``.
+
+	(For non-block nodes ``startsource`` and ``source`` is the same.)
+
+
 Changes in 5.44 (released 06/07/2019)
 -------------------------------------
 
@@ -36,8 +55,7 @@ Changes in 5.44 (released 06/07/2019)
 		cursor.execute("drop user foo cascade")
 		#<<<
 
-*	Comments in PySQL scripts are supported now (via lines starting with
-	``#``).
+*	Comments in PySQL scripts are supported now (via lines starting with ``#``).
 
 *	Since PySQL scripts can open their own database connections the
 	``connectstring`` argument for the ``pysql`` script is now optional.
