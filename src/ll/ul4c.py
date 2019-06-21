@@ -4007,7 +4007,9 @@ class Template(Block):
 			if signature is not None:
 				source = f"{startdelim}ul4 {self.name or ''}({signature}){enddelim}{source}"
 			# Remove old content, before compiling the source
-			self.pos = slice(None, None)
+			self.startpos = slice(0, 0)
+			stop = len(source)
+			self.stoppos = slice(stop, stop)
 			del self.content[:]
 			self._compile(source, startdelim, enddelim)
 		else: # dump is in compiled form
