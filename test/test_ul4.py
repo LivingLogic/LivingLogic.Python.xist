@@ -470,8 +470,8 @@ template_params = [
 	"python",
 	"python_dumps",
 	"python_dump",
-	# pytest.param("java_compiled_by_python", marks=pytest.mark.java),
-	# pytest.param("java_compiled_by_java", marks=pytest.mark.java),
+	pytest.param("java_compiled_by_python", marks=pytest.mark.java),
+	pytest.param("java_compiled_by_java", marks=pytest.mark.java),
 	# pytest.param("js_v8", marks=pytest.mark.js),
 	# pytest.param("js_node", marks=pytest.mark.js),
 	# pytest.param("php", marks=pytest.mark.php),
@@ -5004,9 +5004,13 @@ def test_astattributes(T):
 	s3 = "[<?print x?>]"
 	t3 = ul4c.Template(s3, name="t")
 
+	assert "slice(1, 12, None)" == T("<?print template.content[2].pos?>").renders(template=t3)
+	assert "slice(9, 10, None)" == T("<?print template.content[2].obj.pos?>").renders(template=t3)
 	assert "slice(9, 10, None)" == T("<?print template.content[2].obj.startpos?>").renders(template=t3)
 	assert "1" == T("<?print template.content[2].obj.startline?>").renders(template=t3)
 	assert "10" == T("<?print template.content[2].obj.startcol?>").renders(template=t3)
+	assert "[<?print " == T("<?print template.content[2].obj.sourceprefix?>").renders(template=t3)
+	assert "?>]" == T("<?print template.content[2].obj.sourcesuffix?>").renders(template=t3)
 	assert "[<?print " == T("<?print template.content[2].obj.startsourceprefix?>").renders(template=t3)
 	assert "?>]" == T("<?print template.content[2].obj.startsourcesuffix?>").renders(template=t3)
 	assert "x" == T("<?print template.content[2].obj.startsource?>").renders(template=t3)
@@ -5024,6 +5028,10 @@ def test_astattribute_source_node(T):
 	assert "x" == T("<?print template.content[-1].obj.source?>").renders(template=t)
 	assert "x" == T("<?print template.content[-1].obj.startsource?>").renders(template=t)
 	assert s == T("<?print template.content[-1].fullsource?>").renders(template=t)
+	assert "<?print " == T("<?print template.content[-1].obj.sourceprefix?>").renders(template=t)
+	assert "?>" == T("<?print template.content[-1].obj.sourcesuffix?>").renders(template=t)
+	assert "<?print " == T("<?print template.content[-1].obj.startsourceprefix?>").renders(template=t)
+	assert "?>" == T("<?print template.content[-1].obj.startsourcesuffix?>").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5034,11 +5042,15 @@ def test_astattribute_source_template(T):
 	assert "slice(0, 0, None)" == T("<?print template.startpos?>").renders(template=t)
 	assert "slice(11, 11, None)" == T("<?print template.stoppos?>").renders(template=t)
 	assert "" == T("<?print template.startsource?>").renders(template=t)
-	assert "" == T("<?print template.startsourceprefix?>").renders(template=t)
-	assert s == T("<?print template.startsourcesuffix?>").renders(template=t)
 	assert s == T("<?print template.source?>").renders(template=t)
 	assert "" == T("<?print template.stopsource?>").renders(template=t)
 	assert s == T("<?print template.fullsource?>").renders(template=t)
+	assert "" == T("<?print template.sourceprefix?>").renders(template=t)
+	assert "" == T("<?print template.sourcesuffix?>").renders(template=t)
+	assert "" == T("<?print template.startsourceprefix?>").renders(template=t)
+	assert s == T("<?print template.startsourcesuffix?>").renders(template=t)
+	assert s == T("<?print template.stopsourceprefix?>").renders(template=t)
+	assert "" == T("<?print template.stopsourcesuffix?>").renders(template=t)
 
 
 @pytest.mark.ul4
@@ -5057,6 +5069,20 @@ def test_astattribute_source_renderblock(T):
 	assert "foo" == T("<?print template.content[-1].content.source?>", name="foo").renders(template=t)
 	assert "" == T("<?print template.content[-1].content.stopsource?>", name="foo").renders(template=t)
 	assert s == T("<?print template.content[-1].content.fullsource?>", name="foo").renders(template=t)
+
+	assert "\N{HORIZONTAL ELLIPSIS}?><b><?render content()?></b><?end def?>" == T("<?print template.content[-1].sourceprefix?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].sourcesuffix?>", name="foo").renders(template=t)
+	assert "\N{HORIZONTAL ELLIPSIS}?><b><?render content()?></b><?end def?>" == T("<?print template.content[-1].startsourceprefix?>", name="foo").renders(template=t)
+	assert "foo<?end renderblock?>" == T("<?print template.content[-1].startsourcesuffix?>", name="foo").renders(template=t)
+	assert "\N{HORIZONTAL ELLIPSIS})?></b><?end def?><?renderblock b()?>foo" == T("<?print template.content[-1].stopsourceprefix?>", name="foo").renders(template=t)
+	assert "" == T("<?print template.content[-1].stopsourcesuffix?>", name="foo").renders(template=t)
+
+	assert "\N{HORIZONTAL ELLIPSIS}nt()?></b><?end def?><?renderblock b()?>" == T("<?print template.content[-1].content.sourceprefix?>", name="foo").renders(template=t)
+	assert "<?end renderblock?>" == T("<?print template.content[-1].content.sourcesuffix?>", name="foo").renders(template=t)
+	assert "\N{HORIZONTAL ELLIPSIS}nt()?></b><?end def?><?renderblock b()?>" == T("<?print template.content[-1].content.startsourceprefix?>", name="foo").renders(template=t)
+	assert "foo<?end renderblock?>" == T("<?print template.content[-1].content.startsourcesuffix?>", name="foo").renders(template=t)
+	assert "\N{HORIZONTAL ELLIPSIS})?></b><?end def?><?renderblock b()?>foo" == T("<?print template.content[-1].content.stopsourceprefix?>", name="foo").renders(template=t)
+	assert "<?end renderblock?>" == T("<?print template.content[-1].content.stopsourcesuffix?>", name="foo").renders(template=t)
 
 
 @pytest.mark.ul4

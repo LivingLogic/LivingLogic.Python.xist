@@ -1071,7 +1071,7 @@ class AST:
 	"""
 
 	# Set of attributes available to UL4 templates
-	ul4attrs = {"type", "template", "startpos", "startline", "startcol", "fullsource", "startsource", "source", "startsourceprefix", "startsourcesuffix"}
+	ul4attrs = {"type", "template", "pos", "startpos", "startline", "startcol", "source", "startsource", "fullsource", "sourceprefix", "sourcesuffix", "startsourceprefix", "startsourcesuffix"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
@@ -1079,8 +1079,8 @@ class AST:
 
 	def __init__(self, template=None, startpos=None):
 		# ``template`` references the :class:`Template` object of which
-		# ``self`` is a part. This mean that for a :class:`Template` object ``a``
-		# (which is an :class:`AST` object) ``a.template is a`` is true.
+		# ``self`` is a part. This mean that for a :class:`Template` object ``t``
+		# (which is an :class:`AST` object) ``t.template is t`` is true.
 		self.template = template
 		self._startpos = startpos
 		self._startline = None
@@ -1116,12 +1116,26 @@ class AST:
 		return self.template._fullsource[self._startpos]
 
 	@property
-	def startsourceprefix(self):
+	def sourceprefix(self):
 		return _sourceprefix(self.template._fullsource, self._startpos.start)
+
+	@property
+	def sourcesuffix(self):
+		return _sourcesuffix(self.template._fullsource, self._stoppos.stop if self._stoppos is not None else self._startpos.stop)
+
+	startsourceprefix = sourceprefix
 
 	@property
 	def startsourcesuffix(self):
 		return _sourcesuffix(self.template._fullsource, self._startpos.stop)
+
+	@property
+	def stopsourceprefix(self):
+		return _sourceprefix(self.template._fullsource, self._stoppos.start) if self._stoppos is not None else None
+
+	@property
+	def stopsourcesuffix(self):
+		return _sourcesuffix(self.template._fullsource, self._stoppos.stop) if self._stoppos is not None else None
 
 	@property
 	def stoppos(self):
@@ -1150,11 +1164,12 @@ class AST:
 		return self.template._fullsource[self._stoppos]
 
 	@property
+	def pos(self):
+		return self._startpos if self._stoppos is None else slice(self._startpos.start, self._stoppos.stop)
+
+	@property
 	def source(self):
-		if self._stoppos is not None:
-			return self.template._fullsource[self._startpos.start:self._stoppos.stop]
-		else:
-			return self.template._fullsource[self._startpos]
+		return self.template._fullsource[self.pos]
 
 	@property
 	def fullsource(self):
@@ -1162,11 +1177,8 @@ class AST:
 
 	def __repr__(self):
 		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
-		if self._startpos is not None:
-			parts.append(f"(offset {_offset(self._startpos)}; line {self.startline:,}; col {self.startcol:,})")
-			if self._stoppos is not None:
-				parts.append(f"-")
-				parts.append(f"(offset {_offset(self._stoppos)}); line {self.stopline:,}; col {self.stopcol:,}")
+		pos = self.pos
+		parts.append(f"(offset {_offset(pos)}; line {self.startline:,}; col {self.startcol:,})")
 		parts.extend(self._repr())
 		parts.append(f"at {id(self):#x}>")
 		return " ".join(parts)
@@ -1176,10 +1188,8 @@ class AST:
 
 	def _repr_pretty_(self, p, cycle):
 		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
-		if self._startpos is not None:
-			prefix += f" (offset {_offset(self._startpos)}; line {self.startline:,}; col {self.startcol:,})"
-			if self._stoppos is not None:
-				prefix += f"-(offset {_offset(self._stoppos)}; line {self.stopline:,}; col {self.stopcol:,})"
+		pos = self.pos
+		prefix += f" (offset {_offset(pos)}; line {self.startline:,}; col {self.startcol:,})"
 		suffix = f"at {id(self):#x}"
 
 		if cycle:
@@ -3617,7 +3627,7 @@ class RenderBlock(Render):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "content"})
+	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, obj=None):
 		super().__init__(template, startpos, obj)
@@ -3675,7 +3685,7 @@ class RenderBlocks(Render):
 	arguments is found in :obj:`args`.
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "content"})
+	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, obj=None):
 		super().__init__(template, startpos, obj)
@@ -3785,7 +3795,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
 
-	version = "46"
+	version = "47"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 

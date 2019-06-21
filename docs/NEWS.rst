@@ -11,9 +11,9 @@ see :ref:`MIGRATION`.
 Changes in 5.45 (released ??/??/2019)
 -------------------------------------
 
-*	UL4 AST nodes for blocks now have an additional attribute ``stoppos`` (and
-	``pos`` has been renamed to ``startpos``). ``startpos`` is the position of
-	the start tag and ``stoppos`` is the position of the end tag.
+*	UL4 AST nodes for blocks now have additional attributes ``startpos`` and
+	``stoppos``. ``startpos`` is the position of the start tag and ``stoppos``
+	is the position of the end tag.
 
 	Furthermore two attributes ``startsource`` and ``stopsource`` have been
 	added. They return the source code of the start tag and the end tag. So for
@@ -21,10 +21,12 @@ Changes in 5.45 (released ??/??/2019)
 	``startsource`` is ``<?for i in range(10)?>`` and the ``stopsource`` is
 	``<?end for?>``.
 
-	The attributes ``sourceprefix`` and ``sourcesuffix`` have been renamed to
-	``startsourceprefix`` and ``startsourcesuffix``.
+	Additionally attributes ``startsourceprefix``, ``startsourcesuffix``,
+	``stopsourceprefix`` and ``stopsourcesuffix`` have been added.
 
-	(For non-block nodes ``startsource`` and ``source`` is the same.)
+	(For non-block nodes ``startpos`` is the same as ``pos``, ``startsource``
+	is the same as ``source``, ``startsourceprefix`` is the same as
+	``sourceprefix`` and ``startsourcesuffix`` is the same as ``sourcesuffix``.)
 
 
 Changes in 5.44 (released 06/07/2019)
