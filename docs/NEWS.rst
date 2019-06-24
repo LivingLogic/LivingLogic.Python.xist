@@ -29,7 +29,7 @@ Changes in 5.45 (released 06/24/2019)
 
 	In exception messages ``startsource`` is now used as the exception location.
 	This means when a for loop iterates over something that is not iteratable
-	the location makered will now be the loop start tag instead of the complete
+	the location marked will now be the loop start tag instead of the complete
 	loop.
 
 	(For non-block nodes ``startpos`` is the same as ``pos``, ``startsource``
