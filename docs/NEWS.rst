@@ -27,6 +27,11 @@ Changes in 5.45 (released ??/??/2019)
 	Additionally attributes ``startsourceprefix``, ``startsourcesuffix``,
 	``stopsourceprefix`` and ``stopsourcesuffix`` have been added.
 
+	In exception messages ``startsource`` is now used as the exception location.
+	This means when a for loop iterates over something that is not iteratable
+	the location makered will now be the loop start tag instead of the complete
+	loop.
+
 	(For non-block nodes ``startpos`` is the same as ``pos``, ``startsource``
 	is the same as ``source``, ``startsourceprefix`` is the same as
 	``sourceprefix`` and ``startsourcesuffix`` is the same as ``sourcesuffix``.)
