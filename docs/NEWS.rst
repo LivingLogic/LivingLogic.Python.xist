@@ -13,13 +13,16 @@ Changes in 5.45 (released ??/??/2019)
 
 *	UL4 AST nodes for blocks now have additional attributes ``startpos`` and
 	``stoppos``. ``startpos`` is the position of the start tag and ``stoppos``
-	is the position of the end tag.
+	is the position of the end tag. The attributes ``line`` and ``col`` have
+	been renamed to ``startline`` and ``startcol`` and attributes ``stopline``
+	and ``stopcol`` have been added.
 
 	Furthermore two attributes ``startsource`` and ``stopsource`` have been
 	added. They return the source code of the start tag and the end tag. So for
 	example for the loop ``<?for i in range(10)?><?print i?><?end for?>`` the
 	``startsource`` is ``<?for i in range(10)?>`` and the ``stopsource`` is
-	``<?end for?>``.
+	``<?end for?>`` (and ``source`` is
+	``<?for i in range(10)?><?print i?><?end for?>``).
 
 	Additionally attributes ``startsourceprefix``, ``startsourcesuffix``,
 	``stopsourceprefix`` and ``stopsourcesuffix`` have been added.
