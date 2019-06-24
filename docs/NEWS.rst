@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.45 (released ??/??/2019)
+Changes in 5.45 (released 06/24/2019)
 -------------------------------------
 
 *	UL4 AST nodes for blocks now have additional attributes ``startpos`` and
