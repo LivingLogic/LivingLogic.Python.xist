@@ -8,6 +8,16 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.45
+=========================
+
+Changes to UL4
+--------------
+
+The UL4 AST node attribute ``line`` and ``col`` have been renamed to
+``startline`` and ``startcol``.
+
+
 Migrating to version 5.44
 =========================
 
