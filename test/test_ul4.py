@@ -472,8 +472,8 @@ template_params = [
 	"python_dump",
 	pytest.param("java_compiled_by_python", marks=pytest.mark.java),
 	pytest.param("java_compiled_by_java", marks=pytest.mark.java),
-	# pytest.param("js_v8", marks=pytest.mark.js),
-	# pytest.param("js_node", marks=pytest.mark.js),
+	pytest.param("js_v8", marks=pytest.mark.js),
+	pytest.param("js_node", marks=pytest.mark.js),
 	# pytest.param("php", marks=pytest.mark.php),
 ]
 
