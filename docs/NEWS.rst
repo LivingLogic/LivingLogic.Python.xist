@@ -17,6 +17,16 @@ Changes in 5.46 (released 06/??/2019)
 
 *	Fixed exception chaining in :meth:`ll.scripts.rul4.Globals.error`.
 
+*	For :func:`ll.xist.ns.html.astext` default styles have been added for ``em``,
+	``strong`` and ``i``.
+
+*	:func:`ll.xist.ns.html.astext` now honors all styles passed as keyword
+	arguments not just those for ``h1``, ``h2``, ``h3``, ``h4``, ``h5``, ``h6``,
+	``dl``, ``dt``, ``dd``, ``ol``, ``ol_li``, ``ul``, ``ul_li``, ``pre``,
+	``blockquote``, ``div``, ``p``, ``hr``, ``address``, ``th``, ``td``, ``b``,
+	``u`` and ``code``.
+
+
 Changes in 5.45 (released 06/24/2019)
 -------------------------------------
 
@@ -70,7 +80,7 @@ Changes in 5.44 (released 06/07/2019)
 	with ``#>>>`` and ``#<<<``, e.g.::
 
 		#>>>
-		cursor = connection.cursor()
+		``cursor`` .cursor()
 		cursor.execute("drop user foo cascade")
 		#<<<
 
