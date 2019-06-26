@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.46 (released 06/??/2019)
+-------------------------------------
+
+*	The method :meth:`ll.scripts.rul4.Globals.log` now supports the keywords
+	arguments ``sep``, ``end`` and ``flush`` with the same meaning as for
+	:func:`print`.
+
+
 Changes in 5.45 (released 06/24/2019)
 -------------------------------------
 

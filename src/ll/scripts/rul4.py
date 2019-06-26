@@ -627,11 +627,14 @@ class Globals:
 		else:
 			raise exc
 
-	def log(self, *args):
+	def log(self, *args, sep=" ", end="\n", flush=False):
 		"""
 		Logs ``args`` to ``sys.stderr``.
+
+		The parameters ``sep``, ``end`` and ``flush`` have the same meaning as
+		for :func:`print`.
 		"""
-		print(*args, file=sys.stderr)
+		print(*args, sep=sep, end=end, file=sys.stderr, flush=flush)
 
 	def oracle(self, connectstring):
 		"""
