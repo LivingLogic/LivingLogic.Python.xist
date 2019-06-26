@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.46 (released 06/??/2019)
+Changes in 5.46 (released 06/26/2019)
 -------------------------------------
 
 *	The method :meth:`ll.scripts.rul4.Globals.log` now supports the keywords
@@ -27,10 +27,9 @@ Changes in 5.46 (released 06/??/2019)
 	``u`` and ``code``.
 
 *	:func:`ll.xist.ns.html.astext` now supports callables for the ``prefix`` and
-	``suffix`` style parameter. If a callable style parameter is used it will
-	be called with the node in question and the resulting string is used as the
-	prefix/suffix. For example it's possible to output links in Markdown syntax
-	like this::
+	``suffix`` style parameter. If a callable is passed it will be called with
+	the node in question and the resulting string is used as the prefix/suffix.
+	For example it's possible to output links in Markdown syntax like this::
 
 		>>> from ll.xist.ns import html
 		>>> e = html.p(
