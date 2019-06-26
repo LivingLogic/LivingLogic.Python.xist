@@ -312,6 +312,7 @@ args = dict(
 	extras_require={
 		"oracle": ["cx_Oracle >= 7.1"],
 		"proctitle": ["setproctitle >= 1.1.8"],
+		"html": ["lxml >= 4.3.4"],
 	},
 	zip_safe=False,
 )
