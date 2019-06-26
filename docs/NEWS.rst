@@ -15,6 +15,7 @@ Changes in 5.46 (released 06/??/2019)
 	arguments ``sep``, ``end`` and ``flush`` with the same meaning as for
 	:func:`print`.
 
+*	Fixed exception chaining in :meth:`ll.scripts.rul4.Globals.error`.
 
 Changes in 5.45 (released 06/24/2019)
 -------------------------------------

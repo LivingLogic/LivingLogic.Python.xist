@@ -623,9 +623,8 @@ class Globals:
 		"""
 		exc = Exception(message)
 		if ast is not None:
-			raise ul4c.Error(ast) from exc
-		else:
-			raise exc
+			exc.__cause__ = ul4c.LocationError(ast)
+		raise exc
 
 	def log(self, *args, sep=" ", end="\n", flush=False):
 		"""
