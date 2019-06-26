@@ -521,7 +521,7 @@ class Globals:
 		``sys.stdout.encoding``, so it can be set with the environment variable
 		:envvar:`PYTHONIOENCODING`).
 
-	``env``: dictionary
+	``env`` : dictionary
 		A reference to :obj:`os.environ`.
 
 	Furthermore the following methods can be called from UL4 templates:
