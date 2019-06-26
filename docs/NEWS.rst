@@ -15,7 +15,7 @@ Changes in 5.46 (released 06/??/2019)
 	arguments ``sep``, ``end`` and ``flush`` with the same meaning as for
 	:func:`print`.
 
-*	Fixed exception chaining in :meth:`ll.scripts.rul4.Globals.error`.
+*	Exception chaining in :meth:`ll.scripts.rul4.Globals.error` has been fixed.
 
 *	For :func:`ll.xist.ns.html.astext` default styles have been added for ``em``,
 	``strong`` and ``i``.
@@ -25,6 +25,31 @@ Changes in 5.46 (released 06/??/2019)
 	``dl``, ``dt``, ``dd``, ``ol``, ``ol_li``, ``ul``, ``ul_li``, ``pre``,
 	``blockquote``, ``div``, ``p``, ``hr``, ``address``, ``th``, ``td``, ``b``,
 	``u`` and ``code``.
+
+*	:func:`ll.xist.ns.html.astext` now supports callables for the ``prefix`` and
+	``suffix`` style parameter. If a callable style parameter is used it will
+	be called with the node in question and the resulting string is used as the
+	prefix/suffix. For example it's possible to output links in Markdown syntax
+	like this::
+
+		>>> from ll.xist.ns import html
+		>>> e = html.p(
+		... 	"We ",
+		... 	html.em("love"),
+		... 	" ",
+		... 	html.a("Python", href="http://www.python.org/"),
+		... 	"!"
+		... )
+		>>> html.astext(
+		... 	e,
+		... 	a=dict(
+		... 		display="inline",
+		... 		prefix="(",
+		... 		suffix=lambda n: f")[{n.attrs.href}]"
+		... 	)
+		... )
+		'We *love* (Python)[http://www.python.org/]!'
+
 
 
 Changes in 5.45 (released 06/24/2019)
