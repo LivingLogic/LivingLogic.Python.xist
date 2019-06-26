@@ -3458,8 +3458,11 @@ class _PlainTextFormatter:
 			yield from self.flush()
 			self.blockspacing = max(self.blockspacing, margins.style.top)
 		self.levels[name] += 1
-		if margins.style.prefix:
-			self.texts.append(margins.style.prefix)
+		prefix = margins.style.prefix
+		if prefix:
+			if callable(prefix):
+				prefix = prefix(margins.node)
+			self.texts.append(prefix)
 
 	def pop(self):
 		"""
@@ -3470,8 +3473,11 @@ class _PlainTextFormatter:
 		be output and the block spacing will not be reset.
 		"""
 		margins = self.stack[-1]
-		if margins.style.suffix:
-			self.texts.append(margins.style.suffix)
+		suffix = margins.style.suffix
+		if suffix:
+			if callable(suffix):
+				suffix = suffix(margins.node)
+			self.texts.append(suffix)
 		if margins.style.display == "block":
 			yield from self.flush()
 			self.blockspacing = max(self.blockspacing, margins.style.bottom)
