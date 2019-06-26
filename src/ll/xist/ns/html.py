@@ -3387,12 +3387,13 @@ class _PlainTextFormatter:
 			self.prefix = prefix
 			self.suffix = suffix
 
-		def margins(self, name, level, pos=None, last=None):
-			return _PlainTextFormatter.Margins(self, name, level, pos, last)
+		def margins(self, node, name, level, pos=None, last=None):
+			return _PlainTextFormatter.Margins(self, node, name, level, pos, last)
 
 	class Margins:
-		def __init__(self, style, name, level, pos, last):
+		def __init__(self, style, node, name, level, pos, last):
 			self.style = style
+			self.node = node
 			self.name = name
 			left = style.left[level if level < len(style.left) else -1]
 			right = style.right[level if level < len(style.right) else -1]
@@ -3421,16 +3422,21 @@ class _PlainTextFormatter:
 		self.texts = []
 		self.levels = collections.Counter()
 
-	def push(self, name, pos=None, last=None):
+	def push(self, node, name=None, pos=None, last=None):
 		r"""
-		Add an additional box around any further text. :obj:`name` is the name
-		of the box (normally the name of the HTML element itself (``"ul"``,
-		``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For ``li`` element inside
-		``ul`` elements the name is ``ul_li`` and for ``li`` elements inside
-		``ol`` elements it is ``ol_li``. For a ``li`` element inside an ``ol``
-		element :obj:`pos` specifies the index of the ``li`` element among its
-		siblings (starting at 1) and :obj:`last` specifies the index of the last
-		``li`` (i.e. the total number of ``li``\s inside the ``ol``).
+		Add an additional box around any further text.
+
+		:obj:`node` is the HTML element itself for which the box gets added.
+
+		:obj:`name` is the name of the box (normally the name of the HTML element
+		itself (``"ul"``, ``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For
+		``li`` element inside ``ul`` elements the name is ``ul_li`` and for
+		``li`` elements inside ``ol`` elements it is ``ol_li``.
+
+		For a ``li`` element inside an ``ol`` element :obj:`pos` specifies the
+		index of the ``li`` element among its siblings (starting at 1) and
+		:obj:`last` specifies the index of the last ``li`` (i.e. the total number
+		of ``li``\s inside the ``ol``).
 
 		This additional box might also specify an additional number of blank
 		lines before and after its content and it might also introduce a new
@@ -3441,9 +3447,11 @@ class _PlainTextFormatter:
 		the top of this one), will not add up, instead the largest of the values
 		will be used.
 		"""
+		if name is None:
+			name = node.__class__.__name__
 		style = self.styles.get(name, self.styles["default"])
 		level = self.levels[name]
-		margins = style.margins(name, level, pos=pos, last=last)
+		margins = style.margins(node, name, level, pos=pos, last=last)
 		self.stack.append(margins)
 		if style.display == "block":
 			# we flush any previous text as a block (this should handle ``<ul><li>foo<ul><li>bar</li></ul></li></ul>``)
@@ -3552,7 +3560,7 @@ class _PlainTextFormatter:
 			elif isinstance(node, ul):
 				if cursor.event == "enterelementnode":
 					lists.append(["ul", 0])
-					yield from self.push("ul")
+					yield from self.push(node)
 				else:
 					yield from self.pop()
 					lists.pop()
@@ -3560,7 +3568,7 @@ class _PlainTextFormatter:
 				if cursor.event == "enterelementnode":
 					from ll import misc
 					lists.append(["ol", 0, misc.count(node[li])])
-					yield from self.push("ol")
+					yield from self.push(node)
 				else:
 					yield from self.pop()
 					lists.pop()
@@ -3569,23 +3577,23 @@ class _PlainTextFormatter:
 					if cursor.event == "enterelementnode":
 						lists[-1][1] += 1
 						if lists[-1][0] == "ol":
-							yield from self.push("ol_li", lists[-1][1], lists[-1][2])
+							yield from self.push(node, "ol_li", lists[-1][1], lists[-1][2])
 						elif lists[-1][0] == "ul":
-							yield from self.push("ul_li")
+							yield from self.push(node, "ul_li")
 						else:
-							yield from self.push("li")
+							yield from self.push(node)
 					else:
 						yield from self.pop()
 			elif isinstance(node, dl):
 				if cursor.event == "enterelementnode":
 					lists.append(["dl", 0])
-					yield from self.push("dl")
+					yield from self.push(node)
 				else:
 					yield from self.pop()
 					lists.pop()
 			elif isinstance(node, xsc.Element) and node.xmlname in self.styles:
 				if cursor.event == "enterelementnode":
-					yield from self.push(node.__class__.__name__)
+					yield from self.push(node)
 				else:
 					yield from self.pop()
 			elif isinstance(node, script):
