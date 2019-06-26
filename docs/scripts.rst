@@ -1,5 +1,5 @@
-:mod:`ll.scripts` -- UL4 templates and URLs
-===========================================
+:mod:`!ll.scripts` -- UL4 templates and URLs
+============================================
 
 .. automodule:: ll.scripts
 

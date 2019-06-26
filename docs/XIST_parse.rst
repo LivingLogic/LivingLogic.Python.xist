@@ -1,4 +1,4 @@
-:mod:`parse` -- Parsing XML/HTML
-================================
+:mod:`!parse` -- Parsing XML/HTML
+=================================
 
 .. automodule:: ll.xist.parse

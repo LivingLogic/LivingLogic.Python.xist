@@ -16,7 +16,7 @@ Purpose
 
 :program:`oracreate` prints the SQL of all objects in an Oracle database schema
 in a way that can be used to recreate the schema (i.e. objects will be ordered
-so that no errors happen for non-existant objects during script execution).
+so that no errors happen for nonexistent objects during script execution).
 :program:`oracreate` can also be used to actually recreate the schema.
 
 

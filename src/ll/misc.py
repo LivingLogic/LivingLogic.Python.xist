@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.misc` contains various utility functions and classes used by the other
+:mod:`!ll.misc` contains various utility functions and classes used by the other
 LivingLogic modules and packages.
 """
 

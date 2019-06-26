@@ -68,7 +68,7 @@ supports most builtin Python types::
 	>>> ul4on.loads('T i1 i0 i0')
 	datetime.timedelta(1)
 
-:mod:`ll.ul4on` also supports :class:`Color` objects from :mod:`ll.color`::
+:mod:`!ll.ul4on` also supports :class:`Color` objects from :mod:`ll.color`::
 
 	>>> from ll import color
 	>>> ul4on.dumps(color.red)
@@ -91,7 +91,7 @@ Lists, dictionaries and sets are also supported::
 	>>> ul4on.loads('Y i1 i2 i3 }')
 	{1, 2, 3}
 
-:mod:`ll.ul4on` can also handle recursive data structures::
+:mod:`!ll.ul4on` can also handle recursive data structures::
 
 	>>> r = []
 	>>> r.append(r)
@@ -234,7 +234,7 @@ _registry = {}
 def register(name):
 	"""
 	This decorator can be used to register the decorated class with the
-	:mod:`ll.ul4on` serialization machinery.
+	:mod:`!ll.ul4on` serialization machinery.
 
 	:obj:`name` must be a globally unique name for the class. To avoid
 	name collisions Java's class naming system should be used (i.e. an

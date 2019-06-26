@@ -1,4 +1,4 @@
-:mod:`xfind` -- Tree treaversal and filtering
-=============================================
+:mod:`!xfind` -- Tree treaversal and filtering
+==============================================
 
 .. automodule:: ll.xist.xfind

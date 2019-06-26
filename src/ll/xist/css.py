@@ -17,7 +17,7 @@ import os, contextlib, operator
 
 try:
 	import cssutils
-	from cssutils import css, stylesheets, codec
+	from cssutils import css, codec
 except ImportError:
 	cssutils = None
 else:
@@ -35,7 +35,7 @@ __docformat__ = "reStructuredText"
 def _isstyle(path):
 	if path:
 		node = path[-1]
-		return isinstance(node, (html.style, html.link)) and str(node.attrs.type) == "text/css"
+		return isinstance(node, (html.style, html.link)) and ("type" not in node.attrs or str(node.attrs.type) == "text/css")
 	return False
 
 
@@ -159,7 +159,7 @@ def iterrules(node, base=None, media=None, title=None):
 
 
 def applystylesheets(node, base=None, media=None, title=None):
-	"""
+	r"""
 	:func:`applystylesheets` modifies the XIST tree :obj:`node` by removing all
 	CSS (from :class:`html.link` and :class:`html.style` elements and their
 	``@import``\ed stylesheets) and putting the resulting style properties into

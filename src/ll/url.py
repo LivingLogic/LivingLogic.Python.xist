@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.url` contains an :rfc:`2396` compliant implementation of URLs and
+:mod:`!ll.url` contains an :rfc:`2396` compliant implementation of URLs and
 classes for accessing resource metadata as well as file like classes for
 reading and writing resource data.
 
@@ -737,10 +737,18 @@ class LocalConnection(Connection):
 		return self.stat(url).st_gid
 
 	def owner(self, url):
-		return pwd.getpwuid(self.uid(url))[0]
+		uid = self.uid(url)
+		try:
+			return pwd.getpwuid(uid)[0]
+		except KeyError:
+			return uid
 
 	def group(self, url):
-		return grp.getgrgid(self.gid(url))[0]
+		gid = self.gid(url)
+		try:
+			return grp.getgrgid(gid)[0]
+		except KeyError:
+			return gid
 
 	def exists(self, url):
 		return os.path.exists(self._url2filename(url))
@@ -957,11 +965,17 @@ class SshConnection(Connection):
 				elif cmdname == "owner":
 					import pwd
 					stat = os.stat(filename)
-					data = unicode(pwd.getpwuid(stat.st_uid)[0])
+					try:
+						data = unicode(pwd.getpwuid(stat.st_uid)[0])
+					except KeyError:
+						data = stat.st_uid
 				elif cmdname == "group":
 					import grp
 					stat = os.stat(filename)
-					data = unicode(grp.getgrgid(stat.st_gid)[0])
+					try:
+						data = unicode(grp.getgrgid(stat.st_gid)[0])
+					except KeyError:
+						data = stat.st_gid
 				elif cmdname == "exists":
 					data = os.path.exists(filename)
 				elif cmdname == "isfile":
@@ -2748,7 +2762,7 @@ class URL(object):
 
 		If :obj:`allowschemerel` is true, scheme relative URLs are allowed, i.e.
 		if both :obj:`self` and :obj:`baseurl` use the same hierarchical scheme,
-		both a different authority (i.e. server), a scheme relative url
+		but a different authority (i.e. server), a scheme relative url
 		(``//server/path/file.html``) will be returned.
 		"""
 		# if :obj:`self` is relative don't do anything

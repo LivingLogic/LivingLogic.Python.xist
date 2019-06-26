@@ -143,7 +143,7 @@ def _transport_js_v8(obj, indent):
 	(this requires an installed ``d8`` shell from V8 (http://code.google.com/p/v8/))
 	"""
 	dump = ul4on.dumps(obj, indent=indent)
-	js = f"obj = ul4on.loads({ul4c._asjson(dump)});\nprint(ul4on.dumps(obj, {ul4c._asjson(indent)}));\n"
+	js = f"obj = ul4.loads({ul4c._asjson(dump)});\nprint(ul4.dumps(obj, {ul4c._asjson(indent)}));\n"
 	f = sys._getframe(1)
 	print(f"Testing UL4ON via V8 ({f.f_code.co_filename}, line {f.f_lineno:,}):")
 	print(js)
@@ -151,7 +151,7 @@ def _transport_js_v8(obj, indent):
 		f.write(js.encode("utf-8"))
 		f.flush()
 		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
-		cmd = f"d8 {dir}/ul4.js {f.name}"
+		cmd = f"d8 {dir}/dist/umd/ul4.js {f.name}"
 		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	stdout = result.stdout.decode("utf-8")
 	stderr = result.stderr.decode("utf-8")
@@ -182,10 +182,9 @@ def _transport_js_node(obj, indent):
 	"""
 	dump = ul4on.dumps(obj, indent=indent)
 	js = f"""
-		const ll = require('{home}/checkouts/LivingLogic.Javascript.ul4/ul4.min');
-		const ul4on = ll.ul4on;
-		obj = ul4on.loads({ul4c._asjson(dump)});
-		console.log(JSON.stringify(ul4on.dumps(obj, {ul4c._asjson(indent)})));
+		const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
+		var obj = ul4.loads({ul4c._asjson(dump)});
+		console.log(JSON.stringify(ul4.dumps(obj, {ul4c._asjson(indent)})));
 	"""
 	f = sys._getframe(1)
 	print(f"Testing UL4ON via Node ({f.f_code.co_filename}, line {f.f_lineno:,}):")

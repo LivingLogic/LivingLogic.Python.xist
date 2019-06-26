@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.color` provides classes and functions for handling RGB colors.
+:mod:`!ll.color` provides classes and functions for handling RGB colors.
 """
 
 

@@ -1,4 +1,4 @@
-:mod:`ll.make` -- Object oriented make replacement
-==================================================
+:mod:`!ll.make` -- Object oriented make replacement
+===================================================
 
 .. automodule:: ll.make

@@ -1,4 +1,4 @@
-:mod:`html` -- HTML namespace
-=============================
+:mod:`!html` -- HTML namespace
+==============================
 
 .. automodule:: ll.xist.ns.html

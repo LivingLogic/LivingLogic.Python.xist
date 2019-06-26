@@ -189,7 +189,7 @@ Then we can use the following template to output the table into an XML file:
 	<?xml version='1.0' encoding='utf-8'?>
 	<?code db = globals.oracle("user/password@database')?>
 	<persons>
-		<?for p in db.query("select id, firstname, lastname from person order by 2, 1")?>
+		<?for p in db.query("select id, firstname, lastname from person order by 3, 2")?>
 			<person id="<?printx p.id?>">
 				<firstname><?printx p.firstname?></firstname>
 				<lastname><?printx p.lastname?></lastname>
@@ -521,7 +521,7 @@ class Globals:
 		``sys.stdout.encoding``, so it can be set with the environment variable
 		:envvar:`PYTHONIOENCODING`).
 
-	``env``: dictionary
+	``env`` : dictionary
 		A reference to :obj:`os.environ`.
 
 	Furthermore the following methods can be called from UL4 templates:
@@ -623,15 +623,17 @@ class Globals:
 		"""
 		exc = Exception(message)
 		if ast is not None:
-			raise ul4c.Error(ast) from exc
-		else:
-			raise exc
+			exc.__cause__ = ul4c.LocationError(ast)
+		raise exc
 
-	def log(self, *args):
+	def log(self, *args, sep=" ", end="\n", flush=False):
 		"""
 		Logs ``args`` to ``sys.stderr``.
+
+		The parameters ``sep``, ``end`` and ``flush`` have the same meaning as
+		for :func:`print`.
 		"""
-		print(*args, file=sys.stderr)
+		print(*args, sep=sep, end=end, file=sys.stderr, flush=flush)
 
 	def oracle(self, connectstring):
 		"""

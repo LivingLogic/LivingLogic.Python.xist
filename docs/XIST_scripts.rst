@@ -1,5 +1,5 @@
-:mod:`scripts` -- XIST related scripts
-======================================
+:mod:`!scripts` -- XIST related scripts
+=======================================
 
 .. automodule:: ll.xist.scripts
 

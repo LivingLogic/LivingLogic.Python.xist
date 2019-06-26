@@ -10,6 +10,116 @@ You can download XIST from the Cheeseshop_, go directly to the
 .. autogenerate start
 
 
+5.46 (released 06/26/2019)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=============================================================================================================================================== ====================== ====
+File                                                                                                                                            Type                   Size
+=============================================================================================================================================== ====================== ====
+`ll-xist-5.46.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.46.tar.gz>`_                                                         Source                 686K
+`ll_xist-5.46-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.46-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7) 530K
+=============================================================================================================================================== ====================== ====
+
+
+5.45 (released 06/24/2019)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=============================================================================================================================================== ========================== ====
+File                                                                                                                                            Type                       Size
+=============================================================================================================================================== ========================== ====
+`ll-xist-5.45.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.45.tar.gz>`_                                                         Source                     685K
+`ll_xist-5.45-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.45-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 542K
+`ll_xist-5.45-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.45-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 545K
+`ll_xist-5.45-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.45-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7)     529K
+`ll_xist-5.45-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.45-cp37-cp37m-win32.whl>`_                             Windows wheel (Python 3.7) 539K
+`ll_xist-5.45-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.45-cp37-cp37m-win_amd64.whl>`_                     Windows wheel (Python 3.7) 542K
+=============================================================================================================================================== ========================== ====
+
+
+5.44 (released 06/07/2019)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=============================================================================================================================================== ========================== ====
+File                                                                                                                                            Type                       Size
+=============================================================================================================================================== ========================== ====
+`ll-xist-5.44.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.44.tar.gz>`_                                                         Source                     685K
+`ll_xist-5.44-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.44-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 543K
+`ll_xist-5.44-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.44-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 546K
+`ll_xist-5.44-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.44-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7)     530K
+`ll_xist-5.44-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.44-cp37-cp37m-win32.whl>`_                             Windows wheel (Python 3.7) 539K
+`ll_xist-5.44-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.44-cp37-cp37m-win_amd64.whl>`_                     Windows wheel (Python 3.7) 542K
+=============================================================================================================================================== ========================== ====
+
+
+5.43 (released 05/07/2019)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=============================================================================================================================================== ========================== ====
+File                                                                                                                                            Type                       Size
+=============================================================================================================================================== ========================== ====
+`ll-xist-5.43.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.43.tar.gz>`_                                                         Source                     677K
+`ll_xist-5.43-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.43-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 537K
+`ll_xist-5.43-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.43-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 540K
+`ll_xist-5.43-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.43-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7)     524K
+`ll_xist-5.43-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.43-cp37-cp37m-win32.whl>`_                             Windows wheel (Python 3.7) 534K
+`ll_xist-5.43-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.43-cp37-cp37m-win_amd64.whl>`_                     Windows wheel (Python 3.7) 537K
+=============================================================================================================================================== ========================== ====
+
+
+5.42.1 (released 04/29/2019)
+----------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=================================================================================================================================================== ========================== ====
+File                                                                                                                                                Type                       Size
+=================================================================================================================================================== ========================== ====
+`ll-xist-5.42.1.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.42.1.tar.gz>`_                                                         Source                     675K
+`ll_xist-5.42.1-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42.1-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 535K
+`ll_xist-5.42.1-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42.1-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 538K
+`ll_xist-5.42.1-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42.1-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7)     522K
+`ll_xist-5.42.1-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42.1-cp37-cp37m-win32.whl>`_                             Windows wheel (Python 3.7) 532K
+`ll_xist-5.42.1-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42.1-cp37-cp37m-win_amd64.whl>`_                     Windows wheel (Python 3.7) 535K
+=================================================================================================================================================== ========================== ====
+
+
+5.42 (released 04/26/2019)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=============================================================================================================================================== ========================== ====
+File                                                                                                                                            Type                       Size
+=============================================================================================================================================== ========================== ====
+`ll-xist-5.42.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.42.tar.gz>`_                                                         Source                     675K
+`ll_xist-5.42-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42-cp36-cp36m-win32.whl>`_                             Windows wheel (Python 3.6) 535K
+`ll_xist-5.42-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42-cp36-cp36m-win_amd64.whl>`_                     Windows wheel (Python 3.6) 538K
+`ll_xist-5.42-cp37-cp37m-macosx_10_14_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42-cp37-cp37m-macosx_10_14_x86_64.whl>`_ Mac wheel (Python 3.7)     522K
+`ll_xist-5.42-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42-cp37-cp37m-win32.whl>`_                             Windows wheel (Python 3.7) 532K
+`ll_xist-5.42-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.42-cp37-cp37m-win_amd64.whl>`_                     Windows wheel (Python 3.7) 535K
+=============================================================================================================================================== ========================== ====
+
+
 5.41 (released 03/29/2019)
 --------------------------
 

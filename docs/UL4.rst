@@ -284,8 +284,8 @@ will create the dictionary ::
 The ``Undefined`` object
 ------------------------
 
-The object ``Undefined`` will be returned when a non-existant variable, a
-non-existant dictionary entry or an index that is out of range for a list/string
+The object ``Undefined`` will be returned when a nonexistent variable, a
+nonexistent dictionary entry or an index that is out of range for a list/string
 is accessed.
 
 
@@ -2111,7 +2111,7 @@ This will output ``DOE, JOHN``.
 If the object has an attribute ``ul4attrs`` :meth:`ul4getattr` will only be
 called for the attributes in ``ul4attrs``, otherwise :meth:`ul4getattr` will
 be called for all attributes (and should raise an :exc:`AttributeError` for
-non-existant attributes)
+nonexistent attributes)
 
 Attributes can be made writable by implemention the method :meth:`ul4setattr`::
 
@@ -2138,7 +2138,7 @@ This will output ``DOE, John``.
 If the object has an attribute ``ul4attrs`` :meth:`ul4setattr` will only be
 called for the attributes in ``ul4attrs``, otherwise :meth:`ul4setattr` will
 be called for all attributes (and should raise an :exc:`AttributeError` for
-non-existant or readonly attributes)
+nonexistent or readonly attributes)
 
 Without a :meth:`ul4setattr` method, attributes will never be made writable.
 

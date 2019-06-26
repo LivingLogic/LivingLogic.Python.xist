@@ -54,8 +54,8 @@ in the root directory)::
 	make dist livinglogic
 
 
-Creating and deploying the documenation
----------------------------------------
+Creating and deploying the documentation
+----------------------------------------
 
 Recreate the documentation in ``docs/`` via (do this in the ``docs/``
 subdirectory) and deploy it to ``python.livinglogic.de``::

@@ -1,5 +1,5 @@
-:mod:`ns` -- Package containing namespaces
-==========================================
+:mod:`!ns` -- Package containing namespaces
+===========================================
 
 .. automodule:: ll.xist.ns
 

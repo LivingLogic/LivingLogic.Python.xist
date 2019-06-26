@@ -8,6 +8,169 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.46 (released 06/26/2019)
+-------------------------------------
+
+*	The method :meth:`ll.scripts.rul4.Globals.log` now supports the keywords
+	arguments ``sep``, ``end`` and ``flush`` with the same meaning as for
+	:func:`print`.
+
+*	Exception chaining in :meth:`ll.scripts.rul4.Globals.error` has been fixed.
+
+*	For :func:`ll.xist.ns.html.astext` default styles have been added for ``em``,
+	``strong`` and ``i``.
+
+*	:func:`ll.xist.ns.html.astext` now honors all styles passed as keyword
+	arguments not just those for ``h1``, ``h2``, ``h3``, ``h4``, ``h5``, ``h6``,
+	``dl``, ``dt``, ``dd``, ``ol``, ``ol_li``, ``ul``, ``ul_li``, ``pre``,
+	``blockquote``, ``div``, ``p``, ``hr``, ``address``, ``th``, ``td``, ``b``,
+	``u`` and ``code``.
+
+*	:func:`ll.xist.ns.html.astext` now supports callables for the ``prefix`` and
+	``suffix`` style parameter. If a callable is passed it will be called with
+	the node in question and the resulting string is used as the prefix/suffix.
+	For example it's possible to output links in Markdown syntax like this::
+
+		>>> from ll.xist.ns import html
+		>>> e = html.p(
+		... 	"We ",
+		... 	html.em("love"),
+		... 	" ",
+		... 	html.a("Python", href="http://www.python.org/"),
+		... 	"!"
+		... )
+		>>> html.astext(
+		... 	e,
+		... 	a=dict(
+		... 		display="inline",
+		... 		prefix="(",
+		... 		suffix=lambda n: f")[{n.attrs.href}]"
+		... 	)
+		... )
+		'We *love* (Python)[http://www.python.org/]!'
+
+
+
+Changes in 5.45 (released 06/24/2019)
+-------------------------------------
+
+*	UL4 AST nodes for blocks now have additional attributes ``startpos`` and
+	``stoppos``. ``startpos`` is the position of the start tag and ``stoppos``
+	is the position of the end tag. The attributes ``line`` and ``col`` have
+	been renamed to ``startline`` and ``startcol`` and attributes ``stopline``
+	and ``stopcol`` have been added.
+
+	Furthermore two attributes ``startsource`` and ``stopsource`` have been
+	added. They return the source code of the start tag and the end tag. So for
+	example for the loop ``<?for i in range(10)?><?print i?><?end for?>`` the
+	``startsource`` is ``<?for i in range(10)?>`` and the ``stopsource`` is
+	``<?end for?>`` (and ``source`` is
+	``<?for i in range(10)?><?print i?><?end for?>``).
+
+	Additionally attributes ``startsourceprefix``, ``startsourcesuffix``,
+	``stopsourceprefix`` and ``stopsourcesuffix`` have been added.
+
+	In exception messages ``startsource`` is now used as the exception location.
+	This means when a for loop iterates over something that is not iteratable
+	the location marked will now be the loop start tag instead of the complete
+	loop.
+
+	(For non-block nodes ``startpos`` is the same as ``pos``, ``startsource``
+	is the same as ``source``, ``startsourceprefix`` is the same as
+	``sourceprefix`` and ``startsourcesuffix`` is the same as ``sourcesuffix``.)
+
+
+Changes in 5.44 (released 06/07/2019)
+-------------------------------------
+
+*	:meth:`ll.orasql.Connection.objects` now outputs :class:`Job` objects too.
+	Since Oracle provides no dependency information about jobs, :class:`Job`
+	objects will always be output last (in "create" mode; in "drop" mode they
+	will be output first).
+
+*	:meth:`ll.orasql.Job.references` will now yield the appropriate
+	:class:`ll.orasql.JobClass` object (if the job class isn't a system job class).
+
+*	:meth:`ll.orasql.JobClass.referencedby` will now yield all
+	:class:`ll.orasql.Job` objects that use this job class.
+
+*	The ``owner`` argument for various :mod:`ll.orasql` methods now supports
+	passing a set or tuple of owner names.
+
+*	PySQL scripts now can contains PySQL commands in "function call form", i.e.
+	``checkerrors()`` instead of ``{'type': 'checkerrors'}``.
+
+*	PySQL scripts can now contains literal Python source code (between lines
+	with ``#>>>`` and ``#<<<``, e.g.::
+
+		#>>>
+		``cursor`` .cursor()
+		cursor.execute("drop user foo cascade")
+		#<<<
+
+*	Comments in PySQL scripts are supported now (via lines starting with ``#``).
+
+*	Since PySQL scripts can open their own database connections the
+	``connectstring`` argument for the ``pysql`` script is now optional.
+
+*	The PySQL command ``compileall`` has been removed. This same effect can
+	simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
+	``dbms_utility.compile_schema()``.
+
+*	Added several new PySQL commands: :class:`~ll.pysql.commit` and
+	:class:`~ll.pysql.rollback`, :class:`~ll.pysql.drop_types`,
+	:class:`~ll.pysql.user_exists`, :class:`~ll.pysql.object_exists` and
+	:class:`~ll.pysql.env`.
+
+*	The ``--commit`` argument for the pysql script (with the options ``record``,
+	``once`` and ``never``) has been replaced with a flag option ``--rollback``.
+	Automatically committing after every record is no longer available.
+
+*	The PySQL terminator comment (``-- @@@``) can now no longer be specified
+	via a command line option.
+
+*	The ``-v``/``--verbose`` option for :mod:`ll.pysql` now supports new output
+	modes (``file`` and ``log``) and full mode now outputs much more information.
+
+*	The :class:`~ll.url.URL` methods :meth:`~ll.url.URL.owner` and
+	:meth:`~ll.url.URL.group` now will return the ``uid`` or ``gid``
+	respectively when the user or group name can't be determined instead of
+	raising a :exc:`KeyError`.
+
+*	Fixed SQL statement for dropping :class:`ll.orasql.Job` objects.
+
+
+Changes in 5.43 (released 05/07/2019)
+-------------------------------------
+
+*	The functions :func:`ll.xist.css.iterrules` and
+	:func:`ll.xist.css.applystylesheets` now treat ``<style>`` and
+	``<link rel="stylesheet">`` elements without a ``type`` attribute as
+	containing/linking to CSS.
+
+*	:class:`ll.sisyphus.Job` now provides a repeat mode. With this the Python
+	script can function as its own minimal cron daemon.
+
+
+Changes in 5.42.1 (released 04/29/2019)
+---------------------------------------
+
+*	Fixed a bug in :meth:`ll.orasql.OracleURLConnection._walk` to support orasql
+	objects that don't have an owner (i.e. :class:`~ll.orasql.User` and
+	:class:`~ll.orasql.JobClass`).
+
+*	Simplified clean up logic for sisyphus jobs (which makes the new "delete
+	log files for uneventful runs" logic work on Windows).
+
+
+Changes in 5.42 (released 04/26/2019)
+-------------------------------------
+
+*	By returning :const:`None` from the method :meth:`ll.sisyphus.Job.execute`
+	a sisyphus job can now report that the job run was "uneventful" (i.e. the
+	job had nothing to do) and that the log file can be deleted immediately.
+
+
 Changes in 5.41 (released 03/29/2019)
 -------------------------------------
 
@@ -1514,9 +1677,9 @@ Changes in 4.3 (released 11/02/2012)
 	.. _ANTLR: http://www.antlr.org/
 	.. _spark: http://pages.cpsc.ucalgary.ca/~aycock/spark/
 
-*	Accessing non-existant variables in UL4 templates now no longer raises an
+*	Accessing nonexistent variables in UL4 templates now no longer raises an
 	exception but returns the special object ``Undefined``. The same is true for
-	accessing non-existant dictionary keys or list/string indexes that are out of
+	accessing nonexistent dictionary keys or list/string indexes that are out of
 	range.
 
 	In a boolean context ``Undefined`` is treated as false and ``str(Undefined)``

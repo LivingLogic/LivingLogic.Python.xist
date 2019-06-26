@@ -1,4 +1,4 @@
-:mod:`ll.sisyphus` -- Writing cron jobs with Python
-===================================================
+:mod:`!ll.sisyphus` -- Writing jobs with Python
+===============================================
 
 .. automodule:: ll.sisyphus

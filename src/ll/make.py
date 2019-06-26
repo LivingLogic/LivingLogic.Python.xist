@@ -10,7 +10,7 @@
 
 
 """
-:mod:`ll.make` provides tools for building projects.
+:mod:`!ll.make` provides tools for building projects.
 
 Like make it allows you to specify dependencies between files and actions to be
 executed when files don't exist or are out of date with respect to one of their
@@ -276,7 +276,7 @@ class Action:
 	def get(self, project, since):
 		"""
 		This method (i.e. the implementations in subclasses) is the workhorse of
-		:mod:`ll.make`. :meth:`get` must return the output data of the action if
+		:mod:`!ll.make`. :meth:`get` must return the output data of the action if
 		this data has changed since :obj:`since` (which is a
 		:class:`datetime.datetime` object in UTC). If the data hasn't changed
 		since :obj:`since` the special object :const:`nodata` must be returned.

@@ -8,6 +8,54 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.45
+=========================
+
+Changes to UL4
+--------------
+
+The UL4 AST node attribute ``line`` and ``col`` have been renamed to
+``startline`` and ``startcol``.
+
+
+Migrating to version 5.44
+=========================
+
+Changes to ``ll.pysql``
+-----------------------
+
+The PySQL command ``compileall`` has been removed. This same effect can
+simply be achieved by calling ``utl_recomp.recomp_parallel()`` or
+``dbms_utility.compile_schema()``.
+
+The PySQL terminator comment (``-- @@@``) can now no longer be specified
+via a command line option.
+
+The ``connectstring`` argument for the ``pysql`` script is now optional,
+so it has to be specified via the optional argument ``-d``/``--database``.
+
+The ``--commit`` argument (with the options ``record``, ``once`` and ``never``)
+has been replaced with a flag option ``--rollback``. Automatically committing
+after every record is no longer available. However manual committing is
+available via the :class:`~ll.pysql.commit` command.
+
+PySQL no longer support multiple active database connect via the ``connectname``
+key. When using literal SQL this couldn't be used anyway, so it has been
+dropped. If you really need this feature you can implement a workaround in
+literal Python blocks.
+
+
+Migrating to version 5.42
+=========================
+
+Changes to ``ll.sisyphus``
+--------------------------
+
+Returning :const:`None` from :meth:`ll.sisyphus.Job.execute` now has a special
+meaning: Delete the log file. If this isn't wanted a string (e.g. ``"done"``)
+should be returned.
+
+
 Migrating to version 5.40
 =========================
 

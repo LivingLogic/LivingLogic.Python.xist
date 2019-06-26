@@ -220,10 +220,10 @@ literal returns [node]
 fragment
 seqitem returns [node]
 	:
-		e=expr_if { $node = ul4c.SeqItem(self.tag.template, $e.node.pos, $e.node) }
+		e=expr_if { $node = ul4c.SeqItem(self.tag.template, $e.node._startpos, $e.node) }
 	|
 		star='*'
-		es=expr_if { $node = ul4c.UnpackSeqItem(self.tag.template, slice(self.pos($star).start, $es.node.pos.stop), $es.node) }
+		es=expr_if { $node = ul4c.UnpackSeqItem(self.tag.template, slice(self.pos($star).start, $es.node._startpos.stop), $es.node) }
 	;
 
 list returns [node]
@@ -238,7 +238,7 @@ list returns [node]
 			i2=seqitem { $node.items.append($i2.node) }
 		)*
 		','?
-		close=']' { $node.pos = slice($node.pos.start, self.pos($close).stop) }
+		close=']' { $node.startpos = slice($node._startpos.start, self.pos($close).stop) }
 	;
 
 listcomprehension returns [node]
@@ -274,7 +274,7 @@ set returns [node]
 			i2=seqitem { $node.items.append($i2.node) }
 		)*
 		','?
-		close='}' { $node.pos = slice($node.pos.start, self.pos($close).stop) }
+		close='}' { $node.startpos = slice($node._startpos.start, self.pos($close).stop) }
 	;
 
 setcomprehension returns [node]
@@ -302,10 +302,10 @@ dictitem returns [node]
 	:
 		k=expr_if
 		':'
-		v=expr_if { $node = ul4c.DictItem(self.tag.template, slice($k.node.pos.start, $v.node.pos.start), $k.node, $v.node) }
+		v=expr_if { $node = ul4c.DictItem(self.tag.template, slice($k.node._startpos.start, $v.node._startpos.start), $k.node, $v.node) }
 	|
 		star='**'
-		e=expr_if { $node = ul4c.UnpackDictItem(self.tag.template, slice(self.pos($star).start, $e.node.pos.stop), $e.node) }
+		e=expr_if { $node = ul4c.UnpackDictItem(self.tag.template, slice(self.pos($star).start, $e.node._startpos.stop), $e.node) }
 	;
 
 dict returns [node]
@@ -320,7 +320,7 @@ dict returns [node]
 			i2=dictitem { $node.items.append($i2.node) }
 		)*
 		','?
-		close='}' { $node.pos = slice($node.pos.start, self.pos($close).stop) }
+		close='}' { $node.startpos = slice($node._startpos.start, self.pos($close).stop) }
 	;
 
 dictcomprehension returns [node]
@@ -351,15 +351,15 @@ generatorexpression returns [node]
 		_stop = None
 	}
 	:
-		item=expr_if { _start = $item.node.pos.start }
+		item=expr_if { _start = $item.node._startpos.start }
 		'for'
 		n=nestedlvalue
 		'in'
-		container=expr_if { _stop = $container.node.pos.stop }
+		container=expr_if { _stop = $container.node._startpos.stop }
 		(
 			'if'
-			condition=expr_if { _condition = $condition.node; _stop = $condition.node.pos.stop }
-		)? { $node = ul4c.GenExpr(self.tag.template, slice($item.node.pos.start, _stop), $item.node, $n.lvalue, $container.node, _condition) }
+			condition=expr_if { _condition = $condition.node; _stop = $condition.node._startpos.stop }
+		)? { $node = ul4c.GenExpr(self.tag.template, slice($item.node._startpos.start, _stop), $item.node, $n.lvalue, $container.node, _condition) }
 	;
 
 atom returns [node]
@@ -372,11 +372,11 @@ atom returns [node]
 	| e_dictcomp=dictcomprehension { $node = $e_dictcomp.node; }
 	| open='(' e_genexpr=generatorexpression close=')' {
 		$node = $e_genexpr.node
-		$node.pos = slice(self.pos($open).start, self.pos($close).stop)
+		$node.startpos = slice(self.pos($open).start, self.pos($close).stop)
 	}
 	| open='(' e_bracket=expr_if close=')' {
 		$node = $e_bracket.node
-		$node.pos = slice(self.pos($open).start, self.pos($close).stop)
+		$node.startpos = slice(self.pos($open).start, self.pos($close).stop)
 	}
 	;
 
@@ -410,7 +410,7 @@ slice returns [node]
 	}
 	:
 		(
-			e1=expr_if { index1 = $e1.node; startpos = $e1.node.pos.start; }
+			e1=expr_if { index1 = $e1.node; startpos = $e1.node._startpos.start; }
 		)?
 		colon=':' {
 			pos = self.pos($colon)
@@ -419,7 +419,7 @@ slice returns [node]
 			stoppos = pos.stop
 		}
 		(
-			e2=expr_if { index2 = $e2.node; stoppos = $e2.node.pos.stop; }
+			e2=expr_if { index2 = $e2.node; stoppos = $e2.node._startpos.stop; }
 		)? { $node = ul4c.Slice(self.tag.template, slice(startpos, stoppos), index1, index2) }
 	;
 
@@ -427,15 +427,15 @@ slice returns [node]
 fragment
 argument returns [node]
 	:
-		e=exprarg { $node = ul4c.PosArg(self.tag.template, $e.node.pos, $e.node) }
+		e=exprarg { $node = ul4c.PosArg(self.tag.template, $e.node._startpos, $e.node) }
 	|
-		en=name '=' ev=exprarg { $node = ul4c.KeywordArg(self.tag.template, slice($en.node.pos.start, $ev.node.pos.stop), $en.text, $ev.node) }
+		en=name '=' ev=exprarg { $node = ul4c.KeywordArg(self.tag.template, slice($en.node._startpos.start, $ev.node._startpos.stop), $en.text, $ev.node) }
 	|
 		star='*'
-		es=exprarg { $node = ul4c.UnpackListArg(self.tag.template, slice(self.pos($star).start, $es.node.pos.stop), $es.node) }
+		es=exprarg { $node = ul4c.UnpackListArg(self.tag.template, slice(self.pos($star).start, $es.node._startpos.stop), $es.node) }
 	|
 		star='**'
-		es=exprarg { $node = ul4c.UnpackDictArg(self.tag.template, slice(self.pos($star).start, $es.node.pos.stop), $es.node) }
+		es=exprarg { $node = ul4c.UnpackDictArg(self.tag.template, slice(self.pos($star).start, $es.node._startpos.stop), $es.node) }
 	;
 
 expr_subscript returns [node]
@@ -444,10 +444,10 @@ expr_subscript returns [node]
 		(
 			/* Attribute access */
 			'.'
-			n=name { $node = ul4c.Attr(self.tag.template, slice($node.pos.start, self.pos($n.stop).stop), $node, $n.text) }
+			n=name { $node = ul4c.Attr(self.tag.template, slice($node._startpos.start, self.pos($n.stop).stop), $node, $n.text) }
 		|
 			/* Function/method call */
-			'(' { $node = ul4c.Call(self.tag.template, slice($node.pos.start, None), $node) }
+			'(' { $node = ul4c.Call(self.tag.template, slice($node._startpos.start, None), $node) }
 			(
 				a1=argument { $a1.node.append($node) }
 				(
@@ -456,17 +456,17 @@ expr_subscript returns [node]
 				)*
 				','?
 			)*
-			close=')' { $node.pos = slice($node.pos.start, self.pos($close).stop) }
+			close=')' { $node.startpos = slice($node._startpos.start, self.pos($close).stop) }
 		|
 			/* Item access */
 			'['
 				e2=expr_if
-			close=']' { $node = ul4c.Item(self.tag.template, slice($e1.node.pos.start, self.pos($close).stop), $node, $e2.node) }
+			close=']' { $node = ul4c.Item(self.tag.template, slice($e1.node._startpos.start, self.pos($close).stop), $node, $e2.node) }
 		|
 			/* Slice access */
 			'['
 				e2=slice
-			close=']' { $node = ul4c.Item(self.tag.template, slice($e1.node.pos.start, self.pos($close).stop), $node, $e2.node) }
+			close=']' { $node = ul4c.Item(self.tag.template, slice($e1.node._startpos.start, self.pos($close).stop), $node, $e2.node) }
 		)*
 	;
 
@@ -475,9 +475,9 @@ expr_unary returns [node]
 	:
 		e1=expr_subscript { $node = $e1.node; }
 	|
-		minus='-' e2=expr_unary { $node = ul4c.Neg.make(self.tag.template, slice(self.pos($minus).start, $e2.node.pos.stop), $e2.node) }
+		minus='-' e2=expr_unary { $node = ul4c.Neg.make(self.tag.template, slice(self.pos($minus).start, $e2.node._startpos.stop), $e2.node) }
 	|
-		bitnot='~' e2=expr_unary { $node = ul4c.BitNot.make(self.tag.template, slice(self.pos($bitnot).start, $e2.node.pos.stop), $e2.node) }
+		bitnot='~' e2=expr_unary { $node = ul4c.BitNot.make(self.tag.template, slice(self.pos($bitnot).start, $e2.node._startpos.stop), $e2.node) }
 	;
 
 
@@ -495,7 +495,7 @@ expr_mul returns [node]
 			|
 				'%' { cls = ul4c.Mod; }
 			)
-			e2=expr_unary { $node = cls.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_unary { $node = cls.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -509,7 +509,7 @@ expr_add returns [node]
 			|
 				'-' { cls = ul4c.Sub; }
 			)
-			e2=expr_mul { $node = cls.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_mul { $node = cls.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -523,7 +523,7 @@ expr_bitshift returns [node]
 			|
 				'>>' { cls = ul4c.ShiftRight; }
 			)
-			e2=expr_add { $node = cls.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_add { $node = cls.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -533,7 +533,7 @@ expr_bitand returns [node]
 		e1=expr_bitshift { $node = $e1.node; }
 		(
 			'&'
-			e2=expr_bitshift { $node = ul4c.BitAnd.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_bitshift { $node = ul4c.BitAnd.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -543,7 +543,7 @@ expr_bitxor returns [node]
 		e1=expr_bitand { $node = $e1.node; }
 		(
 			'^'
-			e2=expr_bitand { $node = ul4c.BitXOr.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_bitand { $node = ul4c.BitXOr.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -553,7 +553,7 @@ expr_bitor returns [node]
 		e1=expr_bitxor { $node = $e1.node; }
 		(
 			'|'
-			e2=expr_bitxor { $node = ul4c.BitOr.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_bitxor { $node = ul4c.BitOr.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -583,7 +583,7 @@ expr_cmp returns [node]
 			|
 				'is' 'not' { cls = ul4c.IsNot; }
 			)
-			e2=expr_bitor { $node = cls.make(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_bitor { $node = cls.make(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -592,7 +592,7 @@ expr_not returns [node]
 	:
 		e1=expr_cmp { $node = $e1.node; }
 	|
-		n='not' e2=expr_not { $node = ul4c.Not.make(self.tag.template, slice(self.pos($n).start, $e2.node.pos.stop), $e2.node) }
+		n='not' e2=expr_not { $node = ul4c.Not.make(self.tag.template, slice(self.pos($n).start, $e2.node._startpos.stop), $e2.node) }
 	;
 
 
@@ -602,7 +602,7 @@ expr_and returns [node]
 		e1=expr_not { $node = $e1.node; }
 		(
 			'and'
-			e2=expr_not { $node = ul4c.And(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_not { $node = ul4c.And(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -612,7 +612,7 @@ expr_or returns [node]
 		e1=expr_and { $node = $e1.node; }
 		(
 			'or'
-			e2=expr_and { $node = ul4c.Or(self.tag.template, slice($node.pos.start, $e2.node.pos.stop), $node, $e2.node) }
+			e2=expr_and { $node = ul4c.Or(self.tag.template, slice($node._startpos.start, $e2.node._startpos.stop), $node, $e2.node) }
 		)*
 	;
 
@@ -624,7 +624,7 @@ expr_if returns [node]
 			'if'
 			e2=expr_or
 			'else'
-			e3=expr_or { $node = ul4c.If.make(self.tag.template, slice($e1.node.pos.start, $e3.node.pos.stop), $node, $e2.node, $e3.node); }
+			e3=expr_or { $node = ul4c.If.make(self.tag.template, slice($e1.node._startpos.start, $e3.node._startpos.stop), $node, $e2.node, $e3.node); }
 		)?
 	;
 
@@ -645,7 +645,7 @@ for_ returns [node]
 	:
 		n=nestedlvalue
 		'in'
-		e=expr_if { $node = ul4c.ForBlock(self.tag.template, self.tag.pos, $n.lvalue, $e.node) }
+		e=expr_if { $node = ul4c.ForBlock(self.tag.template, self.tag._startpos, None, $n.lvalue, $e.node) }
 		EOF
 	;
 
@@ -653,18 +653,18 @@ for_ returns [node]
 /* Additional rules for "code" tag */
 
 statement returns [node]
-	: nn=nestedlvalue '=' e=expr_if EOF { $node = ul4c.SetVar(self.tag.template, self.tag.pos, $nn.lvalue, $e.node) }
-	| n=expr_subscript '+=' e=expr_if EOF { $node = ul4c.AddVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '-=' e=expr_if EOF { $node = ul4c.SubVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '*=' e=expr_if EOF { $node = ul4c.MulVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '/=' e=expr_if EOF { $node = ul4c.TrueDivVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '//=' e=expr_if EOF { $node = ul4c.FloorDivVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '%=' e=expr_if EOF { $node = ul4c.ModVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '<<=' e=expr_if EOF { $node = ul4c.ShiftLeftVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '>>=' e=expr_if EOF { $node = ul4c.ShiftRightVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '&=' e=expr_if EOF { $node = ul4c.BitAndVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '^=' e=expr_if EOF { $node = ul4c.BitXOrVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
-	| n=expr_subscript '|=' e=expr_if EOF { $node = ul4c.BitOrVar(self.tag.template, self.tag.pos, $n.node, $e.node) }
+	: nn=nestedlvalue '=' e=expr_if EOF { $node = ul4c.SetVar(self.tag.template, self.tag._startpos, $nn.lvalue, $e.node) }
+	| n=expr_subscript '+=' e=expr_if EOF { $node = ul4c.AddVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '-=' e=expr_if EOF { $node = ul4c.SubVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '*=' e=expr_if EOF { $node = ul4c.MulVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '/=' e=expr_if EOF { $node = ul4c.TrueDivVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '//=' e=expr_if EOF { $node = ul4c.FloorDivVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '%=' e=expr_if EOF { $node = ul4c.ModVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '<<=' e=expr_if EOF { $node = ul4c.ShiftLeftVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '>>=' e=expr_if EOF { $node = ul4c.ShiftRightVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '&=' e=expr_if EOF { $node = ul4c.BitAndVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '^=' e=expr_if EOF { $node = ul4c.BitXOrVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
+	| n=expr_subscript '|=' e=expr_if EOF { $node = ul4c.BitOrVar(self.tag.template, self.tag._startpos, $n.node, $e.node) }
 	| e=expression EOF { $node = $e.node }
 	;
 
@@ -745,6 +745,6 @@ signature returns [node]
 		)?
 		','?
 	)
-	close=')' { $node.pos = slice($node.pos.start, self.pos($close).stop) }
+	close=')' { $node.startpos = slice($node._startpos.start, self.pos($close).stop) }
 	EOF
 ;

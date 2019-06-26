@@ -1,4 +1,4 @@
-:mod:`sims` -- Simple schema validation
-=======================================
+:mod:`!sims` -- Simple schema validation
+========================================
 
 .. automodule:: ll.xist.sims
