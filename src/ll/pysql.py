@@ -1099,10 +1099,10 @@ class setvar(Command):
 	The :class:`!setvar` command sets a variable to a fixed value. The following
 	parameters are supported:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the variable to set.
 
-	``value``: object (required)
+	``value`` : object (required)
 		The value of the variable.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
