@@ -3620,6 +3620,9 @@ def astext(
 	th=dict(display="block", bottom=1),
 	td=dict(display="block", bottom=1),
 	b=dict(display="inline", prefix="*", suffix="*"),
+	em=dict(display="inline", prefix="*", suffix="*"),
+	strong=dict(display="inline", prefix="**", suffix="**"),
+	i=dict(display="inline", prefix="*", suffix="*"),
 	u=dict(display="inline", prefix="_", suffix="_"),
 	code=dict(display="inline", prefix="``", suffix="``"),
 	**kwargs
