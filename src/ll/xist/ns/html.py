@@ -3697,5 +3697,38 @@ def astext(
 		A rule after the content of the block. (Note that this will only work on
 		the innermost block level element.)
 	"""
-	formatter = _PlainTextFormatter(node, width=width, default=default, h1=h1, h2=h2, h3=h3, h4=h4, h5=h5, h6=h6, dl=dl, dt=dt, dd=dd, ol=ol, ol_li=ol_li, ul=ul, ul_li=ul_li, pre=pre, blockquote=blockquote, div=div, p=p, hr=hr, address=address, th=th, td=td, b=b, u=u, code=code, **kwargs)
+	kwargs = {
+		"width": width,
+		"default": default,
+		"h1": h1,
+		"h2": h2,
+		"h3": h3,
+		"h4": h4,
+		"h5": h5,
+		"h6": h6,
+		"dl": dl,
+		"dt": dt,
+		"dd": dd,
+		"ol": ol,
+		"ol_li": ol_li,
+		"ul": ul,
+		"ul_li": ul_li,
+		"li": li,
+		"pre": pre,
+		"blockquote": blockquote,
+		"div": div,
+		"p": p,
+		"hr": hr,
+		"address": address,
+		"th": th,
+		"td": td,
+		"b": b,
+		"em": em,
+		"strong": strong,
+		"i": i,
+		"u": u,
+		"code": code,
+		**kwargs	
+	}
+	formatter = _PlainTextFormatter(node, **kwargs)
 	return "".join(formatter).strip("\n")
