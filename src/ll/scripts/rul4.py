@@ -189,7 +189,7 @@ Then we can use the following template to output the table into an XML file:
 	<?xml version='1.0' encoding='utf-8'?>
 	<?code db = globals.oracle("user/password@database')?>
 	<persons>
-		<?for p in db.query("select id, firstname, lastname from person order by 2, 1")?>
+		<?for p in db.query("select id, firstname, lastname from person order by 3, 2")?>
 			<person id="<?printx p.id?>">
 				<firstname><?printx p.firstname?></firstname>
 				<lastname><?printx p.lastname?></lastname>
