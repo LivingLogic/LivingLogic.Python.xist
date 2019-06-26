@@ -3583,7 +3583,7 @@ class _PlainTextFormatter:
 				else:
 					yield from self.pop()
 					lists.pop()
-			elif isinstance(node, (h, dt, dd, blockquote, pre, div, p, hr, address, th, td, b, code)):
+			elif isinstance(node, xsc.Element) and node.xmlname in self.styles:
 				if cursor.event == "enterelementnode":
 					yield from self.push(node.__class__.__name__)
 				else:
