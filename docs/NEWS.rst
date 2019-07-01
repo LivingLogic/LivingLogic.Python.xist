@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.47 (released 07/01/2019)
+-------------------------------------
+
+*	Include commands in PySQL scripts now actually change the current directory
+	so that literal Python blocks execute with the current directory set to
+	the directory of the PySQL file containing the Python block.
+
+
 Changes in 5.46 (released 06/26/2019)
 -------------------------------------
 

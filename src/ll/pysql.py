@@ -649,15 +649,15 @@ class include(Command):
 
 	def execute(self, context):
 		filename = self.filename
-		if context.filename is not None:
-			filename = context.filename.parent/filename
 
 		if self.cond is None or self.cond:
 			self.log(f"Including file {str(filename)!r}")
-			with context.changed_filename(filename):
-				with filename.open("r", encoding="utf-8") as f:
+			with context.changed_filename(filename) as absfilenname:
+				with absfilenname.open("r", encoding="utf-8") as f:
 					context._load(f)
-		self.finish(f"Included file {str(filename)!r}")
+			self.finish(f"Included file {str(filename)!r}")
+		else:
+			self.finish(f"Skipped file {str(filename)!r}")
 
 	def source_format(self):
 		yield from self._source_format(self.filename, raiseexceptions=self.raiseexceptions)
@@ -1732,9 +1732,7 @@ class loadbytes(Command):
 		"""
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
-		filename = self.filename
-		if context.filename is not None:
-			filename = context.filename.parent/filename
+		filename = pathlib.Path(self.filename)
 		return filename.read_bytes()
 
 	def source_format(self):
@@ -1784,10 +1782,7 @@ class loadstr(Command):
 		"""
 		Read the file and return the file content as a :class:`str` object.
 		"""
-		filename = self.filename
-		if context.filename is not None:
-			filename = context.filename.parent/filename
-
+		filename = pathlib.Path(self.filename)
 		return filename.read_text(encoding=self.encoding, errors=self.errors)
 
 	def source_format(self):
@@ -2021,7 +2016,7 @@ class Context:
 		self.connections = []
 		self.commit = commit
 		self.scpdirectory = scpdirectory
-		self.filedirectory = filedirectory
+		self.filedirectory = pathlib.Path(filedirectory).resolve()
 		self.tabsize = tabsize
 		self.context = context
 		self.raiseexceptions = [raiseexceptions]
@@ -2096,10 +2091,13 @@ class Context:
 		filename = pathlib.Path(filename)
 		oldfilename = self.filename
 		self.filename = filename
+		oldcwd = pathlib.Path.cwd()
+		os.chdir(filename.parent)
 		try:
-			yield
+			yield oldcwd/filename
 		finally:
 			self.filename = oldfilename
+			os.chdir(oldcwd)
 
 	def globals(self):
 		vars = {command.__name__: CommandExecutor(command, self) for command in Command.commands.values()}
@@ -2217,8 +2215,8 @@ class Context:
 			if filenames:
 				for filename in filenames:
 					filename = pathlib.Path(filename)
-					with self.changed_filename(filename):
-						with filename.open("r") as f:
+					with self.changed_filename(filename) as absfilenname:
+						with absfilenname.open("r") as f:
 							self._load(f)
 			else:
 				self._load(sys.stdin)
