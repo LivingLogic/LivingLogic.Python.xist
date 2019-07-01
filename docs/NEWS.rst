@@ -15,7 +15,7 @@ Changes in 5.47 (released 07/01/2019)
 	so that literal Python blocks execute with the current directory set to
 	the directory of the PySQL file containing the Python block.
 
-*	The PySQL commands ``procedure`` and ``sql`` no report new variable values.
+*	The PySQL commands ``procedure`` and ``sql`` now report new variable values.
 
 
 Changes in 5.46 (released 06/26/2019)
