@@ -652,8 +652,8 @@ class include(Command):
 
 		if self.cond is None or self.cond:
 			self.log(f"Including file {str(filename)!r}")
-			with context.changed_filename(filename) as absfilenname:
-				with absfilenname.open("r", encoding="utf-8") as f:
+			with context.changed_filename(filename) as fn:
+				with fn.open("r", encoding="utf-8") as f:
 					context._load(f)
 			self.finish(f"Included file {str(filename)!r}")
 		else:
@@ -2094,7 +2094,7 @@ class Context:
 		oldcwd = pathlib.Path.cwd()
 		os.chdir(filename.parent)
 		try:
-			yield oldcwd/filename
+			yield pathlib.Path(filename.name)
 		finally:
 			self.filename = oldfilename
 			os.chdir(oldcwd)
