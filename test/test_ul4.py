@@ -504,7 +504,7 @@ def T(request):
 
 
 def pytest_generate_tests(metafunc):
-	if "reprfunc" in metafunc.funcargnames:
+	if "reprfunc" in metafunc.fixturenames:
 		values = ["repr", "ascii"]
 		metafunc.parametrize("reprfunc", values, ids=values)
 
