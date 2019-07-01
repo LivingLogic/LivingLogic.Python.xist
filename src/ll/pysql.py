@@ -897,7 +897,8 @@ class procedure(_SQLCommand):
 		result = self._executesql(context, connection, query)
 		self.finish(f"Called procedure {self.name!r} in {connection.connectstring()!r}")
 		self.count(connectstring(connection), self.name)
-
+		if result:
+			self.log(f"New vars {result!r}")
 		return result or None
 
 	def source_format(self):
@@ -943,7 +944,8 @@ class sql(_SQLCommand):
 		result = self._executesql(context, connection, self.sql)
 		self.finish(f"Executed SQL")
 		self.count(connectstring(connection))
-
+		if result:
+			self.log(f"New vars {result!r}")
 		return result or None
 
 	def source_format(self):
