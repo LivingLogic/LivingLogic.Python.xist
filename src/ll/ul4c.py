@@ -399,7 +399,7 @@ class Proto:
 		if ul4getattr is not None:
 			try:
 				return ul4getattr(name)
-			except AttributeError as exc:
+			except AttributeError:
 				return cls.missing(obj, name, default)
 		else:
 			ul4attrs = getattr(obj, "ul4attrs", None)
