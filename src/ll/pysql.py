@@ -765,9 +765,9 @@ class disconnect(Command):
 		connection = context.connections[-1]
 		context.disconnect(commit)
 		if commit:
-			self.finish(f"Disconnected from {connectstring(connection)!r} (transaction committed")
+			self.finish(f"Disconnected from {connectstring(connection)!r} (transaction committed)")
 		else:
-			self.finish(f"Disconnected from {connectstring(connection)!r} (transaction rolled back")
+			self.finish(f"Disconnected from {connectstring(connection)!r} (transaction rolled back)")
 
 		return connection
 
