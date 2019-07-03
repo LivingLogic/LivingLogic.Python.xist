@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.48 (released 07/03/2019)
+-------------------------------------
+
+*	Filename printed by a PySQL script will now always be relative to the
+	current directory at the start of the script.
+
+*	Fixed a bug in the filename handling of the PySQL command ``file``.
+
+
 Changes in 5.47 (released 07/01/2019)
 -------------------------------------
 

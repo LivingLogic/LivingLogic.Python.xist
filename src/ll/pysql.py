@@ -572,6 +572,12 @@ class Command:
 		else:
 			return f"{self.__class__.__name__} command in {self.location}"
 
+	def strlocation(self, context):
+		result = context.strfilename(self.location.filename)
+		if self.location.startline is None and self.location.endline is None:
+			result += f" :: {self._lines()}"
+		return result
+
 	def finish(self, message):
 		self._message = message
 
@@ -651,13 +657,13 @@ class include(Command):
 		filename = self.filename
 
 		if self.cond is None or self.cond:
-			self.log(f"Including file {str(filename)!r}")
+			self.log(f"Including file {context.strfilename(filename)!r}")
 			with context.changed_filename(filename) as fn:
 				with fn.open("r", encoding="utf-8") as f:
 					context._load(f)
-			self.finish(f"Included file {str(filename)!r}")
+			self.finish(f"Included file {context.strfilename(filename)!r}")
 		else:
-			self.finish(f"Skipped file {str(filename)!r}")
+			self.finish(f"Skipped file {context.strfilename(filename)!r}")
 
 	def source_format(self):
 		yield from self._source_format(self.filename, raiseexceptions=self.raiseexceptions)
@@ -1325,7 +1331,7 @@ class scp(Command):
 
 	def execute(self, context):
 		filename = context.scpdirectory + self.name.format(**context._locals)
-		self.log("Copying file {filename!r}")
+		self.log("Copying file to {filename!r}")
 
 		with tempfile.NamedTemporaryFile(delete=False) as f:
 			f.write(self.content)
@@ -1336,7 +1342,7 @@ class scp(Command):
 				raise SCPError(result.returncode, (result.stdout or result.stderr).decode(errors="replace"))
 		finally:
 			os.remove(tempname)
-		self.finish(f"Copied {filename!r}")
+		self.finish(f"Copied to {filename!r}")
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1389,9 +1395,9 @@ class file(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		filename = pathlib.Path(context.filedirectory + self.name.format(**context._locals))
+		filename = context.filedirectory / self.name.format(**context._locals)
 
-		self.log(f"Saving file {filename!r}")
+		self.log(f"Saving file {context.strfilename(filename)!r}")
 		try:
 			filename.write_bytes(self.content)
 		except FileNotFoundError: # probably the directory doesn't exist
@@ -1418,7 +1424,7 @@ class file(Command):
 			else:
 				gid = -1
 			os.chown(filename, uid, gid)
-		self.finish(f"Saved {len(self.content):,} bytes to {filename}")
+		self.finish(f"Saved {len(self.content):,} bytes to {context.strfilename(filename)!r}")
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1954,7 +1960,7 @@ class CommandExecutor:
 			if command.location is not context._lastlocation:
 				if not first:
 					print(flush=True)
-				command.location.print_source(context._width, context.tabsize, context.context)
+				command.location.print_source(context)
 		# Update ``_lastlocation`` *now*, so that other commands called during :meth:`execute` don't print the location/source twice
 		context._lastlocation = command.location
 
@@ -2019,6 +2025,8 @@ class Context:
 		self.commit = commit
 		self.scpdirectory = scpdirectory
 		self.filedirectory = pathlib.Path(filedirectory).resolve()
+		self.basedirectory = pathlib.Path.cwd().resolve()
+		self.homedirectory = pathlib.Path.home().resolve()
 		self.tabsize = tabsize
 		self.context = context
 		self.raiseexceptions = [raiseexceptions]
@@ -2077,7 +2085,7 @@ class Context:
 	def log(self, command, *objects):
 		if self.verbose in {"log", "full"}:
 			now = datetime.datetime.now()
-			print(f"[t+{now-self._runstarttime}] :: #{command._nr:,} :: [{command.location}] >>", end="", flush=True)
+			print(f"[t+{now-self._runstarttime}] :: #{command._nr:,} :: [{command.strlocation(self)}] >>", end="", flush=True)
 			for (i, obj) in enumerate(objects):
 				print(" ", end="", flush=True)
 				if isinstance(obj, str):
@@ -2279,6 +2287,19 @@ class Context:
 	def count(self, *args):
 		self.commandcounts[args] += 1
 
+	def strfilename(self, filename):
+		filename = pathlib.Path(filename).resolve()
+		try:
+			filename = filename.relative_to(self.basedirectory)
+		except ValueError:
+			try:
+				filename = filename.relative_to(self.homedirectory)
+			except ValueError:
+				return str(filename)
+			else:
+				return f"~/{filename}"
+		else:
+			return str(filename)
 
 ###
 ### Classes to be used by the PySQL commands
@@ -2404,25 +2425,25 @@ class Location:
 			source = (self.startline-1) * "\n" + source
 		return source
 
-	def print_source(self, width, tabsize=None, context=None):
+	def print_source(self, context):
 		ellipsis = "\u22ee"
 		if self.startline and self.endline:
 			startline = self.startline
 			endline = self.endline
 			linenumberlen = len(f"{self.endline:,}")
-			filename = str(self.filename)
+			filename = context.strfilename(self.filename)
 			filenamelen = len(filename)
-			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c[ " + filename + " ]" + "\u2500" * (width - 2 - linenumberlen - 4 - filenamelen)
-			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (width - 2 - linenumberlen)
+			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c[ " + filename + " ]" + "\u2500" * (context._width - 2 - linenumberlen - 4 - filenamelen)
+			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (context._width - 2 - linenumberlen)
 			print(ruletop, flush=True)
 
 			for (linenumber, line) in self.lines:
-				if context is not None and startline + context <= linenumber <= endline - context:
-					if startline + context == linenumber:
+				if context.context is not None and startline + context.context <= linenumber <= endline - context.context:
+					if startline + context.context == linenumber:
 						print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
 				else:
-					if tabsize is not None:
-						line = line.expandtabs(tabsize)
+					if context.tabsize is not None:
+						line = line.expandtabs(context.tabsize)
 					print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
 			print(rulebottom, flush=True)
 		else:
@@ -2430,12 +2451,12 @@ class Location:
 			rule = "\u2500" * self._width
 			print(rule, flush=True)
 			for (linenumber, line) in self.lines:
-				if context is not None and context <= linenumber <= endline - context:
-					if context == linenumber:
+				if context.context is not None and context.context <= linenumber <= endline - context.context:
+					if context.context == linenumber:
 						print(ellipsis, flush=True)
 				else:
-					if tabsize is not None:
-						line = line.expandtabs(tabsize)
+					if context.tabsize is not None:
+						line = line.expandtabs(context.tabsize)
 					print(line, flush=True)
 			print(rule, flush=True)
 
