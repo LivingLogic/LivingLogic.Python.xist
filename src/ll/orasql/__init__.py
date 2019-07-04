@@ -3527,8 +3527,10 @@ class Privilege:
 				where
 					owner = user
 				order by
+					grantor,
 					table_name,
-					privilege
+					privilege,
+					grantee
 			"""
 			cursor.execute(query)
 		elif owner is ALL:
@@ -3545,8 +3547,10 @@ class Privilege:
 					from
 						all_tab_privs
 					order by
+						grantor,
 						table_name,
-						privilege
+						privilege,
+						grantee
 				"""
 			else:
 				query = """
@@ -3559,8 +3563,10 @@ class Privilege:
 					from
 						dba_tab_privs
 					order by
+						grantor,
 						table_name,
-						privilege
+						privilege,
+						grantee
 				"""
 			cursor.execute(query)
 		elif isinstance(owner, str):

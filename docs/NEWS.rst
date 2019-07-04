@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.49 (released 07/04/2019)
+-------------------------------------
+
+*	Privileges returned by :meth:`ll.orasql.Privilege.objects` will now have a
+	stable sort order.
+
+
 Changes in 5.48 (released 07/03/2019)
 -------------------------------------
 
