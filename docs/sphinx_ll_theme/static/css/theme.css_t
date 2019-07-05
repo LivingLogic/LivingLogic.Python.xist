@@ -955,7 +955,7 @@ main div[class^='highlight'] pre .hll{display:block;margin:0 -12px;padding:0 12p
 .rst-content .align-center{margin:auto}
 .rst-content .align-center:not(table){display:block}
 
-main dl:not(.docutils) > dt > .reference.internal,
+main dl:not(.docutils) > dt > .reference.internal:after,
 main dl:not(.docutils) > dt > .headerlink,
 main h1 > .headerlink,
 main h2 > .headerlink,
