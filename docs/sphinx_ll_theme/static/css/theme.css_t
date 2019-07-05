@@ -878,7 +878,11 @@ aside .breadcrumbs
 .rst-content .section>img,.rst-content .section>a>img{margin-bottom:24px}
 .rst-content abbr[title]{text-decoration:none}
 .rst-content.style-external-links a.reference.external:after{font-family:FontAwesome;content:"";color:#b3b3b3;vertical-align:super;font-size:60%;margin:0 .2em}
-.rst-content blockquote{margin-left:24px;line-height:24px;margin-bottom:24px}
+.rst-content blockquote{
+	margin-left: {{theme_horizontal_indent}};
+	line-height: {{theme_line_height}};
+	margin-bottom: {{theme_vertical_spacing}};
+}
 .rst-content pre.literal-block
 {
 	white-space: pre;
