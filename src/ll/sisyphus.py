@@ -1162,7 +1162,7 @@ class Job:
 
 	def task(self, type=None, name=None, index=None, count=None):
 		"""
-		:meth:`task` is a context manager and can be used to specify subtasks.
+		:meth:`!task` is a context manager and can be used to specify subtasks.
 
 		Arguments have the following meaning:
 
@@ -1185,7 +1185,7 @@ class Job:
 
 	def tasks(self, iterable, type=None, name=None):
 		"""
-		:meth:`tasks` iterates through :obj:`iterable` and calls :meth:`task` for
+		:meth:`!tasks` iterates through :obj:`iterable` and calls :meth:`task` for
 		each item. :obj:`index` and :obj:`count` will be passed to :meth:`task`
 		automatically. :obj:`type` and :obj:`name` will be used for the type and
 		name of the task. They can either be constants (in which case they will
@@ -1351,7 +1351,7 @@ class Task:
 
 	def __init__(self, job, type=None, name=None, index=None, count=None):
 		"""
-		Create a :class:`Task` object. For the meaning of the parameters see
+		Create a :class:`!Task` object. For the meaning of the parameters see
 		:meth:`Job.task`.
 		"""
 		self.job = job
@@ -1415,7 +1415,7 @@ class Task:
 
 class Tag:
 	"""
-	A :class:`Tag` object can be used to call a function with an additional list
+	A :class:`!Tag` object can be used to call a function with an additional list
 	of tags. Tags can be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
 	"""
 	def __init__(self, func, *tags):
