@@ -152,6 +152,22 @@ main dl dt
 	font-weight: 600;
 }
 
+main dl dt .classifier:before
+{
+	content: "(";
+}
+
+main dl dt .classifier:after
+{
+	content: ")";
+}
+
+main dl dt .classifier
+{
+	padding-left: 0.6em;
+	color: #666;
+}
+
 main dl dd
 {
 	margin: 0 0 {{theme_vertical_spacing}} {{theme_horizontal_indent}};
