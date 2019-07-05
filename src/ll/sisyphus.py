@@ -498,7 +498,6 @@ class Job:
 	help message:
 
 	:attr:`argdescription`
-
 		Description for the help message of the command line argument parser.
 	"""
 
