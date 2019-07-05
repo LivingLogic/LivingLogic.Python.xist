@@ -8,6 +8,32 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.49 (released 07/04/2019)
+-------------------------------------
+
+*	Privileges returned by :meth:`ll.orasql.Privilege.objects` will now have a
+	stable sort order.
+
+
+Changes in 5.48 (released 07/03/2019)
+-------------------------------------
+
+*	Filename printed by a PySQL script will now always be relative to the
+	current directory at the start of the script.
+
+*	Fixed a bug in the filename handling of the PySQL command ``file``.
+
+
+Changes in 5.47 (released 07/01/2019)
+-------------------------------------
+
+*	Include commands in PySQL scripts now actually change the current directory
+	so that literal Python blocks execute with the current directory set to
+	the directory of the PySQL file containing the Python block.
+
+*	The PySQL commands ``procedure`` and ``sql`` now report new variable values.
+
+
 Changes in 5.46 (released 06/26/2019)
 -------------------------------------
 

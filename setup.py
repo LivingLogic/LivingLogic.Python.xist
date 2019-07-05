@@ -243,7 +243,7 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.46",
+	version="5.49",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",

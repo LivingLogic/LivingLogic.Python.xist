@@ -399,7 +399,7 @@ class Proto:
 		if ul4getattr is not None:
 			try:
 				return ul4getattr(name)
-			except AttributeError as exc:
+			except AttributeError:
 				return cls.missing(obj, name, default)
 		else:
 			ul4attrs = getattr(obj, "ul4attrs", None)
@@ -426,7 +426,7 @@ class Proto:
 			ul4attrs = getattr(obj, "ul4attrs", None)
 			if ul4attrs is not None:
 				# An ``ul4attrs`` attribute without ``ul4setattr`` will *not* make the attribute writable
-				raise TypeError(f"attribute {name!r} is readonly")
+				raise TypeError(f"attribute {misc.format_class(obj)}.{name!r} is readonly")
 			else:
 				obj[name] = value
 

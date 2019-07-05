@@ -333,9 +333,9 @@ all_transports = [
 
 
 def pytest_generate_tests(metafunc):
-	if "t" in metafunc.funcargnames:
+	if "t" in metafunc.fixturenames:
 		metafunc.parametrize("t", [t for (id, t) in all_transports], ids=[id for (id, t) in all_transports])
-	if "oracle" in metafunc.funcargnames:
+	if "oracle" in metafunc.fixturenames:
 		metafunc.parametrize("oracle", [oracle for (id, oracle) in all_oracles], ids=[id for (id, oracle) in all_oracles])
 
 
