@@ -991,6 +991,11 @@ main .toctree-wrapper p.caption .headerlink
 	text-align: right;
 }
 
+main .reference.internal .viewcode-link
+{
+	display: none;
+}
+
 main dl:not(.docutils) > dt > .reference.internal:after{
 	content: "\f121";
 	font-family: "Font Awesome 5 Free";
