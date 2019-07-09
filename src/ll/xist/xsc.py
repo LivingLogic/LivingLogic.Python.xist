@@ -862,60 +862,72 @@ class Cursor:
 	Information about the state of the traversal is provided in the following
 	attributes:
 
-	``root``
+	.. attribute:: root
+
 		The node where traversal has been started (i.e. the object for which the
 		:meth:`~Node.walk` method has been called).
 
-	``node``
+	.. attribute:: node
+
 		The current node being traversed.
 
-	``path``
+	.. attribute:: path
+
 		A list of nodes that contains the path through the tree from the root to
 		the current node (i.e. ``path[0] is root`` and ``path[-1] is node``).
 
-	``index``
+	.. attribute:: index
+
 		A path of indices (e.g. ``[0, 1]`` if the current node is the second child
 		of the first child of the root). Inside attributes the index path will
 		contain the name of the attribute (or a (attribute name, namespace name)
 		tuple inside a global attribute).
 
-	``event``
+	.. attribute:: event
+
 		A string that specifies which event is currently handled. Possible values
 		are: ``"enterelementnode"``, ``"leaveelementnode"``, ``"enterattrnode"``,
-		``"leaveattrnode"``, ``"textnode"``, ``"commentnode"``, ``"doctypenode"``,
-		``"procinstnode"``, ``"entitynode"`` and ``"nullnode"``.
+		``"leaveattrnode"``, ``"textnode"``, ``"commentnode"``, ``"doctypenode"``
+		``"procinstnode"``, ``"entitynode"`` and ``"nullnode"``
 
 	The following attributes specify which part of the tree should be traversed:
 
-	``entercontent``
+	.. attribute:: entercontent
+
 		Should the content of an element be entered?
 
-	``enterattrs``
+	.. attribute:: enterattrs
+
 		Should the attributes of an element be entered? (Note that the attributes
 		will always be entered before the content.)
 
-	``enterattr``
-		Should the content of the attributes of an element be entered? (This is
-		only relevant if ``enterattrs`` is true.)
+	.. attribute:: enterattr
 
-	``enterelementnode``
+		Should the content of the attributes of an element be entered? (This is
+		only relevant if :attr:`enterattrs` is true.)
+
+	.. attribute:: enterelementnode
+
 		Should the generator yield a ``"enterelementnode"`` event (i.e. return
 		before entering the content or attributes of an element)?
 
-	``leaveelementnode``
+	.. attribute:: leaveelementnode
+
 		Should the generator yield an ``"leaveelementnode"`` event (i.e. return
 		after entering the content or attributes of an element)?
 
-	``enterattrnode``
+	.. attribute:: enterattrnode
+
 		Should the generator yield a ``"enterattrnode"`` event (i.e. return
 		before entering the content of an attribute)? This is only relevant if
-		``enterattrs`` is true.
+		:attr:`enterattrs` is true.
 
-	``leaveattrnode``
+	.. attribute:: leaveattrnode
+
 		Should the generator yield an ``"leaveattrnode"`` event (i.e. return
 		after entering the content of an attribute)? This is only relevant if
-		``enterattrs`` is true. Furthermore if ``enterattr`` is false, the
-		behaviour is essentially the same as for ``enterattrnode``.
+		:attr:`enterattrs` is true. Furthermore if :attr:`enterattr` is false, the
+		behaviour is essentially the same as for :attr:`enterattrnode`.
 
 	Note that if any of these attributes is changed by the code consuming the
 	generator, this new value will be used for the next traversal step once the
@@ -927,9 +939,9 @@ class Cursor:
 		Create a new :class:`Cursor` object for a tree traversal rooted at the node
 		:obj:`node`.
 
-		The arguments :obj:`entercontent`, :obj:`enterattrs`, :obj:`enterattr`,
-		:obj:`enterelementnode`, :obj:`leaveelementnode`, :obj:`enterattrnode` and
-		:obj:`leaveattrnode` are used as the initial values for the attributes of
+		The other arguments ``entercontent``, ``enterattrs``, ``enterattr``,
+		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
+		``leaveattrnode`` are used as the initial values for the attributes of
 		the same name. (see the class docstring for info about their use).
 		"""
 		self.root = self.node = node
@@ -946,9 +958,9 @@ class Cursor:
 
 	def restore(self):
 		"""
-		Restore the attributes ``entercontent``, ``enterattrs``, ``enterattr``,
-		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
-		``leaveattrnode`` to their initial value.
+		Restore the attributes :attr:`entercontent`, :attr:`enterattrs`,
+		:attr:`enterattr`, :attr:`enterelementnode`, :attr:`leaveelementnode`,
+		:attr:`enterattrnode` and :attr:`leaveattrnode` to their initial value.
 		"""
 		self.entercontent = self._entercontent
 		self.enterattrs = self._enterattrs
