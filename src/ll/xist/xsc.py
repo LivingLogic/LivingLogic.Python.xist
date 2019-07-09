@@ -843,7 +843,7 @@ class Publisher:
 	def write(self, stream, node, base=None, allowschemerelurls=False):
 		"""
 		Write :obj:`node` to the file-like object :obj:`stream` (which must
-		provide a :meth:`write` method).
+		provide a :meth:`!write` method).
 		"""
 		for part in self.iterbytes(node, base, allowschemerelurls):
 			stream.write(part)
@@ -1300,7 +1300,7 @@ class Node(object, metaclass=_Node_Meta):
 	def write(self, stream, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
 		Write :obj:`self` to the file-like object :obj:`stream` (which must provide
-		a :meth:`write` method).
+		a :meth:`!write` method).
 
 		For the rest of the parameters see the :class:`ll.xist.xsc.Publisher`
 		constructor.
