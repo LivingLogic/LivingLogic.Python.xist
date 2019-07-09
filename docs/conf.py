@@ -25,7 +25,7 @@ def visit_definition_list(self, node):
 	if self.table:
 		self.table.has_problematic = True
 
-def  visit_definition(self, node):
+def visit_definition(self, node):
 	self.body.append("\\hfill \\\\")
 
 latex.LaTeXTranslator.visit_definition_list = visit_definition_list
