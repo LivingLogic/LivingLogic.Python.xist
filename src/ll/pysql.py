@@ -2020,7 +2020,7 @@ class Context:
 	command_begin = tuple(f"{cname}(" for cname in Command.commands)
 	command_end = ")"
 
-	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit=True, tabsize=None, context=None, raiseexceptions=True, verbose=0, summary=False, vars=None):
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit=True, tabsize=None, context=None, ascii=False, raiseexceptions=True, verbose=0, summary=False, vars=None):
 		self.connections = []
 		self.commit = commit
 		self.scpdirectory = scpdirectory
@@ -2029,6 +2029,21 @@ class Context:
 		self.homedirectory = pathlib.Path.home().resolve()
 		self.tabsize = tabsize
 		self.context = context
+		self.ascii = ascii
+		if ascii:
+			self.char_vrule = "|"
+			self.char_fathrule = "="
+			self.char_hrule = "-"
+			self.char_hruledown = "-"
+			self.char_hruleup = "-"
+			self.char_vellipsis = "..."
+		else:
+			self.char_vrule = "\u2502"
+			self.char_fathrule = "\u2501"
+			self.char_hrule = "\u2500"
+			self.char_hruledown = "\u252c"
+			self.char_hruleup = "\u2534"
+			self.char_vellipsis = "\u22ee"
 		self.raiseexceptions = [raiseexceptions]
 		self.verbose = verbose
 		self.summary = summary
@@ -2247,7 +2262,7 @@ class Context:
 			now = datetime.datetime.now()
 			if self.verbose:
 				print(flush=True)
-				print("\u2501"*self._width, flush=True)
+				print(self.char_fathrule*self._width, flush=True)
 				print(f"[t+{now-self._runstarttime}] >> Command summary:", flush=True)
 			else:
 				print("Command summary:", flush=True)
@@ -2426,34 +2441,33 @@ class Location:
 		return source
 
 	def print_source(self, context):
-		ellipsis = "\u22ee"
 		if self.startline and self.endline:
 			startline = self.startline
 			endline = self.endline
 			linenumberlen = len(f"{self.endline:,}")
 			filename = context.strfilename(self.filename)
 			filenamelen = len(filename)
-			ruletop    = "\u2500" * (linenumberlen + 1) + "\u252c[ " + filename + " ]" + "\u2500" * (context._width - 2 - linenumberlen - 4 - filenamelen)
-			rulebottom = "\u2500" * (linenumberlen + 1) + "\u2534" + "\u2500" * (context._width - 2 - linenumberlen)
+			ruletop    = context.char_hrule * (linenumberlen + 1) + f"{context.char_hruledown}[ " + filename + " ]" + context.char_hrule * (context._width - 2 - linenumberlen - 4 - filenamelen)
+			rulebottom = context.char_hrule * (linenumberlen + 1) + context.char_hruleup + context.char_hrule * (context._width - 2 - linenumberlen)
 			print(ruletop, flush=True)
 
 			for (linenumber, line) in self.lines:
 				if context.context is not None and startline + context.context <= linenumber <= endline - context.context:
 					if startline + context.context == linenumber:
-						print(f"{ellipsis:>{linenumberlen}} \u2502 {ellipsis}", flush=True)
+						print(f"{context.char_vellipsis:>{linenumberlen}} {context.char_vrule} {context.char_vellipsis}", flush=True)
 				else:
 					if context.tabsize is not None:
 						line = line.expandtabs(context.tabsize)
-					print(f"{linenumber:{linenumberlen},} \u2502 {line}", flush=True)
+					print(f"{linenumber:{linenumberlen},} {context.char_vrule} {line}", flush=True)
 			print(rulebottom, flush=True)
 		else:
 			endline = len(self.lines) - 1
-			rule = "\u2500" * self._width
+			rule = context.char_hrule * self._width
 			print(rule, flush=True)
 			for (linenumber, line) in self.lines:
 				if context.context is not None and context.context <= linenumber <= endline - context.context:
 					if context.context == linenumber:
-						print(ellipsis, flush=True)
+						print(context.char_vellipsis, flush=True)
 				else:
 					if context.tabsize is not None:
 						line = line.expandtabs(context.tabsize)
@@ -2582,6 +2596,7 @@ def main(args=None):
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
 	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of context lines when printing source code (default %(default)r)", type=int, default=None)
+	p.add_argument("-a", "--ascii", dest="ascii", help="Don't use fancy unicode characters (default %(default)r)", default=False, action="store_true")
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
 	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
 
@@ -2594,6 +2609,7 @@ def main(args=None):
 		commit=not args.rollback,
 		tabsize=args.tabsize,
 		context=args.context,
+		ascii=args.ascii,
 		verbose=args.verbose,
 		summary=args.summary,
 		vars=args.defines
