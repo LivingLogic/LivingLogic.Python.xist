@@ -26,7 +26,7 @@ Options
 
 .. program:: tld2xsc
 
-.. option:: -s <value>, --shareattrs <value
+.. option:: -s <value>, --shareattrs <value>
 
 	Should attributes be shared among the elements? ``none`` means that each
 	element will have its own standalone :class:`Attrs` class directly derived
