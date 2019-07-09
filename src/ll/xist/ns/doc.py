@@ -192,11 +192,11 @@ class _stack:
 
 def explain(thing, name=None, format=None, context=[]):
 	"""
-	Return a XML representation of the doc string of :obj:`thing`, which can be
+	Return a XML representation of the doc string of ``thing``, which can be
 	a function, method, class or module.
 
-	If :obj:`thing` is not a module, you must pass the context in :obj:`context`,
-	i.e. a list of names of objects into which :obj:`thing` is nested. This
+	If ``thing`` is not a module, you must pass the context in ``context``,
+	i.e. a list of names of objects into which ``thing`` is nested. This
 	means the first entry will always be the module name, and the other entries
 	will be class names.
 	"""

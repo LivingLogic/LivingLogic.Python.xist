@@ -74,9 +74,9 @@ def filter(iter, *selectors):
 
 def selector(*objs):
 	"""
-	Create a :class:`Selector` object from :obj:`objs`.
+	Create a :class:`Selector` object from ``objs``.
 
-	If :obj:`objs` is empty (i.e. :func:`selector` is called without arguments)
+	If ``objs`` is empty (i.e. :func:`!selector` is called without arguments)
 	``any`` is returned (which matches every node).
 
 	If more than one argument is passed (or the argument is a tuple), an
@@ -97,7 +97,7 @@ def selector(*objs):
 
 	*	if ``obj`` is ``None`` ``any`` will be returned;
 
-	*	otherwise :func:`selector` will raise a :exc:`TypeError`.
+	*	otherwise :func:`!selector` will raise a :exc:`TypeError`.
 	"""
 	if not objs:
 		return any
@@ -139,53 +139,53 @@ class Selector:
 	@misc.notimplemented
 	def __contains__(self, path):
 		"""
-		Return whether :obj:`path` (which is a list of XIST nodes from the root
+		Return whether ``path`` (which is a list of XIST nodes from the root
 		of the tree to the node in question) matches the selector.
 		"""
 
 	def __truediv__(self, other):
 		"""
-		Create a :class:`ChildCombinator` with :obj:`self` as the left hand
-		selector and :obj:`other` as the right hand selector.
+		Create a :class:`ChildCombinator` with ``self`` as the left hand
+		selector and ``other`` as the right hand selector.
 		"""
 		return ChildCombinator(self, selector(other))
 
 	def __floordiv__(self, other):
 		"""
-		Create a :class:`DescendantCombinator` with :obj:`self` as the left hand
-		selector and :obj:`other` as the right hand selector.
+		Create a :class:`DescendantCombinator` with ``self`` as the left hand
+		selector and ``other`` as the right hand selector.
 		"""
 		return DescendantCombinator(self, selector(other))
 
 	def __mul__(self, other):
 		"""
-		Create an :class:`AdjacentSiblingCombinator` with :obj:`self` as the left
-		hand selector and :obj:`other` as the right hand selector.
+		Create an :class:`AdjacentSiblingCombinator` with ``self`` as the left
+		hand selector and ``other`` as the right hand selector.
 		"""
 		return AdjacentSiblingCombinator(self, selector(other))
 
 	def __pow__(self, other):
 		"""
-		Create a :class:`GeneralSiblingCombinator` with :obj:`self` as the left
-		hand selector and :obj:`other` as the right hand selector.
+		Create a :class:`GeneralSiblingCombinator` with ``self`` as the left
+		hand selector and ``other`` as the right hand selector.
 		"""
 		return GeneralSiblingCombinator(self, selector(other))
 
 	def __and__(self, other):
 		"""
-		Create an :class:`AndCombinator` from :obj:`self` and :obj:`other`.
+		Create an :class:`AndCombinator` from ``self`` and ``other``.
 		"""
 		return AndCombinator(self, selector(other))
 
 	def __or__(self, other):
 		"""
-		Create an :class:`OrCombinator` from :obj:`self` and :obj:`other`.
+		Create an :class:`OrCombinator` from ``self`` and ``other``.
 		"""
 		return OrCombinator(self, selector(other))
 
 	def __invert__(self):
 		"""
-		Create a :class:`NotCombinator` inverting :obj:`self`.
+		Create a :class:`NotCombinator` inverting ``self``.
 		"""
 		return NotCombinator(self)
 
@@ -252,7 +252,7 @@ class IsInstanceSelector(Selector):
 
 	def __getitem__(self, index):
 		"""
-		Return an :class:`nthoftype` selector that uses :obj:`index` as the
+		Return an :class:`nthoftype` selector that uses ``index`` as the
 		index and ``self.types`` as the types.
 		"""
 		return nthoftype(index, *self.types)

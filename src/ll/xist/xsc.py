@@ -34,13 +34,13 @@ xml_xmlns = "http://www.w3.org/XML/1998/namespace"
 
 def tonode(value):
 	"""
-	Convert :obj:`value` to an XIST :class:`Node`.
+	Convert ``value`` to an XIST :class:`Node`.
 
-	If :obj:`value` is a tuple or list, it will be (recursively) converted to a
+	If ``value`` is a tuple or list, it will be (recursively) converted to a
 	:class:`Frag`. Integers, strings, etc. will be converted to a :class:`Text`.
-	If :obj:`value` is a :class:`Node` already, it will be returned unchanged.
+	If ``value`` is a :class:`Node` already, it will be returned unchanged.
 	In the case of :const:`None` the XIST Null (:data:`ll.xist.xsc.Null`) will be
-	returned. If :obj:`value` is iterable, a :class:`Frag` will be generated
+	returned. If ``value`` is iterable, a :class:`Frag` will be generated
 	from the items. Anything else will raise an :exc:`IllegalObjectError`
 	exception.
 	"""
@@ -123,7 +123,7 @@ class addattr:
 	def __init__(self, attrname):
 		"""
 		Create an :class:`addattr` object for adding to the attribute named
-		:obj:`attrname` (which can be the Python name of an attribute or an
+		``attrname`` (which can be the Python name of an attribute or an
 		attribute class).
 		"""
 		self.attr = threadlocalnodehandler.handler.stack[-1][attrname]
@@ -141,8 +141,8 @@ class addattr:
 
 def add(*args, **kwargs):
 	"""
-	:func:`add` appends items in :obj:`args` and sets attributes in
-	:obj:`kwargs` in the currently active node in the :keyword:`with` stack.
+	:func:`add` appends items in ``args`` and sets attributes in ``kwargs`` in
+	the currently active node in the :keyword:`with` stack.
 	"""
 	threadlocalnodehandler.handler.add(*args, **kwargs)
 
@@ -488,19 +488,19 @@ class Converter:
 
 	def __getitem__(self, key):
 		"""
-		Return a context object for :obj:`key`. Two variants are supported:
+		Return a context object for ``key``. Two variants are supported:
 
-		*	:obj:`key` may be a string, in which case it should be a hierarchical
+		*	``key`` may be a string, in which case it should be a hierarchical
 			dot-separated name similar to Java package names (e.g.
 			``"org.example.project.handler"``). This helps avoid name collisions.
 			Context objects of this type must be explicitly created via
 			:meth:`__setitem__`.
 
-		*	:obj:`key` may be a :class:`ll.xist.xsc.Node` instance or subclass.
+		*	``key`` may be a :class:`ll.xist.xsc.Node` instance or subclass.
 			Each of these classes that defines its own :class:`Context` class gets
 			a unique instance of this class. This instance will be created on the
 			first access and the element can store information there that needs to
-			be available across calls to :meth:`convert`.
+			be available across calls to :meth:`~Node.convert`.
 		"""
 		if isinstance(key, str):
 			return self.contexts[key]
@@ -532,13 +532,13 @@ class Publisher:
 		"""
 		Create a publisher. Arguments have the following meaning:
 
-		:obj:`encoding` : string or :const:`None`
+		``encoding`` : string or :const:`None`
 			Specifies the encoding to be used for the byte sequence. If
 			:const:`None` is used the encoding in the XML declaration will be used.
 			If there is no XML declaration, UTF-8 will be used.
 
-		:obj:`xhtml` : int
-			With the parameter :obj:`xhtml` you can specify if you want HTML
+		``xhtml`` : int
+			With the parameter ``xhtml`` you can specify if you want HTML
 			output:
 
 			HTML (``xhtml==0``)
@@ -552,10 +552,10 @@ class Publisher:
 			Pure XML (``xhtml==2``)
 				All empty elements will be published as ``<foo/>``.
 
-		:obj:`validate` : bool
+		``validate`` : bool
 			Specifies whether validation should be done before publishing.
 
-		:obj:`prefixes` : mapping
+		``prefixes`` : mapping
 			A dictionary that specifies which namespace prefixes should be used
 			for publishing. Keys in the dictionary are either namespace names or
 			objects that have an ``xmlns`` attribute which is the namespace name.
@@ -577,17 +577,17 @@ class Publisher:
 			A string
 				Use this prefix for the namespace.
 
-		:obj:`prefixdefault` : string or :const:`None`
+		``prefixdefault`` : string or :const:`None`
 			If an element or attribute is encountered whose namespace name is not
-			in :obj:`prefixes` :obj:`prefixdefault` is used as the fallback.
+			in ``prefixes`` ``prefixdefault`` is used as the fallback.
 
-		:obj:`hidexmlns` : list or set
-			:obj:`hidexmlns` can be a list or set that contains namespace names
+		``hidexmlns`` : list or set
+			``hidexmlns`` can be a list or set that contains namespace names
 			for which no ``xmlns`` attributes should be published. (This can be
 			used to hide the namespace declarations for e.g. Java taglibs.)
 
-		:obj:`showxmlns` : list or set
-			:obj:`showxmlns` can be a list or set that contains namespace names
+		``showxmlns`` : list or set
+			``showxmlns`` can be a list or set that contains namespace names
 			for which ``xmlns`` attributes *will* be published, even if there are
 			no elements from this namespace in the tree.
 		"""
@@ -606,14 +606,14 @@ class Publisher:
 
 	def encode(self, text):
 		"""
-		Encode :obj:`text` with the encoding and error handling currently active
+		Encode ``text`` with the encoding and error handling currently active
 		and return the resulting byte string.
 		"""
 		return self.encoder.encode(text)
 
 	def encodetext(self, text):
 		"""
-		Encode :obj:`test` as text data. :obj:`text` must be a :class:`str`
+		Encode ``test`` as text data. ``text`` must be a :class:`str`
 		object. The publisher will apply the configured encoding, error handling
 		and the current text filter (which escapes characters that can't appear
 		in text data (like ``<`` etc.)) and returns the resulting :class:`str`
@@ -681,7 +681,7 @@ class Publisher:
 	def getnamespaceprefix(self, xmlns):
 		"""
 		Return (and register) a namespace prefix for the namespace name
-		:obj:`xmlns`. This honors the namespace configuration from ``self.prefixes``
+		``xmlns``. This honors the namespace configuration from ``self.prefixes``
 		and ``self.prefixdefault``. Furthermore the same prefix will be returned
 		from now on (except when the empty prefix becomes invalid once global
 		attributes are encountered)
@@ -713,8 +713,8 @@ class Publisher:
 
 	def getobjectprefix(self, obj):
 		"""
-		Get and register a namespace prefix for the namespace :obj:`obj` lives
-		in (specified by the :attr:`xmlns` attribute of :obj:`obj`). Similar
+		Get and register a namespace prefix for the namespace ``obj`` lives
+		in (specified by the :attr:`xmlns` attribute of ``obj``). Similar
 		to :meth:`getnamespaceprefix` this honors the namespace configuration from
 		``self.prefixes`` and ``self.prefixdefault`` (except when a global
 		attribute requires a non-empty prefix).
@@ -756,7 +756,7 @@ class Publisher:
 
 	def iterbytes(self, node, base=None, allowschemerelurls=False):
 		"""
-		Output the node :obj:`node`. This method is a generator that will yield
+		Output the node ``node``. This method is a generator that will yield
 		the resulting XML byte sequence in fragments.
 		"""
 		if self.validate:
@@ -815,13 +815,13 @@ class Publisher:
 
 	def bytes(self, node, base=None, allowschemerelurls=False):
 		"""
-		Return a :class:`bytes` object in XML format for the XIST node :obj:`node`.
+		Return a :class:`bytes` object in XML format for the XIST node ``node``.
 		"""
 		return b"".join(self.iterbytes(node, base, allowschemerelurls))
 
 	def iterstring(self, node, base=None, allowschemerelurls=False):
 		"""
-		A generator that will produce a serialized string of :obj:`node`.
+		A generator that will produce a serialized string of ``node``.
 		"""
 		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
 		for part in self.iterbytes(node, base, allowschemerelurls):
@@ -834,7 +834,7 @@ class Publisher:
 
 	def string(self, node, base=None, allowschemerelurls=False):
 		"""
-		Return a string for :obj:`node`.
+		Return a string for ``node``.
 		"""
 		decoder = codecs.getdecoder("xml")
 		result = self.bytes(node, base, allowschemerelurls)
@@ -842,7 +842,7 @@ class Publisher:
 
 	def write(self, stream, node, base=None, allowschemerelurls=False):
 		"""
-		Write :obj:`node` to the file-like object :obj:`stream` (which must
+		Write ``node`` to the file-like object ``stream`` (which must
 		provide a :meth:`!write` method).
 		"""
 		for part in self.iterbytes(node, base, allowschemerelurls):
@@ -937,7 +937,7 @@ class Cursor:
 	def __init__(self, node, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
 		Create a new :class:`Cursor` object for a tree traversal rooted at the node
-		:obj:`node`.
+		``node``.
 
 		The other arguments ``entercontent``, ``enterattrs``, ``enterattr``,
 		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
@@ -1063,40 +1063,78 @@ class Node(object, metaclass=_Node_Meta):
 		threadlocalnodehandler.handler.add(self)
 
 	def __truediv__(self, other):
+		"""
+		Return a :class:`~ll.xist.xfind.ChildCombinator` with ``self`` as the
+		left hand selector.
+		"""
 		from ll.xist import xfind
 		return xfind.IsSelector(self) / other
 
 	def __floordiv__(self, other):
+		"""
+		Return a :class:`~ll.xist.xfind.DescendantCombinator` with ``self`` as the
+		left hand selector.
+		"""
 		from ll.xist import xfind
 		return xfind.IsSelector(self) // other
 
 	def __mul__(self, other):
-		from ll.xist import xfind
-		return xfind.IsSelector(self) * other
+		"""
+		If ``other`` is an :class:`int`, return a :class:`Frag` with ``other``
+		times the node as an entry. Note that the node will not be copied, i.e.
+		this is a "shallow :meth:`!__mul__`".
+
+		If ``other`` is not an :class:`int`, treat this a CSS combinator that
+		creates an :class:`~ll.xist.xfind.AdjacentSiblingCombinator` with ``self``
+		as the left hand selector.
+		"""
+		if isinstance(other, int):
+			return Frag(*other*[self])
+		else:
+			from ll.xist import xfind
+			return xfind.IsSelector(self) * other
+
+	def __rmul__(self, other):
+		"""
+		Return a :class:`Frag` with ``other`` times the node as an entry.
+		"""
+		return Frag(*[self]*other)
 
 	def __pow__(self, other):
+		"""
+		Return a :class:`~ll.xist.xfind.GeneralSiblingCombinator` with ``self``
+		as the left hand selector.
+		"""
 		from ll.xist import xfind
 		return xfind.IsSelector(self) ** other
 
 	def __and__(self, other):
+		"""
+		Return an :class:`~ll.xist.xfind.AndCombinator` with ``self`` as the
+		left hand selector.
+		"""
 		from ll.xist import xfind
 		return xfind.IsSelector(self) & other
 
 	def __or__(self, other):
+		"""
+		Return an :class:`~ll.xist.xfind.OrCombinator` with ``self`` as the
+		left hand selector.
+		"""
 		from ll.xist import xfind
 		return xfind.IsSelector(self) | other
 
 	def clone(self):
 		"""
-		Return a clone of :obj:`self`. Compared to :meth:`deepcopy` :meth:`clone`
+		Return a clone of ``self``. Compared to :meth:`deepcopy` :meth:`!clone`
 		will create multiple instances of objects that can be found in the tree
-		more than once. :meth:`clone` can't clone trees that contain cycles.
+		more than once. :meth:`!clone` can't clone trees that contain cycles.
 		"""
 		return self
 
 	def copy(self):
 		"""
-		Return a shallow copy of :obj:`self`.
+		Return a shallow copy of ``self``.
 		"""
 		return self.__copy__()
 
@@ -1105,7 +1143,7 @@ class Node(object, metaclass=_Node_Meta):
 
 	def deepcopy(self):
 		"""
-		Return a deep copy of :obj:`self`.
+		Return a deep copy of ``self``.
 		"""
 		return self.__deepcopy__()
 
@@ -1115,21 +1153,22 @@ class Node(object, metaclass=_Node_Meta):
 	@misc.notimplemented
 	def present(self, presenter):
 		"""
-		:meth:`present` is used as a central dispatch method for the
+		:meth:`!present` is used as a central dispatch method for the
 		presenter classes. Normally it is not called by the user, but internally
 		by the presenter. The user should use the appropriate presenter class
 		directly.
 		"""
-		# Subclasses of ``Node`` implement this method by calling the appropriate
-		# ``present*`` method in the publisher (i.e. double dispatch)
+
+		# Subclasses of :class:`Node` implement this method by calling the
+		# appropriate ``present*`` method in the publisher (i.e. double dispatch)
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, makeproject=None):
 		"""
 		Convenience method for calling :meth:`convert`.
 
-		:meth:`conv` will automatically set ``:obj:`converter`.node`` to :obj:`self`
-		to remember the "document root node" for which :meth:`conv` has been
-		called, this means that you should not call :meth:`conv` in any of the
+		:meth:`!conv` will automatically set ``converter.node`` to ``self``
+		to remember the "document root node" for which :meth:`!conv` has been
+		called. This means that you should not call :meth:`!conv` in any of the
 		recursive calls, as you would loose this information. Call :meth:`convert`
 		directly instead.
 		"""
@@ -1150,17 +1189,17 @@ class Node(object, metaclass=_Node_Meta):
 		conversion.
 
 		This method must return an instance of :class:`Node`. It may *not* change
-		:obj:`self`.
+		``self``.
 		"""
 
 	@misc.notimplemented
 	def __str__(self):
 		"""
-		Return the character content of :obj:`self` as a string. This means that
+		Return the character content of ``self`` as a string. This means that
 		comments and processing instructions will be filtered out.
 		For elements you'll get the element content.
 
-		:meth:`__str__` can be used everywhere where a plain string
+		:meth:`!__str__` can be used everywhere where a plain string
 		representation of the node is required.
 
 		For example::
@@ -1182,15 +1221,15 @@ class Node(object, metaclass=_Node_Meta):
 
 	def __int__(self):
 		"""
-		Convert the character content of :obj:`self` to an :class:`int`.
+		Convert the character content of ``self`` to an :class:`int`.
 		"""
 		return int(str(self))
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
-		Convert the character content of :obj:`self` to an :class:`float`.
-		:obj:`decimal` specifies which decimal separator is used in the value
-		(e.g. ``"."`` (the default) or ``","``). :obj:`ignore` specifies which
+		Convert the character content of ``self`` to an :class:`float`.
+		``decimal`` specifies which decimal separator is used in the value
+		(e.g. ``"."`` (the default) or ``","``). ``ignore`` specifies which
 		characters will be ignored.
 		"""
 		s = str(self)
@@ -1202,31 +1241,31 @@ class Node(object, metaclass=_Node_Meta):
 
 	def __float__(self):
 		"""
-		Convert the character content of :obj:`self` to an :class:`float`.
+		Convert the character content of ``self`` to an :class:`float`.
 		"""
 		return self.asFloat()
 
 	def __complex__(self):
 		"""
-		Convert the character content of :obj:`self` to an :class:`complex`.
+		Convert the character content of ``self`` to an :class:`complex`.
 		"""
 		return complex(str(self))
 
 	def parsed(self, parser, event):
 		"""
-		This method will be called by the parser :obj:`parser` once after
-		:obj:`self` is created by the parser (This is used e.g. by
+		This method will be called by the parser ``parser`` once after
+		``self`` is created by the parser (This is used e.g. by
 		:class:`URLAttr` to incorporate the base URL into the attribute).
 
-		:obj:`event` is the parser event that initiated the call.
+		``event`` is the parser event that initiated the call.
 		"""
 
 	def validate(self, recursive=True, path=None):
 		"""
 		This method will be called when parsing or publishing to check whether
-		:obj:`self` is valid.
+		``self`` is valid.
 
-		If :obj:`self` is found to be invalid a warning should be issued through
+		If ``self`` is found to be invalid a warning should be issued through
 		the Python warning framework.
 		"""
 		yield from ()
@@ -1234,9 +1273,10 @@ class Node(object, metaclass=_Node_Meta):
 	@misc.notimplemented
 	def publish(self, publisher):
 		"""
-		Generate unicode strings for the node. :obj:`publisher` must be an
+		Generate unicode strings for the node. ``publisher`` must be an
 		instance of :class:`Publisher`.
-		The encoding and xhtml specification are taken from the :obj:`publisher`.
+
+		The encoding and xhtml specification are taken from the ``publisher``.
 		"""
 
 	def iterbytes(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
@@ -1253,7 +1293,7 @@ class Node(object, metaclass=_Node_Meta):
 
 	def bytes(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
-		Return :obj:`self` as a serialized bytes object.
+		Return ``self`` as a serialized bytes object.
 
 		For the possible parameters see the :class:`Publisher` constructor.
 
@@ -1274,7 +1314,7 @@ class Node(object, metaclass=_Node_Meta):
 
 	def iterstring(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
-		A generator that will produce a serialized string of :obj:`self` (i.e.
+		A generator that will produce a serialized string of ``self`` (i.e.
 		it will output what the method :meth:`string` outputs, but incremetally).
 
 		For the possible parameters see the :class:`Publisher` constructor.
@@ -1286,7 +1326,7 @@ class Node(object, metaclass=_Node_Meta):
 
 	def string(self, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
-		Return a serialized (unicode) string for :obj:`self`.
+		Return a serialized (unicode) string for ``self``.
 
 		For the possible parameters see the :class:`Publisher` constructor.
 
@@ -1306,7 +1346,7 @@ class Node(object, metaclass=_Node_Meta):
 
 	def write(self, stream, base=None, allowschemerelurls=False, publisher=None, **publishargs):
 		"""
-		Write :obj:`self` to the file-like object :obj:`stream` (which must provide
+		Write ``self`` to the file-like object ``stream`` (which must provide
 		a :meth:`!write` method).
 
 		For the rest of the parameters see the :class:`Publisher` constructor.
@@ -1321,19 +1361,19 @@ class Node(object, metaclass=_Node_Meta):
 
 	def walk(self, *selectors, entercontent=True, enterattrs=False, enterattr=False, enterelementnode=True, leaveelementnode=False, enterattrnode=True, leaveattrnode=False):
 		"""
-		Return an iterator for traversing the tree rooted at :obj:`self`.
+		Return an iterator for traversing the tree rooted at ``self``.
 
 		Each item produced by the iterator is a :class:`Cursor` object.
 		It contains information about the state of the traversal and can be used
 		to influence which parts of the tree are traversed and in which order.
 
-		:obj:`selectors` is used for filtering which nodes to return from the
-		iterator. The arguments :obj:`entercontent`, :obj:`enterattrs`,
-		:obj:`enterattr`, :obj:`enterelementnode`, :obj:`leaveelementnode`,
-		:obj:`enterattrnode` and :obj:`leaveattrnode` specify how the tree should
-		be traversed. For more information see the :class:`Cursor` class.
+		``selectors`` is used for filtering which nodes to return from the
+		iterator. The arguments ``entercontent``, ``enterattrs``, ``enterattr``,
+		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
+		``leaveattrnode`` specify how the tree should be traversed. For more
+		information see the :class:`Cursor` class.
 
-		Note that the :class:`Cursor` object is reused by :meth:`walk`, so you
+		Note that the :class:`Cursor` object is reused by :meth:`!walk`, so you
 		can't rely on any attributes remaining the same across calls to
 		:func:`next`.
 
@@ -1404,15 +1444,15 @@ class Node(object, metaclass=_Node_Meta):
 
 	def compacted(self):
 		"""
-		Return a version of :obj:`self`, where textnodes or character references
+		Return a version of ``self``, where textnodes or character references
 		that contain only linefeeds are removed, i.e. potentially useless
 		whitespace is removed.
 		"""
 		return self
 
 	def _decoratenode(self, node):
-		# Decorate the :class:`Node` :obj:`node` with the same location
-		# information as :obj:`self`.
+		# Decorate the :class:`Node` object ``node`` with the same location
+		# information as ``self``.
 
 		node.startloc = self.startloc
 		node.endloc = self.endloc
@@ -1420,13 +1460,13 @@ class Node(object, metaclass=_Node_Meta):
 
 	def mapped(self, function, converter=None, **converterargs):
 		"""
-		Return the node mapped through the function :obj:`function`. This call
+		Return the node mapped through the function ``function``. This call
 		works recursively (for :class:`Frag` and :class:`Element`).
 
-		When you want an unmodified node you simply can return :obj:`self`.
-		:meth:`mapped` will make a copy of it and fill the content recursively.
+		When you want an unmodified node you simply can return ``self``.
+		:meth:`!mapped` will make a copy of it and fill the content recursively.
 		Note that element attributes will not be mapped. When you return a
-		different node from :func:`function` this node will be incorporated
+		different node from ``function`` this node will be incorporated
 		into the result as-is.
 		"""
 		if converter is None:
@@ -1437,28 +1477,14 @@ class Node(object, metaclass=_Node_Meta):
 
 	def normalized(self):
 		"""
-		Return a normalized version of :obj:`self`, which means that consecutive
+		Return a normalized version of ``self``, which means that consecutive
 		:class:`Text` nodes are merged.
 		"""
 		return self
 
-	def __mul__(self, factor):
-		"""
-		Return a :class:`Frag` with :obj:`factor` times the node as an entry.
-		Note that the node will not be copied, i.e. this is a
-		"shallow :meth:`__mul__`".
-		"""
-		return Frag(*factor*[self])
-
-	def __rmul__(self, factor):
-		"""
-		Return a :class:`Frag` with :obj:`factor` times the node as an entry.
-		"""
-		return Frag(*[self]*factor)
-
 	def pretty(self, level=0, indent="\t"):
 		"""
-		Return a prettyfied version of :obj:`self`, i.e. one with properly nested
+		Return a prettyfied version of ``self``, i.e. one with properly nested
 		and indented tags (as far as possible). If an element has mixed content
 		(i.e. :class:`Text` and non-:class:`Text` nodes) the content will be
 		returned as is.
@@ -1748,7 +1774,7 @@ class Frag(Node, list):
 
 	def _create(self):
 		"""
-		internal helper that is used to create an empty clone of :obj:`self`.
+		internal helper that is used to create an empty clone of ``self``.
 		"""
 		# This is overwritten by :class:`Attr` to insure that attributes don't
 		# get initialized with the default value when used in various methods
@@ -1757,7 +1783,7 @@ class Frag(Node, list):
 
 	def clear(self):
 		"""
-		Make :obj:`self` empty.
+		Make ``self`` empty.
 		"""
 		del self[:]
 
@@ -1816,10 +1842,10 @@ class Frag(Node, list):
 
 	def __getitem__(self, index):
 		"""
-		Return the :obj:`index`'th node of the content of the fragment. If
-		:obj:`index` is a list :meth:`__getitem__` will work recursively.
-		If :obj:`index` is an empty list, :obj:`self` will be returned.
-		:meth:`__getitem__` also supports selectors (i.e. :class:`xfind.Selector`
+		Return the ``index``'th node of the content of the fragment. If
+		``index`` is a list :meth:`__getitem__` will work recursively.
+		If ``index`` is an empty list, ``self`` will be returned.
+		:meth:`!__getitem__` also supports selectors (i.e. :class:`xfind.Selector`
 		objects).
 		"""
 		if isinstance(index, list):
@@ -1846,12 +1872,12 @@ class Frag(Node, list):
 
 	def __setitem__(self, index, value):
 		"""
-		Allows you to replace the :obj:`index`'th content node of the fragment
-		with the new value :obj:`value` (which will be converted to a node).
-		If  :obj:`index` is a list :meth:`__setitem__` will be applied to the
-		innermost index after traversing the rest of :obj:`index` recursively.
-		If :obj:`index` is an empty list, an exception will be raised.
-		:meth:`__setitem__` also supports selectors (i.e. :class:`xfind.Selector`
+		Allows you to replace the ``index``'th content node of the fragment
+		with the new value ``value`` (which will be converted to a node).
+		If  ``index`` is a list :meth:`__setitem__` will be applied to the
+		innermost index after traversing the rest of ``index`` recursively.
+		If ``index`` is an empty list, an exception will be raised.
+		:meth:`!__setitem__` also supports selectors (i.e. :class:`xfind.Selector`
 		objects).
 		"""
 		if isinstance(index, list):
@@ -1886,13 +1912,13 @@ class Frag(Node, list):
 
 	def __delitem__(self, index):
 		"""
-		Remove the :obj:`index`'th content node from the fragment. If :obj:`index`
+		Remove the ``index``'th content node from the fragment. If ``index``
 		is a list, the innermost index will be deleted, after traversing the rest
-		of :obj:`index` recursively. If :obj:`index` is an empty list, an
+		of ``index`` recursively. If ``index`` is an empty list, an
 		exception will be raised. Anything except :class:`list`, :class:`int` and
 		:class:`slice` objects will be turned into a selector (i.e. an
 		:class:`xfind.Selector` objects) and any child node matching this selector
-		will be deleted from :obj:`self`.
+		will be deleted from ``self``.
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1910,9 +1936,9 @@ class Frag(Node, list):
 
 	def __mul__(self, factor):
 		"""
-		Return a :class:`Frag` with :obj:`factor` times the content of :obj:`self`.
+		Return a :class:`Frag` with ``factor`` times the content of ``self``.
 		Note that no copies of the content will be generated, so this is a
-		"shallow :meth:`__mul__`".
+		"shallow :meth:`!__mul__`".
 		"""
 		node = self._create()
 		list.extend(node, list.__mul__(self, factor))
@@ -1928,7 +1954,7 @@ class Frag(Node, list):
 
 	def append(self, *others):
 		"""
-		Append every item in :obj:`others` to :obj:`self`.
+		Append every item in ``others`` to ``self``.
 		"""
 		for other in others:
 			other = tonode(other)
@@ -1939,13 +1965,13 @@ class Frag(Node, list):
 
 	def extend(self, items):
 		"""
-		Append all items from the sequence :obj:`items` to :obj:`self`.
+		Append all items from the sequence ``items`` to ``self``.
 		"""
 		self.append(items)
 
 	def insert(self, index, *others):
 		"""
-		Insert all items in :obj:`others` at the position :obj:`index`. (this is
+		Insert all items in ``others`` at the position ``index``. (this is
 		the same as ``self[index:index] = others``)
 		"""
 		other = Frag(*others)
@@ -1962,11 +1988,11 @@ class Frag(Node, list):
 
 	def withsep(self, separator, clone=False):
 		"""
-		Return a version of :obj:`self` with a separator node between the nodes of
-		:obj:`self`.
+		Return a version of ``self`` with a separator node between the nodes of
+		``self``.
 
-		if :obj:`clone` is false, one node will be inserted several times, if
-		:obj:`clone` is true, clones of this node will be used.
+		if ``clone`` is false, one node will be inserted several times, if
+		``clone`` is true, clones of this node will be used.
 		"""
 		node = self._create()
 		newseparator = tonode(separator)
@@ -1980,7 +2006,7 @@ class Frag(Node, list):
 
 	def reversed(self):
 		"""
-		Return a reversed version of the :obj:`self`.
+		Return a reversed version of the ``self``.
 		"""
 		node = list(self)
 		node.reverse()
@@ -1988,8 +2014,8 @@ class Frag(Node, list):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the :obj:`self`, i.e. a copy of :obj:`self`,
-		where only content nodes for which :func:`function` returns true will
+		Return a filtered version of the ``self``, i.e. a copy of ``self``,
+		where only content nodes for which ``function`` returns true will
 		be copied.
 		"""
 		node = self._create()
@@ -1998,7 +2024,7 @@ class Frag(Node, list):
 
 	def shuffled(self):
 		"""
-		Return a shuffled version of :obj:`self`, i.e. a copy of :obj:`self` where the
+		Return a shuffled version of ``self``, i.e. a copy of ``self`` where the
 		content nodes are randomly reshuffled.
 		"""
 		content = list(self)
@@ -2369,7 +2395,7 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 	def isfancy(self):
 		"""
-		Return whether :obj:`self` contains nodes other than :class:`Text`.
+		Return whether ``self`` contains nodes other than :class:`Text`.
 		"""
 		for child in self:
 			if not isinstance(child, Text):
@@ -2381,11 +2407,11 @@ class Attr(Frag, metaclass=_Attr_Meta):
 
 	def validate(self, recursive=True, path=None):
 		"""
-		Check whether :obj:`self` has an allowed value, i.e. one that is specified
+		Check whether ``self`` has an allowed value, i.e. one that is specified
 		in the class attribute ``values``. If the value is not allowed a warning
 		will be issued through the Python warning framework.
 
-		If :obj:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no
+		If ``self`` is "fancy" (i.e. contains non-:class:`Text` nodes), no
 		check will be done.
 		"""
 		if path is None:
@@ -2520,7 +2546,7 @@ class StyleAttr(Attr):
 	def replaceurls(self, replacer):
 		"""
 		Replace each URL in the style. Each URL will be passed to the callable
-		:obj:`replacer` and replaced with the returned value.
+		``replacer`` and replaced with the returned value.
 		"""
 		self[:] = self._transform(replacer)
 
@@ -2573,7 +2599,7 @@ class URLAttr(Attr):
 
 	def asURL(self):
 		"""
-		Return :obj:`self` as a :class:`URL` object (note that non-:class:`Text`
+		Return ``self`` as a :class:`URL` object (note that non-:class:`Text`
 		content will be filtered out).
 		"""
 		return url_.URL(Attr.__str__(self))
@@ -2581,9 +2607,9 @@ class URLAttr(Attr):
 	def forInput(self, root=None):
 		"""
 		return a :class:`URL` pointing to the real location of the referenced
-		resource. :obj:`root` must be the root URL relative to which :obj:`self`
+		resource. ``root`` must be the root URL relative to which ``self``
 		will be interpreted and usually comes from the ``root`` attribute of the
-		:obj:`converter` argument in :meth:`convert`.
+		``converter`` argument in :meth:`convert`.
 		"""
 		u = self.asURL()
 		if u.scheme == "root":
@@ -2770,11 +2796,11 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def __getitem__(self, name):
 		"""
-		Return the attribute with the name :obj:`name`. :obj:`name` can be one of
+		Return the attribute with the name ``name``. ``name`` can be one of
 		the following types:
 
 		A string
-			:obj:`name` will be treated as the XML name of a local attribute.
+			``name`` will be treated as the XML name of a local attribute.
 
 		A two-item tuple
 			The first item is treated as the XML attribute name and the second
@@ -2798,8 +2824,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def __setitem__(self, name, value):
 		"""
-		Set the attribute with the XML :obj:`name` to the value :obj:`value`.
-		:obj:`name` may be a string or an attribute class or instance. The newly
+		Set the attribute with the XML ``name`` to the value ``value``.
+		``name`` may be a string or an attribute class or instance. The newly
 		set attribute object will be returned.
 		"""
 		if isinstance(name, list) and not isinstance(name, Node):
@@ -2913,9 +2939,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def get(self, name, default=None):
 		"""
-		Works like the dictionary method :meth:`get`, it returns the attribute
-		with the XML name :obj:`name`, or :obj:`default` if :obj:`self` has no
-		such attribute. :obj:`name` may also be an attribute class (either from
+		Works like the dictionary method :meth:`~dict.get`, it returns the
+		attribute with the XML name ``name``, or ``default`` if ``self`` has no
+		such attribute. ``name`` may also be an attribute class (either from
 		``self.Attrs`` or a global attribute).
 		"""
 		attrvalue = self[name]
@@ -2926,9 +2952,9 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def setdefault(self, name, default):
 		"""
-		Works like the dictionary method :meth:`setdefault`, it returns the
-		attribute with the Python name :obj:`name`. If :obj:`self` has no such
-		attribute, it will be set to :obj:`default` and :obj:`default` will be
+		Works like the dictionary method :meth:`~dict.setdefault`, it returns the
+		attribute with the Python name ``name``. If ``self`` has no such
+		attribute, it will be set to ``default`` and ``default`` will be
 		returned as the new attribute value.
 		"""
 		attrvalue = self[name]
@@ -2940,8 +2966,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def update(self, *args, **kwargs):
 		"""
-		Copies attributes over from all mappings in :obj:`args` and from
-		:obj:`kwargs`. Keywords are treated as the Python names of attributes.
+		Copies attributes over from all mappings in ``args`` and from ``kwargs``.
+		Keywords are treated as the Python names of attributes.
 		"""
 		for mapping in args:
 			if mapping is not None:
@@ -3004,7 +3030,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of :obj:`self`.
+		Return a filtered version of ``self``.
 		"""
 		node = self._create()
 		for (name, value) in self.items():
@@ -3022,8 +3048,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def withnames(self, *names):
 		"""
-		Return a copy of :obj:`self` where only the attributes with XML names
-		in :obj:`names` are kept, all others are removed.
+		Return a copy of ``self`` where only the attributes with XML names
+		in ``names`` are kept, all others are removed.
 		"""
 		def isok(node):
 			if node.xmlns is None:
@@ -3036,8 +3062,8 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 	def withoutnames(self, *names):
 		"""
-		Return a copy of :obj:`self` where all the attributes with XML names
-		in :obj:`names` are removed.
+		Return a copy of ``self`` where all the attributes with XML names
+		in ``names`` are removed.
 		"""
 		def isok(node):
 			if node.xmlns is None:
@@ -3233,8 +3259,8 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __call__(self, *content, **attrs):
 		"""
-		Calling an element add items in :obj:`content` to the element content
-		and set attributes from :obj:`attrs`. The element itself will be returned.
+		Calling an element add items in ``content`` to the element content
+		and set attributes from ``attrs``. The element itself will be returned.
 		"""
 		for child in content:
 			if isinstance(child, dict):
@@ -3262,19 +3288,19 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def append(self, *items):
 		"""
-		Append every item in :obj:`items` to the elements content.
+		Append every item in ``items`` to the elements content.
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		Append all items in :obj:`items` to the elements content.
+		Append all items in ``items`` to the elements content.
 		"""
 		self.content.extend(items)
 
 	def insert(self, index, *items):
 		"""
-		Insert every item in :obj:`items` at the position :obj:`index`.
+		Insert every item in ``items`` at the position ``index``.
 		"""
 		self.content.insert(index, *items)
 
@@ -3316,11 +3342,11 @@ class Element(Node, metaclass=_Element_Meta):
 		"""
 		Automatically set image width and height attributes.
 
-		The size of the image with the URL :obj:`url` will be determined and the
+		The size of the image with the URL ``url`` will be determined and the
 		width of the image will be put into the attribute with the name
-		:obj:`widthattr` if :obj:`widthattr` is not :const:`None` and the
-		attribute is not set already. The same will happen for the height, which
-		will be put into the attribute named :obj:`heighattr`.
+		``widthattr`` if ``widthattr`` is not :const:`None` and the attribute
+		is not set already. The same will happen for the height, which will be
+		put into the attribute named ``heighattr``.
 		"""
 		try:
 			size = url.imagesize()
@@ -3394,13 +3420,12 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __getitem__(self, index):
 		"""
-		If :obj:`index` is a string, return the attribute with this (Python)
-		name. If :obj:`index` is an attribute class, return the attribute
-		that is an instance of this class. If :obj:`index` is a number or slice
-		return the appropriate content node. :obj:`index` may also be a list, in
-		with case :meth:`__getitem__` will be applied recusively.
-		:meth:`__getitem__` also supports walk filters.
-
+		If ``index`` is a string, return the attribute with this (Python) name.
+		If ``index`` is an attribute class, return the attribute that is an
+		instance of this class. If ``index`` is a number or slice return the
+		appropriate content node. ``index`` may also be a list, in with case
+		:meth:`!__getitem__` will be applied recusively.
+		:meth:`!__getitem__` also supports walk filters.
 		"""
 		if isinstance(index, (str, _Attr_Meta)):
 			return self.attrs[index]
@@ -3429,8 +3454,8 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __setitem__(self, index, value):
 		"""
-		Set an attribute or content node to the value :obj:`value`. For possible
-		types for :obj:`index` see :meth:`__getitem__`.
+		Set an attribute or content node to the value ``value``. For possible
+		types for ``index`` see :meth:`__getitem__`.
 		"""
 		if isinstance(index, (str, _Attr_Meta)):
 			self.attrs[index] = value
@@ -3452,7 +3477,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def __delitem__(self, index):
 		"""
-		Remove an attribute or content node. For possible types for :obj:`index`
+		Remove an attribute or content node. For possible types for ``index``
 		see :meth:`__getitem__`.
 		"""
 		if isinstance(index, (str, _Attr_Meta)):
@@ -3485,8 +3510,8 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def withsep(self, separator, clone=False):
 		"""
-		Return a version of :obj:`self` with a separator node between the child
-		nodes of :obj:`self`. For more info see :meth:`Frag.withsep`.
+		Return a version of ``self`` with a separator node between the child
+		nodes of ``self``. For more info see :meth:`Frag.withsep`.
 		"""
 		node = self._create()
 		node.attrs = self.attrs.clone()
@@ -3495,7 +3520,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def reversed(self):
 		"""
-		Return a reversed version of :obj:`self`.
+		Return a reversed version of ``self``.
 		"""
 		node = self._create()
 		node.attrs = self.attrs.clone()
@@ -3504,7 +3529,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the :obj:`self`.
+		Return a filtered version of the ``self``.
 		"""
 		node = self._create()
 		node.attrs = self.attrs.clone()
@@ -3513,7 +3538,7 @@ class Element(Node, metaclass=_Element_Meta):
 
 	def shuffled(self):
 		"""
-		Return a shuffled version of the :obj:`self`.
+		Return a shuffled version of the ``self``.
 		"""
 		node = self._create()
 		node.attrs = self.attrs.clone()
@@ -3599,20 +3624,20 @@ class AttrElement(Element):
 	@misc.notimplemented
 	def publish(self, publisher):
 		"""
-		Publish ``self`` to the publisher :obj:`publisher` (outside of any
+		Publish ``self`` to the publisher ``publisher`` (outside of any
 		attribute)
 		"""
 
 	@misc.notimplemented
 	def publishattr(self, publisher, attr):
 		"""
-		Publish the attribute :obj:`attr` to the publisher :obj:`publisher`.
+		Publish the attribute ``attr`` to the publisher ``publisher``.
 		"""
 
 	@misc.notimplemented
 	def publishboolattr(self, publisher, attr):
 		"""
-		Publish the boolean attribute :obj:`attr` to the publisher
+		Publish the boolean attribute ``attr`` to the publisher
 		"""
 
 
@@ -3815,7 +3840,7 @@ class Pool(misc.Pool):
 
 	def __init__(self, *objects):
 		"""
-		Create a :class:`Pool` object. All items in :obj:`objects` will be
+		Create a :class:`Pool` object. All items in ``objects`` will be
 		registered in the pool.
 		"""
 		self._elementsbyname = {}
@@ -3828,7 +3853,7 @@ class Pool(misc.Pool):
 
 	def register(self, object):
 		"""
-		Register :obj:`object` in the pool. :obj:`object` can be:
+		Register ``object`` in the pool. ``object`` can be:
 
 		*	a :class:`Element`, :class:`ProcInst` or :class:`Entity` class;
 
@@ -3889,7 +3914,7 @@ class Pool(misc.Pool):
 
 	def clear(self):
 		"""
-		Make :obj:`self` empty.
+		Make ``self`` empty.
 		"""
 		self._elementsbyname.clear()
 		self._procinstsbyname.clear()
@@ -3899,7 +3924,7 @@ class Pool(misc.Pool):
 
 	def clone(self):
 		"""
-		Return a copy of :obj:`self`.
+		Return a copy of ``self``.
 		"""
 		copy = misc.Pool.clone(self)
 		copy._elementsbyname = self._elementsbyname.copy()
@@ -3924,8 +3949,8 @@ class Pool(misc.Pool):
 
 	def elementclass(self, xmlns, name):
 		"""
-		Return the element class for the element with the XML name :obj:`name`
-		and the namespace :obj:`xmlns`. If the element can't be found an
+		Return the element class for the element with the XML name ``name``
+		and the namespace ``xmlns``. If the element can't be found an
 		:class:`Element` will be returned.
 		"""
 		xmlns = nsname(xmlns)
@@ -3941,7 +3966,7 @@ class Pool(misc.Pool):
 	def element(self, xmlns, name):
 		"""
 		Return an element object for the element type with the XML name
-		:obj:`name` and the namespace :obj:`xmlns`.
+		``name`` and the namespace ``xmlns``.
 		"""
 		xmlns = nsname(xmlns)
 		result = self.elementclass(xmlns, name)()
@@ -3952,8 +3977,8 @@ class Pool(misc.Pool):
 
 	def haselement(self, xmlns, name):
 		"""
-		Is there a registered element class in :obj:`self` for the element type
-		with the Python name :obj:`name` and the namespace :obj:`xmlns`?
+		Is there a registered element class in ``self`` for the element type
+		with the Python name ``name`` and the namespace ``xmlns``?
 		"""
 		return (nsname(xmlns), name) in self._elementsbyname or any(base.haselement(xmlns, name) for base in self.bases)
 
@@ -3974,7 +3999,7 @@ class Pool(misc.Pool):
 	def procinstclass(self, name):
 		"""
 		Return the processing instruction class for the PI with the target name
-		:obj:`name`. If the processing instruction can't be found an
+		``name``. If the processing instruction can't be found an
 		return :class:`ProcInst`.
 		"""
 		try:
@@ -3989,7 +4014,7 @@ class Pool(misc.Pool):
 	def procinst(self, name, content):
 		"""
 		Return a processing instruction object for the PI type with the target
-		name :obj:`name`.
+		name ``name``.
 		"""
 		result = self.procinstclass(name)(content)
 		if result.__class__ is ProcInst:
@@ -3998,8 +4023,8 @@ class Pool(misc.Pool):
 
 	def hasprocinst(self, name):
 		"""
-		Is there a registered processing instruction class in :obj:`self` for the
-		PI with the target name :obj:`name`?
+		Is there a registered processing instruction class in ``self`` for the
+		PI with the target name ``name``?
 		"""
 		return name in self._procinstsbyname or any(base.hasprocinst(name) for base in self.bases)
 
@@ -4019,7 +4044,7 @@ class Pool(misc.Pool):
 
 	def entityclass(self, name):
 		"""
-		Return the entity class for the entity with the XML name :obj:`name`.
+		Return the entity class for the entity with the XML name ``name``.
 		If the entity can't be found return :class:`Entity`.
 		"""
 		try:
@@ -4033,7 +4058,7 @@ class Pool(misc.Pool):
 
 	def entity(self, name):
 		"""
-		Return an entity object for the entity with the XML name :obj:`name`.
+		Return an entity object for the entity with the XML name ``name``.
 		"""
 		result = self.entityclass(name)()
 		if result.__class__ is Entity:
@@ -4042,15 +4067,15 @@ class Pool(misc.Pool):
 
 	def hasentity(self, name):
 		"""
-		Is there a registered entity class in :obj:`self` for the entity with the
-		XML name :obj:`name`?
+		Is there a registered entity class in ``self`` for the entity with the
+		XML name ``name``?
 		"""
 		return name in self._entitiesbyname or any(base.hasentity(name) for base in self.bases)
 
 	def attrkey(self, xmlns, name):
 		"""
 		Return the key that can be used to set the attribute with the name
-		:obj:`name` and the namespace :obj:`xmlns`. If :obj:`self` (or one of the
+		``name`` and the namespace ``xmlns``. If ``self`` (or one of the
 		base pools) has any global attribute registered for that name/namespace,
 		the attribute class will be returned. Otherwise the tuple ``(name, xmlns)``
 		(or ``name`` itself for a local attribute) will be returned. With this key
@@ -4070,13 +4095,13 @@ class Pool(misc.Pool):
 
 	def text(self, content):
 		"""
-		Create a text node with the content :obj:`content`.
+		Create a text node with the content ``content``.
 		"""
 		return Text(content)
 
 	def comment(self, content):
 		"""
-		Create a comment node with the content :obj:`content`.
+		Create a comment node with the content ``content``.
 		"""
 		return Comment(content)
 
@@ -4110,8 +4135,8 @@ def docpool():
 
 def nsname(xmlns):
 	"""
-	If :obj:`xmlns` is a module, return ``xmlns.xmlns``, else return
-	:obj:`xmlns` unchanged.
+	If ``xmlns`` is a module, return ``xmlns.xmlns``, else return
+	``xmlns`` unchanged.
 	"""
 	if xmlns is not None and not isinstance(xmlns, str):
 		xmlns = xmlns.xmlns
@@ -4120,7 +4145,7 @@ def nsname(xmlns):
 
 def nsclark(obj):
 	"""
-	Return a name in Clark notation. :obj:`xmlns` can be :const:`None`,
+	Return a name in Clark notation. ``xmlns`` can be :const:`None`,
 	a string or a module to return a namespace name, or a :class:`Node` instance
 	to return a namespace name + node name combination::
 
@@ -4165,11 +4190,10 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 def element(xmlns, xmlname, *content, **attrs):
 	"""
-	Create a plain element object with the namespace name :obj:`xmlns`
-	and the element name :obj:`xmlname`. This object will be an instance of
-	:class:`Element` (not an instance of a subclass). :obj:`content` and
-	:obj:`attrs` will be used to initialize the content and attributes of the
-	element.
+	Create a plain element object with the namespace name ``xmlns`` and the
+	element name ``xmlname``. This object will be an instance of :class:`Element`
+	(not an instance of a subclass). ``content`` and ``attrs`` will be used to
+	initialize the content and attributes of the element.
 	"""
 	element = Element(*content, **attrs)
 	element.xmlns = nsname(xmlns)
@@ -4179,8 +4203,8 @@ def element(xmlns, xmlname, *content, **attrs):
 
 def entity(xmlname):
 	"""
-	Create a plain entity object with the entity name :obj:`xmlname`. This
-	object will be an instance of :class:`Entity` (not an instance of a subclass).
+	Create a plain entity object with the entity name ``xmlname``. This object
+	will be an instance of :class:`Entity` (not an instance of a subclass).
 	"""
 	entity = Entity()
 	entity.xmlname = xmlname
@@ -4190,9 +4214,9 @@ def entity(xmlname):
 def procinst(xmlname, *content):
 	"""
 	Create a plain processing instruction object with the target name
-	:obj:`xmlname`. This object will be an instance of :class:`ProcInst`
-	(not an instance of a subclass). :obj:`content` will be used to initialize
-	the content of the processing instruction.
+	``xmlname``. This object will be an instance of :class:`ProcInst` (not an
+	instance of a subclass). ``content`` will be used to initialize the content
+	of the processing instruction.
 	"""
 	procinst = ProcInst(*content)
 	procinst.xmlname = xmlname
@@ -4212,8 +4236,8 @@ class Location:
 	def __init__(self, url=None, line=None, col=None):
 		"""
 		Create a new :class:`Location` object using the arguments passed in.
-		:obj:`url` is the URL/filename. :obj:`line` is the line number and
-		:obj:`col` is the column number (both starting at 0).
+		``url`` is the URL/filename. ``line`` is the line number and ``col``
+		is the column number (both starting at 0).
 		"""
 		self.url = url
 		self.line = line

@@ -50,7 +50,7 @@ within the block as global variables:
 :mod:`datetime`
 	Python's datetime module;
 
-:obj:`connection`
+``connection``
 	The active database connection (or :const:`None` if there is no active
 	database connection).
 
@@ -1721,7 +1721,7 @@ class loadbytes(Command):
 	The :class:`!loadbytes` command can be used to load a :class:`bytes` object
 	from an external file. The following parameters are supported:
 
-	:obj:`filename` : string (required)
+	``filename`` : string (required)
 		The name of the file to be loaded. The filename is treated as being
 		relative to the directory containing the PySQL file that contains
 		:class:`loadbytes` command.
@@ -1756,15 +1756,15 @@ class loadstr(Command):
 	The :class:`!loadstr` command can be used to load a :class:`str` object
 	from an external file. The following parameters are supported:
 
-	:obj:`filename` : string (required)
+	``filename`` : string (required)
 		The name of the file to be loaded. The filename is treated as being
 		relative to the directory containing the PySQL file that contains the
 		the :class:`!loadstr` command.
 
-	:obj:`encoding` : string (optional)
+	``encoding`` : string (optional)
 		The encoding used for decoding the bytes in the file to text.
 
-	:obj:`errors` : string (optional)
+	``errors`` : string (optional)
 		The error handling mode for decoding.
 	"""
 
@@ -1812,13 +1812,13 @@ class var(Command):
 	will be passed to the procedure as a normal ``IN`` parameter instead.
 	The following parameters are supported:
 
-	:obj:`key` : string (required)
+	``key`` : string (required)
 		A unique name for the value.
 
-	:obj:`type` : class (optional)
+	``type`` : class (optional)
 		The type of the value (defaulting to :class:`int`).
 
-	Note that when the :obj:`key` is :const:`None`, PySQL will *not* remember
+	Note that when the ``key`` is :const:`None`, PySQL will *not* remember
 	the value, instead each use of ``var(None)`` will create a new OUT
 	parameter. This can be used for OUT parameters whose values is not
 	required by subsequent commands.
@@ -1858,10 +1858,10 @@ class env(Command):
 
 	The following parameters are supported:
 
-	:obj:`name` : string (required)
+	``name`` : string (required)
 		The name of the environment variable.
 
-	:obj:`default` : string (optional)
+	``default`` : string (optional)
 		The default to use, if the environment variable isn't set.
 		This defaults to :const:`None`.
 	"""
@@ -1888,7 +1888,7 @@ class log(Command):
 
 	The following parameters are supported:
 
-	:obj:`objects` : Any
+	``objects`` : Any
 		The objects to log. String will be logged directly. For all other
 		objects :func:`repr` will be called.
 	"""
@@ -2133,8 +2133,8 @@ class Context:
 
 	def _load(self, stream):
 		"""
-		Load a PySQL file from :obj:`stream` and executes the commands in the file.
-		:obj:`stream` must be an iterable over lines that contain the PySQL
+		Load a PySQL file from ``stream`` and executes the commands in the file.
+		``stream`` must be an iterable over lines that contain the PySQL
 		commands.
 		"""
 		lines = []
@@ -2229,8 +2229,8 @@ class Context:
 
 	def executeall(self, *filenames):
 		"""
-		Execute all commands in the PySQL files specified by :obj:`filenames`.
-		If :obj:`filenames` is empty :obj:`sys.stdin` is read.
+		Execute all commands in the PySQL files specified by ``filenames``.
+		If ``filenames`` is empty ``sys.stdin`` is read.
 		"""
 		try:
 			if self.verbose == "type":

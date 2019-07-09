@@ -212,7 +212,7 @@ system commands:
 
 	rul4 person.ul4 -Ddb:oracle=user/password@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
 
-Then the template can use the Oracle connection object :obj:`db` directly.
+Then the template can use the Oracle connection object ``db`` directly.
 
 
 API
@@ -386,7 +386,7 @@ class Connection:
 
 
 class OracleConnection(Connection):
-	"""
+	r"""
 	:class:`OracleConnection` is a subclass of :class:`Connection` that
 	implements functionality that is specific to Oracle databases (e.g.
 	support for variables). The inferface is the same as :class:`Connection`\s.
@@ -470,7 +470,7 @@ class RedisConnection:
 
 	def get(self, key):
 		"""
-		Return the value for the key ``key`` or ``None`` if the key doesn't exist.
+		Return the value for the key ``key`` or :const:`None` if the key doesn't exist.
 		"""
 		return self.connection.get(key)
 
@@ -522,7 +522,7 @@ class Globals:
 		:envvar:`PYTHONIOENCODING`).
 
 	``env`` : dictionary
-		A reference to :obj:`os.environ`.
+		A reference to ``os.environ``.
 
 	Furthermore the following methods can be called from UL4 templates:
 	:meth:`error`, :meth:`log`, :meth:`oracle`, :meth:`mysql`, :meth:`sqlite`,
@@ -555,7 +555,7 @@ class Globals:
 
 	def from_args(self, args):
 		"""
-		Sets the attributes of :obj:`self` from the object :obj:`args` (which
+		Sets the attributes of ``self`` from the object ``args`` (which
 		must be an instance of :class:`argparse.Namespace`).
 
 		Returns the main template.
@@ -698,7 +698,7 @@ class Globals:
 
 	def system(self, cmd):
 		"""
-		Execute the system command :obj:`cmd` and returns its output, e.g.
+		Execute the system command ``cmd`` and returns its output, e.g.
 		the template:
 
 		.. sourcecode:: xml
@@ -711,8 +711,8 @@ class Globals:
 
 	def load(self, filename, encoding="utf-8"):
 		"""
-		Read a file from disk and returns the content. :obj:`filename` is the
-		filename and :obj:`encoding` is the encoding of the file. The encoding
+		Read a file from disk and returns the content. ``filename`` is the
+		filename and ``encoding`` is the encoding of the file. The encoding
 		parameter is optional and defaults to ``"utf-8"``:
 
 		.. sourcecode:: xml
@@ -724,8 +724,8 @@ class Globals:
 
 	def save(self, filename, data, encoding="utf-8"):
 		r"""
-		Save the string :obj:`data` to a file on disk. :obj:`filename` is the
-		filename and :obj:`encoding` is the encoding of the file. The encoding
+		Save the string ``data`` to a file on disk. ``filename`` is the
+		filename and ``encoding`` is the encoding of the file. The encoding
 		parameter is optional and defaults to ``"utf-8"``:
 
 		.. sourcecode:: xml

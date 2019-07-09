@@ -197,8 +197,8 @@ class LOBStream:
 
 	def read(self, size=None):
 		"""
-		Read :obj:`size` bytes/characters from the stream and return them.
-		If :obj:`size` is :const:`None` all remaining data will be read.
+		Read ``size`` bytes/characters from the stream and return them.
+		If ``size`` is :const:`None` all remaining data will be read.
 		"""
 		if size is None:
 			return self.readall()
@@ -219,7 +219,7 @@ class LOBStream:
 
 	def seek(self, offset, whence=0):
 		"""
-		Seek to the position :obj:`offset` in the LOB. The :obj:`whence` argument
+		Seek to the position ``offset`` in the LOB. The ``whence`` argument
 		is optional and defaults to ``0`` (absolute file positioning);
 		The other allowed value is ``1`` (seek relative to the current position).
 		"""
@@ -303,8 +303,8 @@ class Record(tuple, abc.Mapping):
 
 	def get(self, name, default=None):
 		"""
-		Return the value for the field named :obj:`name`. If this field doesn't
-		exist in :obj:`self`, return :obj:`default` instead.
+		Return the value for the field named ``name``. If this field doesn't
+		exist in ``self``, return ``default`` instead.
 		"""
 		try:
 			index = self._name2index[name.lower()]
@@ -329,7 +329,7 @@ class Record(tuple, abc.Mapping):
 
 	def replace(self, **kwargs):
 		"""
-		Return a new :class:`Record` with the same fields as :obj:`self`, except
+		Return a new :class:`Record` with the same fields as ``self``, except
 		for those fields given new values by whichever keyword arguments are
 		specified.
 		"""
@@ -370,10 +370,10 @@ def sqlstr(s):
 
 def owned(obj, owner):
 	"""
-	Do we own the object :obj:`obj` according to the owner specification
-	:obj:`owner`?
+	Do we own the object ``obj`` according to the owner specification
+	``owner``?
 
-	:obj:`owner` can be:
+	``owner`` can be:
 
 		:const:`None`
 			The current user (i.e. via the view ``USER_OBJECTS``);
@@ -456,7 +456,7 @@ class Connection(Connection):
 	def cursor(self, readlobs=None):
 		"""
 		Return a new cursor for this connection. For the meaning of
-		:obj:`readlobs` see :meth:`__init__`.
+		``readlobs`` see :meth:`__init__`.
 		"""
 		return Cursor(self, readlobs=readlobs)
 
@@ -466,7 +466,7 @@ class Connection(Connection):
 	def tables(self, owner=None, mode="flat"):
 		"""
 		Generator that yields all table definitions in the current users schema
-		(or all users schemas). :obj:`mode` specifies the order in which tables
+		(or all users schemas). ``mode`` specifies the order in which tables
 		will be yielded:
 
 		``"create"``
@@ -480,7 +480,7 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
-		:obj:`owner` specifies from which user tables should be yielded. It can be
+		``owner`` specifies from which user tables should be yielded. It can be
 		:const:`None` (for the current user), :const:`ALL` (for all users
 		(the default)) or a user name.
 
@@ -531,21 +531,21 @@ class Connection(Connection):
 
 	def sequences(self, owner=None):
 		"""
-		Generator that yields sequences. :obj:`owner` can be :const:`None`,
+		Generator that yields sequences. ``owner`` can be :const:`None`,
 		:const:`ALL` (the default) or a user name.
 		"""
 		return Sequence.objects(self, owner)
 
 	def fks(self, owner=None):
 		"""
-		Generator that yields all foreign key constraints. :obj:`owner` can be
+		Generator that yields all foreign key constraints. ``owner`` can be
 		:const:`None`, :const:`ALL` (the default) or a user name.
 		"""
 		return ForeignKey.objects(self, owner)
 
 	def privileges(self, owner=None):
 		"""
-		Generator that yields object privileges. :obj:`owner` can be :const:`None`,
+		Generator that yields object privileges. ``owner`` can be :const:`None`,
 		:const:`ALL` (the default) or a user name.
 		"""
 		return Privilege.objects(self, owner)
@@ -563,7 +563,7 @@ class Connection(Connection):
 		packages, types and jobsin the current users schema (or all users schemas)
 		in a specified order.
 
-		:obj:`mode` specifies the order in which objects will be yielded:
+		``mode`` specifies the order in which objects will be yielded:
 
 		``"create"``
 			Create order, i.e. recreating the objects in this order will not lead
@@ -576,7 +576,7 @@ class Connection(Connection):
 		``"flat"``
 			Unordered.
 
-		:obj:`owner` specifies from which schema objects should be yielded.
+		``owner`` specifies from which schema objects should be yielded.
 		For more information see :func:`owned`.
 		"""
 		if mode not in {"create", "drop", "flat"}:
@@ -665,9 +665,9 @@ class Connection(Connection):
 
 	def getobject(self, name, owner=None):
 		"""
-		Return the object named :obj:`name` from the schema. If :obj:`owner` is
+		Return the object named ``name`` from the schema. If ``owner`` is
 		:const:`None` the current schema is queried, else the specified one is
-		used. :obj:`name` and :obj:`owner` are treated case insensitively.
+		used. ``name`` and ``owner`` are treated case insensitively.
 		"""
 		if isinstance(name, str):
 			name = str(name)
@@ -747,8 +747,8 @@ class Cursor(Cursor):
 	"""
 	def __init__(self, connection, readlobs=None):
 		"""
-		Return a new cursor for the connection :obj:`connection`. For the meaning
-		of :obj:`readlobs` see :meth:`Connection.__init__`.
+		Return a new cursor for the connection ``connection``. For the meaning
+		of ``readlobs`` see :meth:`Connection.__init__`.
 		"""
 		super().__init__(connection)
 		self.readlobs = (readlobs if readlobs is not None else connection.readlobs)
@@ -1006,21 +1006,21 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 	@misc.notimplemented
 	def fixname(self, code):
 		"""
-		Replace the name of the object in the SQL code :obj:`code` with
-		the name of :obj:`self`.
+		Replace the name of the object in the SQL code ``code`` with
+		the name of ``self``.
 		"""
 
 	@misc.notimplemented
 	def exists(self, connection=None):
 		"""
-		Return whether the object :obj:`self` really exists in the database
-		specified by :obj:`connection`.
+		Return whether the object ``self`` really exists in the database
+		specified by ``connection``.
 		"""
 
 	def cdate(self, connection=None):
 		"""
 		Return a :class:`datetime.datetime` object with the creation date of
-		:obj:`self` in the database specified by :obj:`connection` (or
+		``self`` in the database specified by ``connection`` (or
 		:const:`None` if that information is not available).
 		"""
 		return None
@@ -1028,18 +1028,18 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 	def udate(self, connection=None):
 		"""
 		Return a :class:`datetime.datetime` object with the last modification
-		date of :obj:`self` in the database specified by :obj:`connection`
+		date of ``self`` in the database specified by ``connection``
 		(or :const:`None` if that information is not available).
 		"""
 		return None
 
 	def references(self, connection=None, done=None):
 		"""
-		Objects directly used by :obj:`self`.
+		Objects directly used by ``self``.
 
-		If :obj:`connection` is not :const:`None` it will be used as the database
-		connection from which to fetch data. If :obj:`connection` is :const:`None`
-		the connection from which :obj:`self` has been extracted will be used. If
+		If ``connection`` is not :const:`None` it will be used as the database
+		connection from which to fetch data. If ``connection`` is :const:`None`
+		the connection from which ``self`` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 		"""
 		if False:
@@ -1047,11 +1047,11 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 
 	def referencesall(self, connection=None, done=None):
 		"""
-		All objects used by :obj:`self` (recursively).
+		All objects used by ``self`` (recursively).
 
-		For the meaning of :obj:`connection` see :meth:`references`.
+		For the meaning of ``connection`` see :meth:`references`.
 
-		:obj:`done` is used internally and shouldn't be passed.
+		``done`` is used internally and shouldn't be passed.
 		"""
 		if done is None:
 			done = set()
@@ -1063,20 +1063,20 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 
 	def referencedby(self, connection=None):
 		"""
-		Objects using :obj:`self`.
+		Objects using ``self``.
 
-		For the meaning of :obj:`connection` see :meth:`references`.
+		For the meaning of ``connection`` see :meth:`references`.
 		"""
 		if False:
 			yield None
 
 	def referencedbyall(self, connection=None, done=None):
 		"""
-		All objects depending on :obj:`self` (recursively).
+		All objects depending on ``self`` (recursively).
 
-		For the meaning of :obj:`connection` see :meth:`references`.
+		For the meaning of ``connection`` see :meth:`references`.
 
-		:obj:`done` is used internally and shouldn't be passed.
+		``done`` is used internally and shouldn't be passed.
 		"""
 		if done is None:
 			done = set()
@@ -1203,7 +1203,7 @@ class OwnedSchemaObject(SchemaObject):
 	def names(cls, connection, owner=None):
 		"""
 		Generator that yields the names of all objects of this type. The argument
-		:obj:`owner` specifies whose objects are yielded. For more information
+		``owner`` specifies whose objects are yielded. For more information
 		see :func:`owned`.
 
 		Names will be in ascending order.
@@ -1281,7 +1281,7 @@ class OwnedSchemaObject(SchemaObject):
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all objects of this type in the current users schema.
-		The argument :obj:`owner` specifies whose objects are yielded. For more
+		The argument ``owner`` specifies whose objects are yielded. For more
 		information see :func:`owned`.
 		"""
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
@@ -2033,7 +2033,7 @@ class Constraint(OwnedSchemaObject):
 
 	def table(self, connection=None):
 		"""
-		Return the :class:`Table` :obj:`self` belongs to.
+		Return the :class:`Table` ``self`` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
@@ -2238,7 +2238,7 @@ class ForeignKey(Constraint):
 
 	def refconstraint(self, connection=None):
 		"""
-		Return the constraint referenced by :obj:`self`.
+		Return the constraint referenced by ``self``.
 
 		In most cases this is a :class:`PrimaryKey`, but it also might be a
 		:class:`UniqueConstraint`.
@@ -2746,7 +2746,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 
 	def table(self, connection=None):
 		"""
-		Return the :class:`Table` :obj:`self` belongs to.
+		Return the :class:`Table` ``self`` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
@@ -2878,7 +2878,7 @@ class Synonym(OwnedSchemaObject):
 
 	def getobject(self, connection=None):
 		"""
-		Get the object for which :obj:`self` is a synonym.
+		Get the object for which ``self`` is a synonym.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
@@ -3275,7 +3275,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 
 	def arguments(self, connection=None):
 		"""
-		Generator that yields all arguments of the function/procedure :obj:`self`.
+		Generator that yields all arguments of the function/procedure ``self``.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		self._calcargs(cursor)
@@ -3292,8 +3292,8 @@ class Procedure(Callable):
 
 	def __call__(self, cursor, *args, **kwargs):
 		"""
-		Call the procedure with arguments :obj:`args` and keyword arguments
-		:obj:`kwargs`. :obj:`cursor` must be a :class:`ll.orasql.Cursor` object.
+		Call the procedure with arguments ``args`` and keyword arguments
+		``kwargs``. ``cursor`` must be a :class:`ll.orasql.Cursor` object.
 		This will return a :class:`Record` object containing the result of the
 		call (i.e. this record will contain all specified and all out parameters).
 		"""
@@ -3320,8 +3320,8 @@ class Function(Callable):
 
 	def __call__(self, cursor, *args, **kwargs):
 		"""
-		Call the function with arguments :obj:`args` and keyword arguments
-		:obj:`kwargs`. :obj:`cursor` must be an :class:`ll.orasql.Cursor` object.
+		Call the function with arguments ``args`` and keyword arguments
+		``kwargs``. ``cursor`` must be an :class:`ll.orasql.Cursor` object.
 		This will return a tuple containing the result and a :class:`Record`
 		object containing the modified parameters (i.e. this record will contain
 		all specified and out parameters).
@@ -3509,7 +3509,7 @@ class Privilege:
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
-		Generator that yields object privileges. For the meaning of :obj:`owner`
+		Generator that yields object privileges. For the meaning of ``owner``
 		see :func:`owned`.
 		"""
 		cursor = connection.cursor() # can't use :meth:`getcursor` as we're in a classmethod
@@ -3628,11 +3628,11 @@ class Privilege:
 
 	def grantsql(self, connection=None, term=True, mapgrantee=True):
 		"""
-		Return SQL code to grant this privilege. If :obj:`mapgrantee` is a list
+		Return SQL code to grant this privilege. If ``mapgrantee`` is a list
 		or a dictionary and ``self.grantee`` is not in this list (or dictionary)
 		no command will be returned. If it's a dictionary and ``self.grantee`` is
 		in it, the privilege will be granted to the user specified as the value
-		instead of the original one. If :obj:`mapgrantee` is true (the default)
+		instead of the original one. If ``mapgrantee`` is true (the default)
 		the privilege will be granted to the original grantee.
 		"""
 		(connection, cursor) = self.getcursor(connection)

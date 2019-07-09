@@ -92,14 +92,14 @@ except ImportError:
 
 def item(iterable, index, default=None):
 	"""
-	Returns the :obj:`index`'th item from the iterable. :obj:`index` may be
+	Returns the ``index``'th item from the iterable. ``index`` may be
 	negative to count from the end. E.g. 0 returns the first item produced by
-	the iterator, 1 the second, -1 the last one etc. If :obj:`index` is negative
+	the iterator, 1 the second, -1 the last one etc. If ``index`` is negative
 	the iterator will be completely exhausted, if it's positive it will be
-	exhausted up to the :obj:`index`'th item. If the iterator doesn't produce
-	that many items :obj:`default` will be returned.
+	exhausted up to the ``index``'th item. If the iterator doesn't produce
+	that many items ``default`` will be returned.
 
-	:obj:`index` may also be an iterable of indexes, in which case :meth:`item`
+	``index`` may also be an iterable of indexes, in which case :meth:`item`
 	will be applied recursively, i.e. ``item(["foo", "bar"], (1, -1))`` returns
 	``'r'``.
 	"""
@@ -132,7 +132,7 @@ def item(iterable, index, default=None):
 def first(iterable, default=None):
 	"""
 	Return the first item from the iterable. If the iterator doesn't
-	produce any items :obj:`default` will be returned.
+	produce any items ``default`` will be returned.
 	"""
 
 	for item in iterable:
@@ -143,7 +143,7 @@ def first(iterable, default=None):
 def last(iterable, default=None):
 	"""
 	Return the last item from the iterable. If the iterator doesn't produce any
-	items :obj:`default` will be returned.
+	items ``default`` will be returned.
 	"""
 
 	item = default
@@ -301,7 +301,7 @@ class propclass(property, metaclass=_propclass_Meta):
 
 def format_class(obj):
 	"""
-	Format the name of the class of :obj:`obj`.
+	Format the name of the class of ``obj``.
 
 	Example::
 
@@ -364,11 +364,11 @@ class Pool:
 
 	def register(self, object):
 		r"""
-		Register :obj:`object` in the pool. :obj:`object` can be a module, a
+		Register ``object`` in the pool. ``object`` can be a module, a
 		dictionary or a :class:`Pool` objects (with registers the pool as a base
-		pool). If :obj:`object` is a module and has an attribute :attr:`__bases__`
+		pool). If ``object`` is a module and has an attribute :attr:`__bases__`
 		(being a sequence of other modules) this attribute will be used to
-		initialize :obj:`self`\s base pool.
+		initialize ``self``\s base pool.
 		"""
 		if isinstance(object, types.ModuleType):
 			self.register(object.__dict__)
@@ -405,14 +405,14 @@ class Pool:
 
 	def clear(self):
 		"""
-		Make :obj:`self` empty.
+		Make ``self`` empty.
 		"""
 		self._attrs.clear()
 		del self.bases[:]
 
 	def clone(self):
 		"""
-		Return a copy of :obj:`self`.
+		Return a copy of ``self``.
 		"""
 		copy = self.__class__()
 		copy._attrs = self._attrs.copy()
@@ -425,7 +425,7 @@ class Pool:
 
 def iterone(item):
 	"""
-	Return an iterator that will produce one item: :obj:`item`.
+	Return an iterator that will produce one item: ``item``.
 	"""
 	yield item
 
@@ -465,7 +465,7 @@ class Iterator:
 
 	def get(self, index, default=None):
 		"""
-		Return the :obj:`index`'th item from the iterator (or :obj:`default` if
+		Return the ``index``'th item from the iterator (or ``default`` if
 		there's no such item).
 		"""
 		return item(self, index, default)
@@ -483,13 +483,13 @@ class Queue:
 
 	def write(self, chars):
 		"""
-		Write the string :obj:`chars` to the buffer.
+		Write the string ``chars`` to the buffer.
 		"""
 		self._buffer += chars
 
 	def read(self, size=-1):
 		"""
-		Read up to :obj:`size` character from the buffer (or all if :obj:`size`
+		Read up to ``size`` character from the buffer (or all if ``size``
 		is negative). Those characters will be removed from the buffer.
 		"""
 		if size < 0:
@@ -549,7 +549,7 @@ class FlagAction(argparse.Action):
 
 def tokenizepi(string):
 	"""
-	Tokenize the string object :obj:`string` according to the processing
+	Tokenize the string object ``string`` according to the processing
 	instructions in the string. :func:`tokenize` will generate tuples with the
 	first item being the processing instruction target and the second being the
 	PI data. "Text" content (i.e. anything other than PIs) will be returned as
@@ -586,7 +586,7 @@ def tokenizepi(string):
 
 def itersplitat(string, positions):
 	"""
-	Split :obj:`string` at the positions specified in :obj:`positions`.
+	Split ``string`` at the positions specified in ``positions``.
 
 	For example::
 
@@ -610,9 +610,9 @@ def itersplitat(string, positions):
 
 def module(source, filename="unnamed.py", name=None):
 	"""
-	Create a module from the Python source code :obj:`source`. :obj:`filename`
-	will be used as the filename for the module and :obj:`name` as the module
-	name (defaulting to the filename part of :obj:`filename`).
+	Create a module from the Python source code ``source``. ``filename``
+	will be used as the filename for the module and ``name`` as the module
+	name (defaulting to the filename part of ``filename``).
 	"""
 	if name is None:
 		name = os.path.splitext(os.path.basename(filename))[0]
@@ -625,7 +625,7 @@ def module(source, filename="unnamed.py", name=None):
 
 def javaexpr(obj):
 	"""
-	Return a Java expression for the object :obj:`obj`.
+	Return a Java expression for the object ``obj``.
 
 	Example::
 
@@ -708,7 +708,7 @@ class SysInfo:
 	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
 	:meth:`__getitem__` and :meth:`__iter__`).
 
-	One module global instance named :obj:`sysinfo` is created at module import
+	One module global instance named ``sysinfo`` is created at module import
 	time.
 	"""
 
@@ -1086,10 +1086,10 @@ def notifyfinish(title, subtitle, message):
 
 def prettycsv(rows, padding="   "):
 	"""
-	Format table :obj:`rows`.
+	Format table ``rows``.
 
-	:obj:`rows` must be a list of lists of strings (e.g. as produced by the
-	:mod:`csv` module). :obj:`padding` is the padding between columns.
+	``rows`` must be a list of lists of strings (e.g. as produced by the
+	:mod:`csv` module). ``padding`` is the padding between columns.
 
 	:func:`prettycsv` is a generator.
 	"""
@@ -1129,7 +1129,7 @@ class JSMinUnterminatedRegularExpression(Exception):
 
 def jsmin(input):
 	"""
-	Minimizes the Javascript source :obj:`input`.
+	Minimizes the Javascript source ``input``.
 	"""
 	indata = iter(input.replace("\r", "\n"))
 

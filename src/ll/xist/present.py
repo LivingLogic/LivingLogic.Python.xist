@@ -258,13 +258,13 @@ class TreePresenter(Presenter):
 
 	def __init__(self, node, indent=None, defaultxmlns=None):
 		"""
-		Create a :class:`TreePresenter` object for the XIST node :obj:`node` using
-		:obj:`indent` for indenting each tree level. If :obj:`indent` is
-		:const:`None` use the value of the environment variable ``LL_XIST_INDENT``
-		as the indent string (falling back to a tab if the environment variable
+		Create a :class:`TreePresenter` object for the XIST node ``node`` using
+		``indent`` for indenting each tree level. If ``indent`` is :const:`None`
+		use the value of the environment variable ``LL_XIST_INDENT`` as the
+		indent string (falling back to a tab if the environment variable
 		doesn't exist).
 
-		If :obj:`defaultxmlns` is not ``None``, elements from this namespace will
+		If ``defaultxmlns`` is not ``None``, elements from this namespace will
 		be output without any namespace name.
 		"""
 		Presenter.__init__(self, node)
@@ -513,8 +513,8 @@ class CodePresenter(Presenter):
 	"""
 	def __init__(self, node, indent=None):
 		"""
-		Create a :class:`CodePresenter` object for the XIST node :obj:`node` using
-		:obj:`indent` for indenting each tree level. If :obj:`indent` is
+		Create a :class:`CodePresenter` object for the XIST node ``node`` using
+		``indent`` for indenting each tree level. If ``indent`` is
 		:const:`None` use the value of the environment variable ``LL_XIST_INDENT``
 		as the indent string (falling back to a tab if the environment variable
 		doesn't exist).

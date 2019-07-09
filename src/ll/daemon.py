@@ -55,22 +55,22 @@ class Daemon:
 	"""
 	def __init__(self, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null", pidfile=None, user=None, group=None):
 		"""
-		The :obj:`stdin`, :obj:`stdout`, and :obj:`stderr` arguments are file
-		names that will be opened and be used to replace the standard file
-		descriptors in ``sys.stdin``, ``sys.stdout``, and ``sys.stderr``.
-		These arguments are optional and default to ``"/dev/null"``. Note that
-		stderr is opened unbuffered, so if it shares a file with stdout then
-		interleaved output may not appear in the order that you expect.
+		The ``stdin``, ``stdout``, and ``stderr`` arguments are file names
+		that will be opened and be used to replace the standard file descriptors
+		in ``sys.stdin``, ``sys.stdout``, and ``sys.stderr``. These arguments
+		are optional and default to ``"/dev/null"``. Note that stderr is opened
+		unbuffered, so if it shares a file with stdout then interleaved output
+		may not appear in the order that you expect.
 
-		:obj:`pidfile` must be the name of a file. :meth:`start` will write
-		the pid of the newly forked daemon to this file. :meth:`stop` uses this
-		file to kill the daemon.
+		``pidfile`` must be the name of a file. :meth:`start` will write the pid
+		of the newly forked daemon to this file. :meth:`stop` uses this file to
+		kill the daemon.
 
-		:obj:`user` can be the name or uid of a user. :meth:`start` will switch
-		to this user for running the service. If :obj:`user` is ``None`` no
+		``user`` can be the name or uid of a user. :meth:`start` will switch
+		to this user for running the service. If ``user`` is ``None`` no
 		user switching will be done.
 
-		In the same way :obj:`group` can be the name or gid of a group.
+		In the same way ``group`` can be the name or gid of a group.
 		:meth:`start` will switch to this group.
 		"""
 		self.stdin = stdin
@@ -111,8 +111,8 @@ class Daemon:
 
 	def switchuser(self, user, group):
 		"""
-		Switch the effective user and group. If :obj:`user` and :obj:`group` are
-		both :const:`None` nothing will be done. :obj:`user` and :obj:`group`
+		Switch the effective user and group. If ``user`` and ``group`` are
+		both :const:`None` nothing will be done. ``user`` and ``group``
 		can be an :class:`int` (i.e. a user/group id) or :class:`str`
 		(a user/group name).
 		"""
@@ -211,7 +211,7 @@ class Daemon:
 	def parseargs(self, parser, args=None):
 		"""
 		Use the parser returned by :meth:`argparser` to parse the argument
-		sequence :obj:`args`, modify :obj:`self` accordingly and return
+		sequence ``args``, modify ``self`` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
 		args = parser.parse_args(args)
@@ -227,8 +227,8 @@ class Daemon:
 		"""
 		Handle command line arguments and start or stop the daemon accordingly.
 
-		:obj:`args` must be a list of command line arguments (including the
-		program name in ``args[0]``). If :obj:`args` is :const:`None` or
+		``args`` must be a list of command line arguments (including the
+		program name in ``args[0]``). If ``args`` is :const:`None` or
 		unspecified ``sys.argv`` is used.
 
 		The return value is true when a starting option has been specified as the
