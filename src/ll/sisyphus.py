@@ -95,19 +95,19 @@ runner. In this mode the method :meth:`Job.execute` is executed once and after
 that execution of the Python script ends.
 
 However it is possible to activate repeat mode with the class/instance attribute
-:obj:`Job.repeat` (or the command line option :option:`--repeat`).
-If :obj:`Job.repeat` is true, execution of the job will be repeated indefinitely.
+``Job.repeat`` (or the command line option :option:`--repeat`).
+If ``Job.repeat`` is true, execution of the job will be repeated indefinitely.
 
 By default the next job run starts immediately, but it is possible to delay the
-next run. For this the class/instance attribute :obj:`Job.nextrun` (or the
+next run. For this the class/instance attribute ``Job.nextrun`` (or the
 command line option :option:`--nextrun`) can be used. In its simplest form this
 is the number of seconds to wait until the next job run is started. It can
 also be a :class:`datetime.timedelta` object that specifies the delay, or it
 can be a :class:`datetime.datetime` object specifying the next job run.
-Furthermore :obj:`Job.nextrun` can be callable (so it can be implemented as a
+Furthermore ``Job.nextrun`` can be callable (so it can be implemented as a
 method) and can return any of the types :class:`int`, :class:`float`,
 :class:`datetime.timedelta` or :class:`datetime.datetime`. And, if
-:obj:`Job.nextrun` is :const:`None`, the job run will be repeated immediately.
+``Job.nextrun`` is :const:`None`, the job run will be repeated immediately.
 
 
 Logging and tags
@@ -550,7 +550,7 @@ class Job:
 	/last_eventful.sisyphuslog
 	"""
 
-	# URL of final log file (``None`` if no logging is done to a file)
+	# URL of final log file (:const:`None` if no logging is done to a file)
 	logfileurl = None
 
 	log2file = True
@@ -849,7 +849,7 @@ class Job:
 	def parseargs(self, args=None):
 		"""
 		Use the parser returned by :meth:`argparser` to parse the argument
-		sequence :obj:`args`, modify :obj:`self` accordingly and return
+		sequence ``args``, modify ``self`` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
 		p = self.argparser()
@@ -1165,18 +1165,18 @@ class Job:
 
 		Arguments have the following meaning:
 
-		``type`` : :class:`str` or ``None``
+		``type`` : :class:`str` or :const:`None`
 			The type of the task.
 
-		``name`` : :class:`str` or ``None``
+		``name`` : :class:`str` or :const:`None`
 			The name of the task.
 
-		``index`` : :class:`int` or ``None``
+		``index`` : :class:`int` or :const:`None`
 			If this task is one in a sequence of similar tasks, ``index`` should
 			be the index of this task, i.e. the first task of this type has
 			``index==0``, the second one ``index==1`` etc.
 
-		``count`` : :class:`int` or ``None``
+		``count`` : :class:`int` or :const:`None`
 			If this task is one in a sequence of similar tasks and the total number
 			of tasks is known, ``count`` should be the total number of tasks.
 		"""
@@ -1184,9 +1184,9 @@ class Job:
 
 	def tasks(self, iterable, type=None, name=None):
 		"""
-		:meth:`!tasks` iterates through :obj:`iterable` and calls :meth:`task` for
-		each item. :obj:`index` and :obj:`count` will be passed to :meth:`task`
-		automatically. :obj:`type` and :obj:`name` will be used for the type and
+		:meth:`!tasks` iterates through ``iterable`` and calls :meth:`task` for
+		each item. ``index`` and ``count`` will be passed to :meth:`task`
+		automatically. ``type`` and ``name`` will be used for the type and
 		name of the task. They can either be constants (in which case they will
 		be passed as is) or callables (in which case they will be called with the
 		item to get the type/name).
@@ -1242,7 +1242,7 @@ class Job:
 
 	def _log(self, tags, obj):
 		"""
-		Log :obj:`obj` to all loggers using :obj:`tags` as the list of tags.
+		Log ``obj`` to all loggers using ``tags`` as the list of tags.
 		"""
 		timestamp = datetime.datetime.now()
 		if isinstance(obj, BaseException) and "exc" not in tags:
@@ -1274,8 +1274,8 @@ class Job:
 		"""
 		Make a symbolic link.
 
-		The link goes from :obj:`loglinkname` to what the UL4 template
-		:obj:`linknametemplate` returns.
+		The link goes from ``loglinkname`` to what the UL4 template
+		``linknametemplate`` returns.
 		"""
 		loglinkname = ul4c.Template(linknametemplate, "filename").renders(job=self)
 		loglinkname = url.File(loglinkname).abs()
@@ -1294,7 +1294,7 @@ class Job:
 		"""
 		Create the logfile and the link to the logfile (if configured).
 
-		If :obj:`full` is false, only the loggers for `stdout` and `stderr` will
+		If ``full`` is false, only the loggers for `stdout` and `stderr` will
 		be generated (if configured).
 		"""
 		self._loggers = []
@@ -1481,7 +1481,7 @@ class Logger:
 		"""
 		Called by the :class:`Job` when a new subtask has been started.
 
-		:obj:`tasks` is the stack of currently active tasks (so ``tasks[-1]`` is
+		``tasks`` is the stack of currently active tasks (so ``tasks[-1]`` is
 		the task that has been started).
 		"""
 
@@ -1489,7 +1489,7 @@ class Logger:
 		"""
 		Called by the :class:`Job` when a subtask is about to end.
 
-		:obj:`tasks` is the stack of currently active tasks (so ``tasks[-1]`` is
+		``tasks`` is the stack of currently active tasks (so ``tasks[-1]`` is
 		the task that's about to end).
 		"""
 
@@ -1497,7 +1497,7 @@ class Logger:
 		"""
 		Called by the :class:`Job` when job execution has finished.
 
-		:obj:`eventful` specified whether the run was eventful (as returned by
+		``eventful`` specified whether the run was eventful (as returned by
 		:meth:`Job.execute`).
 		"""
 
@@ -1775,16 +1775,16 @@ class EmailLogger(Logger):
 
 def execute(job):
 	"""
-	Execute the job :obj:`job` once or repeatedly.
+	Execute the job ``job`` once or repeatedly.
 	"""
 	job._handleexecution()
 
 
 def executewithargs(job, args=None):
 	"""
-	Execute the job :obj:`job` once or repeatedly with command line arguments.
+	Execute the job ``job`` once or repeatedly with command line arguments.
 
-	:obj:`args` are the command line arguments (:const:`None` results in
+	``args`` are the command line arguments (:const:`None` results in
 	``sys.argv`` being used).
 	"""
 	job.parseargs(args)

@@ -16,7 +16,7 @@ well as some (deprecated) elements that were in use in previous HTML versions.
 This namespace also supports the elements and attributes from the `microdata
 specification`_.
 
-For all deprecated elements and attributes the class attribute :obj:`deprecated`
+For all deprecated elements and attributes the class attribute ``deprecated``
 is set to :const:`True`.
 
 The function :func:`astext` can be used to convert a HTML XIST tree into plain
@@ -97,8 +97,8 @@ class DocTypeHTML5(xsc.DocType):
 class MediaAttr(xsc.TextAttr):
 	def hasmedia(self, media):
 		"""
-		Return whether :obj:`self` contains the media type :obj:`media`. Returns
-		``True`` if :obj:`media` is :const:`None` or :obj:`self` is empty.
+		Return whether ``self`` contains the media type ``media``. Returns
+		:const:`True` if ``media`` is :const:`None` or ``self`` is empty.
 		"""
 		if media is not None and self:
 			return media in {m.strip() for m in str(self).split(",")}
@@ -3426,16 +3426,16 @@ class _PlainTextFormatter:
 		r"""
 		Add an additional box around any further text.
 
-		:obj:`node` is the HTML element itself for which the box gets added.
+		``node`` is the HTML element itself for which the box gets added.
 
-		:obj:`name` is the name of the box (normally the name of the HTML element
+		``name`` is the name of the box (normally the name of the HTML element
 		itself (``"ul"``, ``"dd"``, ``"pre"``, ``"blockquote"`` etc.) For
 		``li`` element inside ``ul`` elements the name is ``ul_li`` and for
 		``li`` elements inside ``ol`` elements it is ``ol_li``.
 
-		For a ``li`` element inside an ``ol`` element :obj:`pos` specifies the
+		For a ``li`` element inside an ``ol`` element ``pos`` specifies the
 		index of the ``li`` element among its siblings (starting at 1) and
-		:obj:`last` specifies the index of the last ``li`` (i.e. the total number
+		``last`` specifies the index of the last ``li`` (i.e. the total number
 		of ``li``\s inside the ``ol``).
 
 		This additional box might also specify an additional number of blank
@@ -3486,7 +3486,7 @@ class _PlainTextFormatter:
 
 	def text(self, text):
 		"""
-		Add the text :obj:`text` to the output. All text will be collected
+		Add the text ``text`` to the output. All text will be collected
 		until a call to :meth:`push` or :meth:`pop` is done.
 		"""
 		self.texts.append(text)
@@ -3642,10 +3642,10 @@ def astext(
 	**kwargs
 	):
 	r"""
-	Return the node :obj:`node` formatted as plain text. :obj:`node` must contain
+	Return the node ``node`` formatted as plain text. ``node`` must contain
 	an HTML tree.
 
-	:obj:`width` is the maximum line length. If :obj:`width` is :const:`None`
+	``width`` is the maximum line length. If ``width`` is :const:`None`
 	line length is unlimited (i.e. no line wrapping will be done).
 
 	The rest of the parameters specify the formatting styles for HTML elements.
@@ -3704,7 +3704,7 @@ def astext(
 
 	``overline``
 		A character that is repeated for the width of the content as a rule before
-		the content. If ``None`` is used, no rule will be output. (Note that this
+		the content. If :const:`None` is used, no rule will be output. (Note that this
 		will only work on the innermost block level element.)
 
 	``underline``

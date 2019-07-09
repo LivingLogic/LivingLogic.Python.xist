@@ -59,7 +59,7 @@ class Colorizer(object):
 
 	def __init__(self, colored=True):
 		"""
-		Create a :class:`Colorizer` instance. If :obj:`colored` is false,
+		Create a :class:`!Colorizer` instance. If ``colored`` is false,
 		output will never contain any color/style switching escape sequences.
 		"""
 		self.colored = colored
@@ -68,7 +68,7 @@ class Colorizer(object):
 
 	def pushcolor(self, color):
 		"""
-		Push :obj:`color` onto the color stack
+		Push ``color`` onto the color stack
 		"""
 		self._colors.append(color)
 
@@ -87,8 +87,8 @@ class Colorizer(object):
 
 	def feed(self, *strings):
 		"""
-		This method is a generator and will yield all the strings in :obj:`strings`
-		with interspersed color switching escape sequences. Items in :obj:`strings`
+		This method is a generator and will yield all the strings in ``strings``
+		with interspersed color switching escape sequences. Items in ``strings``
 		can be the following:
 
 			Strings
@@ -97,7 +97,7 @@ class Colorizer(object):
 			Numbers
 				A number in the argument sequence will switch to that color value.
 
-			``None``
+			:const:`None`
 				This will switch back to the default color (This is different from
 				using the color number 0070, because 0070 will only switch colors
 				if there is some output string afterwards).
@@ -158,7 +158,7 @@ class Text(list):
 
 	def string(self, colored=True):
 		"""
-		Return the resulting string (with escape sequences, if :obj:`colored` is true).
+		Return the resulting string (with escape sequences, if ``colored`` is true).
 		"""
 		return "".join(self.parts(colored))
 
@@ -193,8 +193,8 @@ class EscapedText(Text):
 
 	def escapechar(self, char):
 		"""
-		Return a replacement :class:`Text` object for the character :obj:`char`
-		or :obj:`char` itself, if the character should be used as is. This method
+		Return a replacement :class:`Text` object for the character ``char``
+		or ``char`` itself, if the character should be used as is. This method
 		should be overwritten by subclasses.
 		"""
 		return char

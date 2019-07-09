@@ -29,8 +29,8 @@ class Color(tuple):
 
 	def __new__(cls, r=0x0, g=0x0, b=0x0, a=0xff):
 		"""
-		Create a :class:`Color` with the 8 bit red, green, blue and alpha
-		components :obj:`r`, :obj:`g`, :obj:`b` and :obj:`a`. Values will be
+		Create a :class:`!Color` with the 8 bit red, green, blue and alpha
+		components ``r``, ``g``, ``b`` and ``a``. Values will be
 		clipped to the range [0; 255].
 		"""
 		return tuple.__new__(cls, (max(0, min(int(r), 255)), max(0, min(int(g), 255)), max(0, min(int(b), 255)), max(0, min(int(a), 255))))
@@ -53,7 +53,7 @@ class Color(tuple):
 	@classmethod
 	def fromcss(cls, s):
 		"""
-		Create a :class:`Color` object from the CSS__ color string :obj:`s`.
+		Create a :class:`Color` object from the CSS__ color string ``s``.
 		All formats from CSS2 are supported (i.e. ``'#xxx'``, ``'#xxxxxx'``,
 		``rgb(r, g, b)``, ``rgb(r%, g%, b%)``, ``rgba(r, g, b, a)``,
 		``rgba(r%, g%, b%, a)``  and color names like ``'red'``).
@@ -95,8 +95,8 @@ class Color(tuple):
 	def fromrgb(cls, r, g, b, a=1.0):
 		"""
 		Create a :class:`Color` object from the red, green, blue and alpha values
-		:obj:`r`, :obj:`g`, :obj:`b` and :obj:`a`. All values will be clipped
-		to the range [0; 1].
+		``r``, ``g``, ``b`` and ``a``. All values will be clipped to the range
+		[0; 1].
 		"""
 		return cls(255*r, 255*g, 255*b, 255*a)
 
@@ -104,9 +104,9 @@ class Color(tuple):
 	def fromhsv(cls, h, s, v, a=1.0):
 		"""
 		Create a :class:`Color` object from the hue, saturation and value values
-		:obj:`h`, :obj:`s` and :obj:`v` and the alpha value :obj:`a`. The hue
-		value will be used modulo 1.0, saturation, value and alpha will be clipped
-		to the range [0; 1].
+		``h``, ``s`` and ``v`` and the alpha value ``a``. The hue value will be
+		used modulo 1.0, saturation, value and alpha will be clipped to the range
+		[0; 1].
 		"""
 		rgb = colorsys.hsv_to_rgb(h % 1.0, max(0., min(s, 1.)), max(0., min(v, 1.)))
 		return cls.fromrgb(*(rgb + (a,)))
@@ -115,9 +115,9 @@ class Color(tuple):
 	def fromhls(cls, h, l, s, a=1.0):
 		"""
 		Create a :class:`Color` object from the hue, luminance and saturation
-		values :obj:`h`, :obj:`l` and :obj:`s` and the alpha value :obj:`a`.
-		The hue value will be used modulo 1.0, luminance, saturation and alpha
-		will be clipped to the range [0; 1].
+		values ``h``, ``l`` and ``s`` and the alpha value ``a``. The hue value
+		will be used modulo 1.0, luminance, saturation and alpha will be clipped
+		to the range [0; 1].
 		"""
 		rgb = colorsys.hls_to_rgb(h % 1.0, max(0., min(l, 1.)), max(0., min(s, 1.)))
 		return cls.fromrgb(*(rgb + (a,)))
@@ -130,7 +130,7 @@ class Color(tuple):
 
 	def __str__(self):
 		"""
-		:obj:`self` formatted as a CSS color string.
+		`self`` formatted as a CSS color string.
 		"""
 		if self[3] != 0xff:
 			return f"rgba({self[0]},{self[1]},{self[2]},{self[3]/255.:.3f})"
@@ -180,28 +180,28 @@ class Color(tuple):
 
 	def hsv(self):
 		"""
-		:obj:`self` as a HSV tuple ("hue, saturation, value").
+		``self`` as a HSV tuple ("hue, saturation, value").
 		All three values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hsv(self[0]/255., self[1]/255., self[2]/255.)
 
 	def hsva(self):
 		"""
-		:obj:`self` as a HSV+alpha tuple ("hue, saturation, value, alpha").
+		``self`` as a HSV+alpha tuple ("hue, saturation, value, alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hsv() + (self[3]/255.,)
 
 	def hls(self):
 		"""
-		:obj:`self` as a HLS tuple ("hue, luminance, saturation"). All three
+		``self`` as a HLS tuple ("hue, luminance, saturation"). All three
 		values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hls(self[0]/255., self[1]/255., self[2]/255.)
 
 	def hlsa(self):
 		"""
-		:obj:`self` as a HLS+alpha tuple ("hue, luminance, saturation, alpha").
+		``self`` as a HLS+alpha tuple ("hue, luminance, saturation, alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hls() + (self[3]/255.,)
@@ -214,7 +214,7 @@ class Color(tuple):
 
 	def combine(self, r=None, g=None, b=None, a=None):
 		"""
-		Return a copy of :obj:`self` with some of the values replaced by the
+		Return a copy of ``self`` with some of the values replaced by the
 		arguments.
 		"""
 		channels = list(self)
@@ -230,30 +230,30 @@ class Color(tuple):
 
 	def witha(self, a):
 		"""
-		Return a copy of :obj:`self` with the alpha value replaced with :obj:`a`.
+		Return a copy of ``self`` with the alpha value replaced with ``a``.
 		"""
 		(r, g, b, olda) = self
 		return self.__class__(r, g, b, a)
 
 	def withlum(self, lum):
 		"""
-		Return a copy of :obj:`self` with the luminosity replaced with :obj:`lum`.
+		Return a copy of ``self`` with the luminosity replaced with ``lum``.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, lum, s, a)
 
 	def abslum(self, f):
 		"""
-		Return a copy of :obj:`self` with :obj:`f` added to the luminocity.
+		Return a copy of ``self`` with ``f`` added to the luminocity.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l+f, s, a)
 
 	def rellum(self, f):
 		"""
-		Return a copy of :obj:`self` where the luminocity has been modified:
-		If :obj:`f` if positive the luminocity will be increased, with ``f==1``
-		giving a luminocity of 1. If :obj:`f` is negative, the luminocity will be
+		Return a copy of ``self`` where the luminocity has been modified:
+		If ``f`` if positive the luminocity will be increased, with ``f==1``
+		giving a luminocity of 1. If ``f`` is negative, the luminocity will be
 		decreased with ``f==-1`` giving a luminocity of 0. ``f==0`` will leave
 		the luminocity unchanged.
 		"""
@@ -281,7 +281,7 @@ class Color(tuple):
 
 	def __mod__(self, other):
 		"""
-		Blends :obj:`self` with the background color :obj:`other` according to the
+		Blends ``self`` with the background color ``other`` according to the
 		`CSS specification`__
 
 		__ https://www.w3.org/TR/2013/WD-compositing-1-20131010/#simplealphacompositing
@@ -399,22 +399,22 @@ def dist(c1, c2):
 
 def multiply(c1, c2):
 	"""
-	Multiplies the colors :obj:`c1` and :obj:`c2`.
+	Multiplies the colors ``c1`` and ``c2``.
 	"""
 	return Color(c1[0]*c2[0], c1[1]*c2[1], c1[2]*c2[2], 1.-(1.-c1[3])*(1.-c2[3]))
 
 
 def screen(c1, c2):
 	"""
-	Does a negative multiplication of the colors :obj:`c1` and :obj:`c2`.
+	Does a negative multiplication of the colors ``c1`` and ``c2``.
 	"""
 	return Color(*(1.-(1.-x)*(1.-y) for (x, y) in zip(c1, c2)))
 
 
 def mix(*args):
 	"""
-	Calculates a weighted mix of the colors from :obj:`args`. Items in
-	:obj:`args` are either colors or weights. The following example mixes
+	Calculates a weighted mix of the colors from ``args``. Items in
+	``args`` are either colors or weights. The following example mixes
 	two parts black with one part white::
 
 		>>> from ll import color

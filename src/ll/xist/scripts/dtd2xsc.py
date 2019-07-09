@@ -143,7 +143,7 @@ def getxmlns(dtd):
 
 
 def adddtd2xnd(ns, dtd):
-	# Appends DTD information from :obj:`dtd` to the :class:`xnd.Module` object
+	# Appends DTD information from ``dtd`` to the :class:`xnd.Module` object
 	from lxml import etree # This requires lxml (http://lxml.de/)
 	dtd = etree.DTD(dtd)
 

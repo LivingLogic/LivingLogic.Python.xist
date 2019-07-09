@@ -127,8 +127,8 @@ class pyeval(_base):
 	def convert(self, converter):
 		"""
 		Evaluates the code as if it was the body of a Python function. The
-		:obj:`converter` argument will be available under the name
-		:obj:`converter` as an argument to the function.
+		``converter`` argument will be available under the name
+		``converter`` as an argument to the function.
 		"""
 		code = Code(self.content, True)
 		code.funcify()

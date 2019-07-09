@@ -84,9 +84,9 @@ def httpdate(dt):
 	"""
 	Return a string suitable for a "Last-Modified" and "Expires" header.
 
-	:obj:`dt` is a :class:`datetime.datetime` object. If ``:obj:`dt`.tzinfo`` is
-	:const:`None` :obj:`dt` is assumed to be in the local timezone (using the
-	current UTC offset which might be different from the one used by :obj:`dt`).
+	``dt`` is a :class:`datetime.datetime` object. If ``dt.tzinfo`` is
+	:const:`None` ``dt`` is assumed to be in the local timezone (using the
+	current UTC offset which might be different from the one used by ``dt``).
 	"""
 	if dt.tzinfo is None:
 		dt += datetime.timedelta(seconds=[time.timezone, time.altzone][time.daylight])
@@ -127,10 +127,10 @@ class Connect:
 	def __init__(self, connectstring=None, pool=None, retry=3, **kwargs):
 		"""
 		Create a new parameterized :class:`Connect` decorator. Either
-		:obj:`connectstring` or :obj:`pool` (a database pool object) must be
-		specified. :obj:`retry` specifies how often to retry calling the wrapped
-		function after a database exception. :obj:`kwargs` will be passed on to
-		the :func:`connect` call.
+		``connectstring`` or ``pool`` (a database pool object) must be specified.
+		``retry`` specifies how often to retry calling the wrapped function after
+		a database exception. ``kwargs`` will be passed on to the
+		:func:`connect` call.
 		"""
 		if (connectstring is not None) == (pool is not None):
 			raise TypeError("either connectstring or pool must be specified")
@@ -212,7 +212,7 @@ class Call:
 	def __init__(self, callable, connection):
 		"""
 		Create a :class:`Call` object wrapping the function or procedure
-		:obj:`callable`.
+		``callable``.
 		"""
 		self.callable = callable
 		# Calculate parameter mapping now, so we don't get concurrency problems later
@@ -221,15 +221,14 @@ class Call:
 
 	def __call__(self, *args, **kwargs):
 		"""
-		Call the procedure/function with the arguments :obj:`args` and
-		:obj:`kwargs` mapping Python function arguments to
-		Oracle procedure/function arguments. On return from the procedure the
-		:obj:`c_out` parameter is mapped to the CherryPy response body, and the
-		parameters :obj:`p_expires` (the number of days from now),
-		:obj:`p_lastmodified` (a date in UTC), :obj:`p_mimetype` (a string),
-		:obj:`p_encoding` (a string), :obj:`p_etag` (a string) and
-		:obj:`p_cachecontrol` (a string) are mapped to the appropriate CherryPy
-		response headers. If :obj:`p_etag` is not specified a value is calculated.
+		Call the procedure/function with the arguments ``args`` and ``kwargs``
+		mapping Python function arguments to Oracle procedure/function arguments.
+		On return from the procedure the ``c_out`` parameter is mapped to the
+		CherryPy response body, and the parameters ``p_expires`` (the number of
+		days from now), ``p_lastmodified`` (a date in UTC), ``p_mimetype``
+		(a string), ``p_encoding`` (a string), ``p_etag`` (a string) and
+		``p_cachecontrol`` (a string) are mapped to the appropriate CherryPy
+		response headers. If ``p_etag`` is not specified a value is calculated.
 
 		If the procedure/function raised a PL/SQL exception with a code between
 		20200 and 20599, 20000 will be subtracted from this value and the

@@ -236,11 +236,11 @@ def register(name):
 	This decorator can be used to register the decorated class with the
 	:mod:`!ll.ul4on` serialization machinery.
 
-	:obj:`name` must be a globally unique name for the class. To avoid
+	``name`` must be a globally unique name for the class. To avoid
 	name collisions Java's class naming system should be used (i.e. an
 	inverted domain name like ``com.example.foo.bar``).
 
-	:obj:`name` will be stored in the class attribute ``ul4onname``.
+	``name`` will be stored in the class attribute ``ul4onname``.
 	"""
 	def registration(cls):
 		cls.ul4onname = name
@@ -258,9 +258,9 @@ class Encoder:
 	"""
 	def __init__(self, stream, indent=None):
 		"""
-		Create an encoder for serializing objects to  :obj:`self.stream`.
+		Create an encoder for serializing objects to  ``self.stream``.
 
-		:obj:`stream` must provide a :meth:`write` method.
+		``stream`` must provide a :meth:`!write` method.
 		"""
 		self.stream = stream
 		self._level = 0
@@ -296,7 +296,7 @@ class Encoder:
 
 	def dump(self, obj):
 		"""
-		Serialize :obj:`obj` into the stream as an UL4ON formatted dump.
+		Serialize ``obj`` into the stream as an UL4ON formatted dump.
 		"""
 		# Have we written this object already?
 		if id(obj) in self._id2index:
@@ -388,13 +388,13 @@ class Decoder:
 	"""
 	def __init__(self, stream, registry=None):
 		"""
-		Create a decoder for deserializing objects from  :obj:`self.stream`.
+		Create a decoder for deserializing objects from  ``self.stream``.
 
-		:obj:`stream` must provide a :meth:`read` method.
+		``stream`` must provide a :meth:`!read` method.
 
-		:obj:`registry` is used as a "custom type registry". It must map UL4ON
+		``registry`` is used as a "custom type registry". It must map UL4ON
 		type names to callables that create new empty instances of those types.
-		Any type not found in :obj:`registry` will be looked up in the global
+		Any type not found in ``registry`` will be looked up in the global
 		registry (see :func:`register`).
 		"""
 		self.stream = stream
@@ -438,7 +438,7 @@ class Decoder:
 		# We have to record the object we're loading *now*, so that it is available for backreferences.
 		# However until we've read the UL4ON name of the class (for custom object) or the attributes
 		# of the object (for immutable objects with attributes), we can't create the object.
-		# So we push ``None`` to the backreference list for now and put the right object in this spot,
+		# So we push :const:`None` to the backreference list for now and put the right object in this spot,
 		# once we've created it (via :meth:`_endfakeloading`). This shouldn't lead to problems,
 		# because during the time the backreference is wrong, only the class name is read,
 		# so our object won't be referenced. For immutable objects the attributes normally
@@ -695,7 +695,7 @@ class StreamBuffer:
 
 def dumps(obj, indent=None):
 	"""
-	Serialize :obj:`obj` as an UL4ON formatted string.
+	Serialize ``obj`` as an UL4ON formatted string.
 	"""
 	stream = io.StringIO()
 	Encoder(stream, indent=indent).dump(obj)
@@ -704,41 +704,41 @@ def dumps(obj, indent=None):
 
 def dump(obj, stream, indent=None):
 	"""
-	Serialize :obj:`obj` as an UL4ON formatted stream to :obj:`stream`.
+	Serialize ``obj`` as an UL4ON formatted stream to ``stream``.
 
-	:obj:`stream` must provide a :meth:`write` method.
+	``stream`` must provide a :meth:`write` method.
 	"""
 	Encoder(stream, indent=indent).dump(obj)
 
 
 def loadclob(clob, bufsize=1024*1024, registry=None):
 	"""
-	Deserialize :obj:`clob` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
+	Deserialize ``clob`` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.
 
-	:obj:`bufsize` specifies the chunk size for reading the underlying ``CLOB``
+	``bufsize`` specifies the chunk size for reading the underlying ``CLOB``
 	object.
 
-	For the meaning of :obj:`registry` see :meth:`Decoder.__init__`.
+	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
 	"""
 	return Decoder(StreamBuffer(clob, bufsize), registry).load()
 
 
 def loads(string, registry=None):
 	"""
-	Deserialize :obj:`string` (which must be a string containing an UL4ON
+	Deserialize ``string`` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
 
-	For the meaning of :obj:`registry` see :meth:`Decoder.__init__`.
+	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
 	"""
 	return Decoder(io.StringIO(string), registry).load()
 
 
 def load(stream, registry=None):
 	"""
-	Deserialize :obj:`stream` (which must be file-like object with a :meth:`read`
+	Deserialize ``stream`` (which must be file-like object with a :meth:`read`
 	method containing an UL4ON formatted object) to a Python object.
 
-	For the meaning of :obj:`registry` see :meth:`Decoder.__init__`.
+	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
 	"""
 	return Decoder(stream, registry).load()

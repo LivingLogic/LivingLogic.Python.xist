@@ -39,7 +39,7 @@ has been replaced with a flag option ``--rollback``. Automatically committing
 after every record is no longer available. However manual committing is
 available via the :class:`~ll.pysql.commit` command.
 
-PySQL no longer support multiple active database connect via the ``connectname``
+PySQL no longer supports multiple active database connect via the ``connectname``
 key. When using literal SQL this couldn't be used anyway, so it has been
 dropped. If you really need this feature you can implement a workaround in
 literal Python blocks.

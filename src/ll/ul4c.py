@@ -311,7 +311,7 @@ def _unpackvar(lvalue, value):
 	"""
 	A generator used for recursively unpacking values for assignment.
 
-	:obj:`lvalue` may be an :class:`AST` object (in which case the recursion ends)
+	``lvalue`` may be an :class:`AST` object (in which case the recursion ends)
 	or a (possible nested) sequence of :class:`AST` objects.
 
 	The values produced are (AST node, value) tuples.
@@ -333,12 +333,12 @@ def _unpackvar(lvalue, value):
 
 def _makevars(signature, args, kwargs):
 	"""
-	Bind :obj:`args` and :obj:`kwargs` to the :class:`inspect.Signature` object
-	:obj:`signature` and return the resulting argument dictionary. (This differs
+	Bind ``args`` and ``kwargs`` to the :class:`inspect.Signature` object
+	``signature`` and return the resulting argument dictionary. (This differs
 	from :meth:`inspect.Signature.bind` in that it handles default values too.)
 
-	:obj:`signature` may also be ``None`` in which case :obj:`args` must be empty
-	and :obj:kwargs is returned, i.e. the signature is treated als accepting no
+	``signature`` may also be :const:`None` in which case ``args`` must be empty
+	and `kwargs` is returned, i.e. the signature is treated as accepting no
 	positional argument and any keyword argument.
 	"""
 	if signature is None:
@@ -392,7 +392,7 @@ class Proto:
 	@classmethod
 	def getattr(cls, obj, name, default=object):
 		"""
-		Return the attribute :obj:`name` of the object :obj`obj` and honor
+		Return the attribute ``name`` of the object :obj`obj` and honor
 		``ul4getattr`` and ``ul4attrs``.
 		"""
 		ul4getattr = getattr(obj, "ul4getattr", None)
@@ -416,7 +416,7 @@ class Proto:
 	@classmethod
 	def setattr(cls, obj, name, value):
 		"""
-		Set the attribute :obj:`name` of the object :obj`obj` to :obj:`value` and
+		Set the attribute ``name`` of the object :obj`obj` to ``value`` and
 		honor  ``ul4setattr`` and ``ul4attrs``.
 		"""
 		ul4setattr = getattr(obj, "ul4setattr", None)
@@ -433,7 +433,7 @@ class Proto:
 	@classmethod
 	def hasattr(cls, obj, name):
 		"""
-		Return whether the object :obj`obj`  has an attribute :obj:`name` and
+		Return whether the object :obj`obj`  has an attribute ``name`` and
 		honor  ``ul4hasattr`` and ``ul4attrs``.
 		"""
 		ul4hasattr = getattr(obj, "ul4hasattr", None)
@@ -622,14 +622,14 @@ class DateProto(Proto):
 	@staticmethod
 	def calendar(obj, firstweekday=0, mindaysinfirstweek=4):
 		"""
-		Return the calendar year the date :obj:`obj` belongs to, the calendar week
+		Return the calendar year the date ``obj`` belongs to, the calendar week
 		number and the week dayy. (A day might belong to a different calender year,
 		if it is in week 1 but before January 1, or if belongs to week 1 of the
 		following year).
 
-		:obj:`firstweekday` defines what a week is (i.e. which weekday is
+		``firstweekday`` defines what a week is (i.e. which weekday is
 		considered the start of the week, ``0`` is Monday and ``6`` is Sunday).
-		:obj:`mindaysinfirstweek` defines how many days must be in a week to be
+		``mindaysinfirstweek`` defines how many days must be in a week to be
 		considered the first week in the year.
 
 		For example for the ISO week number (according to
@@ -653,14 +653,14 @@ class DateProto(Proto):
 		firstweekday %= 7
 		mindaysinfirstweek = max(1, min(mindaysinfirstweek, 7))
 
-		# :obj:`obj` might be in the first week of the next year, or last week of
+		# ``obj`` might be in the first week of the next year, or last week of
 		# the previous year, so we might have to try those too.
 		for year in (obj.year+1, obj.year, obj.year-1):
-			# :obj:`refdate` will always be in week 1
+			# ``refdate`` will always be in week 1
 			refdate = obj.__class__(year, 1, mindaysinfirstweek)
-			# Go back to the start of :obj:`refdate`\s week (i.e. day 1 of week 1)
+			# Go back to the start of ``refdate``\s week (i.e. day 1 of week 1)
 			weekstartdate = refdate - datetime.timedelta((refdate.weekday() - firstweekday) % 7)
-			# Is our date :obj:`obj` at or after day 1 of week 1?
+			# Is our date ``obj`` at or after day 1 of week 1?
 			# (if not we have to recalculate based on the year before in the next loop iteration)
 			if obj >= weekstartdate:
 				# Add 1, because the first week is week 1, not week 0
@@ -669,7 +669,7 @@ class DateProto(Proto):
 	@staticmethod
 	def week(obj, firstweekday=0, mindaysinfirstweek=4):
 		"""
-		Return the week number of the date :obj:`obj`. For more info see
+		Return the week number of the date ``obj``. For more info see
 		:meth:`calendar`.
 		"""
 		return DateProto.calendar(obj, firstweekday, mindaysinfirstweek)[1]
@@ -1205,7 +1205,7 @@ class AST:
 
 	def __str__(self):
 		# This uses :meth:`_str`, which is a generator and may output:
-		# ``None``, which means: "add a line feed and an indentation here"
+		# :const:`None`, which means: "add a line feed and an indentation here"
 		# an int, which means: add the int to the indentation level
 		# a string, which means: add this string to the output
 		v = []
@@ -1231,12 +1231,12 @@ class AST:
 		This evaluates the node.
 
 		For most nodes this is a normal function that returns the result of
-		evaluating the node. (For these nodes the class attribute :obj:`output`
+		evaluating the node. (For these nodes the class attribute ``output``
 		is false.). For nodes that produce output (like literal text,
 		:class:`Print`, :class:`PrintX` or :class:`Render`) it is a generator
 		which yields the text output of the node. For blocks (which might contain
 		nodes which produce output) this is also a generator. (For these nodes
-		the class attribute :obj:`output` is true.)
+		the class attribute ``output`` is true.)
 		"""
 		pass
 
@@ -2509,8 +2509,8 @@ class Attr(Code):
 	"""
 	AST node for getting and setting an attribute of an object.
 
-	The object is loaded from the AST node :obj:`obj` and the attribute name
-	is stored in the string :obj:`attrname`.
+	The object is loaded from the AST node ``obj`` and the attribute name
+	is stored in the string ``attrname``.
 	"""
 	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
 
@@ -2569,8 +2569,8 @@ class Slice(Code):
 	"""
 	AST node for creating a slice object (used in ``obj[index1:index2]``).
 
-	The start and stop indices are loaded from  the AST nodes :obj:`index1` and
-	:obj:`index2`. :obj:`index1` and :obj:`index2` may also be :const:`None`
+	The start and stop indices are loaded from  the AST nodes ``index1`` and
+	``index2``. ``index1`` and ``index2`` may also be :const:`None`
 	(for missing slice indices, which default to the 0 for the start index and
 	the length of the sequence for the end index).
 	"""
@@ -2801,7 +2801,7 @@ class Item(Binary):
 	AST node for subscripting operator.
 
 	The object (which must be a list, string or dict) is loaded from the AST
-	node :obj:`obj1` and the index/key is loaded from the AST node :obj:`obj2`.
+	node ``obj1`` and the index/key is loaded from the AST node ``obj2``.
 	"""
 
 	@classmethod
@@ -2919,9 +2919,9 @@ class Contains(Binary):
 	"""
 	AST node for the binary containment testing operator.
 
-	The item/key object is loaded from the AST node :obj:`obj1` and the container
+	The item/key object is loaded from the AST node ``obj1`` and the container
 	object (which must be a list, string, dict or an object with a ``ul4attrs``
-	attribute) is loaded from the AST node :obj:`obj2`.
+	attribute) is loaded from the AST node ``obj2``.
 	"""
 
 	@classmethod
@@ -2934,9 +2934,9 @@ class NotContains(Binary):
 	"""
 	AST node for the inverted containment testing operator.
 
-	The item/key object is loaded from the AST node :obj:`obj1` and the container
+	The item/key object is loaded from the AST node ``obj1`` and the container
 	object (which must be a list, string, dict or an object with a ``ul4attrs``
-	attribute) is loaded from the AST node :obj:`obj2`.
+	attribute) is loaded from the AST node ``obj2``.
 	"""
 
 	@classmethod
@@ -3245,9 +3245,9 @@ class ChangeVar(Code):
 	"""
 	Baseclass for all AST nodes that store or modify a variable.
 
-	The left hand side is loaded from the AST node :obj:`label` and the value that
+	The left hand side is loaded from the AST node ``label`` and the value that
 	will be stored or be used to modify the stored value is loaded from the
-	AST node :obj:`value`.
+	AST node ``value``.
 	"""
 
 	ul4attrs = Code.ul4attrs.union({"lvalue", "value"})
@@ -3442,8 +3442,8 @@ class Call(Code):
 	"""
 	AST node for calling an object.
 
-	The object to be called is stored in the attribute :obj:`obj`. The list of
-	arguments is found in :obj:`args`.
+	The object to be called is stored in the attribute ``obj``. The list of
+	arguments is found in ``args``.
 	"""
 
 	ul4attrs = Code.ul4attrs.union({"obj", "args"})
@@ -3519,8 +3519,8 @@ class Render(Call):
 	"""
 	AST node for rendering a template.
 
-	The template to be rendered is stored in the attribute :obj:`obj`. The list
-	of arguments is found in :obj:`args`.
+	The template to be rendered is stored in the attribute ``obj``. The list
+	of arguments is found in ``args``.
 	"""
 
 	ul4attrs = Call.ul4attrs.union({"indent"})
@@ -3623,8 +3623,8 @@ class RenderBlock(Render):
 	the anonymous template that is defined in the block with will be passed as
 	the keyword argument ``content``.
 
-	The object to be called is stored in the attribute :obj:`obj`. The list of
-	arguments is found in :obj:`args`.
+	The object to be called is stored in the attribute ``obj``. The list of
+	arguments is found in ``args``.
 	"""
 
 	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
@@ -3681,8 +3681,8 @@ class RenderBlocks(Render):
 	AST node for rendering a template and passing additional arguments via
 	nested variable definitions.
 
-	The object to be called is stored in the attribute :obj:`obj`. The list of
-	arguments is found in :obj:`args`.
+	The object to be called is stored in the attribute ``obj``. The list of
+	arguments is found in ``args``.
 	"""
 
 	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
@@ -3803,14 +3803,14 @@ class Template(Block):
 		"""
 		Create a :class:`Template` object.
 
-		If :obj:`source` is ``None``, the :class:`Template` remains uninitialized,
-		otherwise :obj:`source` will be compiled (using :obj:`startdelim` and
-		:obj:`enddelim` as the tag delimiters).
+		If ``source`` is :const:`None`, the :class:`Template` remains uninitialized,
+		otherwise ``source`` will be compiled (using ``startdelim`` and
+		``enddelim`` as the tag delimiters).
 
-		:obj:`name` is the name of the template. It will be used in exception
+		``name`` is the name of the template. It will be used in exception
 		messages and should be a valid Python identifier.
 
-		:obj:`whitespace` specifies how whitespace is handled in the literal text
+		``whitespace`` specifies how whitespace is handled in the literal text
 		in templates (i.e. the text between the tags):
 
 		``"keep"``
@@ -3845,10 +3845,10 @@ class Template(Block):
 
 		(Output will always be ignored when calling a template as a function.)
 
-		:obj:`signature` is the signature of the template. For a top level
+		``signature`` is the signature of the template. For a top level
 		template it can be:
 
-		``None``
+		:const:`None`
 			The template will accept all keyword arguments.
 
 		An :class:`inspect.Signature` object
@@ -3863,9 +3863,9 @@ class Template(Block):
 			evaluated to create the signature for the template.
 
 		If the template is a subtemplate (i.e. a template defined by another
-		template via ``<?def t?>...<?end def?>``), :obj:`signature` can be:
+		template via ``<?def t?>...<?end def?>``), ``signature`` can be:
 
-		``None``
+		:const:`None`
 			The template will accept all arguments.
 
 		A :class:`Signature` object
@@ -3971,7 +3971,7 @@ class Template(Block):
 		encoder.dump(self.docpos)
 		encoder.dump(self.parenttemplate)
 
-		# Signature can be ``None`` or an instance of :class:`inspect.Signature` or :class:`Signature`
+		# Signature can be :const:`None` or an instance of :class:`inspect.Signature` or :class:`Signature`
 		if self.signature is None or isinstance(self.signature, Signature):
 			encoder.dump(self.signature)
 		else:
@@ -3997,7 +3997,7 @@ class Template(Block):
 
 	def ul4onload(self, decoder):
 		version = decoder.load()
-		# If the loaded version is ``None``, this is not a "compiled" version of the template,
+		# If the loaded version is :const:`None`, this is not a "compiled" version of the template,
 		# but a "source" version. It only contains the info required to compile the template.
 		#
 		# Not all implementations (i.e. the Javascript one) support this mode.
@@ -4060,8 +4060,8 @@ class Template(Block):
 	@classmethod
 	def loads(cls, data):
 		"""
-		The class method :meth:`loads` loads the template from string :obj:`data`.
-		:obj:`data` must contain the template in compiled UL4ON format.
+		The class method :meth:`loads` loads the template from string ``data``.
+		``data`` must contain the template in compiled UL4ON format.
 		"""
 		from ll import ul4on
 		return ul4on.loads(data)
@@ -4070,7 +4070,7 @@ class Template(Block):
 	def load(cls, stream):
 		"""
 		The class method :meth:`load` loads the template from the stream
-		:obj:`stream`. The stream must contain the template in compiled UL4ON
+		``stream``. The stream must contain the template in compiled UL4ON
 		format.
 		"""
 		from ll import ul4on
@@ -4079,7 +4079,7 @@ class Template(Block):
 	def dump(self, stream):
 		"""
 		:meth:`dump` dumps the template in compiled UL4ON format to the
-		stream :obj:`stream`.
+		stream ``stream``.
 		"""
 		from ll import ul4on
 		ul4on.dump(self, stream)
@@ -4116,8 +4116,8 @@ class Template(Block):
 	def render(*args, **kwargs):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		:obj:`args[1:]` and :obj:`kwargs` contain the top level variables available
-		to the template code. (:obj:`args[0]` is the ``self`` parameter, but
+		``args`[1:]` and ``kwargs`` contain the top level variables available
+		to the template code. (``args`[0]` is the ``self`` parameter, but
 		:meth:`render` is defined in this way, to allow a keyword argument named
 		``self``).
 		"""
@@ -4139,8 +4139,8 @@ class Template(Block):
 
 	def renders(*args, **kwargs):
 		"""
-		Render the template as a string. :obj:`args[1:]` and :obj:`kwargs` contain
-		the top level variables available to the template code. (:obj:`args[0]`
+		Render the template as a string. ``args`[1:]` and ``kwargs`` contain
+		the top level variables available to the template code. (``args`[0]`
 		is the ``self`` parameter, but :meth:`renders` is defined in this way,
 		to allow a keyword argument named ``self``).
 		"""
@@ -4159,8 +4159,8 @@ class Template(Block):
 	def ul4call(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
-		:obj:`args[1:]` and :obj:`kwargs` contain the top level variables available
-		to the template code. (:obj:`args[0]` is the ``self`` parameter, but
+		``args`[1:]` and ``kwargs`` contain the top level variables available
+		to the template code. (``args`[0]` is the ``self`` parameter, but
 		:meth:`ul4call` is defined in this way, to allow a keyword argument named
 		``self``).
 		"""
@@ -4174,8 +4174,8 @@ class Template(Block):
 	def __call__(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
-		:obj:`args[1:]` and :obj:`kwargs` contain the top level variables available
-		to the template code. (:obj:`args[0]` is the ``self`` parameter, but
+		``args`[1:]` and ``kwargs`` contain the top level variables available
+		to the template code. (``args`[0]` is the ``self`` parameter, but
 		:meth:`__call__` is defined in this way, to allow a keyword argument named
 		``self``).
 		"""
@@ -4196,8 +4196,8 @@ class Template(Block):
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""
-		Tokenize the template source code in :obj:`source` into tags and non-tag
-		text. :obj:`startdelim` and :obj:`enddelim` are used as the tag delimiters.
+		Tokenize the template source code in ``source`` into tags and non-tag
+		text. ``startdelim`` and ``enddelim`` are used as the tag delimiters.
 
 		This is a generator which produces :class:`Text`/:class:`Tag` objects
 		for each tag or non-tag text. It will be called by :meth:`_compile`
@@ -4312,7 +4312,7 @@ class Template(Block):
 				self.stop = None
 				self.indent = None
 
-		# Return the length of the longest common prefix of all strings in :obj:`indents`
+		# Return the length of the longest common prefix of all strings in ``indents``
 		def commonindentlen(indents):
 			if not indents:
 				return 0
@@ -4399,8 +4399,8 @@ class Template(Block):
 
 	def _compile(self, source, startdelim, enddelim):
 		"""
-		Compile the template source code :obj:`source` into an AST.
-		:obj:`startdelim` and :obj:`enddelim` are used as the tag delimiters.
+		Compile the template source code ``source`` into an AST.
+		``startdelim`` and ``enddelim`` are used as the tag delimiters.
 		"""
 		self._fullsource = source
 		self.startdelim = startdelim
@@ -4623,7 +4623,7 @@ class Signature(Code):
 	"""
 	AST node for the signature of a template.
 
-	The list of arguments is found in :obj:`params`.
+	The list of arguments is found in ``params``.
 	"""
 
 	ul4attrs = Code.ul4attrs.union({"params"})
