@@ -1235,8 +1235,7 @@ class Node(object, metaclass=_Node_Meta):
 	def publish(self, publisher):
 		"""
 		Generate unicode strings for the node. :obj:`publisher` must be an
-		instance of :class:`ll.xist.xsc.Publisher`.
-
+		instance of :class:`Publisher`.
 		The encoding and xhtml specification are taken from the :obj:`publisher`.
 		"""
 
@@ -1245,8 +1244,7 @@ class Node(object, metaclass=_Node_Meta):
 		A generator that will produce this node as a serialized byte string. (i.e.
 		it will output what the method :meth:`bytes` outputs, but incremetally).
 
-		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
-		constructor.
+		For the possible parameters see the :class:`Publisher` constructor.
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
@@ -1257,8 +1255,7 @@ class Node(object, metaclass=_Node_Meta):
 		"""
 		Return :obj:`self` as a serialized bytes object.
 
-		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
-		constructor.
+		For the possible parameters see the :class:`Publisher` constructor.
 
 		For example::
 
@@ -1280,8 +1277,7 @@ class Node(object, metaclass=_Node_Meta):
 		A generator that will produce a serialized string of :obj:`self` (i.e.
 		it will output what the method :meth:`string` outputs, but incremetally).
 
-		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
-		constructor.
+		For the possible parameters see the :class:`Publisher` constructor.
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
@@ -1292,8 +1288,7 @@ class Node(object, metaclass=_Node_Meta):
 		"""
 		Return a serialized (unicode) string for :obj:`self`.
 
-		For the possible parameters see the :class:`ll.xist.xsc.Publisher`
-		constructor.
+		For the possible parameters see the :class:`Publisher` constructor.
 
 		For example::
 
@@ -1314,8 +1309,7 @@ class Node(object, metaclass=_Node_Meta):
 		Write :obj:`self` to the file-like object :obj:`stream` (which must provide
 		a :meth:`!write` method).
 
-		For the rest of the parameters see the :class:`ll.xist.xsc.Publisher`
-		constructor.
+		For the rest of the parameters see the :class:`Publisher` constructor.
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)
