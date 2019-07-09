@@ -850,12 +850,12 @@ class Publisher:
 
 
 ###
-### Cursor for the :meth:`walk` method
+### Cursor for the :meth:`Node.walk` method
 ###
 
 class Cursor:
 	"""
-	A :class:`Cursor` object is used by the :meth:`walk` method during tree
+	A :class:`Cursor` object is used by the :meth:`~Node.walk` method during tree
 	traversal. It contains information about the state of the traversal and can
 	be used to influence which parts of the tree are traversed and in which order.
 
@@ -864,7 +864,7 @@ class Cursor:
 
 	``root``
 		The node where traversal has been started (i.e. the object for which the
-		:meth:`walk` method has been called).
+		:meth:`~Node.walk` method has been called).
 
 	``node``
 		The current node being traversed.
