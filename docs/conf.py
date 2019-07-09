@@ -322,11 +322,14 @@ intersphinx_mapping = {
 	'python': ('https://docs.python.org/3.6', None),
 }
 
-autodoc_default_flags = ["members", "special-members", "show-inheritance"]
+autodoc_default_options = {
+	"members": True,
+	"special-members": True,
+	"show-inheritance": True,
+	"inherit-docstrings": False,
+	"member-order": "bysource",
+}
 
-autodoc_member_order = "bysource"
-
-autodoc_inherit_docstrings = False
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = {
