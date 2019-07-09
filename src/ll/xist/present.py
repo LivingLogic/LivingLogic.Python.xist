@@ -264,7 +264,7 @@ class TreePresenter(Presenter):
 		indent string (falling back to a tab if the environment variable
 		doesn't exist).
 
-		If ``defaultxmlns`` is not ``None``, elements from this namespace will
+		If ``defaultxmlns`` is not :const:`None`, elements from this namespace will
 		be output without any namespace name.
 		"""
 		Presenter.__init__(self, node)

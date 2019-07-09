@@ -28,7 +28,7 @@ def globals(request):
 
 		<?code db = globals.oracle(globals.vars.connectstring)?>
 
-	If ``LL_ORASQL_TEST_CONNECT`` is not set ``None`` will be returned instead.
+	If ``LL_ORASQL_TEST_CONNECT`` is not set :const:`None` will be returned instead.
 	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:

@@ -3704,7 +3704,7 @@ def astext(
 
 	``overline``
 		A character that is repeated for the width of the content as a rule before
-		the content. If ``None`` is used, no rule will be output. (Note that this
+		the content. If :const:`None` is used, no rule will be output. (Note that this
 		will only work on the innermost block level element.)
 
 	``underline``

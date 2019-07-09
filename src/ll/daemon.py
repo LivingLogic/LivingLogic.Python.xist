@@ -67,7 +67,7 @@ class Daemon:
 		kill the daemon.
 
 		``user`` can be the name or uid of a user. :meth:`start` will switch
-		to this user for running the service. If ``user`` is ``None`` no
+		to this user for running the service. If ``user`` is :const:`None` no
 		user switching will be done.
 
 		In the same way ``group`` can be the name or gid of a group.

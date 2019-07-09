@@ -337,7 +337,7 @@ def _makevars(signature, args, kwargs):
 	``signature`` and return the resulting argument dictionary. (This differs
 	from :meth:`inspect.Signature.bind` in that it handles default values too.)
 
-	``signature`` may also be ``None`` in which case ``args`` must be empty
+	``signature`` may also be :const:`None` in which case ``args`` must be empty
 	and `kwargs` is returned, i.e. the signature is treated as accepting no
 	positional argument and any keyword argument.
 	"""
@@ -1205,7 +1205,7 @@ class AST:
 
 	def __str__(self):
 		# This uses :meth:`_str`, which is a generator and may output:
-		# ``None``, which means: "add a line feed and an indentation here"
+		# :const:`None`, which means: "add a line feed and an indentation here"
 		# an int, which means: add the int to the indentation level
 		# a string, which means: add this string to the output
 		v = []
@@ -3803,7 +3803,7 @@ class Template(Block):
 		"""
 		Create a :class:`Template` object.
 
-		If ``source`` is ``None``, the :class:`Template` remains uninitialized,
+		If ``source`` is :const:`None`, the :class:`Template` remains uninitialized,
 		otherwise ``source`` will be compiled (using ``startdelim`` and
 		``enddelim`` as the tag delimiters).
 
@@ -3848,7 +3848,7 @@ class Template(Block):
 		``signature`` is the signature of the template. For a top level
 		template it can be:
 
-		``None``
+		:const:`None`
 			The template will accept all keyword arguments.
 
 		An :class:`inspect.Signature` object
@@ -3865,7 +3865,7 @@ class Template(Block):
 		If the template is a subtemplate (i.e. a template defined by another
 		template via ``<?def t?>...<?end def?>``), ``signature`` can be:
 
-		``None``
+		:const:`None`
 			The template will accept all arguments.
 
 		A :class:`Signature` object
@@ -3971,7 +3971,7 @@ class Template(Block):
 		encoder.dump(self.docpos)
 		encoder.dump(self.parenttemplate)
 
-		# Signature can be ``None`` or an instance of :class:`inspect.Signature` or :class:`Signature`
+		# Signature can be :const:`None` or an instance of :class:`inspect.Signature` or :class:`Signature`
 		if self.signature is None or isinstance(self.signature, Signature):
 			encoder.dump(self.signature)
 		else:
@@ -3997,7 +3997,7 @@ class Template(Block):
 
 	def ul4onload(self, decoder):
 		version = decoder.load()
-		# If the loaded version is ``None``, this is not a "compiled" version of the template,
+		# If the loaded version is :const:`None`, this is not a "compiled" version of the template,
 		# but a "source" version. It only contains the info required to compile the template.
 		#
 		# Not all implementations (i.e. the Javascript one) support this mode.

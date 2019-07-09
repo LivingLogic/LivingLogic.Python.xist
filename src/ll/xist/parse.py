@@ -1215,7 +1215,7 @@ class Node:
 		"""
 		Create a :class:`Node` object.
 
-		``pool`` may be ``None`` or a :class:`xsc.Pool` object and specifies
+		``pool`` may be :const:`None` or a :class:`xsc.Pool` object and specifies
 		which classes used for creating element, entity and processsing
 		instruction instances.
 
@@ -1580,7 +1580,7 @@ def itertree(*pipeline, entercontent=True, enterattrs=False, enterattr=False, en
 	selector = xfind.selector(selector)
 	cursor = xsc.Cursor(xsc.Frag(), entercontent=entercontent, enterattrs=enterattrs, enterattr=enterattr, enterelementnode=enterelementnode, leaveelementnode=leaveelementnode, enterattrnode=enterattrnode, leaveattrnode=leaveattrnode)
 	cursor.index.append(0)
-	skipcontent = None # If this is not ``None``, we're currently skipping past the content of this element
+	skipcontent = None # If this is not :const:`None`, we're currently skipping past the content of this element
 	for (evtype, node) in events(*pipeline):
 		cursor.event = evtype
 		if evtype == "enterelementnode":

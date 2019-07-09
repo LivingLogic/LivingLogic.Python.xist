@@ -265,10 +265,10 @@ class Text(list):
 
 def streamstyle(stream, styled=None):
 	"""
-	If ``styled`` is ``None``, return whether ``stream`` refers to a terminal.
+	If ``styled`` is :const:`None`, return whether ``stream`` refers to a terminal.
 	If this can't be determined (either because ``stream`` doesn't refer to a
-	real OS file, or because you're on Windows) return ``False``. If ``styled``
-	is not ``None`` ``styled`` will be returned unchanged.
+	real OS file, or because you're on Windows) return :const:`False`. If ``styled``
+	is not :const:`None` ``styled`` will be returned unchanged.
 	"""
 	if styled is None:
 		try:

@@ -1879,7 +1879,7 @@ class Constraint(OwnedSchemaObject):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		return None # we can't give a create date, only a change date, so return ``None`` here
+		return None # we can't give a create date, only a change date, so return :const:`None` here
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)

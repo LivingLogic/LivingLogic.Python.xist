@@ -95,7 +95,7 @@ def selector(*objs):
 	*	if ``obj`` is callable a :class:`CallableSelector` is returned
 		(where matching is done by calling ``obj``);
 
-	*	if ``obj`` is ``None`` ``any`` will be returned;
+	*	if ``obj`` is :const:`None` ``any`` will be returned;
 
 	*	otherwise :func:`!selector` will raise a :exc:`TypeError`.
 	"""

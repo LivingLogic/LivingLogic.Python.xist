@@ -550,8 +550,9 @@ class Command:
 
 	``raiseexceptions`` : bool (optional)
 		Specifies whether exceptions that happen during the execution of the
-		command should be reported and terminate the script (``True``), or
-		should be ignored (``False``). ``None`` uses the global configuration.
+		command should be reported and terminate the script (:const:`True`), or
+		should be ignored (:const:`False`). :const:`None` uses the global
+		configuration.
 	"""
 
 	def __init__(self, *, raiseexceptions=None):
@@ -639,7 +640,7 @@ class include(Command):
 	:class:`!include` command.
 
 	The parameter ``cond`` specifies whether this :class:`!include` command
-	should be executed or not. If ``cond`` is ``None`` or true, the
+	should be executed or not. If ``cond`` is :const:`None` or true, the
 	:class:`!include` command will be executed, else it won't.
 
 	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
@@ -1061,7 +1062,7 @@ class literalpy(_DatabaseCommand):
 	A :class:`!literalpy` is used for Python code that appears literally in the
 	PySQL file. So apart from the ``code`` attribute is has no further usable
 	attributes (i.e. ``connection`` and ``raiseexceptions`` from the base class
-	are all ``None``).
+	are all :const:`None`).
 	"""
 
 	def __init__(self, code):
@@ -2142,7 +2143,7 @@ class Context:
 		vars = self.globals()
 
 		# ``state`` is the state of the "parser", values have the following meaning
-		# ``None``: outside of any block
+		# :const:`None`: outside of any block
 		# ``literalsql``: inside of literal SQL block
 		# ``literalpy``: inside of literal Python block
 		# ``dict``: inside of Python dict literal

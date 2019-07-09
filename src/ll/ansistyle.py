@@ -97,7 +97,7 @@ class Colorizer(object):
 			Numbers
 				A number in the argument sequence will switch to that color value.
 
-			``None``
+			:const:`None`
 				This will switch back to the default color (This is different from
 				using the color number 0070, because 0070 will only switch colors
 				if there is some output string afterwards).

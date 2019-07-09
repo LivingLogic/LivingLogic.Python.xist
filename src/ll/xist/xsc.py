@@ -2804,7 +2804,7 @@ class Attrs(Node, dict, metaclass=_Attrs_Meta):
 
 		A two-item tuple
 			The first item is treated as the XML attribute name and the second
-			item as the namespace name. If the namespace name is ``None`` this
+			item as the namespace name. If the namespace name is :const:`None` this
 			refers to a local attributes, otherwise to a global attribute.
 
 		An :class:`Attr` subclass

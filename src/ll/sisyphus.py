@@ -550,7 +550,7 @@ class Job:
 	/last_eventful.sisyphuslog
 	"""
 
-	# URL of final log file (``None`` if no logging is done to a file)
+	# URL of final log file (:const:`None` if no logging is done to a file)
 	logfileurl = None
 
 	log2file = True
@@ -1165,18 +1165,18 @@ class Job:
 
 		Arguments have the following meaning:
 
-		``type`` : string or ``None``
+		``type`` : string or :const:`None`
 			The type of the task.
 
-		``name`` : string or ``None``
+		``name`` : string or :const:`None`
 			The name of the task.
 
-		``index`` : integer or ``None``
+		``index`` : integer or :const:`None`
 			If this task is one in a sequence of similar tasks, ``index`` should
 			be the index of this task, i.e. the first task of this type has
 			``index==0``, the second one ``index==1`` etc.
 
-		``count`` : integer or ``None``
+		``count`` : integer or :const:`None`
 			If this task is one in a sequence of similar tasks and the total number
 			of tasks is known, ``count`` should be the total number of tasks.
 		"""
