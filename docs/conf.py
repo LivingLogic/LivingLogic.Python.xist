@@ -329,10 +329,10 @@ autodoc_member_order = "bysource"
 autodoc_inherit_docstrings = False
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
-	exclusions = (
+	exclusions = {
 		'__weakref__', # special-members
 		'__doc__', '__module__', '__dict__',  # undoc-members
-	)
+	}
 	return skip or (name in exclusions)
 
 def setup(app):
