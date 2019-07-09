@@ -1,7 +1,7 @@
 /* sphinx_ll_theme version 0.1 | MIT license */
 @import url("../typeface-source-sans-pro-0.0.35/index.css");
 @import url("../typeface-source-code-pro-0.0.35/index.css");
-@import url({{theme_font_awesome_url}});
+@import url("{{theme_font_awesome_url}}");
 
 *
 {
