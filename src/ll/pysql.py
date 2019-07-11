@@ -2452,10 +2452,11 @@ class Location:
 			rulebottom = context.char_hrule * (linenumberlen + 1) + context.char_hruleup + context.char_hrule * (context._width - 2 - linenumberlen)
 			print(ruletop, flush=True)
 
+			linenumberellipsis = context.char_vellipsis[:linenumberlen]
 			for (linenumber, line) in self.lines:
 				if context.context is not None and startline + context.context <= linenumber <= endline - context.context:
 					if startline + context.context == linenumber:
-						print(f"{context.char_vellipsis:>{linenumberlen}} {context.char_vrule} {context.char_vellipsis}", flush=True)
+						print(f"{linenumberellipsis:>{linenumberlen}} {context.char_vrule} {context.char_vellipsis}", flush=True)
 				else:
 					if context.tabsize is not None:
 						line = line.expandtabs(context.tabsize)
