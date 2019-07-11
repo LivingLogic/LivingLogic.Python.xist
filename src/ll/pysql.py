@@ -2448,7 +2448,7 @@ class Location:
 			linenumberlen = len(f"{self.endline:,}")
 			filename = context.strfilename(self.filename)
 			filenamelen = len(filename)
-			ruletop    = context.char_hrule * (linenumberlen + 1) + f"{context.char_hruledown}[ " + filename + " ]" + context.char_hrule * (context._width - 2 - linenumberlen - 4 - filenamelen)
+			ruletop    = context.char_hrule * (linenumberlen + 1) + f"{context.char_hruledown}[ {filename} ]" + context.char_hrule * (context._width - 2 - linenumberlen - 4 - filenamelen)
 			rulebottom = context.char_hrule * (linenumberlen + 1) + context.char_hruleup + context.char_hrule * (context._width - 2 - linenumberlen)
 			print(ruletop, flush=True)
 
