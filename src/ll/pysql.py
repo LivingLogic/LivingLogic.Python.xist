@@ -2240,9 +2240,8 @@ class Context:
 				print("files:", end="", flush=True)
 			if filenames:
 				for filename in filenames:
-					filename = pathlib.Path(filename)
-					with self.changed_filename(filename) as absfilenname:
-						with absfilenname.open("r") as f:
+					with self.changed_filename(filename) as fn:
+						with fn.open("r") as f:
 							self._load(f)
 			else:
 				self._load(sys.stdin)
