@@ -2112,6 +2112,9 @@ class Context:
 					print(repr(obj), end="", flush=True)
 			print(flush=True)
 
+	def hrule(self, width):
+		return self.char_hrule * width
+
 	@contextlib.contextmanager
 	def changed_filename(self, filename):
 		filename = pathlib.Path(filename).resolve()
@@ -2447,8 +2450,8 @@ class Location:
 			linenumberlen = len(f"{self.endline:,}")
 			filename = context.strfilename(self.filename)
 			filenamelen = len(filename)
-			ruletop    = context.char_hrule * (linenumberlen + 1) + f"{context.char_hruledown}[ {filename} ]" + context.char_hrule * (context._width - 2 - linenumberlen - 4 - filenamelen)
-			rulebottom = context.char_hrule * (linenumberlen + 1) + context.char_hruleup + context.char_hrule * (context._width - 2 - linenumberlen)
+			ruletop    = f"{context.hrule(linenumberlen + 1)}{context.char_hruledown}[ {filename} ]{context.hrule(context._width - 2 - linenumberlen - 4 - filenamelen)}"
+			rulebottom = f"{context.hrule(linenumberlen + 1)}{context.char_hruleup}{context.hrule(context._width - 2 - linenumberlen)}"
 			print(ruletop, flush=True)
 
 			linenumberellipsis = context.char_vellipsis[:linenumberlen]
@@ -2463,7 +2466,7 @@ class Location:
 			print(rulebottom, flush=True)
 		else:
 			endline = len(self.lines) - 1
-			rule = context.char_hrule * self._width
+			rule = context.hrule(context._width)
 			print(rule, flush=True)
 			for (linenumber, line) in self.lines:
 				if context.context is not None and context.context <= linenumber <= endline - context.context:
