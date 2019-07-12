@@ -575,8 +575,8 @@ class Command:
 
 	def strlocation(self, context):
 		result = context.strfilename(self.location.filename)
-		if self.location.startline is None and self.location.endline is None:
-			result += f" :: {self._lines()}"
+		if self.location.startline is not None and self.location.endline is not None:
+			result += f" :: {self.location._lines()}"
 		return result
 
 	def finish(self, message):

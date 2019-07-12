@@ -18,6 +18,8 @@ Changes in 5.50 (released 07/??/2019)
 	stack traces work again: as we're changing directories now, using relative
 	paths no longer worked.
 
+*	Fixed logic for showing line numbers for locations in PySQL scripts.
+
 
 Changes in 5.49 (released 07/04/2019)
 -------------------------------------
