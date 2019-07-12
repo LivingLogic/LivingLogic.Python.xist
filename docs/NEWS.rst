@@ -14,6 +14,10 @@ Changes in 5.50 (released 07/??/2019)
 *	There's a new option ``-a``/``--ascii`` for running PySQL scripts: With this
 	PySQL will not use unicode characters for drawing fancy boxes.
 
+*	Fixed a bug in the filename handling of PySQL, so that showing source in
+	stack traces work again: as we're changing directories now, using relative
+	paths no longer worked.
+
 
 Changes in 5.49 (released 07/04/2019)
 -------------------------------------

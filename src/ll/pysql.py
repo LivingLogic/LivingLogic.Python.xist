@@ -2114,7 +2114,7 @@ class Context:
 
 	@contextlib.contextmanager
 	def changed_filename(self, filename):
-		filename = pathlib.Path(filename)
+		filename = pathlib.Path(filename).resolve()
 		oldfilename = self.filename
 		self.filename = filename
 		oldcwd = pathlib.Path.cwd()
