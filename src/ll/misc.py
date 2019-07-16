@@ -280,9 +280,9 @@ class _propclass_Meta(type):
 
 class propclass(property, metaclass=_propclass_Meta):
 	'''
-	:class:`propclass` provides an alternate way to define properties.
+	:class:`!propclass` provides an alternate way to define properties.
 
-	Subclassing :class:`propclass` and defining methods :meth:`__get__`,
+	Subclassing :class:`!propclass` and defining methods :meth:`__get__`,
 	:meth:`__set__` and :meth:`__delete__` will automatically generate the
 	appropriate property::
 
@@ -351,7 +351,7 @@ def exception_chain(exc):
 
 class Pool:
 	"""
-	A :class:`Pool` object can be used as an inheritable alternative to modules.
+	A :class:`!Pool` object can be used as an inheritable alternative to modules.
 	The attributes of a module can be put into a pool and each pool can have
 	base pools where lookup continues if an attribute can't be found.
 	"""
@@ -365,7 +365,7 @@ class Pool:
 	def register(self, object):
 		r"""
 		Register ``object`` in the pool. ``object`` can be a module, a
-		dictionary or a :class:`Pool` objects (with registers the pool as a base
+		dictionary or a :class:`!Pool` objects (with registers the pool as a base
 		pool). If ``object`` is a module and has an attribute :attr:`__bases__`
 		(being a sequence of other modules) this attribute will be used to
 		initialize ``self``\s base pool.
@@ -432,7 +432,7 @@ def iterone(item):
 
 class Iterator:
 	"""
-	:class:`Iterator` adds :meth:`__getitem__` support to an iterator. This is
+	:class:`!Iterator` adds :meth:`__getitem__` support to an iterator. This is
 	done by calling :func:`item` internally.
 	"""
 	__slots__ = ("iterator", )
@@ -473,7 +473,7 @@ class Iterator:
 
 class Queue:
 	"""
-	:class:`Queue` provides FIFO queues: The method :meth:`write` writes to the
+	:class:`!Queue` provides FIFO queues: The method :meth:`write` writes to the
 	queue and the method :meth:`read` read from the other end of the queue and
 	remove the characters read.
 	"""
@@ -518,7 +518,7 @@ class Const:
 
 class FlagAction(argparse.Action):
 	"""
-	:class:`FlagAction` can be use with :mod:`argparse` for options that
+	:class:`!FlagAction` can be use with :mod:`argparse` for options that
 	represent flags. An options can have a value like ``yes`` or ``no`` for the
 	correspending boolean value, or if the value is omitted it is the inverted
 	default value (i.e. specifying the option toggles it).
@@ -697,7 +697,7 @@ def javaexpr(obj):
 
 class SysInfo:
 	"""
-	A :class:`SysInfo` object contains information about the host, user, python
+	A :class:`!SysInfo` object contains information about the host, user, python
 	version and script. Available attributes are ``host_name``, ``host_fqdn``,
 	``host_ip``, ``host_sysname``, ``host_nodename``, ``host_release``,
 	``host_version``, ``host_machine``, ``user_name``, ``user_uid``, ``user_gid``,
@@ -705,7 +705,7 @@ class SysInfo:
 	``python_version``, ``pid``, ``script_name``, ``short_script_name`` and
 	``script_url``.
 
-	:class:`SysInfo` object also support a mimimal dictionary interface (i.e.
+	:class:`!SysInfo` object also support a mimimal dictionary interface (i.e.
 	:meth:`__getitem__` and :meth:`__iter__`).
 
 	One module global instance named ``sysinfo`` is created at module import
