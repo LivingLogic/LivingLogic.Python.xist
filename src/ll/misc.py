@@ -908,7 +908,7 @@ sysinfo = SysInfo()
 
 class monthdelta:
 	"""
-	:class:`monthdelta` objects can be used to add months/years to a
+	:class:`!monthdelta` objects can be used to add months/years to a
 	:class:`datetime.datetime` or :class:`datetime.date` object. If the resulting
 	day falls out of the range of valid days for the target month, the last day
 	for the target month will be used instead::
@@ -1091,7 +1091,7 @@ def prettycsv(rows, padding="   "):
 	``rows`` must be a list of lists of strings (e.g. as produced by the
 	:mod:`csv` module). ``padding`` is the padding between columns.
 
-	:func:`prettycsv` is a generator.
+	:func:`!prettycsv` is a generator.
 	"""
 
 	def width(row, i):
