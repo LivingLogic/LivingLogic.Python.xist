@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.50 (released 07/??/2019)
+Changes in 5.50 (released 07/16/2019)
 -------------------------------------
 
 *	There's a new option ``-a``/``--ascii`` for running PySQL scripts: With this
