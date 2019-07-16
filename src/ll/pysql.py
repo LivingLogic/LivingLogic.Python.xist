@@ -361,9 +361,7 @@ reverts to the previous connection (which might not exist). An example looks
 like this::
 
 	connect("user/pwd@db")
-
 	procedure("test")
-
 	disconnect()
 
 
