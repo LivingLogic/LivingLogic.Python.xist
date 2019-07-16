@@ -575,8 +575,8 @@ class Command:
 
 	def strlocation(self, context):
 		result = context.strfilename(self.location.filename)
-		if self.location.startline is None and self.location.endline is None:
-			result += f" :: {self._lines()}"
+		if self.location.startline is not None and self.location.endline is not None:
+			result += f" :: {self.location._lines()}"
 		return result
 
 	def finish(self, message):
@@ -1972,7 +1972,7 @@ class CommandExecutor:
 			if context.raiseexceptions[-1]:
 				if context.verbose:
 					print(flush=True)
-				raise CommandError(command) from exc
+				raise
 			else:
 				context.errorcount += 1
 				if context.verbose == "dot":
@@ -2112,9 +2112,12 @@ class Context:
 					print(repr(obj), end="", flush=True)
 			print(flush=True)
 
+	def hrule(self, width):
+		return self.char_hrule * width
+
 	@contextlib.contextmanager
 	def changed_filename(self, filename):
-		filename = pathlib.Path(filename)
+		filename = pathlib.Path(filename).resolve()
 		oldfilename = self.filename
 		self.filename = filename
 		oldcwd = pathlib.Path.cwd()
@@ -2157,27 +2160,24 @@ class Context:
 			# Drop empty lines at the end
 			while lines and not lines[-1][1].strip():
 				del lines[-1]
-			try:
-				if lines:
-					self._location = Location(stream.name, lines)
-					lines.clear()
-					source = self._location.source(False)
-					if state == "literalsql":
-						CommandExecutor(literalsql, self)(source)
-					elif state == "literalpy":
-						CommandExecutor(literalpy, self)(source)
-					elif state == "dict":
-						code = compile(source, self._location.filename, "eval")
-						args = eval(code, vars, self._locals)
-						type = args.pop("type", "procedure")
-						if type not in Command.commands:
-							raise ValueError(f"command type {type!r} unknown")
-						CommandExecutor(Command.commands[type], self)(**args)
-					else:
-						code = compile(source, self._location.filename, "exec")
-						exec(code, vars, self._locals)
-			except Exception as exc:
-				raise LocationError(self._location) from exc
+			if lines:
+				self._location = Location(stream.name, lines)
+				lines.clear()
+				source = self._location.source(False)
+				if state == "literalsql":
+					CommandExecutor(literalsql, self)(source)
+				elif state == "literalpy":
+					CommandExecutor(literalpy, self)(source)
+				elif state == "dict":
+					code = compile(source, self._location.filename, "eval")
+					args = eval(code, vars, self._locals)
+					type = args.pop("type", "procedure")
+					if type not in Command.commands:
+						raise ValueError(f"command type {type!r} unknown")
+					CommandExecutor(Command.commands[type], self)(**args)
+				else:
+					code = compile(source, self._location.filename, "exec")
+					exec(code, vars, self._locals)
 
 		for (i, line) in enumerate(stream, 1):
 			line = line.rstrip()
@@ -2240,9 +2240,8 @@ class Context:
 				print("files:", end="", flush=True)
 			if filenames:
 				for filename in filenames:
-					filename = pathlib.Path(filename)
-					with self.changed_filename(filename) as absfilenname:
-						with absfilenname.open("r") as f:
+					with self.changed_filename(filename) as fn:
+						with fn.open("r") as f:
 							self._load(f)
 			else:
 				self._load(sys.stdin)
@@ -2448,14 +2447,15 @@ class Location:
 			linenumberlen = len(f"{self.endline:,}")
 			filename = context.strfilename(self.filename)
 			filenamelen = len(filename)
-			ruletop    = context.char_hrule * (linenumberlen + 1) + f"{context.char_hruledown}[ " + filename + " ]" + context.char_hrule * (context._width - 2 - linenumberlen - 4 - filenamelen)
-			rulebottom = context.char_hrule * (linenumberlen + 1) + context.char_hruleup + context.char_hrule * (context._width - 2 - linenumberlen)
+			ruletop    = f"{context.hrule(linenumberlen + 1)}{context.char_hruledown}[ {filename} ]{context.hrule(context._width - 2 - linenumberlen - 4 - filenamelen)}"
+			rulebottom = f"{context.hrule(linenumberlen + 1)}{context.char_hruleup}{context.hrule(context._width - 2 - linenumberlen)}"
 			print(ruletop, flush=True)
 
+			linenumberellipsis = context.char_vellipsis[:linenumberlen]
 			for (linenumber, line) in self.lines:
 				if context.context is not None and startline + context.context <= linenumber <= endline - context.context:
 					if startline + context.context == linenumber:
-						print(f"{context.char_vellipsis:>{linenumberlen}} {context.char_vrule} {context.char_vellipsis}", flush=True)
+						print(f"{linenumberellipsis:>{linenumberlen}} {context.char_vrule} {context.char_vellipsis}", flush=True)
 				else:
 					if context.tabsize is not None:
 						line = line.expandtabs(context.tabsize)
@@ -2463,7 +2463,7 @@ class Location:
 			print(rulebottom, flush=True)
 		else:
 			endline = len(self.lines) - 1
-			rule = context.char_hrule * self._width
+			rule = context.hrule(context._width)
 			print(rule, flush=True)
 			for (linenumber, line) in self.lines:
 				if context.context is not None and context.context <= linenumber <= endline - context.context:

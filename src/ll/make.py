@@ -1171,7 +1171,7 @@ class Project(dict):
 		"""
 		This property specifies for which actions tranformation steps should be
 		reported during the build process. For allowed values on setting see
-		:prop:`showaction`.
+		:property:`showaction`.
 		"""
 		def __get__(self):
 			return self._showstep
@@ -1198,7 +1198,7 @@ class Project(dict):
 		This property specifies which for which actions tranformation notes
 		(which are similar to step, but not that important, e.g. when an
 		information that is already there gets reused) be reported during the
-		build process. For allowed values on setting see :prop:`showaction`.
+		build process. For allowed values on setting see :property:`showaction`.
 		"""
 		def __get__(self):
 			return self._shownote
@@ -1224,7 +1224,7 @@ class Project(dict):
 		"""
 		This property specifies for which actions registration (i.e. call to the
 		:meth:`add` should be reported. For allowed values on setting see
-		:prop:`showaction`.
+		:property:`showaction`.
 		"""
 		def __get__(self):
 			return self._showregistration

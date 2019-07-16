@@ -331,10 +331,16 @@ autodoc_default_options = {
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = {
-		'__weakref__', # special-members
+		'__weakref__', '__slots__', # special-members
 		'__doc__', '__module__', '__dict__',  # undoc-members
 	}
-	return skip or (name in exclusions)
+	if skip:
+		return True
+	elif name in exclusions:
+		return True
+	elif name in dir(object) and getattr(obj, name).__doc__ == getattr(object, name).__doc__:
+		return True
+	return False
 
 def setup(app):
 	app.connect('autodoc-skip-member', autodoc_skip_member)
