@@ -1049,7 +1049,7 @@ def timeout(seconds):
 	"""
 	A context manager that limits the runtime of the wrapped code.
 
-	This doesn't work with threads and only on UNIX.
+	As this uses :mod:`signal`, this won't with threads and only on UNIX.
 	"""
 
 	def _timeouthandler(signum, frame):
