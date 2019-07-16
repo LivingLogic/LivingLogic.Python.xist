@@ -1972,7 +1972,7 @@ class CommandExecutor:
 			if context.raiseexceptions[-1]:
 				if context.verbose:
 					print(flush=True)
-				raise CommandError(command) from exc
+				raise
 			else:
 				context.errorcount += 1
 				if context.verbose == "dot":
@@ -2160,27 +2160,24 @@ class Context:
 			# Drop empty lines at the end
 			while lines and not lines[-1][1].strip():
 				del lines[-1]
-			try:
-				if lines:
-					self._location = Location(stream.name, lines)
-					lines.clear()
-					source = self._location.source(False)
-					if state == "literalsql":
-						CommandExecutor(literalsql, self)(source)
-					elif state == "literalpy":
-						CommandExecutor(literalpy, self)(source)
-					elif state == "dict":
-						code = compile(source, self._location.filename, "eval")
-						args = eval(code, vars, self._locals)
-						type = args.pop("type", "procedure")
-						if type not in Command.commands:
-							raise ValueError(f"command type {type!r} unknown")
-						CommandExecutor(Command.commands[type], self)(**args)
-					else:
-						code = compile(source, self._location.filename, "exec")
-						exec(code, vars, self._locals)
-			except Exception as exc:
-				raise LocationError(self._location) from exc
+			if lines:
+				self._location = Location(stream.name, lines)
+				lines.clear()
+				source = self._location.source(False)
+				if state == "literalsql":
+					CommandExecutor(literalsql, self)(source)
+				elif state == "literalpy":
+					CommandExecutor(literalpy, self)(source)
+				elif state == "dict":
+					code = compile(source, self._location.filename, "eval")
+					args = eval(code, vars, self._locals)
+					type = args.pop("type", "procedure")
+					if type not in Command.commands:
+						raise ValueError(f"command type {type!r} unknown")
+					CommandExecutor(Command.commands[type], self)(**args)
+				else:
+					code = compile(source, self._location.filename, "exec")
+					exec(code, vars, self._locals)
 
 		for (i, line) in enumerate(stream, 1):
 			line = line.rstrip()
