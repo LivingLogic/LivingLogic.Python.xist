@@ -1501,10 +1501,10 @@ class resetsequence(_DatabaseCommand):
 
 		step = max(tabvalue, minvalue) - seqvalue
 		if step:
-			cursor.execute(f"alter sequence {self.sequence} increment by {self.step}")
+			cursor.execute(f"alter sequence {self.sequence} increment by {step}")
 			cursor.execute(f"select {self.sequence}.nextval from dual")
 			seqvalue = cursor.fetchone()[0]
-			cursor.execute(f"alter sequence {self.sequence} increment by {self.increment}")
+			cursor.execute(f"alter sequence {self.sequence} increment by {increment}")
 			self.finish(f"Reset sequence {self.sequence} to {seqvalue}")
 		else:
 			seqvalue = None
