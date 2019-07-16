@@ -99,7 +99,7 @@ def item(iterable, index, default=None):
 	exhausted up to the ``index``'th item. If the iterator doesn't produce
 	that many items ``default`` will be returned.
 
-	``index`` may also be an iterable of indexes, in which case :meth:`item`
+	``index`` may also be an iterable of indexes, in which case :func:`!item`
 	will be applied recursively, i.e. ``item(["foo", "bar"], (1, -1))`` returns
 	``'r'``.
 	"""
