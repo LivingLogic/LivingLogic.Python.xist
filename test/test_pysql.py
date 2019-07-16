@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import io, os, tempfile
+import os, tempfile
 
 import cx_Oracle
 
