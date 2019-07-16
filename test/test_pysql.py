@@ -53,41 +53,34 @@ end;
 		"	start with 30"
 		"	increment by 10"
 		"	cache 20",
-	"comment": "Create the sequence pysql_test_sequence",
 }
 
-{
-	"type": "procedure",
-	"name": "pysql_test_procedure",
-	"args": {
-		"p_odtt_id": var("odtt_1"),
-	},
-	"comment": "Call pysql_test_procedure",
-}
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_odtt_id=var("odtt_1"),
+	),
+)
 
-{
-	"type": "procedure",
-	"name": "pysql_test_procedure",
-	"args": {
-		"p_odtt_id": var("odtt_1"),
-	},
-	"comment": "Call pysql_test_procedure",
-}
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_odtt_id=var("odtt_1"),
+	)
+)
 
-{
-	"type": "resetsequence",
-	"sequence": "pysql_test_sequence",
-	"table": "pysql_test_table",
-	"field": "odtt_id"
-}
+resetsequence(
+	"pysql_test_sequence",
+	table="pysql_test_table",
+	field="odtt_id",
+)
 
-{
-	"type": "sql",
-	"sql": "begin :filename_file := 'gurk_file.txt'; end;",
-	"args": {
-		"filename_file": var("filename_file", str),
-	}
-}
+sql(
+	"begin :filename_file := 'gurk_file.txt'; end;",
+	args=dict(
+		filename_file=var("filename_file", str),
+	),
+)
 
 {
 	"type": "sql",
@@ -118,7 +111,7 @@ def execute_commands(commands, tmpdir):
 		f.write(commands.encode("utf-8"))
 
 	try:
-		pysql.main([dbname, tempname, "-vfull", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
+		pysql.main([tempname, "-d", dbname, "-vfull", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
 	finally:
 		os.remove(tempname)
 
