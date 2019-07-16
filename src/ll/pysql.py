@@ -158,8 +158,8 @@ The following commands are available:
 Comments
 --------
 
-A line starting with '#' (outside of a SQL command or literal Python block) is
-considered a comment and will be ignored.
+A line starting with ``#`` (outside of a SQL command or literal Python block)
+is considered a comment and will be ignored.
 
 
 Example
