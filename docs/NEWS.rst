@@ -18,6 +18,10 @@ Changes in 5.50 (released 07/??/2019)
 	stack traces work again: as we're changing directories now, using relative
 	paths no longer worked.
 
+*	PySQL no longer uses exception chaining for displaying the location and the
+	include chain of an error, as this is now part of the normal stacktrace
+	anyway.
+
 *	Fixed logic for showing line numbers for locations in PySQL scripts.
 
 *	Added classes :class:`ll.misc.Enum` and :class:`ll.misc.IntEnum` that are
