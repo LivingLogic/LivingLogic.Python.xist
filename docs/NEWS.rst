@@ -15,7 +15,7 @@ Changes in 5.50 (released 07/??/2019)
 	PySQL will not use unicode characters for drawing fancy boxes.
 
 *	Fixed a bug in the filename handling of PySQL, so that showing source in
-	stack traces work again: as we're changing directories now, using relative
+	stacktraces works again: as we're changing directories now, using relative
 	paths no longer worked.
 
 *	PySQL no longer uses exception chaining for displaying the location and the
