@@ -20,6 +20,11 @@ Changes in 5.50 (released 07/??/2019)
 
 *	Fixed logic for showing line numbers for locations in PySQL scripts.
 
+*	Added classes :class:`ll.misc.Enum` and :class:`ll.misc.IntEnum` that are
+	subclasses of :class:`enum.Enum` and :class:`enum.IntEnum`, but show the
+	module and fully qualified class name in the :func:`repr` output for classes
+	and instances.
+
 
 Changes in 5.49 (released 07/04/2019)
 -------------------------------------

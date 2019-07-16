@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, os.path, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess
+import sys, os, os.path, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess, enum
 from collections import abc
 
 from ll import color
@@ -255,6 +255,29 @@ def withdoc(doc):
 		function.__doc__ = doc
 		return function
 	return wrapper
+
+
+class EnumMeta(enum.Enum.__class__):
+	def __repr__(self):
+		return f"<enum {self.__module__}.{self.__qualname__}>"
+
+
+class _EnumRepr:
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}({self.value!r})>"
+
+class Enum(_EnumRepr, enum.Enum, metaclass=EnumMeta):
+	"""
+	Subclass of :class:`enum.Enum` where class and instance :func:`repr` output
+	include the module and fully qualified class name.
+	"""
+
+
+class IntEnum(_EnumRepr, enum.IntEnum, metaclass=EnumMeta):
+	"""
+	Subclass of :class:`enum.IntEnum` where class and instance :func:`repr`
+	output includes the module and fully qualified class name.
+	"""
 
 
 class _propclass_Meta(type):
