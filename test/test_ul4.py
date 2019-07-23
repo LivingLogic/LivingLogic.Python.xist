@@ -5749,6 +5749,11 @@ def test_smart_whitespace_nesting(T):
 
 
 @pytest.mark.ul4
+def test_smart_whitespace_empty_block(T):
+	assert "" == T("<?whitespace smart?>\n<?if bug?>\n<?end if?>\n").renders()
+
+
+@pytest.mark.ul4
 def test_function_signature(T):
 	assert 42 == T("<?return x?>", signature="x")(x=42)
 
