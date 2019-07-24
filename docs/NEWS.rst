@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.51 (released 07/??/2019)
+-------------------------------------
+
+Fixed the ``repr`` output of UL4 dictionary comprehensions.
+
+
 Changes in 5.50 (released 07/16/2019)
 -------------------------------------
 
