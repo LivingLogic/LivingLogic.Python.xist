@@ -1980,7 +1980,7 @@ class DictComp(Code):
 		self.container = container
 		self.condition = condition
 
-	def __repr__(self):
+	def _repr(self):
 		yield f"key={self.key!r}"
 		yield f"value={self.value!r}"
 		yield f"varname={self.varname!r}"
