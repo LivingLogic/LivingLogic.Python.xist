@@ -3431,6 +3431,10 @@ class PackageBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	type = "package body"
 
+	def synonyms(self, connection=None):
+		if False:
+			yield None
+
 
 class Type(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
