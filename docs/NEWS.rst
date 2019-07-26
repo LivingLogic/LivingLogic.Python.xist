@@ -11,27 +11,27 @@ see :ref:`MIGRATION`.
 Changes in 5.52 (released 07/??/2019)
 -------------------------------------
 
-The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed to
-:meth:`object`.
+*	The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed
+	to :meth:`object`.
 
-A new method :meth:`ll.orasql.Privilege.object` has been added. This method
-returns the object for which the :class:`ll.orasql.Privilege` grants a
-privilege. E.g. if the :class:`~ll.orasql.Privilege` ``p`` grant the ``SELECT``
-privilege on a table, ``p.object()`` will return that table.
+*	A new method :meth:`ll.orasql.Privilege.object` has been added. This method
+	returns the object for which the :class:`ll.orasql.Privilege` grants a
+	privilege. E.g. if the :class:`~ll.orasql.Privilege` ``p`` grant the
+	``SELECT`` privilege on a table, ``p.object()`` will return that table.
 
-A new method :meth:`ll.orasql.OwnedSchemaObject.synonyms` has been added. This
-generater yields all the synonyms for the object it is called on.
+*	A new method :meth:`ll.orasql.OwnedSchemaObject.synonyms` has been added.
+	This generater yields all the synonyms for the object it is called on.
 
 
 Changes in 5.51 (released 07/26/2019)
 -------------------------------------
 
-:meth:`ll.orasql.Synonym.names` and :meth:`ll.orasql.Synonym.objects` can now
-filter on the owner of the object (i.e. the object for which the
-:class:`~ll.orasql.Synonym` is a synonym) via the new parameter
-``object_owner``.
+*	:meth:`ll.orasql.Synonym.names` and :meth:`ll.orasql.Synonym.objects` can now
+	filter on the owner of the object (i.e. the object for which the
+	:class:`~ll.orasql.Synonym` is a synonym) via the new parameter
+	``object_owner``.
 
-Fixed the ``repr`` output of UL4 dictionary comprehensions.
+*	Fixed the ``repr`` output of UL4 dictionary comprehensions.
 
 
 Changes in 5.50 (released 07/16/2019)
