@@ -3418,13 +3418,13 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 
 	def synonyms(self, connection=None):
 		if "." not in self.name:
-			return super().synonyms(connection)
+			yield from super().synonyms(connection)
 		else:
 			yield from ()
 
 	def privileges(self, connection=None):
 		if "." not in self.name:
-			return super().privileges(connection)
+			yield from super().privileges(connection)
 		else:
 			yield from ()
 
