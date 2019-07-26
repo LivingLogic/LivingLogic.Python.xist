@@ -1303,7 +1303,7 @@ class OwnedSchemaObject(SchemaObject):
 				table_name=:name
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Synonym(rec.synonym_name, rec.owner) for rec in cursor)
+		return (Synonym(rec.synonym_name, rec.owner, connection) for rec in cursor)
 
 
 class Sequence(MixinNormalDates, OwnedSchemaObject):
