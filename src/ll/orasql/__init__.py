@@ -1320,6 +1320,7 @@ class OwnedSchemaObject(SchemaObject):
 				from
 					user_tab_privs
 				where
+					owner = user and
 					table_name = :name
 				order by
 					grantor,
