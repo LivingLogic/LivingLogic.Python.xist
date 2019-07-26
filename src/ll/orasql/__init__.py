@@ -1286,6 +1286,25 @@ class OwnedSchemaObject(SchemaObject):
 		"""
 		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
 
+	def synonyms(self, connection=None):
+		"""
+		Generator the yields all synonyms for this object.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"""
+			select
+				decode(owner, user, null, owner) as owner,
+				synonym_name
+			from
+				{ddprefix}_synonyms
+			where
+				table_owner=nvl(:owner, user) and
+				table_name=:name
+		"""
+		cursor.execute(query, owner=self.owner, name=self.name)
+		return (Synonym(rec.synonym_name, rec.owner) for rec in cursor)
+
 
 class Sequence(MixinNormalDates, OwnedSchemaObject):
 	"""

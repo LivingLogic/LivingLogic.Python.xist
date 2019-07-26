@@ -19,6 +19,9 @@ returns the object for which the :class:`ll.orasql.Privilege` grants a
 privilege. E.g. if the :class:`~ll.orasql.Privilege` ``p`` grant the ``SELECT``
 privilege on a table, ``p.object()`` will return that table.
 
+A new method :meth:`ll.orasql.OwnedSchemaObject.synonyms` has been added. This
+generater yields all the synonyms for the object it is called on.
+
 
 Changes in 5.51 (released 07/26/2019)
 -------------------------------------
