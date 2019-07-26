@@ -2899,6 +2899,59 @@ class Synonym(OwnedSchemaObject):
 			raise SQLObjectNotFoundError(self)
 		return connection._getobject(rec.table_name, rec.table_owner)
 
+	@classmethod
+	def names(cls, connection, owner=None, object_owner=ALL):
+		"""
+		Generator that yields the names of all synonyms. For the meaning of
+		``owner`` and ``object_owner`` see :meth:`objects`.
+
+		Names will be in ascending order.
+		"""
+		cursor = connection.cursor()
+		ddprefix = cursor.ddprefix()
+		where_sql = []
+		params = {}
+		if owner is None:
+			view_sql = "user_synonyms"
+			owner_sql = "null as owner"
+			order_sql = "table_owner, synonym_name"
+		else:
+			view_sql = f"{ddprefix}_synonyms"
+			owner_sql = "decode(owner, user, null, owner) as owner"
+			order_sql = "owner, table_owner, synonym_name"
+			if owner is ALL:
+				pass
+			elif isinstance(owner, str):
+				where_sql.append("owner = :owner")
+				params["owner"] = owner
+			else:
+				where_sql.append(f"owner in ({', '.join(sqlstr(o) for o in owner)})")
+		if object_owner is None:
+			where_sql.append("table_owner = user")
+		elif object_owner is ALL:
+			pass
+		elif isinstance(object_owner, str):
+			where_sql.append("table_owner = :table_owner")
+			params["table_owner"] = object_owner
+		else:
+				where_sql.append(f"table_owner in ({', '.join(sqlstr(o) for o in object_owner)})")
+		query = f"select {owner_sql}, synonym_name from {view_sql}"
+		if where_sql:
+			query += f" where {' and '.join(where_sql)}"
+		query += f" order by {order_sql}"
+
+		cursor.execute(query, **params)
+		return ((row.synonym_name, row.owner) for row in cursor)
+
+	@classmethod
+	def objects(cls, connection, owner=None, object_owner=ALL):
+		"""
+		Generator that yields all synonym in the current users schema.
+		The argument ``owner`` specifies to which owner the synonym must belong
+		to be yielded. The argument ``object_owner`` specifies to which owner the
+		object must belong to be yielded. For more information see :func:`owned`.
+		"""
+		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner, object_owner))
 
 class View(MixinNormalDates, OwnedSchemaObject):
 	"""
