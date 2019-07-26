@@ -8,8 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.51 (released 07/??/2019)
+Changes in 5.51 (released 07/26/2019)
 -------------------------------------
+
+:meth:`ll.orasql.Synonym.names` and :meth:`ll.orasql.Synonym.objects` can now
+filter on the owner of the object (i.e. the object for which the
+:class:`~ll.orasql.Synonym` is a synonym) via the new parameter
+``object_owner``.
 
 Fixed the ``repr`` output of UL4 dictionary comprehensions.
 
