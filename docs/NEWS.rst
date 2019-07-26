@@ -14,6 +14,11 @@ Changes in 5.52 (released 07/??/2019)
 The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed to
 :meth:`object`.
 
+A new method :meth:`ll.orasql.Privilege.object` has been added. This method
+returns the object for which the :class:`ll.orasql.Privilege` grants a
+privilege. E.g. if the :class:`~ll.orasql.Privilege` ``p`` grant the ``SELECT``
+privilege on a table, ``p.object()`` will return that table.
+
 
 Changes in 5.51 (released 07/26/2019)
 -------------------------------------

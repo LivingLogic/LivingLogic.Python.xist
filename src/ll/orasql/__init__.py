@@ -3559,6 +3559,13 @@ class Privilege:
 		return None
 	connectstring = property(getconnectstring)
 
+	def object(self, connection=None):
+		"""
+		Return the object on which ``self`` grants a privilege.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		return connection._getobject(self.name, self.grantor)
+
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
