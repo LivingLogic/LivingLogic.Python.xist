@@ -3421,6 +3421,18 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		self._calcargs(cursor)
 		yield from self._argsbypos
 
+	def synonyms(self, connection=None):
+		if "." not in self.name:
+			return super().synonyms(connection)
+		else:
+			yield from ()
+
+	def privileges(self, connection=None):
+		if "." not in self.name:
+			return super().privileges(connection)
+		else:
+			yield from ()
+
 
 class Procedure(Callable):
 	"""
@@ -3503,6 +3515,10 @@ class PackageBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		if False:
 			yield None
 
+	def privileges(self, connection=None):
+		if False:
+			yield None
+
 
 class Type(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
@@ -3516,6 +3532,14 @@ class TypeBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	Models a type body in the database.
 	"""
 	type = "type body"
+
+	def synonyms(self, connection=None):
+		if False:
+			yield None
+
+	def privileges(self, connection=None):
+		if False:
+			yield None
 
 
 class Trigger(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
@@ -4009,6 +4033,14 @@ class Column(OwnedSchemaObject):
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		return rec.comments or None
+
+	def synonyms(self, connection=None):
+		if False:
+			yield None
+
+	def privileges(self, connection=None):
+		if False:
+			yield None
 
 
 class User(SchemaObject):
