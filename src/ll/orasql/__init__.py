@@ -448,7 +448,7 @@ class Connection(Connection):
 
 	def _numbersasdecimal(self, cursor, name, defaultType, length, precision, scale):
 		if defaultType is NUMBER and scale:
-			return cursor.var(str, 100, cursor.arraysize, outconverter=decimal.Decimal)
+			return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
 	def connectstring(self):
 		return f"{self.username}@{self.tnsentry}"
