@@ -1042,8 +1042,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		the connection from which ``self`` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 		"""
-		if False:
-			yield None
+		yield from ()
 
 	def referencesall(self, connection=None, done=None):
 		"""
@@ -1067,8 +1066,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 
 		For the meaning of ``connection`` see :meth:`references`.
 		"""
-		if False:
-			yield None
+		yield from ()
 
 	def referencedbyall(self, connection=None, done=None):
 		"""
@@ -1458,8 +1456,7 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 
 	def references(self, connection=None, done=None):
 		# Shortcut: a sequence doesn't depend on anything
-		if False:
-			yield None
+		yield from ()
 
 
 def _columntype(rec, data_precision=None, data_scale=None, char_length=None):
@@ -2316,8 +2313,7 @@ class ForeignKey(Constraint):
 
 	def referencedby(self, connection=None):
 		# Shortcut: Nobody references a foreign key
-		if False:
-			yield None
+		yield from ()
 
 	def references(self, connection=None):
 		yield self.table(connection)
@@ -2499,8 +2495,7 @@ class CheckConstraint(Constraint):
 
 	def referencedby(self, connection=None):
 		# Shortcut: Nobody references a check constraint
-		if False:
-			yield None
+		yield from ()
 
 	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -3512,12 +3507,10 @@ class PackageBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	type = "package body"
 
 	def synonyms(self, connection=None):
-		if False:
-			yield None
+		yield from ()
 
 	def privileges(self, connection=None):
-		if False:
-			yield None
+		yield from ()
 
 
 class Type(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
@@ -3534,12 +3527,10 @@ class TypeBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	type = "type body"
 
 	def synonyms(self, connection=None):
-		if False:
-			yield None
+		yield from ()
 
 	def privileges(self, connection=None):
-		if False:
-			yield None
+		yield from ()
 
 
 class Trigger(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
@@ -4035,12 +4026,10 @@ class Column(OwnedSchemaObject):
 		return rec.comments or None
 
 	def synonyms(self, connection=None):
-		if False:
-			yield None
+		yield from ()
 
 	def privileges(self, connection=None):
-		if False:
-			yield None
+		yield from ()
 
 
 class User(SchemaObject):
