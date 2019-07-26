@@ -1305,6 +1305,74 @@ class OwnedSchemaObject(SchemaObject):
 		cursor.execute(query, owner=self.owner, name=self.name)
 		return (Synonym(rec.synonym_name, rec.owner, connection) for rec in cursor)
 
+	def privileges(self, connection=None):
+		"""
+		Generator the yields all privileges on this object.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		if self.owner is None:
+			query = """
+				select
+					decode(owner, user, null, owner) as owner,
+					privilege,
+					table_name as object,
+					decode(grantor, user, null, grantor) as grantor,
+					grantee
+				from
+					user_tab_privs
+				where
+					table_name = :name
+				order by
+					grantor,
+					privilege,
+					grantee
+			"""
+			cursor.execute(query, name=self.name)
+		else:
+			ddprefix = cursor.ddprefix()
+			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
+			if ddprefix == "all":
+				query = """
+					select
+						decode(table_schema, user, null, table_schema) as owner,
+						privilege,
+						table_name as object,
+						decode(grantor, user, null, grantor) as grantor,
+						grantee
+					from
+						all_tab_privs
+					where
+						table_schema = nvl(:owner, user) and
+						table_name = :name
+					order by
+						grantor,
+						table_name,
+						privilege,
+						grantee
+				"""
+			else:
+				query = """
+					select
+						decode(owner, user, null, owner) as owner,
+						privilege,
+						table_name as object,
+						decode(grantor, user, null, grantor) as grantor,
+						grantee
+					from
+						dba_tab_privs
+					where
+						owner = nvl(:owner, user) and
+						table_name = :name
+					order by
+						grantor,
+						table_name,
+						privilege,
+						grantee
+				"""
+			cursor.execute(query, name=self.name, owner=self.owner)
+		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
+
 
 class Sequence(MixinNormalDates, OwnedSchemaObject):
 	"""
