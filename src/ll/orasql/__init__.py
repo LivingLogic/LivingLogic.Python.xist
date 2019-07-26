@@ -2876,9 +2876,9 @@ class Synonym(OwnedSchemaObject):
 			code = f"create or replace synonym {self.getfullname()} {code[5]}"
 		return code
 
-	def getobject(self, connection=None):
+	def object(self, connection=None):
 		"""
-		Get the object for which ``self`` is a synonym.
+		Return the object for which ``self`` is a synonym.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()

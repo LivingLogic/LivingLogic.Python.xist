@@ -8,6 +8,16 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.52
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed to
+:meth:`object`.
+
+
 Migrating to version 5.45
 =========================
 
