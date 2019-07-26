@@ -2841,7 +2841,7 @@ class Synonym(OwnedSchemaObject):
 		ddprefix = cursor.ddprefix()
 		query = f"""
 			select
-				table_owner,
+				decode(table_owner, user, null, table_owner) as table_owner,
 				table_name,
 				db_link
 			from

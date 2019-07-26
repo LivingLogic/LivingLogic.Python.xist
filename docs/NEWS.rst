@@ -22,6 +22,10 @@ Changes in 5.52 (released 07/??/2019)
 *	A new method :meth:`ll.orasql.OwnedSchemaObject.synonyms` has been added.
 	This generater yields all the synonyms for the object it is called on.
 
+*	:meth:`ll.orasql.Synonym.createsql` now omits the schema name from the name
+	for the objects if it's the current user.
+
+
 
 Changes in 5.51 (released 07/26/2019)
 -------------------------------------
