@@ -108,6 +108,12 @@ def test_connection_privileges():
 
 
 @pytest.mark.db
+def test_connection_synonyms():
+	db = orasql.connect(dbname)
+	list(db.synonyms(None))
+
+
+@pytest.mark.db
 def test_connection_users():
 	db = orasql.connect(dbname)
 	list(db.users())

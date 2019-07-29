@@ -551,6 +551,14 @@ class Connection(Connection):
 		"""
 		return Privilege.objects(self, owner)
 
+	def synonyms(self, owner=None, object_owner=ALL):
+		"""
+		Generator that yields synonyms. ``owner`` and ``object_owner`` can be
+		:const:`None` (the default), :const:`ALL`, a user name or a set or tuple
+		of user names.
+		"""
+		return Privilege.objects(self, owner)
+
 	def users(self):
 		"""
 		Generator that yields all users.

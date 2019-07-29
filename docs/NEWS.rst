@@ -25,6 +25,8 @@ Changes in 5.52 (released 07/??/2019)
 *	A new method :meth:`ll.orasql.OwnedSchemaObject.privileges` has been added.
 	This generater yields all the privileges for the object it is called on.
 
+*	A new method :meth:`ll.orasql.Connection.synonyms` has been added.
+
 *	:meth:`ll.orasql.Synonym.createsql` now omits the schema name from the name
 	for the objects if it's the current user.
 
