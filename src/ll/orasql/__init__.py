@@ -325,7 +325,8 @@ class Record(tuple, abc.Mapping):
 		"""
 		Return an iterator over (field name, field value) tuples.
 		"""
-		return ((key, tuple.__getitem__(self, index)) for (index, key) in enumerate(self._index2name))
+		for (index, key) in enumerate(self._index2name):
+			yield (key, tuple.__getitem__(self, index))
 
 	def replace(self, **kwargs):
 		"""
@@ -1273,7 +1274,8 @@ class OwnedSchemaObject(SchemaObject):
 					object_name
 			"""
 			cursor.execute(query, type=cls.type.upper())
-		return ((row.object_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.object_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
@@ -1282,7 +1284,8 @@ class OwnedSchemaObject(SchemaObject):
 		The argument ``owner`` specifies whose objects are yielded. For more
 		information see :func:`owned`.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
+		for name in cls.names(connection, owner):
+			yield cls(name[0], name[1], connection)
 
 	def synonyms(self, connection=None):
 		"""
@@ -1301,7 +1304,8 @@ class OwnedSchemaObject(SchemaObject):
 				table_name=:name
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Synonym(rec.synonym_name, rec.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Synonym(rec.synonym_name, rec.owner, connection)
 
 	def privileges(self, connection=None):
 		"""
@@ -1369,7 +1373,8 @@ class OwnedSchemaObject(SchemaObject):
 						grantee
 				"""
 			cursor.execute(query, name=self.name, owner=self.owner)
-		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection)
 
 
 class Sequence(MixinNormalDates, OwnedSchemaObject):
@@ -1749,7 +1754,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 					table_name
 			"""
 			cursor.execute(query)
-		return ((row.table_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.table_name, row.owner)
 
 	def columns(self, connection=None):
 		"""
@@ -1769,7 +1775,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				column_id
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Column(f"{self.name}.{rec.column_name}", self.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Column(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def records(self, connection=None):
 		"""
@@ -1798,7 +1805,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				column_id
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Comment(f"{self.name}.{rec.column_name}", self.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Comment(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
@@ -1818,7 +1826,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
 		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
-		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield types[rec.constraint_type](rec.constraint_name, rec.owner, connection)
 
 	def constraints(self, connection=None):
 		"""
@@ -2108,7 +2117,8 @@ class Constraint(OwnedSchemaObject):
 					constraint_name
 			"""
 			cursor.execute(query, type=cls.constraint_type)
-		return ((rec.constraint_name, rec.owner) for rec in cursor)
+		for rec in cursor:
+			yield (rec.constraint_name, rec.owner)
 
 	def fixname(self, code):
 		code = code.split(None, 6)
@@ -2180,7 +2190,8 @@ class PrimaryKey(Constraint):
 				position
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Column(f"{tablename}.{rec.column_name}", self.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Column(f"{tablename}.{rec.column_name}", self.owner, connection)
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -2750,7 +2761,8 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 						index_name
 			"""
 			cursor.execute(query)
-		return ((row.index_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.index_name, row.owner)
 
 	def fixname(self, code):
 		if code.lower().startswith("create unique"):
@@ -3023,7 +3035,8 @@ class Synonym(OwnedSchemaObject):
 		query += f" order by {order_sql}"
 
 		cursor.execute(query, **params)
-		return ((row.synonym_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.synonym_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None, object_owner=ALL):
@@ -3033,7 +3046,8 @@ class Synonym(OwnedSchemaObject):
 		to be yielded. The argument ``object_owner`` specifies to which owner the
 		object must belong to be yielded. For more information see :func:`owned`.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner, object_owner))
+		for name in cls.names(connection, owner, object_owner):
+			yield cls(name[0], name[1], connection)
 
 class View(MixinNormalDates, OwnedSchemaObject):
 	"""
@@ -3790,7 +3804,8 @@ class Privilege:
 						privilege
 				"""
 			cursor.execute(query)
-		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection)
 
 	def grantsql(self, connection=None, term=True, mapgrantee=True):
 		"""
@@ -4054,14 +4069,16 @@ class User(SchemaObject):
 		ddprefix = cursor.ddprefix()
 		query = f"select username from {ddprefix}_users order by username"
 		cursor.execute(query)
-		return (row.username for row in cursor)
+		for row in cursor:
+			yield row.username
 
 	@classmethod
 	def objects(cls, connection):
 		"""
 		Generator that yields all user objects.
 		"""
-		return (cls(name, connection) for name in cls.names(connection))
+		for name in cls.names(connection):
+			yield cls(name, connection)
 
 
 class Preference(OwnedSchemaObject):
@@ -4131,14 +4148,16 @@ class Preference(OwnedSchemaObject):
 			else:
 				raise
 		else:
-			return ((row.pre_name, row.owner) for row in cursor)
+			for row in cursor:
+				yield (row.pre_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all preferences.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
+		for name in cls.names(connection, owner=owner):
+			yield cls(name[0], name[1], connection)
 
 
 class JobClass(SchemaObject):
@@ -4217,14 +4236,16 @@ class JobClass(SchemaObject):
 		ddprefix = cursor.ddprefix()
 		query = f"select job_class_name from {ddprefix}_scheduler_job_classes order by job_class_name"
 		cursor.execute(query)
-		return (row.job_class_name for row in cursor)
+		for row in cursor:
+			yield row.job_class_name
 
 	@classmethod
 	def objects(cls, connection):
 		"""
 		Generator that yields all job classes.
 		"""
-		return (cls(name, connection) for name in cls.names(connection))
+		for name in cls.names(connection):
+			yield cls(name, connection)
 
 	def references(self, connection=None):
 		yield from ()
@@ -4342,14 +4363,16 @@ class Job(OwnedSchemaObject):
 			ddprefix = cursor.ddprefix()
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner in ({', '.join(sqlstr(o) for o in owner)}) order by owner, job_name"
 			cursor.execute(query)
-		return ((row.job_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.job_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all jobs.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
+		for name in cls.names(connection, owner=owner):
+			yield cls(name[0], name[1], connection)
 
 	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
