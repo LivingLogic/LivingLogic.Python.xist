@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.52 (released 07/??/2019)
+Changes in 5.52 (released 07/29/2019)
 -------------------------------------
 
 *	The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed
