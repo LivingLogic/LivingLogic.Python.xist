@@ -1308,7 +1308,6 @@ class OwnedSchemaObject(SchemaObject):
 		Generator the yields all privileges on this object.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
 		if self.owner is None:
 			query = """
 				select
