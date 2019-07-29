@@ -3043,8 +3043,9 @@ class Synonym(OwnedSchemaObject):
 		"""
 		Generator that yields all synonym in the current users schema.
 		The argument ``owner`` specifies to which owner the synonym must belong
-		to be yielded. The argument ``object_owner`` specifies to which owner the
-		object must belong to be yielded. For more information see :func:`owned`.
+		to to be yielded. The argument ``object_owner`` specifies to which owner
+		the object must belong to to be yielded. For more information see
+		:func:`owned`.
 		"""
 		for name in cls.names(connection, owner, object_owner):
 			yield cls(name[0], name[1], connection)
