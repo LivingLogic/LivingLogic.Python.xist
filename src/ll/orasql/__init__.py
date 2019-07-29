@@ -532,22 +532,22 @@ class Connection(Connection):
 
 	def sequences(self, owner=None):
 		"""
-		Generator that yields sequences. ``owner`` can be :const:`None`,
-		:const:`ALL` (the default) or a user name.
+		Generator that yields sequences. ``owner`` can be :const:`None` (the
+		default), :const:`ALL` or a user name.
 		"""
 		return Sequence.objects(self, owner)
 
 	def fks(self, owner=None):
 		"""
 		Generator that yields all foreign key constraints. ``owner`` can be
-		:const:`None`, :const:`ALL` (the default) or a user name.
+		:const:`None` (the default), :const:`ALL` or a user name.
 		"""
 		return ForeignKey.objects(self, owner)
 
 	def privileges(self, owner=None):
 		"""
-		Generator that yields object privileges. ``owner`` can be :const:`None`,
-		:const:`ALL` (the default) or a user name.
+		Generator that yields object privileges. ``owner`` can be :const:`None`
+		(the default), :const:`ALL`, a user name or a set or tuple of user names.
 		"""
 		return Privilege.objects(self, owner)
 
