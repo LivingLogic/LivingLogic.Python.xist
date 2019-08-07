@@ -348,3 +348,12 @@ def test_timeout():
 		with misc.timeout(3):
 			while True:
 				pass
+
+
+def test_enums():
+	class TestEnum(misc.Enum):
+		FOO = "foo"
+		BAR = "bar"
+
+	assert repr(TestEnum) == "<enum test_misc.test_enums.<locals>.TestEnum>"
+	assert repr(TestEnum('foo')) == "<test_misc.test_enums.<locals>.TestEnum.FOO: 'foo'>"

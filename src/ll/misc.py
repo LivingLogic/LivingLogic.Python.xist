@@ -264,7 +264,8 @@ class EnumMeta(enum.Enum.__class__):
 
 class _EnumRepr:
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}({self.value!r})>"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}.{self.name}: {self.value!r}>"
+
 
 class Enum(_EnumRepr, enum.Enum, metaclass=EnumMeta):
 	"""

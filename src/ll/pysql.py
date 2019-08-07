@@ -158,8 +158,8 @@ The following commands are available:
 Comments
 --------
 
-A line starting with '#' (outside of a SQL command or literal Python block) is
-considered a comment and will be ignored.
+A line starting with ``#`` (outside of a SQL command or literal Python block)
+is considered a comment and will be ignored.
 
 
 Example
@@ -361,9 +361,7 @@ reverts to the previous connection (which might not exist). An example looks
 like this::
 
 	connect("user/pwd@db")
-
 	procedure("test")
-
 	disconnect()
 
 
@@ -1503,10 +1501,10 @@ class resetsequence(_DatabaseCommand):
 
 		step = max(tabvalue, minvalue) - seqvalue
 		if step:
-			cursor.execute(f"alter sequence {self.sequence} increment by {self.step}")
+			cursor.execute(f"alter sequence {self.sequence} increment by {step}")
 			cursor.execute(f"select {self.sequence}.nextval from dual")
 			seqvalue = cursor.fetchone()[0]
-			cursor.execute(f"alter sequence {self.sequence} increment by {self.increment}")
+			cursor.execute(f"alter sequence {self.sequence} increment by {increment}")
 			self.finish(f"Reset sequence {self.sequence} to {seqvalue}")
 		else:
 			seqvalue = None
@@ -2141,19 +2139,74 @@ class Context:
 		``stream`` must be an iterable over lines that contain the PySQL
 		commands.
 		"""
-		lines = []
-
 		vars = self.globals()
 
-		# ``state`` is the state of the "parser", values have the following meaning
-		# :const:`None`: outside of any block
-		# ``literalsql``: inside of literal SQL block
-		# ``literalpy``: inside of literal Python block
-		# ``dict``: inside of Python dict literal
-		# others: inside a PySQL command of that name
-		state = None
+		def blocks():
+			# ``state`` is the state of the "parser", values have the following meaning
+			# :const:`None`: outside of any block
+			# ``literalsql``: inside of literal SQL block
+			# ``literalpy``: inside of literal Python block
+			# ``dict``: inside of Python dict literal
+			# others: inside a PySQL command of that name
+			state = None
+			lines = []
+			for (i, line) in enumerate(stream, 1):
+				line = line.rstrip()
+				if state is None:
+					if line.startswith("{"):
+						lines.append((i, line))
+						state = "dict"
+						if line.endswith("}"):
+							yield (state, lines)
+							lines  = []
+							state = None
+					elif line == self.literalpy_begin:
+						lines.append((i, line))
+						state = "literalpy"
+					elif line.startswith("#"):
+						pass # Ignore comments
+					elif line == self.terminator:
+						pass # Still outside the block
+					elif line.startswith(self.command_begin): # PySQL command constructor?
+						lines.append((i, line))
+						state = line[:line.find("(")]
+						if line.endswith(self.command_end):
+							yield (state, lines)
+							lines  = []
+							state = None
+					elif line:
+						lines.append((i, line))
+						state = "literalsql"
+				elif state == "dict":
+					lines.append((i, line))
+					if line == "}": # A single unindented ``}``
+						yield (state, lines)
+						lines  = []
+						state = None
+				elif state == "literalsql":
+					if line.startswith(self.terminator):
+						yield (state, lines)
+						lines  = []
+						state = None
+					else:
+						lines.append((i, line))
+				elif state == "literalpy":
+					lines.append((i, line))
+					if line == self.literalpy_end:
+						yield (state, lines)
+						lines  = []
+						state = None
+				else:
+					# Inside any of the PySQL commands as a function call
+					lines.append((i, line))
+					if line == self.command_end: # A single unindented ``)``
+						yield (state, lines)
+						lines  = []
+						state = None
+			if lines:
+				yield (state, lines)
 
-		def executeblock():
+		for (state, lines) in blocks():
 			# Drop empty lines at the start
 			while lines and not lines[0][1].strip():
 				del lines[0]
@@ -2162,7 +2215,6 @@ class Context:
 				del lines[-1]
 			if lines:
 				self._location = Location(stream.name, lines)
-				lines.clear()
 				source = self._location.source(False)
 				if state == "literalsql":
 					CommandExecutor(literalsql, self)(source)
@@ -2178,55 +2230,6 @@ class Context:
 				else:
 					code = compile(source, self._location.filename, "exec")
 					exec(code, vars, self._locals)
-
-		for (i, line) in enumerate(stream, 1):
-			line = line.rstrip()
-			if state is None:
-				if line.startswith("{"):
-					lines.append((i, line))
-					state = "dict"
-					if line.endswith("}"):
-						executeblock()
-						state = None
-				elif line == self.literalpy_begin:
-					lines.append((i, line))
-					state = "literalpy"
-				elif line.startswith("#"):
-					pass # Ignore comments
-				elif line == self.terminator:
-					pass # Still outside the block
-				elif line.startswith(self.command_begin): # PySQL command constructor?
-					lines.append((i, line))
-					state = line[:line.find("(")]
-					if line.endswith(self.command_end):
-						executeblock()
-						state = None
-				elif line:
-					lines.append((i, line))
-					state = "literalsql"
-			elif state == "dict":
-				lines.append((i, line))
-				if line == "}": # A single unindented ``}``
-					executeblock()
-					state = None
-			elif state == "literalsql":
-				if line.startswith(self.terminator):
-					executeblock()
-					state = None
-				else:
-					lines.append((i, line))
-			elif state == "literalpy":
-				lines.append((i, line))
-				if line == self.literalpy_end:
-					executeblock()
-					state = None
-			else:
-				# Inside any of the PySQL commands as a function call
-				lines.append((i, line))
-				if line == self.command_end: # A single unindented ``)``
-					executeblock()
-					state = None
-		executeblock()
 
 	def executeall(self, *filenames):
 		"""

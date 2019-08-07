@@ -8,17 +8,58 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.50 (released 07/??/2019)
+Changes in 5.52 (released 07/29/2019)
+-------------------------------------
+
+*	The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed
+	to :meth:`object`.
+
+*	A new method :meth:`ll.orasql.Privilege.object` has been added. This method
+	returns the object for which the :class:`ll.orasql.Privilege` grants a
+	privilege. E.g. if the :class:`~ll.orasql.Privilege` ``p`` grant the
+	``SELECT`` privilege on a table, ``p.object()`` will return that table.
+
+*	A new method :meth:`ll.orasql.OwnedSchemaObject.synonyms` has been added.
+	This generater yields all the synonyms for the object it is called on.
+
+*	A new method :meth:`ll.orasql.OwnedSchemaObject.privileges` has been added.
+	This generater yields all the privileges for the object it is called on.
+
+*	A new method :meth:`ll.orasql.Connection.synonyms` has been added.
+
+*	:meth:`ll.orasql.Synonym.createsql` now omits the schema name from the name
+	for the objects if it's the current user.
+
+
+
+Changes in 5.51 (released 07/26/2019)
+-------------------------------------
+
+*	:meth:`ll.orasql.Synonym.names` and :meth:`ll.orasql.Synonym.objects` can now
+	filter on the owner of the object (i.e. the object for which the
+	:class:`~ll.orasql.Synonym` is a synonym) via the new parameter
+	``object_owner``.
+
+*	Fixed the ``repr`` output of UL4 dictionary comprehensions.
+
+
+Changes in 5.50 (released 07/16/2019)
 -------------------------------------
 
 *	There's a new option ``-a``/``--ascii`` for running PySQL scripts: With this
 	PySQL will not use unicode characters for drawing fancy boxes.
 
 *	Fixed a bug in the filename handling of PySQL, so that showing source in
-	stack traces work again: as we're changing directories now, using relative
+	stacktraces works again: as we're changing directories now, using relative
 	paths no longer worked.
 
+*	PySQL no longer uses exception chaining for displaying the location and the
+	include chain of an error, as this is now part of the normal stacktrace
+	anyway.
+
 *	Fixed logic for showing line numbers for locations in PySQL scripts.
+
+*	Fixed a bug in the PySQL command ``resetsequence``.
 
 *	Added classes :class:`ll.misc.Enum` and :class:`ll.misc.IntEnum` that are
 	subclasses of :class:`enum.Enum` and :class:`enum.IntEnum`, but show the

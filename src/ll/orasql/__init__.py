@@ -325,7 +325,8 @@ class Record(tuple, abc.Mapping):
 		"""
 		Return an iterator over (field name, field value) tuples.
 		"""
-		return ((key, tuple.__getitem__(self, index)) for (index, key) in enumerate(self._index2name))
+		for (index, key) in enumerate(self._index2name):
+			yield (key, tuple.__getitem__(self, index))
 
 	def replace(self, **kwargs):
 		"""
@@ -448,7 +449,7 @@ class Connection(Connection):
 
 	def _numbersasdecimal(self, cursor, name, defaultType, length, precision, scale):
 		if defaultType is NUMBER and scale:
-			return cursor.var(str, 100, cursor.arraysize, outconverter=decimal.Decimal)
+			return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
 	def connectstring(self):
 		return f"{self.username}@{self.tnsentry}"
@@ -531,22 +532,30 @@ class Connection(Connection):
 
 	def sequences(self, owner=None):
 		"""
-		Generator that yields sequences. ``owner`` can be :const:`None`,
-		:const:`ALL` (the default) or a user name.
+		Generator that yields sequences. ``owner`` can be :const:`None` (the
+		default), :const:`ALL` or a user name.
 		"""
 		return Sequence.objects(self, owner)
 
 	def fks(self, owner=None):
 		"""
 		Generator that yields all foreign key constraints. ``owner`` can be
-		:const:`None`, :const:`ALL` (the default) or a user name.
+		:const:`None` (the default), :const:`ALL` or a user name.
 		"""
 		return ForeignKey.objects(self, owner)
 
 	def privileges(self, owner=None):
 		"""
-		Generator that yields object privileges. ``owner`` can be :const:`None`,
-		:const:`ALL` (the default) or a user name.
+		Generator that yields object privileges. ``owner`` can be :const:`None`
+		(the default), :const:`ALL`, a user name or a set or tuple of user names.
+		"""
+		return Privilege.objects(self, owner)
+
+	def synonyms(self, owner=None, object_owner=ALL):
+		"""
+		Generator that yields synonyms. ``owner`` and ``object_owner`` can be
+		:const:`None` (the default), :const:`ALL`, a user name or a set or tuple
+		of user names.
 		"""
 		return Privilege.objects(self, owner)
 
@@ -1042,8 +1051,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		the connection from which ``self`` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 		"""
-		if False:
-			yield None
+		yield from ()
 
 	def referencesall(self, connection=None, done=None):
 		"""
@@ -1067,8 +1075,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 
 		For the meaning of ``connection`` see :meth:`references`.
 		"""
-		if False:
-			yield None
+		yield from ()
 
 	def referencedbyall(self, connection=None, done=None):
 		"""
@@ -1275,7 +1282,8 @@ class OwnedSchemaObject(SchemaObject):
 					object_name
 			"""
 			cursor.execute(query, type=cls.type.upper())
-		return ((row.object_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.object_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
@@ -1284,7 +1292,97 @@ class OwnedSchemaObject(SchemaObject):
 		The argument ``owner`` specifies whose objects are yielded. For more
 		information see :func:`owned`.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner))
+		for name in cls.names(connection, owner):
+			yield cls(name[0], name[1], connection)
+
+	def synonyms(self, connection=None):
+		"""
+		Generator the yields all synonyms for this object.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"""
+			select
+				decode(owner, user, null, owner) as owner,
+				synonym_name
+			from
+				{ddprefix}_synonyms
+			where
+				table_owner=nvl(:owner, user) and
+				table_name=:name
+		"""
+		cursor.execute(query, owner=self.owner, name=self.name)
+		for rec in cursor:
+			yield Synonym(rec.synonym_name, rec.owner, connection)
+
+	def privileges(self, connection=None):
+		"""
+		Generator the yields all privileges on this object.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		if self.owner is None:
+			query = """
+				select
+					decode(owner, user, null, owner) as owner,
+					privilege,
+					table_name as object,
+					decode(grantor, user, null, grantor) as grantor,
+					grantee
+				from
+					user_tab_privs
+				where
+					owner = user and
+					table_name = :name
+				order by
+					grantor,
+					privilege,
+					grantee
+			"""
+			cursor.execute(query, name=self.name)
+		else:
+			ddprefix = cursor.ddprefix()
+			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
+			if ddprefix == "all":
+				query = """
+					select
+						decode(table_schema, user, null, table_schema) as owner,
+						privilege,
+						table_name as object,
+						decode(grantor, user, null, grantor) as grantor,
+						grantee
+					from
+						all_tab_privs
+					where
+						table_schema = nvl(:owner, user) and
+						table_name = :name
+					order by
+						grantor,
+						table_name,
+						privilege,
+						grantee
+				"""
+			else:
+				query = """
+					select
+						decode(owner, user, null, owner) as owner,
+						privilege,
+						table_name as object,
+						decode(grantor, user, null, grantor) as grantor,
+						grantee
+					from
+						dba_tab_privs
+					where
+						owner = nvl(:owner, user) and
+						table_name = :name
+					order by
+						grantor,
+						table_name,
+						privilege,
+						grantee
+				"""
+			cursor.execute(query, name=self.name, owner=self.owner)
+		for rec in cursor:
+			yield Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection)
 
 
 class Sequence(MixinNormalDates, OwnedSchemaObject):
@@ -1371,8 +1469,7 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 
 	def references(self, connection=None, done=None):
 		# Shortcut: a sequence doesn't depend on anything
-		if False:
-			yield None
+		yield from ()
 
 
 def _columntype(rec, data_precision=None, data_scale=None, char_length=None):
@@ -1665,7 +1762,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 					table_name
 			"""
 			cursor.execute(query)
-		return ((row.table_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.table_name, row.owner)
 
 	def columns(self, connection=None):
 		"""
@@ -1685,7 +1783,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				column_id
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Column(f"{self.name}.{rec.column_name}", self.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Column(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def records(self, connection=None):
 		"""
@@ -1714,7 +1813,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				column_id
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Comment(f"{self.name}.{rec.column_name}", self.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Comment(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
@@ -1734,7 +1834,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
 		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
-		return (types[rec.constraint_type](rec.constraint_name, rec.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield types[rec.constraint_type](rec.constraint_name, rec.owner, connection)
 
 	def constraints(self, connection=None):
 		"""
@@ -2024,7 +2125,8 @@ class Constraint(OwnedSchemaObject):
 					constraint_name
 			"""
 			cursor.execute(query, type=cls.constraint_type)
-		return ((rec.constraint_name, rec.owner) for rec in cursor)
+		for rec in cursor:
+			yield (rec.constraint_name, rec.owner)
 
 	def fixname(self, code):
 		code = code.split(None, 6)
@@ -2096,7 +2198,8 @@ class PrimaryKey(Constraint):
 				position
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
-		return (Column(f"{tablename}.{rec.column_name}", self.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Column(f"{tablename}.{rec.column_name}", self.owner, connection)
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
@@ -2229,8 +2332,7 @@ class ForeignKey(Constraint):
 
 	def referencedby(self, connection=None):
 		# Shortcut: Nobody references a foreign key
-		if False:
-			yield None
+		yield from ()
 
 	def references(self, connection=None):
 		yield self.table(connection)
@@ -2412,8 +2514,7 @@ class CheckConstraint(Constraint):
 
 	def referencedby(self, connection=None):
 		# Shortcut: Nobody references a check constraint
-		if False:
-			yield None
+		yield from ()
 
 	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -2668,7 +2769,8 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 						index_name
 			"""
 			cursor.execute(query)
-		return ((row.index_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.index_name, row.owner)
 
 	def fixname(self, code):
 		if code.lower().startswith("create unique"):
@@ -2822,7 +2924,7 @@ class Synonym(OwnedSchemaObject):
 		ddprefix = cursor.ddprefix()
 		query = f"""
 			select
-				table_owner,
+				decode(table_owner, user, null, table_owner) as table_owner,
 				table_name,
 				db_link
 			from
@@ -2876,9 +2978,9 @@ class Synonym(OwnedSchemaObject):
 			code = f"create or replace synonym {self.getfullname()} {code[5]}"
 		return code
 
-	def getobject(self, connection=None):
+	def object(self, connection=None):
 		"""
-		Get the object for which ``self`` is a synonym.
+		Return the object for which ``self`` is a synonym.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
@@ -2899,6 +3001,62 @@ class Synonym(OwnedSchemaObject):
 			raise SQLObjectNotFoundError(self)
 		return connection._getobject(rec.table_name, rec.table_owner)
 
+	@classmethod
+	def names(cls, connection, owner=None, object_owner=ALL):
+		"""
+		Generator that yields the names of all synonyms. For the meaning of
+		``owner`` and ``object_owner`` see :meth:`objects`.
+
+		Names will be in ascending order.
+		"""
+		cursor = connection.cursor()
+		ddprefix = cursor.ddprefix()
+		where_sql = []
+		params = {}
+		if owner is None:
+			view_sql = "user_synonyms"
+			owner_sql = "null as owner"
+			order_sql = "table_owner, synonym_name"
+		else:
+			view_sql = f"{ddprefix}_synonyms"
+			owner_sql = "decode(owner, user, null, owner) as owner"
+			order_sql = "owner, table_owner, synonym_name"
+			if owner is ALL:
+				pass
+			elif isinstance(owner, str):
+				where_sql.append("owner = :owner")
+				params["owner"] = owner
+			else:
+				where_sql.append(f"owner in ({', '.join(sqlstr(o) for o in owner)})")
+		if object_owner is None:
+			where_sql.append("table_owner = user")
+		elif object_owner is ALL:
+			pass
+		elif isinstance(object_owner, str):
+			where_sql.append("table_owner = :table_owner")
+			params["table_owner"] = object_owner
+		else:
+				where_sql.append(f"table_owner in ({', '.join(sqlstr(o) for o in object_owner)})")
+		query = f"select {owner_sql}, synonym_name from {view_sql}"
+		if where_sql:
+			query += f" where {' and '.join(where_sql)}"
+		query += f" order by {order_sql}"
+
+		cursor.execute(query, **params)
+		for row in cursor:
+			yield (row.synonym_name, row.owner)
+
+	@classmethod
+	def objects(cls, connection, owner=None, object_owner=ALL):
+		"""
+		Generator that yields all synonym in the current users schema.
+		The argument ``owner`` specifies to which owner the synonym must belong
+		to to be yielded. The argument ``object_owner`` specifies to which owner
+		the object must belong to to be yielded. For more information see
+		:func:`owned`.
+		"""
+		for name in cls.names(connection, owner, object_owner):
+			yield cls(name[0], name[1], connection)
 
 class View(MixinNormalDates, OwnedSchemaObject):
 	"""
@@ -3281,6 +3439,18 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		self._calcargs(cursor)
 		yield from self._argsbypos
 
+	def synonyms(self, connection=None):
+		if "." not in self.name:
+			yield from super().synonyms(connection)
+		else:
+			yield from ()
+
+	def privileges(self, connection=None):
+		if "." not in self.name:
+			yield from super().privileges(connection)
+		else:
+			yield from ()
+
 
 class Procedure(Callable):
 	"""
@@ -3359,6 +3529,12 @@ class PackageBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
 	type = "package body"
 
+	def synonyms(self, connection=None):
+		yield from ()
+
+	def privileges(self, connection=None):
+		yield from ()
+
 
 class Type(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	"""
@@ -3372,6 +3548,12 @@ class TypeBody(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 	Models a type body in the database.
 	"""
 	type = "type body"
+
+	def synonyms(self, connection=None):
+		yield from ()
+
+	def privileges(self, connection=None):
+		yield from ()
 
 
 class Trigger(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
@@ -3506,6 +3688,13 @@ class Privilege:
 		return None
 	connectstring = property(getconnectstring)
 
+	def object(self, connection=None):
+		"""
+		Return the object on which ``self`` grants a privilege.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		return connection._getobject(self.name, self.grantor)
+
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
@@ -3624,7 +3813,8 @@ class Privilege:
 						privilege
 				"""
 			cursor.execute(query)
-		return (Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection) for rec in cursor)
+		for rec in cursor:
+			yield Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection)
 
 	def grantsql(self, connection=None, term=True, mapgrantee=True):
 		"""
@@ -3859,6 +4049,12 @@ class Column(OwnedSchemaObject):
 			raise SQLObjectNotFoundError(self)
 		return rec.comments or None
 
+	def synonyms(self, connection=None):
+		yield from ()
+
+	def privileges(self, connection=None):
+		yield from ()
+
 
 class User(SchemaObject):
 	"""
@@ -3882,14 +4078,16 @@ class User(SchemaObject):
 		ddprefix = cursor.ddprefix()
 		query = f"select username from {ddprefix}_users order by username"
 		cursor.execute(query)
-		return (row.username for row in cursor)
+		for row in cursor:
+			yield row.username
 
 	@classmethod
 	def objects(cls, connection):
 		"""
 		Generator that yields all user objects.
 		"""
-		return (cls(name, connection) for name in cls.names(connection))
+		for name in cls.names(connection):
+			yield cls(name, connection)
 
 
 class Preference(OwnedSchemaObject):
@@ -3959,14 +4157,16 @@ class Preference(OwnedSchemaObject):
 			else:
 				raise
 		else:
-			return ((row.pre_name, row.owner) for row in cursor)
+			for row in cursor:
+				yield (row.pre_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all preferences.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
+		for name in cls.names(connection, owner=owner):
+			yield cls(name[0], name[1], connection)
 
 
 class JobClass(SchemaObject):
@@ -4045,14 +4245,16 @@ class JobClass(SchemaObject):
 		ddprefix = cursor.ddprefix()
 		query = f"select job_class_name from {ddprefix}_scheduler_job_classes order by job_class_name"
 		cursor.execute(query)
-		return (row.job_class_name for row in cursor)
+		for row in cursor:
+			yield row.job_class_name
 
 	@classmethod
 	def objects(cls, connection):
 		"""
 		Generator that yields all job classes.
 		"""
-		return (cls(name, connection) for name in cls.names(connection))
+		for name in cls.names(connection):
+			yield cls(name, connection)
 
 	def references(self, connection=None):
 		yield from ()
@@ -4170,14 +4372,16 @@ class Job(OwnedSchemaObject):
 			ddprefix = cursor.ddprefix()
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner in ({', '.join(sqlstr(o) for o in owner)}) order by owner, job_name"
 			cursor.execute(query)
-		return ((row.job_name, row.owner) for row in cursor)
+		for row in cursor:
+			yield (row.job_name, row.owner)
 
 	@classmethod
 	def objects(cls, connection, owner=None):
 		"""
 		Generator that yields all jobs.
 		"""
-		return (cls(name[0], name[1], connection) for name in cls.names(connection, owner=owner))
+		for name in cls.names(connection, owner=owner):
+			yield cls(name[0], name[1], connection)
 
 	def references(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
