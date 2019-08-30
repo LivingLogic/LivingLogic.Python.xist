@@ -4416,7 +4416,7 @@ class Template(Block):
 			try:
 				return self._parser(tag, "declaration required").definition()
 			except Exception as exc:
-				_decorateexception(exc, template)
+				_decorateexception(exc, self)
 				raise
 
 		def parseexpr(tag):
