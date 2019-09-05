@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.52.1 (released 09/05/2019)
+---------------------------------------
+
+*	Fixed handling of indentation when an UL4 ``<?renderblock?>`` contains a
+	``<?render?>`` call.
+
+
 Changes in 5.52 (released 07/29/2019)
 -------------------------------------
 

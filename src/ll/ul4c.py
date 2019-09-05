@@ -4585,7 +4585,10 @@ class Template(Block):
 					innerblock = blockstack[-1]
 					if isinstance(innerblock, CondBlock):
 						innerblock = innerblock.content[-1]
-					innerblock = innerblock.content
+					if isinstance(innerblock, RenderBlock):
+						innerblock = innerblock.content.content
+					else:
+						innerblock = innerblock.content
 					# If we have an indentation before the ``<?render?>`` tag, move it
 					# into the ``indent`` attribute of the :class`Render` object,
 					# because this indentation must be added to every line that the
