@@ -5882,6 +5882,19 @@ def test_template_signature_loop_call_local_template(T):
 
 
 @pytest.mark.ul4
+def test_render_in_renderblock(T):
+	s = """
+		<?def f(content=None)?>
+		<?end def?>
+
+		<?renderblock f()?>
+			<?render f()?>
+		<?end renderblock?>
+	"""
+	assert "\n\n\t" == T(s, whitespace="smart").renders()
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()

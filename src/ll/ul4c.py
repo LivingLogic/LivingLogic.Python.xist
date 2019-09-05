@@ -2173,6 +2173,12 @@ class Block(Code):
 	def append(self, item):
 		self.content.append(item)
 
+	def _pop_trailing_indent(self):
+		if self.content and isinstance(self.content[-1], Indent):
+			return self.content.pop()
+		else:
+			return None
+
 	def finish(self, endtag):
 		self.stoppos = endtag.startpos
 
@@ -2232,6 +2238,12 @@ class CondBlock(Block):
 		super().finish(endtag)
 		if self.content:
 			self.content[-1].stoppos = slice(endtag.startpos.start, endtag.startpos.start)
+
+	def _pop_trailing_indent(self):
+		if self.content:
+			return self.content[-1]._pop_trailing_indent()
+		else:
+			return None
 
 	def newblock(self, block):
 		if self.content:
@@ -3642,6 +3654,12 @@ class RenderBlock(Render):
 		self.content.startpos = slice(self.content.startpos.start, self.content.startpos.start)
 		self.content.stoppos = slice(endtag.startpos.start, endtag.startpos.start)
 
+	def _pop_trailing_indent(self):
+		if self.content is not None:
+			return self.content._pop_trailing_indent()
+		else:
+			return None
+
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
 
@@ -3697,6 +3715,12 @@ class RenderBlocks(Render):
 
 	def finish(self, endtag):
 		self.stoppos = endtag.startpos
+
+	def _pop_trailing_indent(self):
+		if self.content and isinstance(self.content[-1], Indent):
+			return self.content.pop()
+		else:
+			return None
 
 	def _str(self):
 		yield self.type
@@ -4583,19 +4607,11 @@ class Template(Block):
 					render = parserender(tag)
 					# Find innermost block
 					innerblock = blockstack[-1]
-					if isinstance(innerblock, CondBlock):
-						innerblock = innerblock.content[-1]
-					if isinstance(innerblock, RenderBlock):
-						innerblock = innerblock.content.content
-					else:
-						innerblock = innerblock.content
 					# If we have an indentation before the ``<?render?>`` tag, move it
 					# into the ``indent`` attribute of the :class`Render` object,
 					# because this indentation must be added to every line that the
 					# rendered template outputs.
-					if innerblock and isinstance(innerblock[-1], Indent):
-						render.indent = innerblock[-1]
-						innerblock.pop()
+					render.indent = innerblock._pop_trailing_indent()
 					blockstack[-1].append(render)
 					if tag.tag in {"renderblock", "renderblocks"}:
 						blockstack.append(render)
