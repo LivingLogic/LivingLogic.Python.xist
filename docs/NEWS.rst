@@ -35,7 +35,7 @@ Changes in 5.52 (released 07/29/2019)
 *	A new method :meth:`ll.orasql.Connection.synonyms` has been added.
 
 *	:meth:`ll.orasql.Synonym.createsql` now omits the schema name from the name
-	for the objects if it's the current user.
+	for the object if it's the current user.
 
 
 
