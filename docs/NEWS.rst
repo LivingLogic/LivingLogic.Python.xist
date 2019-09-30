@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.53 (released 10/??/2019)
+Changes in 5.53 (released 09/30/2019)
 -------------------------------------
 
 *	Fixed a bug in the handling of users and job classes (i.e. objects that
