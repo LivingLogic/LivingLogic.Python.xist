@@ -14,6 +14,10 @@ Changes in 5.53 (released 10/??/2019)
 *	Fixed a bug in the handling of users and job classes (i.e. objects that
 	don't have an owner) in :meth:`ll.orasql.OracleURLConnection.walk`.
 
+*	Added an option ``--healthcheck`` to :mod:`ll.sispyhus` jobs: Starting a
+	job with this option runs a separate method :meth:`healthcheck` that is used
+	to check that the job is doing what it's supposed to be doing.
+
 
 Changes in 5.52.1 (released 09/05/2019)
 ---------------------------------------

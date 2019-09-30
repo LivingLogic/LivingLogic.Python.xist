@@ -211,6 +211,20 @@ email includes the last 10 logging calls and the final exception (if there is
 any) in plain text and HTML format as well as as a JSON attachment.
 
 
+Health checks
+-------------
+
+When a job is started with the option ``--healthcheck``, instead of running the
+job normally the method :meth:`healthcheck` is run. This bypasses the normal
+mechanism that prevents multiple instances of the job from running (i.e. you
+can have a normal job execution and a health check running in parallel).
+Also during the healthcheck no logging is available.
+
+This method should check that the job is doing what it's supposed to be doing.
+If that is the case the method must return ``None``, otherwise a short one line
+error message must be returned.
+
+
 Requirements
 ------------
 
@@ -420,6 +434,10 @@ class Job:
 		to implement this as a method). Also :class:`datetime.datetime` is
 		supported and specifies the start date for the next job run.
 
+	.. option:: --healthcheck
+
+		Instead of normally executing the job, run the method healthcheck instead.
+
 	.. option:: --logfilename <filename>
 
 		Name of the logfile for this job as an UL4 template. Variables
@@ -525,6 +543,7 @@ class Job:
 	repeat = False
 	nextrun = None
 	waitchildbreak = datetime.timedelta(seconds=0.5)
+	runhealthcheck = False
 
 	logfilename = """
 	~
@@ -811,6 +830,15 @@ class Job:
 		"""
 		pass
 
+	def healthcheck(self):
+		"""
+		Called in parallel to a running job to check whether the job is healthy.
+
+		Must return ``None`` if everything is ok, or a short error message
+		otherwise.
+		"""
+		return None
+
 	def argparser(self):
 		"""
 		Return an :mod:`argparse` parser for parsing the command line arguments.
@@ -843,6 +871,7 @@ class Job:
 		p.add_argument("-r", "--repeat", dest="repeat", help="Repeat the job run indefinitely? (default: %(default)s)", action=misc.FlagAction, default=self.repeat)
 		p.add_argument(      "--nextrun", dest="nextrun", metavar="SECONDS", help="How many seconds to wait after the run before repeating it? (default: %(default)s)", type=argseconds, default=self.nextrun)
 		p.add_argument(      "--waitchildbreak", dest="waitchildbreak", metavar="SECONDS", help="How many seconds to wait to give the child process time to clean up after CTRL-C? (default: %(default)s)", type=float, default=self.waitchildbreak)
+		p.add_argument(      "--healthcheck", dest="runhealthcheck", help="Run a heathcheck instead of the normal job? (default: %(default)s)", action=misc.FlagAction, default=self.runhealthcheck)
 
 		return p
 
@@ -880,6 +909,7 @@ class Job:
 		self.repeat = args.repeat
 		self.nextrun = args.nextrun
 		self.waitchildbreak = args.waitchildbreak
+		self.runhealthcheck = args.runhealthcheck
 		return args
 
 	def _kill_children(self):
@@ -1097,6 +1127,9 @@ class Job:
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
+		if self.runhealthcheck:
+			result = self.healthcheck()
+			raise SystemExit(result)
 		if self.jobname is None:
 			self.jobname = self.__class__.__qualname__
 		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
