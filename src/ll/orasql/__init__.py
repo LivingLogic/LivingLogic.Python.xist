@@ -4573,7 +4573,11 @@ class OracleURLConnection(url_.Connection):
 				class_ = SchemaObject.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
-			for (name, owner) in class_.names(self.dbconnection, None):
+			if issubclass(class_, OwnedSchemaObject):
+				names = (name for (name, owner) in class_.names(self.dbconnection, None))
+			else:
+				names = class_.names(self.dbconnection)
+			for name in names:
 				if cursor.file:
 					yield _event(url / f"{makeurl(name)}.sql", "file")
 					cursor.restore()
