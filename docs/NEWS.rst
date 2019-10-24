@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.54 (released 10/??/2019)
+Changes in 5.54 (released 10/24/2019)
 -------------------------------------
 
 *	The tab width used by :func:`ll.xist.ns.html.astext` is now configurable and
