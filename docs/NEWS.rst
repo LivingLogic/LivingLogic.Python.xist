@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.54.1 (released 10/24/2019)
+---------------------------------------
+
+*	Fixed wrong HTTP header when posting sisyphus log entries to Mattermost.
+
+
 Changes in 5.54 (released 10/24/2019)
 -------------------------------------
 

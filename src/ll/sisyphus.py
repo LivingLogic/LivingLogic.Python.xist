@@ -1982,7 +1982,7 @@ class MattermostLogger(Logger):
 			req = requests.post(
 				self.job.mattermost_url,
 				headers={
-					"token": f"Bearer {self.job.mattermost_token}",
+					"Authorization": f"Bearer {self.job.mattermost_token}",
 				},
 				json={
 					"channel_id": self.job.mattermost_channel,
