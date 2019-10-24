@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.54 (released 10/??/2019)
+-------------------------------------
+
+*	``ll.misc.sysinfo`` now exposes its attributes to UL4.
+
+
 Changes in 5.53 (released 09/30/2019)
 -------------------------------------
 
