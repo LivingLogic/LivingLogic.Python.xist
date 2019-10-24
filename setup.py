@@ -313,6 +313,7 @@ args = dict(
 		"oracle": ["cx_Oracle >= 7.1"],
 		"proctitle": ["setproctitle >= 1.1.8"],
 		"html": ["lxml >= 4.3.4"],
+		"requests": ["requests >= 2.22.0"],
 	},
 	zip_safe=False,
 )

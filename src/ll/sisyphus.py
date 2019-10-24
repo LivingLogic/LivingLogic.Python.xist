@@ -211,6 +211,17 @@ email includes the last 10 logging calls and the final exception (if there is
 any) in plain text and HTML format as well as as a JSON attachment.
 
 
+Mattermost
+----------
+
+It is possible to send log entries to a Mattermost_ chat channel. For this the
+options :option:`--mattermost_url`, :option:`--mattermost_channel` and
+:option:`--mattermost_token` must be specified and the log entry must
+include the tag ``mattermost``.
+
+.. _Mattermost: https://mattermost.com/
+
+
 Health checks
 -------------
 
@@ -255,6 +266,8 @@ For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 
 
 import sys, os, signal, traceback, errno, pprint, time, datetime, argparse, tokenize, json, smtplib
+
+import requests
 
 try:
 	import fcntl
@@ -332,6 +345,10 @@ def argseconds(value):
 	return value
 
 
+def env(varname):
+	return os.environ.get(varname, None)
+
+
 ###
 ### The main class
 ###
@@ -391,6 +408,34 @@ class Job:
 	.. option:: --smtppassword <password>
 
 		The password used to log into the SMTP server.
+
+	.. option:: --mattermost_url <url>
+
+		The URL where log entries can be posted to a Mattermost chat. For
+		example::
+		
+			https://mattermost.example.org/api/v4/posts
+
+		A log entry will only be posted to the Mattermost chat channel if the
+		options :option:`--mattermost_url`, :option:`--mattermost_channel` and
+		:option:`--mattermost_token` are set (and the log entry has the tag
+		``mattermost``).
+
+		Note that using this feature requires :mod:`requests`.
+
+	.. option:: --mattermost_channel <id>
+
+		The channel id of the Mattermost chat channel where log entries should be
+		posted. For example::
+
+			4cnszmopr3ntjexi4qmx499inc
+
+	.. option:: --mattermost_token <auth>
+
+		The "Personal Access Token" used for authorizing the post with the
+		Mattermost server. For example::
+
+			9xuqwrwgstrb3mzrxb83nb357a
 
 	.. option:: -m <seconds>, --maxtime <seconds>
 
@@ -530,6 +575,10 @@ class Job:
 	smtpport = 0
 	smtpuser = None
 	smtppassword = None
+
+	mattermost_url = None
+	mattermost_channel = None
+	mattermost_token = None
 
 	identifier = None
 
@@ -796,6 +845,86 @@ class Job:
 		</html>
 	"""
 
+	formatmattermosttitle = r"""
+		<?if "error" in tags?>
+			<?if type == "exc"?>
+				<?code header = "Exception"?>
+			<?elif type == "obj"?>
+				<?code header = "Error object"?>
+			<?else?>
+				<?code header = "Error message"?>
+			<?end if?>
+		<?else?>
+			<?if type == "exc"?>
+				<?code header = "Exception"?>
+			<?elif type == "obj"?>
+				<?code header = "Object"?>
+			<?else?>
+				<?code header = "Message"?>
+			<?end if?>
+		<?end if?>
+		<?print header?> in sisyphus job `<?print job.projectname?>`/`<?print job.jobname?>` from `<?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?>` (<?print sysinfo.host_ip?>)
+	"""
+
+	formatmattermostmessage = r"""
+		<?if type == "exc"?>
+			```
+			<?print "\n"?>
+			<?print message?>
+			<?print "\n"?>
+			```
+		<?elif type == "obj"?>
+			```py
+			<?print "\n"?>
+			<?print message?>
+			<?print "\n"?>
+			```
+		<?else?>
+			<?print message?>
+		<?end if?>
+		<?print "\n"?>
+		<?if tags?>
+			**Tags**: <?for (f, t) in isfirst(tags)?><?if not f?>, <?end if?>`<?print t?>`<?end for?>
+			<?print "\n"?>
+		<?end if?>
+		<?if len(tasks) > 1?>
+			**Task**:<?print " "?>
+			<?print " "?>
+			<?for (f, task) in isfirst(tasks[1:])?>
+				<?if not f?>
+					<?print " ⟶ "?>
+				<?end if?>
+				<?code output = False?>
+				<?if task.type is not None?>
+					<?if output?> <?end if?>
+					`<?print task.type?>`
+					<?code output = True?>
+				<?end if?>
+				<?if task.name is not None?>
+					<?if output?> <?end if?>
+					`<?print task.name?>`
+					<?code output = True?>
+				<?end if?>
+				<?if task.index is not None?>
+					<?if output?> <?end if?>
+					[
+						<?print task.index+1?>
+						<?if task.count is not None?>
+							/<?print task.count?>
+						<?end if?>
+					]
+					<?code output = True?>
+				<?end if?>
+				<?if not output?>
+					?
+				<?end if?>
+			<?end for?>
+			<?print "\n"?>
+		<?end if?>
+		**Timestamp**: <?print time?> — t+<?print time-job.starttime?>
+		<?print "\n"?>
+	"""
+
 	keepfilelogs = datetime.timedelta(days=30)
 	compressfilelogs = datetime.timedelta(days=7)
 	compressmode = "bzip2"
@@ -853,6 +982,9 @@ class Job:
 		p.add_argument(      "--smtpport", dest="smtpport", metavar="PORT", help="The port number used for the connection to the SMTP server (default: %(default)s)", type=int, default=self.smtpport)
 		p.add_argument(      "--smtpuser", dest="smtpuser", metavar="USER", help="The user name used to log into the SMTP server. (default: %(default)s)", default=self.smtpuser)
 		p.add_argument(      "--smtppassword", dest="smtppassword", metavar="PASSWORD", help="The password used to log into the SMTP server. (default: %(default)s)", default=self.smtppassword)
+		p.add_argument(      "--mattermost_url", dest="mattermost_url", metavar="URL", help="URL for logging to mattermost chat channel. (default: %(default)s)", default=self.mattermost_url)
+		p.add_argument(      "--mattermost_channel", dest="mattermost_channel", metavar="ID", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_channel)
+		p.add_argument(      "--mattermost_token", dest="mattermost_token", metavar="AUTH", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_token)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=argseconds, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -891,6 +1023,9 @@ class Job:
 		self.smtpport = args.smtpport
 		self.smtpuser = args.smtpuser
 		self.smtppassword = args.smtppassword
+		self.mattermost_url = args.mattermost_url
+		self.mattermost_channel = args.mattermost_channel
+		self.mattermost_token = args.mattermost_token
 		self.identifier = args.identifier
 		self.maxtime = args.maxtime
 		self.fork = args.fork
@@ -982,7 +1117,7 @@ class Job:
 		self.setproctitle("child", "Handling exception")
 		result = f"failed with {misc.format_exception(exc)}"
 		# log the error to the logfile, because :meth:`execute` probably didn't have a chance to do it
-		self.log.sisyphus.email(exc)
+		self.log.sisyphus.email.mattermost(exc)
 		self.log.sisyphus.result.fail(result)
 		self.failed()
 		if not self.fork:
@@ -1039,6 +1174,8 @@ class Job:
 		self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
 		self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
 		self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", whitespace="strip") # Email body formatting template (HTML)
+		self._formatmattermosttitle = ul4c.Template(self.formatmattermosttitle, "formatmattermosttitle", whitespace="strip") # Mattermost chat title formatting template
+		self._formatmattermostmessage = ul4c.Template(self.formatmattermostmessage, "formatmattermostmessage", whitespace="strip") # Mattermost chat message formatting template
 
 		self._createlogs(True) # Create loggers
 
@@ -1310,7 +1447,7 @@ class Job:
 		The link goes from ``loglinkname`` to what the UL4 template
 		``linknametemplate`` returns.
 		"""
-		loglinkname = ul4c.Template(linknametemplate, "filename").renders(job=self)
+		loglinkname = ul4c.Template(linknametemplate, "filename").renders(job=self, env=env)
 		loglinkname = url.File(loglinkname).abs()
 		logfilename = logfilename.relative(loglinkname)
 		try:
@@ -1337,7 +1474,7 @@ class Job:
 		if full and self.log2file:
 			# Create the log file
 			template = ul4c.Template(self.logfilename, "logfilename", whitespace="strip")
-			logfilename = template.renders(job=self)
+			logfilename = template.renders(job=self, env=env)
 			logfilename = url.File(logfilename).abs()
 			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, logfilename.local()))
 			skipurls = [logfilename]
@@ -1346,7 +1483,7 @@ class Job:
 			if self.currentloglinkname is not None:
 				# Create the link to the current log file
 				template = ul4c.Template(self.currentloglinkname, "currentloglinkname", whitespace="strip")
-				loglinkname = template.renders(job=self)
+				loglinkname = template.renders(job=self, env=env)
 				loglinkname = url.File(loglinkname).abs()
 				self._loggers.append(CurrentLinkLogger(self, logfilename, loglinkname))
 				skipurls.append(loglinkname)
@@ -1354,7 +1491,7 @@ class Job:
 				# Create the link to the log file of the last eventful run
 				# (deferred to the end of the run)
 				template = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname", whitespace="strip")
-				loglinkname = template.renders(job=self)
+				loglinkname = template.renders(job=self, env=env)
 				loglinkname = url.File(loglinkname).abs()
 				self._loggers.append(LastLinkLogger(self, logfilename, loglinkname))
 				skipurls.append(loglinkname)
@@ -1362,6 +1499,8 @@ class Job:
 			self._loggers.append(StreamLogger(self, sys.stdout, self._formatlogline))
 		if self.log2stderr:
 			self._loggers.append(StreamLogger(self, sys.stderr, self._formatlogline))
+		if self.mattermost_url is not None and self.mattermost_channel is not None and self.mattermost_token is not None:
+			self._loggers.append(MattermostLogger(self))
 
 	def _closelogs(self, eventful):
 		while self._loggers:
@@ -1555,7 +1694,7 @@ class StreamLogger(Logger):
 
 	def log(self, timestamp, tags, tasks, text):
 		for line in _formatlines(text):
-			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job)
+			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job, env=env)
 			self.stream.write(line)
 			self.stream.write("\n")
 			self.lineno += 1
@@ -1767,6 +1906,7 @@ class EmailLogger(Logger):
 			)
 			variables = dict(
 				job=self.job,
+				env=env,
 				sysinfo=misc.sysinfo,
 				log=ul4log,
 				countexceptions=self._countexceptions,
@@ -1801,6 +1941,54 @@ class EmailLogger(Logger):
 			except smtplib.SMTPException as exc:
 				self.job.log.sisyphus.report(exc)
 
+
+class MattermostLogger(Logger):
+	"""
+	Logger that logs messages to a Mattermost chat channel.
+	"""
+
+	def __init__(self, job):
+		self.job = job
+
+	def log(self, timestamp, tags, tasks, text):
+		if "mattermost" in tags:
+			if isinstance(text, BaseException):
+				message = _formattraceback(text)
+				type = "exc"
+			elif not isinstance(text, str):
+				message = pprint.pformat(text)
+				type = "obj"
+			else:
+				message = text
+				type = "str"
+			message = message.strip("\n")
+			if len(message) > 14000:
+				message = message[:14000] + "..."
+			vars = dict(
+				job=self.job,
+				env=env,
+				sysinfo=misc.sysinfo,
+				type=type,
+				message=message,
+				time=timestamp,
+				tags=tags,
+				tasks=tasks,
+			)
+			title = self.job._formatmattermosttitle.renders(**vars)
+			message = self.job._formatmattermostmessage.renders(**vars)
+
+			message = f"# {title}\n{message}"
+
+			req = requests.post(
+				self.job.mattermost_url,
+				headers={
+					"token": f"Bearer {self.job.mattermost_token}",
+				},
+				json={
+					"channel_id": self.job.mattermost_channel,
+					"message": message[:15000],
+				}
+			)
 
 ###
 ### High-level interface for starting jobs

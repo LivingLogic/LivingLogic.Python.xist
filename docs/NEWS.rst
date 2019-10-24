@@ -17,6 +17,9 @@ Changes in 5.54 (released 10/??/2019)
 
 *	``ll.misc.sysinfo`` now exposes its attributes to UL4.
 
+*	:mod:`ll.sisyphus` log entries can now be logged to a Mattermost chat
+	channel.
+
 
 Changes in 5.53 (released 09/30/2019)
 -------------------------------------
