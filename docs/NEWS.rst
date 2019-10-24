@@ -11,6 +11,10 @@ see :ref:`MIGRATION`.
 Changes in 5.54 (released 10/??/2019)
 -------------------------------------
 
+*	The tab width used by :func:`ll.xist.ns.html.astext` is now configurable and
+	long words will no longer be broken accross multiple lines. This should
+	prevent long URLs from being broken.
+
 *	``ll.misc.sysinfo`` now exposes its attributes to UL4.
 
 
