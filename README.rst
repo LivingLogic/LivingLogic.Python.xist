@@ -98,7 +98,7 @@ Download
 XIST is available for download from the `download diretory`_ or from the
 Cheeseshop_.
 
-.. _download diretory: http://python.livinglogic.de/download/
+.. _download directory: http://python.livinglogic.de/download/
 .. _Cheeseshop: https://pypi.org/project/ll-xist/
 
 
