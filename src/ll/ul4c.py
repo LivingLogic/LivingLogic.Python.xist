@@ -576,7 +576,7 @@ class ListProto(Proto):
 
 class DictProto(Proto):
 	name = "dict"
-	plainattrs = {"items", "values", "clear"}
+	plainattrs = {"items", "values", "clear", "pop"}
 	wrappedmethattrs = {"get", "update"}
 
 	@staticmethod

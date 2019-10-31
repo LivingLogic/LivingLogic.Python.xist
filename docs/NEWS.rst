@@ -13,6 +13,8 @@ Changes in 5.55 (released 11/??/2019)
 
 *	Added an option ``--ignoreerrors`` to ``orareindex``.
 
+*	UL4 dictionaries now have a method ``pop()``.
+
 
 Changes in 5.54.1 (released 10/24/2019)
 ---------------------------------------
