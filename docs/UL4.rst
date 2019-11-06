@@ -1104,7 +1104,7 @@ are supported:
 For operations involving ``date`` objects, if the resulting day falls out of the
 range of valid days for the target month, the last day for the target month
 will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
-``2000-02-29 00:00:00``.
+``2000-02-29``.
 
 
 ``isundefined``
