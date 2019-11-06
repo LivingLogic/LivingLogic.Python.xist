@@ -3818,6 +3818,16 @@ def test_function_md5(T):
 
 
 @pytest.mark.ul4
+def test_function_scrypt(T):
+	if not issubclass(T, TemplateJavascript):
+		result = "468b5b132508a02f1868576247763abed96ac41db9287d21c8b5379ad71fbe2a2bf77fd3a738dda0572e0761938149f5b91b58d2ff87b9482680540606a710943d2a69f66fe89e2693361300c914b42c24abb29a80ef8840b6a0b67c96e5960292cc38cd959017931fe28e2a921107ade2f845e09a7590e9bf6755bd04ec51af"
+		assert result == T("<?print scrypt('foo', 'bar')?>").renders()
+
+		# Make sure that the parameters have the same name in all implementations
+		assert result == T("<?print scrypt(string='foo', salt='bar')?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_round(T):
 	with raises(argumentmismatchmessage):
 		T("<?print round()?>").renders()

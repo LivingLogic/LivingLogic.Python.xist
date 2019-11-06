@@ -3819,7 +3819,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
 
-	version = "47"
+	version = "48"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
@@ -5164,6 +5164,12 @@ def function_hsv(h, s, v, a=1.0):
 def function_md5(string):
 	import hashlib
 	return hashlib.md5(string.encode("utf-8")).hexdigest()
+
+
+@Context.makefunction
+def function_scrypt(string, salt):
+	import scrypt
+	return scrypt.hash(string, salt, N=16384, r=8, p=1, buflen=128).hex()
 
 
 @Context.makefunction

@@ -1622,6 +1622,18 @@ prints ``#fff``.
 ``md5(str)`` returns the MD5 hash of the string ``str``.
 
 
+``scrypt``
+""""""""""
+
+``scrypt(str, salt)`` returns the scrypt hash of the string ``str`` using the
+salt value ``salt``. The returned string contains 256 hex digits.
+
+For more info on scrypt, see https://en.wikipedia.org/wiki/Scrypt
+
+.. note::
+	``scrypt`` is not implemented in the Javascript version of UL4.
+
+
 ``random``
 """"""""""
 

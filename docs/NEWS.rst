@@ -15,6 +15,9 @@ Changes in 5.55 (released 11/??/2019)
 
 *	UL4 dictionaries now have a method ``pop()``.
 
+*	Added an UL4 function ``scrypt`` implementing the scrypt hashing function
+	(see https://en.wikipedia.org/wiki/Scrypt).
+
 
 Changes in 5.54.1 (released 10/24/2019)
 ---------------------------------------
