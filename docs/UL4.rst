@@ -985,7 +985,7 @@ supported:
 	(comparison is done by value not by identity)
 *	string, dict: Checks whether the key ``a`` is in the dictionary ``b``.
 	(Note that some implementations might support keys other than strings too.
-	E.g. Python and Java do, Javascript doesn't.)
+	E.g. Python and Java do, Javascript does only for ``Map`` objects.)
 
 The ``not in`` operator
 +++++++++++++++++++++++
