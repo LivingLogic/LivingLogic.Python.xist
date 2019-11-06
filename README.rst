@@ -95,7 +95,7 @@ For the license read :file:`xist/__init__.py`.
 Download
 --------
 
-XIST is available for download from the `download diretory`_ or from the
+XIST is available for download from the `download directory`_ or from the
 Cheeseshop_.
 
 .. _download directory: http://python.livinglogic.de/download/
