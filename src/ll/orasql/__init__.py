@@ -1545,16 +1545,28 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		cursor.execute(query, owner=self.owner, name=self.name)
 		_inlinepkfields = {rec.column_name for rec in cursor}
 
-		(organization, logging) = self._info(connection)
+		(organization, logging, compression) = self._info(connection)
 
 		query = f"""
 			select
-				*
+				c.column_name,
+				c.data_type,
+				c.data_precision,
+				c.data_scale,
+				c.char_length,
+				c.char_used,
+				c.data_default,
+				c.nullable,
+				decode(l.compression, 'NO', null, l.compression) as compression
 			from
-				{ddprefix}_tab_columns
+				{ddprefix}_tab_columns c,
+				{ddprefix}_lobs l
 			where
-				owner = nvl(:owner, user) and
-				table_name = :name
+				c.owner = nvl(:owner, user) and
+				c.table_name = :name and
+				c.owner = l.owner(+) and
+				c.table_name = l.table_name(+) and
+				c.column_name = l.column_name(+)
 			order by
 				column_id asc
 		"""
@@ -1575,6 +1587,16 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		code.append("\n)")
 		if not logging:
 			code.append(" nologging")
+		if compression is not None:
+			if compression == "BASIC":
+				code.append(" compress")
+			elif compression == "ADVANCED":
+				code.append(" row store compress advanced")
+			else:
+				code.append(f"column store compress for {compression}")
+		for rec in recs:
+			if rec.compression:
+				code.append(f"\nlob({rec.column_name}) store as securefile (compress {rec.compression.lower()})")
 		if term:
 			code.append(";")
 		code.append("\n")
@@ -1647,7 +1669,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		query = f"""
 			select
 				logging,
-				iot_type
+				iot_type,
+				compress_for
 			from
 				{ddprefix}_tables
 			where
@@ -1658,7 +1681,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		return ("heap" if rec.iot_type is None else "index", rec.logging == "YES")
+		return ("heap" if rec.iot_type is None else "index", rec.logging == "YES", rec.compress_for)
 
 	def organization(self, connection=None):
 		"""
@@ -1669,9 +1692,17 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 
 	def logging(self, connection=None):
 		"""
-		Return whether to table is in logging mode or not.
+		Return whether the table is in logging mode or not.
 		"""
 		return self._info(connection)[1]
+
+	def compression(self, connection=None):
+		"""
+		Return the compression mode of the table.
+
+		(``None``, ``"BASIC"`` or ``"ADVANCED"``).
+		"""
+		return self._info(connection)[2]
 
 	@classmethod
 	def names(cls, connection, owner=None):
@@ -3884,11 +3915,15 @@ class Column(OwnedSchemaObject):
 			select
 				*
 			from
-				{ddprefix}_tab_columns
+				{ddprefix}_tab_columns c,
+				{ddprefix}_lobs l
 			where
-				owner = nvl(:owner, user) and
-				table_name = :table_name and
-				column_name = :column_name
+				c.owner = nvl(:owner, user) and
+				c.table_name = :table_name and
+				c.column_name = :column_name and
+				c.owner = l.owner(+) and
+				c.table_name = l.table_name(+) and
+				c.column_name = l.column_name(+)
 		"""
 		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
 		rec = cursor.fetchone()
@@ -4025,6 +4060,19 @@ class Column(OwnedSchemaObject):
 		(connection, cursor) = self.getcursor(connection)
 		rec = self._getcolumnrecord(cursor)
 		return rec.nullable == "Y"
+
+	def compression(self, connection=None):
+		"""
+		The compression mode for this LOB column.
+
+		Return ``None`` if this is not a LOB column, or it isn't compressed.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		rec = self._getcolumnrecord(cursor)
+		compression = rec.compression
+		if compression == "NO":
+			compression = None
+		return compression
 
 	def comment(self, connection=None):
 		"""
