@@ -664,12 +664,32 @@ class Decoder:
 		while True:
 			typecode = self._nextchar()
 			# We always "push back" the typecode we've read so that :meth:`load`
-			# can treat both cases (i.e. whether :meth:`ul4onload` uses
-			# :meth:`load` or :meth:`loadcontent`) the same way.
+			# can treat all cases (i.e. whether :meth:`ul4onload` uses :meth:`load`
+			# :meth:`loadcontent` or  :meth:`loadcontentitems`) the same way.
 			self._bufferedchar = typecode
 			if typecode == ")":
 				break
 			yield self.load()
+
+	def loadcontentitems(self):
+		"""
+		Similar to :meth:`loadcontent`, but will load the content of an object as
+		(key, value) pairs.
+
+		For further info see :meth:`loadcontent`.
+		"""
+
+		while True:
+			typecode = self._nextchar()
+			# We always "push back" the typecode we've read so that :meth:`load`
+			# can treat all cases (i.e. whether :meth:`ul4onload` uses :meth:`load`
+			# :meth:`loadcontent` or  :meth:`loadcontentitems`) the same way.
+			self._bufferedchar = typecode
+			if typecode == ")":
+				break
+			key = self.load()
+			value = self.load()
+			yield (key, value)
 
 
 class StreamBuffer:

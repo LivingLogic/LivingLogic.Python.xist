@@ -28,6 +28,10 @@ Changes in 5.55 (released 11/??/2019)
 *	:mod:`ll.orasql.Table.createsql` now can handle table and LOB column
 	compression.
 
+*	Added a method :meth:`loadcontentitems` to the class
+	:class:`ll.ul4on.Decoder` which can be used to load the content of an object
+	as ``(key, value)`` pairs.
+
 
 Changes in 5.54.1 (released 10/24/2019)
 ---------------------------------------
