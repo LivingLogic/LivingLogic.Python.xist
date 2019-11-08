@@ -3,7 +3,7 @@
 Migration
 #########
 
-This document describes how to update your code to each versions of XIST. Only
+This document describes how to update your code to each version of XIST. Only
 incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
