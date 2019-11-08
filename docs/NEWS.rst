@@ -18,10 +18,10 @@ Changes in 5.55 (released 11/??/2019)
 *	Added an UL4 function ``scrypt`` implementing the scrypt hashing function
 	(see https://en.wikipedia.org/wiki/Scrypt).
 
-*	Added a new method :mod:`ll.orasql.Table.compression` that returns the table
+*	Added a new method :meth:`ll.orasql.Table.compression` that returns the table
 	compression (``None``, ``"BASIC"`` or ``"ADVANCED"``).)
 
-*	Added a new method :mod:`ll.orasql.Column.compression` that returns the
+*	Added a new method :meth:`ll.orasql.Column.compression` that returns the
 	column compression for LOB columns (``None``, ``"LOW"``, ``"MEDIUM"``
 	or ``"HIGH"``).
 
