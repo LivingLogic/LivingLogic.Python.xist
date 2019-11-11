@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.55 (released 11/??/2019)
+Changes in 5.55 (released 11/11/2019)
 -------------------------------------
 
 *	Added an option ``--ignoreerrors`` to ``orareindex``.
