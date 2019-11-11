@@ -25,7 +25,7 @@ Changes in 5.55 (released 11/11/2019)
 	column compression for LOB columns (``None``, ``"LOW"``, ``"MEDIUM"``
 	or ``"HIGH"``).
 
-*	:mod:`ll.orasql.Table.createsql` now can handle table and LOB column
+*	:meth:`ll.orasql.Table.createsql` now can handle table and LOB column
 	compression.
 
 *	Added a method :meth:`loadcontentitems` to the class
