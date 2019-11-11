@@ -1557,7 +1557,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				c.char_used,
 				c.data_default,
 				c.nullable,
-				decode(l.compression, 'NO', null, l.compression) as compression
+				decode(l.compression, 'NO', null, 'NONE', null, l.compression) as compression
 			from
 				{ddprefix}_tab_columns c,
 				{ddprefix}_lobs l
