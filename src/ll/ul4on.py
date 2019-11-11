@@ -301,7 +301,8 @@ class Encoder:
 		# Have we written this object already?
 		if id(obj) in self._id2index:
 			# Yes: Store a backreference to the object
-			self._line(f"^{self._id2index[id(obj)]}")
+			index = self._id2index[id(obj)]
+			self._line(f"^{index}")
 		else:
 			from ll import color, misc
 			# No: Write the object itself
