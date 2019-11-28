@@ -8,6 +8,19 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.56 (released 11/??/2019)
+-------------------------------------
+
+*	:class:`ll.orasql.Comment` has been renamed to
+	:class:`ll.orasql.ColumnComment`.
+
+*	Added class :class:`ll.orasql.TableComment` for table comments has been
+	added.
+
+*	Added a method :meth:`ll.orasql.Table.comment` that returns the
+	:class:`ll.orasql.TableComment` object for this table.
+
+
 Changes in 5.55 (released 11/11/2019)
 -------------------------------------
 

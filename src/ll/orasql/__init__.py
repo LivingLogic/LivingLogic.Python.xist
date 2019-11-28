@@ -1826,6 +1826,12 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		cursor.execute(query)
 		return iter(cursor)
 
+	def comment(self, connection=None):
+		"""
+		Return the table comment
+		"""
+		return TableComment(self.name, connection=self.getconnection(connection))
+
 	def comments(self, connection=None):
 		"""
 		Generator that yields all column comments of this table.
@@ -1845,7 +1851,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
 		for rec in cursor:
-			yield Comment(f"{self.name}.{rec.column_name}", self.owner, connection)
+			yield ColumnComment(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
@@ -1891,6 +1897,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 
 	def referencedby(self, connection=None):
 		if not self.ismview(connection):
+			yield self.comment(connection)
 			yield from self.comments(connection)
 			yield from self.constraints(connection)
 		for obj in super().referencedby(connection):
@@ -1899,11 +1906,79 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				yield obj
 
 
-class Comment(OwnedSchemaObject):
+class TableComment(OwnedSchemaObject):
+	"""
+	Models a table comment in the database.
+	"""
+	type = "tablecomment"
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"""
+			select
+				comments
+			from
+				{ddprefix}_tab_comments
+			where
+				owner=nvl(:owner, user) and
+				table_name=:name
+		"""
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
+	def comment(self, connection=None):
+		"""
+		Return the comment text for this table.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"""
+			select
+				comments
+			from
+				{ddprefix}_tab_comments
+			where
+				owner = nvl(:owner, user) and
+				table_name = :name
+		"""
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+
+		return rec.comments
+
+	def createsql(self, connection=None, term=True):
+		comment = (self.comment(connection) or "").replace("'", "''")
+		name = self.getfullname()
+		code = f"comment on table {name} is '{comment}'"
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def dropsql(self, connection=None, term=True):
+		# will be dropped with the table
+		return ""
+
+	def fixname(self, code):
+		code = code.split(None, 5)
+		code = f"comment on table {self.getfullname()} is {code[5]}"
+		return code
+
+	def references(self, connection=None):
+		connection = self.getconnection(connection)
+		yield Table(self.name, self.owner, connection)
+
+
+class ColumnComment(OwnedSchemaObject):
 	"""
 	Models a column comment in the database.
 	"""
-	type = "comment"
+	type = "columncomment"
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -4612,7 +4687,7 @@ class OracleURLConnection(url_.Connection):
 		type = self._type(absurl)
 		if type == "root": # directory of types for the current user
 			for childname in sorted(SchemaObject.name2type):
-				if childname not in ("comment", "column"):
+				if childname not in ("tablecomment", "columncomment", "column"):
 					yield from _dir(f"{childname}/")
 		elif type == "type": # directory of objects of the specified type for current user
 			path = absurl.path
@@ -4636,7 +4711,7 @@ class OracleURLConnection(url_.Connection):
 		elif type == "user": # directory of types for a specific user
 			path = absurl.path
 			for childname in sorted(SchemaObject.name2type):
-				if childname not in ("comment", "column"):
+				if childname not in ("tablecomment", "columncomment", "column"):
 					yield from _dir(f"{childname}/")
 		elif type == "usertype": # directory of objects of the specified type for a specific user
 			path = absurl.path

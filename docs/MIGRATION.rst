@@ -8,6 +8,15 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.56
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+:class:`ll.orasql.Comment` has been renamed to :class:`ll.orasql.ColumnComment`.
+
+
 Migrating to version 5.52
 =========================
 
