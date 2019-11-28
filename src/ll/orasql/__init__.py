@@ -1297,7 +1297,7 @@ class OwnedSchemaObject(SchemaObject):
 
 	def synonyms(self, connection=None):
 		"""
-		Generator the yields all synonyms for this object.
+		Generator that yields all synonyms for this object.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
@@ -1317,7 +1317,7 @@ class OwnedSchemaObject(SchemaObject):
 
 	def privileges(self, connection=None):
 		"""
-		Generator the yields all privileges on this object.
+		Generator that yields all privileges on this object.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		if self.owner is None:
