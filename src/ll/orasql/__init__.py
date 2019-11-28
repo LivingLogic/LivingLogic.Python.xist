@@ -33,7 +33,7 @@ __ https://oracle.github.io/python-cx_Oracle/
 """
 
 
-import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, decimal
+import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
 from collections import abc
 
 from cx_Oracle import *
