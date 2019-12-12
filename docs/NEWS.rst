@@ -14,8 +14,7 @@ Changes in 5.56 (released 11/??/2019)
 *	:class:`ll.orasql.Comment` has been renamed to
 	:class:`ll.orasql.ColumnComment`.
 
-*	Added class :class:`ll.orasql.TableComment` for table comments has been
-	added.
+*	Added a class :class:`ll.orasql.TableComment` for table comments.
 
 *	Added a method :meth:`ll.orasql.Table.comment` that returns the
 	:class:`ll.orasql.TableComment` object for this table.
