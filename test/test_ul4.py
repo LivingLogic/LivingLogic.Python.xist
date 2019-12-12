@@ -99,6 +99,15 @@ class TemplatePython:
 	def __call__(self, *args, **kwargs):
 		return self.template(*args, **kwargs)
 
+	def render_with_globals(self, args, kwargs, globals):
+		return "".join(self.template.render_with_globals(args, kwargs, globals))
+
+	def renders_with_globals(self, args, kwargs, globals):
+		return self.template.renders_with_globals(args, kwargs, globals)
+
+	def call_with_globals(self, args, kwargs, globals):
+		return self.template.call_with_globals(args, kwargs, globals)
+
 
 class TemplatePythonDumpS(TemplatePython):
 	def maketemplate(self):
@@ -154,93 +163,69 @@ class TemplateJava:
 		dump = ul4on.dumps(data).encode("utf-8")
 		result = subprocess.run("java com.livinglogic.ul4.Tester", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		# Check if we have an exception
+		print("##########################")
+		print(repr(result.stdout))
+		print(repr(result.stderr))
+		print("##########################")
 		self.findexception(result.stderr.decode("utf-8", "passbytes"))
 		return result.stdout.decode("utf-8", "passbytes")
+
+	def renders(self, *args, **kwargs):
+		data = self._makedata("renders", args, kwargs)
+		return self.run(data)
+
+	def render(self, *args, **kwargs):
+		data = self._makedata("render", args, kwargs)
+		return self.run(data)
+
+	def __call__(self, *args, **kwargs):
+		data = self._makedata("call", args, kwargs)
+		return ul4on.loads(self.run(data))
+
+	def render_with_globals(self, args, kwargs, globals):
+		data = self._makedata("render", args, kwargs, globals)
+		return self.run(data)
+
+	def renders_with_globals(self, args, kwargs, globals):
+		data = self._makedata("renders", args, kwargs, globals)
+		return self.run(data)
+
+	def call_with_globals(self, args, kwargs, globals):
+		data = self._makedata("call", args, kwargs, globals)
+		return ul4on.loads(self.run(data))
 
 
 class TemplateJavaCompiledByPython(TemplateJava):
 	def template(self):
 		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
-	def renders(self, *args, **kwargs):
+	def _makedata(self, command, args, kwargs, globals=None):
 		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="renders",
+			raise ValueError("positional arguments not supported")
+		return dict(
+			command=command,
 			template=self.template(),
 			name=None,
 			whitespace=None,
 			signature=None,
 			variables=kwargs,
+			globalvariables=globals,
 		)
-		return self.run(data)
-
-	def render(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="render",
-			template=self.template(),
-			name=None,
-			whitespace=None,
-			signature=None,
-			variables=kwargs,
-		)
-		return self.run(data)
-
-	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="call",
-			template=self.template(),
-			name=None,
-			whitespace=None,
-			signature=None,
-			variables=kwargs,
-		)
-		return ul4on.loads(self.run(data))
 
 
 class TemplateJavaCompiledByJava(TemplateJava):
-	def renders(self, *args, **kwargs):
+	def _makedata(self, command, args, kwargs, globals=None):
 		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="renders",
+			raise ValueError("positional arguments not supported")
+		return dict(
+			command=command,
 			template=self.source,
 			name=self.name,
 			whitespace=self.whitespace,
 			signature=self.signature,
 			variables=kwargs,
+			globalvariables=globals,
 		)
-		return self.run(data)
-
-	def render(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="render",
-			template=self.source,
-			name=self.name,
-			whitespace=self.whitespace,
-			signature=self.signature,
-			variables=kwargs,
-		)
-		return self.run(data)
-
-	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="call",
-			template=self.source,
-			name=self.name,
-			whitespace=self.whitespace,
-			signature=self.signature,
-			variables=kwargs,
-		)
-		return ul4on.loads(self.run(data))
 
 
 class TemplatePHP:
@@ -366,6 +351,8 @@ class TemplateJavascript:
 			result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8", "passbytes")
 		stderr = result.stderr.decode("utf-8", "passbytes")
+		print(repr(stdout))
+		print(repr(stderr))
 		if stderr:
 			raise RuntimeError(stderr)
 		data = ul4on.loads(stdout)
@@ -377,16 +364,17 @@ class TemplateJavascript:
 
 
 class TemplateJavascriptV8(TemplateJavascript):
-	def renders(self, *args, **kwargs):
+	def _make_source(self, command, args, kwargs, globals={}):
 		if args:
-			raise ValueError("*args not supported")
+			raise ValueError("positional arguments not supported")
 
-		source = f"""
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+		return f"""
+			var template = {self.template.jssource()};
+			var vars = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var globals = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(globals))}));
 			try
 			{{
-				print(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
+				print(ul4.dumps({{"status": "ok", "result": {command}}}));
 			}}
 			catch (exc)
 			{{
@@ -394,44 +382,43 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
+	def renders(self, *args, **kwargs):
+		source = self._make_source("template.renders(vars, {})", args, kwargs)
 		return self.runcode("d8 --stack_size=100 {dir}/dist/umd/ul4.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
 
 	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
+		source = self._make_source("template.call(vars, {})", args, kwargs)
+		return self.runcode("d8 {dir}/dist/umd/ul4.js {fn}", source)
 
-		source = f"""
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
-			try
-			{{
-				print(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
-			}}
-			catch (exc)
-			{{
-				print(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
-			}}
-		"""
+	def renders_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.renders(vars, globals)", args, kwargs, globals)
+		return self.runcode("d8 --stack_size=100 {dir}/dist/umd/ul4.js {fn}", source)
 
+	def render_with_globals(self, args, kwargs, globals):
+		return self.renders_with_globals(args, kwargs, globals)
+
+	def call_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.call(vars, globals)", args, kwargs, globals)
 		return self.runcode("d8 {dir}/dist/umd/ul4.js {fn}", source)
 
 
 class TemplateJavascriptNode(TemplateJavascript):
-	def renders(self, *args, **kwargs):
+	def _make_source(self, command, args, kwargs, globals={}):
 		if args:
-			raise ValueError("*args not supported")
+			raise ValueError("positional arguments not supported")
 
-		source = f"""
+		return f"""
 			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
 
 			var template = {self.template.jssource()};
-			var data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var vars = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var globals = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(globals))}));
 			try
 			{{
-				console.log(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
+				console.log(ul4.dumps({{"status": "ok", "result": {command}}}));
 			}}
 			catch (exc)
 			{{
@@ -439,30 +426,26 @@ class TemplateJavascriptNode(TemplateJavascript):
 			}}
 		"""
 
+	def renders(self, *args, **kwargs):
+		source = self._make_source("template.renders(vars, {})", args, kwargs)
 		return self.runcode("node {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
 
 	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
+		source = self._make_source("template.call(vars, {})", args, kwargs)
+		return self.runcode("node {fn}", source)
 
-		source = f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
+	def renders_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.renders(vars, globals)", args, kwargs, globals)
+		return self.runcode("node {fn}", source)
 
-			var template = {self.template.jssource()};
-			var data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
-			try
-			{{
-				console.log(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
-			}}
-			catch (exc)
-			{{
-				console.log(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
-			}}
-		"""
+	def render_with_globals(self, args, kwargs, globals):
+		return self.renders_with_globals(args, kwargs, globals)
 
+	def call_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.call(vars, globals)", args, kwargs, globals)
 		return self.runcode("node {fn}", source)
 
 
@@ -5514,7 +5497,7 @@ def test_custommethods():
 
 		@ul4c.withcontext
 		def bar(self, context):
-			return len(context.vars)
+			return len(context.vars.maps[0])
 
 		def baz(self):
 			pass
@@ -5904,6 +5887,30 @@ def test_render_in_renderblock(T):
 		<?end renderblock?>
 	"""
 	assert "\n\n\t" == T(s, whitespace="smart").renders()
+
+
+@pytest.mark.ul4
+def test_render_with_globals(T):
+	t1 = ul4c.Template("<?print sum?>")
+	t2 = T("<?render t1()?>")
+
+	assert "42" == t2.render_with_globals([], {"t1": t1}, {"sum": 42})
+
+
+@pytest.mark.ul4
+def test_renders_with_globals(T):
+	t1 = ul4c.Template("<?print sum?>")
+	t2 = T("<?render t1()?>")
+
+	assert "42" == t2.renders_with_globals([], {"t1": t1}, {"sum": 42})
+
+
+@pytest.mark.ul4
+def test_call_with_globals(T):
+	t1 = ul4c.Template("<?return sum?>")
+	t2 = T("<?return t1()?>")
+
+	assert 42 == t2.call_with_globals([], {"t1": t1}, {"sum": 42})
 
 
 @pytest.mark.ul4

@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.56 (released 11/??/2019)
+Changes in 5.56 (released 12/12/2019)
 -------------------------------------
 
 *	:class:`ll.orasql.Comment` has been renamed to
@@ -18,6 +18,11 @@ Changes in 5.56 (released 11/??/2019)
 
 *	Added a method :meth:`ll.orasql.Table.comment` that returns the
 	:class:`ll.orasql.TableComment` object for this table.
+
+*	UL4 templates now support global variables. To be able to pass global
+	variables to UL4 templates the following methods have been added to
+	:class:`ll.ul4c.Template`: :meth:`render_with_globals`,
+	:meth:`renders_with_globals` and :meth:`call_with_globals`.
 
 
 Changes in 5.55 (released 11/11/2019)

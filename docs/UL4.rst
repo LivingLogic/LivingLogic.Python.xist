@@ -2024,6 +2024,40 @@ When a ``<?return?>`` tag is encountered when the template is used as a
 template, output will simply stop and the return value will be ignored.
 
 
+Global variables
+================
+
+UL4 templates support global variables. To be able to pass parameters and
+global variables to an UL4 template a second set of methods is available, so
+that a list of positional arguments, a dictionary with keyword arguments and a
+dictionary with global variables can be passed.
+
+These methods are :meth:`render_with_globals`, :meth:`renders_with_globals` and
+:meth:`call_with_globals`.
+
+An example using :meth:`renders_with_globals` looks like this:
+
+	from ll import ul4c
+
+	t1 = ul4c.Template("<?print x?>")
+	t2 = ul4c.Template("<?render t1()?>")
+
+	output = t2.renders_with_globals((), {"t1": t1}, {"x": 42})
+
+With this ``output`` will be the string ``"42"``.
+
+And an example using :meth:`call_with_globals` looks like this:
+
+	from ll import ul4c
+
+	t1 = ul4c.Template("<?return x?>")
+	t2 = ul4c.Template("<?return t1()?>")
+
+	result = t2.call_with_globals((), {"t1": t1}, {"x": 42})
+
+With this ``result`` will be ``42``.
+
+
 Exposing attributes
 ===================
 
