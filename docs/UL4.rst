@@ -2035,7 +2035,7 @@ dictionary with global variables can be passed.
 These methods are :meth:`render_with_globals`, :meth:`renders_with_globals` and
 :meth:`call_with_globals`.
 
-An example using :meth:`renders_with_globals` looks like this:
+An example using :meth:`renders_with_globals` looks like this::
 
 	from ll import ul4c
 
@@ -2046,7 +2046,7 @@ An example using :meth:`renders_with_globals` looks like this:
 
 With this ``output`` will be the string ``"42"``.
 
-And an example using :meth:`call_with_globals` looks like this:
+And an example using :meth:`call_with_globals` looks like this::
 
 	from ll import ul4c
 
