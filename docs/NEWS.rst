@@ -36,7 +36,7 @@ Changes in 5.55 (released 11/11/2019)
 	(see https://en.wikipedia.org/wiki/Scrypt).
 
 *	Added a new method :meth:`ll.orasql.Table.compression` that returns the table
-	compression (``None``, ``"BASIC"`` or ``"ADVANCED"``).)
+	compression (``None``, ``"BASIC"`` or ``"ADVANCED"``).
 
 *	Added a new method :meth:`ll.orasql.Column.compression` that returns the
 	column compression for LOB columns (``None``, ``"LOW"``, ``"MEDIUM"``
