@@ -9,16 +9,16 @@
 ## See ll/xist/__init__.py for the license
 
 
-"""
+r"""
 .. program:: sisyphus
 
-:mod:`!ll.sisyphus` simplifies running Python stuff as jobs.
+:mod:`sisyphus` simplifies running Python stuff as jobs.
 
 This can either be done under the direction of a cron daemon or a similar
-process runner, then :mod:`!ll.sisyphus` makes sure that there will be no more
+process runner, then :mod:`sisyphus` makes sure that there will be no more
 than one job of a certain name running at any given time.
 
-Or :mod:`!ll.sisyphus` can be used as its own minimal cron daemon and can
+Or :mod:`sisyphus` can be used as its own minimal cron daemon and can
 execute the job repeatedly.
 
 A job has a maximum allowed runtime. If this maximum is exceeded, the job will
@@ -76,17 +76,6 @@ You will find the log files for this job in
 :file:`~/ll.sisyphus/ACME.FooBar/Fetch/`.
 
 
-Eventful und uneventful job runs
---------------------------------
-
-The method :meth:`Job.execute` (which must be overwritten to implement the jobs
-main functionality) should return a one-line summary of what the job did
-(this is called an "eventful run"). It can also return :const:`None` to report
-that the job had nothing to do (this is called an "uneventful run"). In case of
-an uneventful run, the log file will be deleted immediately at the end of the
-run.
-
-
 Repeat mode
 -----------
 
@@ -136,10 +125,10 @@ written like this:
 
 	self.log['xml']['warning'](f"can't parse XML file {filename}")
 
-:mod:`!ll.sisyphus` itself uses the following tags:
+:mod:`sisyphus` itself uses the following tags:
 
 ``sisyphus``
-	This tag will be added to all log lines produced by :mod:`!ll.sisyphus`
+	This tag will be added to all log lines produced by :mod:`sisyphus`
 	itself.
 
 ``init``
@@ -170,7 +159,33 @@ written like this:
 
 ``info``
 	This tag is used for all other informational log messages output by
-	:mod:`!ll.sisyphus` itself (like log file cleanup etc.).
+	:mod:`sisyphus` itself (like log file cleanup etc.).
+
+
+Eventful und uneventful job runs
+--------------------------------
+
+The method :meth:`Job.execute` (which must be overwritten to implement the jobs
+main functionality) should return a one-line summary of what the job did
+(this is called an "eventful run"). It can also return :const:`None` to report
+that the job had nothing to do (this is called an "uneventful run"). In case of
+an uneventful run, the log file will be deleted immediately at the end of the
+run.
+
+
+Delayed logs
+------------
+
+If the class/instance attribute ``Job.delaylogs`` is set to either ``"result"``
+or ``"full"`` (the default is ``"none"``) :mod:`sisyphus` runs in "delayed logs"
+mode.  ``Job.delaylogs`` can be set either directly or via the command line
+option :option:`--delaylogs`),
+
+In "delayed logs" mode log messages will be buffered up until the first log
+message that doesn't include the tag ``delay`` is encountered (:mod:`sisyphus`\s
+log messages all do include ``delay``). Then all buffered messages will be
+output. If only delayed messages are output during the complete job run,
+``"result"`` will at least output the result, ``"full"`` won't output anything.
 
 
 Exceptions
@@ -206,7 +221,7 @@ It is possible to send an email when a job fails. For this, the options
 :option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
 set. If the job terminates because of an exception or exceeds its maximum
 runtime (and the option :option:`--noisykills` is set) or any of the calls
-to :meth:`~Job.log` include the tag ``email``, the email will be sent. This
+to :meth:`~Job.log` include the tag ``email``, an email will be sent. This
 email includes the last 10 logging calls and the final exception (if there is
 any) in plain text and HTML format as well as as a JSON attachment.
 
@@ -245,12 +260,12 @@ expired (via :func:`os.fork` and :func:`signal.signal`). This won't work on
 Windows. So on Windows the job will always run to completion without being
 killed after the maximum runtime.
 
-To make sure that only one job instance runs concurrently, :mod:`!ll.sisyphus`
+To make sure that only one job instance runs concurrently, :mod:`sisyphus`
 uses :mod:`fcntl` to create an exclusive lock on the file of the running script.
 This won't work on Windows either. So on Windows you might have multiple
 running instances of the job.
 
-:mod:`!ll.sisyphus` uses the module :mod:`setproctitle` to change the process
+:mod:`sisyphus` uses the module :mod:`setproctitle` to change the process
 title during various phases of running the job. If :mod:`setproctitle` is not
 available the process title will not be changed.
 
@@ -936,6 +951,8 @@ class Job:
 	encoding = "utf-8"
 	errors = "strict"
 
+	delaylogs = "no"
+
 	ul4attrs = {"sysinfo", "projectname", "jobname", "identifier", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
 
 	def execute(self):
@@ -991,6 +1008,7 @@ class Job:
 		p.add_argument("-f", "--log2file", dest="log2file", help="Should the job log into a file? (default: %(default)s)", action=misc.FlagAction, default=self.log2file)
 		p.add_argument("-o", "--log2stdout", dest="log2stdout", help="Should the job log to stdout? (default: %(default)s)", action=misc.FlagAction, default=self.log2stdout)
 		p.add_argument("-e", "--log2stderr", dest="log2stderr", help="Should the job log to stderr? (default: %(default)s)", action=misc.FlagAction, default=self.log2stderr)
+		p.add_argument(      "--delaylogs", dest="delaylogs", help="Delay log output until the first message without a 'delay' tag? (default: %(default)s)", default=self.delaylogs, choices=("no", "result", "full"))
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=argdays, default=self.keepfilelogs)
 		p.add_argument(      "--compressfilelogs", dest="compressfilelogs", metavar="DAYS", help="Number of days log after which log files are gzipped (default: %(default)s)", type=argdays, default=self.compressfilelogs)
 		p.add_argument(      "--compressmode", dest="compressmode", metavar="MODE", help="Method for compressing old log files (default: %(default)s)", choices=("gzip", "bzip2", "lzma"), default=self.compressmode)
@@ -1033,6 +1051,7 @@ class Job:
 		self.log2file = args.log2file
 		self.log2stdout = args.log2stdout
 		self.log2stderr = args.log2stderr
+		self.delaylogs = args.delaylogs
 		self.keepfilelogs = args.keepfilelogs
 		self.compressfilelogs = args.compressfilelogs
 		self.compressmode = args.compressmode
@@ -1130,8 +1149,13 @@ class Job:
 		# log the result
 		if self._exceptioncount:
 			self.log.sisyphus.result.errors(result)
+		elif self.delaylogs == "full":
+			self.log.sisyphus.result.delay.ok(result)
 		else:
+			self._delayed_logs = None
 			self.log.sisyphus.result.ok(result)
+			if self.delaylogs != "no":
+				self._delayed_logs = [] # Ignore the rest of the log messages.
 		if not self.fork:
 			self._closelogs(result is not None)
 		return 1 if result is not None else 0
@@ -1170,6 +1194,7 @@ class Job:
 		self._getscriptsource() # Get source code
 		self._getcrontab() # Get crontab
 		self.log = Tag(self._log) # Create tagged logger for files
+		self._delayed_logs = [] if self.delaylogs != "no" else None
 		self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", whitespace="strip") # Log line formatting template
 		self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
 		self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
@@ -1182,22 +1207,22 @@ class Job:
 		if self.fork and hasattr(os, "fork"):
 			self._tasks = [self.task("parent", os.getpid())]
 
-		self.log.sisyphus.init(f"{misc.sysinfo.script_name} (max time {self.maxtime})")
+		self.log.sisyphus.delay.init(f"{misc.sysinfo.script_name} (max time {self.maxtime})")
 
 		logmessage = self._logmessage()
-		self.log.sisyphus.init(logmessage)
+		self.log.sisyphus.delay.init(logmessage)
 
 		# Check for support of various thing we'd like to use
 		if fcntl is None:
-			self.log.sisyphus.init.warning("Can't lock script file (module fcntl not available)")
+			self.log.sisyphus.init.delay.warning("Can't lock script file (module fcntl not available)")
 		if self.fork and not hasattr(os, "fork"):
-			self.log.sisyphus.init.warning("Can't fork (function os.fork not available)")
+			self.log.sisyphus.init.delay.warning("Can't fork (function os.fork not available)")
 			self.fork = False
 		if not hasattr(signal, "SIGALRM"):
-			self.log.sisyphus.init.warning("Can't use signals (signal.SIGALRM not available)")
+			self.log.sisyphus.init.delay.warning("Can't use signals (signal.SIGALRM not available)")
 			self.fork = False
 		if self.setproctitle and setproctitle is None:
-			self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available)")
+			self.log.sisyphus.init.delay.warning("Can't set process title (module setproctitle not available)")
 
 		if self.fork: # Forking mode?
 			# Fork the process; the child will do the work; the parent will monitor the maximum runtime
@@ -1231,7 +1256,7 @@ class Job:
 			self.setproctitle("child")
 			task = self.task("child", misc.sysinfo.pid, self._run if self.repeat else None)
 			self._tasks = [task] # This replaces the task stack inherited from the parent
-			self.log.sisyphus.init(f"forked worker child")
+			self.log.sisyphus.init.delay(f"forked worker child")
 		else: # We didn't fork
 			# set a signal to kill ourselves after the maximum runtime
 			if self.maxtime is not None and hasattr(signal, "SIGALRM"):
@@ -1307,10 +1332,10 @@ class Job:
 					wait_seconds = wait.total_seconds()
 					if wait_seconds > 0:
 						self.setproctitle("parent", "Sleeping")
-						self.log.sisyphus.info(f"Sleeping for {wait} until {nextrun}")
+						self.log.sisyphus.delay.info(f"Sleeping for {wait} until {nextrun}")
 						time.sleep(wait_seconds)
 					else:
-						self.log.sisyphus.info(f"Restarting immediately")
+						self.log.sisyphus.delay.info(f"Restarting immediately")
 			else:
 				self._handleoneexecution()
 
@@ -1413,13 +1438,30 @@ class Job:
 	def _log(self, tags, obj):
 		"""
 		Log ``obj`` to all loggers using ``tags`` as the list of tags.
+
+		If we're in "delayed logs" mode, buffer up messages instead.
 		"""
 		timestamp = datetime.datetime.now()
 		if isinstance(obj, BaseException) and "exc" not in tags:
 			tags += ("exc",)
 			self._exceptioncount += 1
-		for logger in self._loggers:
-			logger.log(timestamp, tags, self._tasks, obj)
+
+		delayed = "delay" in tags
+		if delayed:
+			tags = tuple(tag for tag in tags if tag != "delay")
+		if delayed and self._delayed_logs is not None:
+			self._delayed_logs.append((timestamp, tags, self._tasks[:], obj))
+		else:
+			self._flush_logs()
+			for logger in self._loggers:
+				logger.log(timestamp, tags, self._tasks, obj)
+
+	def _flush_logs(self):
+		if self._delayed_logs is not None:
+			for (timestamp, tags, tasks, obj) in self._delayed_logs:
+				for logger in self._loggers:
+					logger.log(timestamp, tags, tasks, obj)
+			self._delayed_logs = None # No more delated logs
 
 	def _getscriptsource(self):
 		"""
@@ -1740,7 +1782,7 @@ class URLResourceLogger(StreamLogger):
 						# ... and it's to old to keep it, delete it
 						if not removedany: # Only log this line for the first logfile we remove
 							# This will still work, as the file isn't closed yet.
-							self.job.log.sisyphus.info(f"Removing logfiles older than {keepfilelogs}")
+							self.job.log.sisyphus.delay.info(f"Removing logfiles older than {keepfilelogs}")
 							removedany = True
 						self.remove(fileurl)
 					elif mdate < compressthreshold:
@@ -1748,17 +1790,17 @@ class URLResourceLogger(StreamLogger):
 						if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
 							if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
 								if not warnedcompressany:
-									self.job.log.sisyphus.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
+									self.job.log.sisyphus.delay.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
 									warnedcompressany = True
 							else:
 								if not compressedany:
-									self.job.log.sisyphus.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
+									self.job.log.sisyphus.delay.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
 									compressedany = True
 								self.compress(fileurl)
 			if not eventful:
-				self.job.log.sisyphus.info("Going to delete current logfile")
+				self.job.log.sisyphus.delay.info("Going to delete current logfile")
 			if removedany or compressedany or not eventful:
-				self.job.log.sisyphus.info("Logfiles cleaned up")
+				self.job.log.sisyphus.delay.info("Logfiles cleaned up")
 			# Close the stream now, so that we're able to delete it (even on Windows)
 			self.stream.close()
 			if not eventful:
@@ -1766,7 +1808,7 @@ class URLResourceLogger(StreamLogger):
 				self.fileurl.remove()
 
 	def remove(self, fileurl):
-		self.job.log.sisyphus.info(f"Removing logfile {fileurl.local()}")
+		self.job.log.sisyphus.delay.info(f"Removing logfile {fileurl.local()}")
 		fileurl.remove()
 
 	def compress(self, fileurl, bufsize=65536):
@@ -1783,7 +1825,7 @@ class URLResourceLogger(StreamLogger):
 			raise ValueError(f"unknown compressmode {self.job.compressmode!r}")
 
 		filename = fileurl.local()
-		self.job.log.sisyphus.info(f"Compressing logfile {fileurl.local()}")
+		self.job.log.sisyphus.delay.info(f"Compressing logfile {fileurl.local()}")
 		with open(filename, "rb") as logfile:
 			with compressor(filename + ext, mode="wb") as compressedlogfile:
 				while True:

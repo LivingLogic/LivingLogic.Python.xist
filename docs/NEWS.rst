@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.57 (released 01/??/2020)
+-------------------------------------
+
+*	Added a "delayed logs" mode to :mod:`ll.sisyphus`. This makes it possible to
+	delay output of any log messages until something interesting happens.
+
+
 Changes in 5.56 (released 12/12/2019)
 -------------------------------------
 
