@@ -12,7 +12,8 @@ Changes in 5.57 (released 01/??/2020)
 -------------------------------------
 
 *	Added a "delayed logs" mode to :mod:`ll.sisyphus`. This makes it possible to
-	delay output of any log messages until something interesting happens.
+	delay output of any log messages until something interesting happens. When
+	nothing interesting happens, log messages will be thrown away.
 
 
 Changes in 5.56 (released 12/12/2019)
