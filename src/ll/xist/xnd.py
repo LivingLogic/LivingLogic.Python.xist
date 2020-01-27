@@ -66,7 +66,7 @@ class RedefinedElementError(Error):
 				msg += f" ({msgs})"
 		elif self.duplicates == "merge":
 			incompatible = [attr.name for attr in self.oldelement.attrs if attr != self.newelement.attrs[attr.name]]
-			msg += f" (attribute{'s' if len(added) > 1 else ''} {', '.join(incompatible)} incompatible)"
+			msg += f" (attribute{'s' if len(incompatible) > 1 else ''} {', '.join(incompatible)} incompatible)"
 		# else self.duplicates == "reject"
 		return msg
 
