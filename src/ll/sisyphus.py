@@ -1239,7 +1239,7 @@ class Job:
 					(pid, status) = os.waitpid(pid, 0) # Wait for the child process to terminate
 					if self.maxtime is not None:
 						signal.alarm(0) # Cancel maximum runtime alarm
-				except misc.Timeout as exc:
+				except misc.Timeout:
 					self._finished_timeout()
 					return # finish normally (or continue, if we're in repeat mode)
 				else:
@@ -1271,7 +1271,7 @@ class Job:
 				self.setproctitle("child", "Working")
 				result = self.execute()
 				signal.alarm(0) # Cancel alarm
-		except misc.Timeout as exc:
+		except misc.Timeout:
 			status = self._finished_timeout()
 		except KeyboardInterrupt as exc:
 			status = self._finished_break(exc)
