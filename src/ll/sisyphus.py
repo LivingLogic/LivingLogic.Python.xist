@@ -1813,6 +1813,12 @@ class FileLogger(StreamLogger):
 					if not data:
 						break
 					compressedlogfile.write(data)
+		# Copy timestamp of original file to the compressed file
+		# (otherwise removal of the compressed log file would be delayed)
+		stat = filename.stat()
+		atime = stat.st_atime
+		mtime = stat.st_mtime
+		os.utime(compressedfilename, times=(atime, mtime))
 		# Remove uncompressed log file
 		filename.unlink()
 

@@ -18,6 +18,9 @@ Changes in 5.57 (released 01/??/2020)
 *	Use :mod:`pathlib` internally for handling log file names in
 	:mod:`ll.sisyphus`.
 
+*	When a :mod:`ll.sisyphus` job compresses log files the compresse log file
+	now retains the modification timestamp of the original log file.
+
 
 Changes in 5.56 (released 12/12/2019)
 -------------------------------------
