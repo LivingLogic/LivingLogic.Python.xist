@@ -1494,12 +1494,9 @@ class Job:
 		logfilename = logfilename.relative(loglinkname)
 		try:
 			logfilename.symlink(loglinkname)
-		except OSError as exc:
-			if exc.errno == errno.EEXIST:
-				loglinkname.remove()
-				logfilename.symlink(loglinkname)
-			else:
-				raise
+		except FileExistsError:
+			loglinkname.remove()
+			logfilename.symlink(loglinkname)
 		return loglinkname
 
 	def _createlogs(self, full):
