@@ -15,6 +15,9 @@ Changes in 5.57 (released 01/??/2020)
 	delay output of any log messages until something interesting happens. When
 	nothing interesting happens, log messages will be thrown away.
 
+*	Use :mod:`pathlib` internally for handling log file names in
+	:mod:`ll.sisyphus`.
+
 
 Changes in 5.56 (released 12/12/2019)
 -------------------------------------

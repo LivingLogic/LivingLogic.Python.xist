@@ -280,7 +280,7 @@ For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 """
 
 
-import sys, os, signal, traceback, errno, pprint, time, datetime, argparse, tokenize, json, smtplib
+import sys, os, signal, traceback, errno, pprint, time, datetime, argparse, tokenize, json, smtplib, pathlib
 
 import requests
 
@@ -1498,26 +1498,25 @@ class Job:
 			# Create the log file
 			template = ul4c.Template(self.logfilename, "logfilename", whitespace="strip")
 			logfilename = template.renders(job=self, env=env)
-			logfilename = url.File(logfilename).abs()
-			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, logfilename.local()))
-			skipurls = [logfilename]
-			logfile = logfilename.open(mode="w", encoding=self.encoding, errors=self.errors)
-			self._loggers.append(URLResourceLogger(self, logfilename, logfile, skipurls, self._formatlogline))
+			logfilename = pathlib.Path(logfilename).expanduser().absolute()
+			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, str(logfilename)))
+			skipfilenames = [logfilename] # Note that we can still append URLs after the logger has been created
+			self._loggers.append(FileLogger(self, logfilename, self.encoding, self.errors, skipfilenames, self._formatlogline))
 			if self.currentloglinkname is not None:
 				# Create the link to the current log file
 				template = ul4c.Template(self.currentloglinkname, "currentloglinkname", whitespace="strip")
 				loglinkname = template.renders(job=self, env=env)
-				loglinkname = url.File(loglinkname).abs()
+				loglinkname = pathlib.Path(loglinkname).expanduser().absolute()
 				self._loggers.append(CurrentLinkLogger(self, logfilename, loglinkname))
-				skipurls.append(loglinkname)
+				skipfilenames.append(loglinkname)
 			if self.lasteventfulloglinkname is not None:
 				# Create the link to the log file of the last eventful run
 				# (deferred to the end of the run)
 				template = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname", whitespace="strip")
 				loglinkname = template.renders(job=self, env=env)
-				loglinkname = url.File(loglinkname).abs()
+				loglinkname = pathlib.Path(loglinkname).expanduser().absolute()
 				self._loggers.append(LastLinkLogger(self, logfilename, loglinkname))
-				skipurls.append(loglinkname)
+				skipfilenames.append(loglinkname)
 		if self.log2stdout:
 			self._loggers.append(StreamLogger(self, sys.stdout, self._formatlogline))
 		if self.log2stderr:
@@ -1724,40 +1723,40 @@ class StreamLogger(Logger):
 		self.stream.flush()
 
 
-class URLResourceLogger(StreamLogger):
+class FileLogger(StreamLogger):
 	"""
 	Logger that writes logging events into a file specified via an
 	:class:`~ll.url.URL` object. This is used for logging to the standard log
 	file.
 	"""
 
-	def __init__(self, job, fileurl, resource, skipurls, linetemplate):
-		StreamLogger.__init__(self, job, resource, linetemplate)
-		self.fileurl = fileurl
-		self.skipurls = skipurls
-
-	def name(self):
-		return self.fileurl.local()
+	def __init__(self, job, filename, encoding, errors, skipfilenames, linetemplate):
+		self.filename = filename
+		try:
+			file = filename.open("w", encoding=encoding, errors=errors)
+		except FileNotFoundError:
+			filename.parent.mkdir(parents=True)
+			file = filename.open("w", encoding=encoding, errors=errors)
+		StreamLogger.__init__(self, job, file, linetemplate)
+		self.skipfilenames = skipfilenames
 
 	def close(self, eventful):
 		keepfilelogs = self.job.keepfilelogs
 		compressfilelogs = self.job.compressfilelogs
 
 		if keepfilelogs is not None or compressfilelogs is not None:
-			now = datetime.datetime.utcnow()
+			now = datetime.datetime.now()
 			keepthreshold = now - keepfilelogs # Files older that this will be deleted
 			compressthreshold = now - compressfilelogs # Files older that this will be compressed
-			logdir = self.stream.url.withoutfile()
+			logdir = pathlib.Path(self.stream.name).parent
 			removedany = False
 			compressedany = False
 			warnedcompressany = False
-			for fileurl in logdir/logdir.files():
-				fileurl = logdir/fileurl
-
+			for filename in sorted(list(logdir.iterdir())):
 				# Decide what to do with this file
 				# (Note that this might delete/compress files that were not produced by sisyphus)
-				if fileurl not in self.skipurls:
-					mdate = fileurl.mdate()
+				if filename not in self.skipfilenames:
+					mdate = datetime.datetime.fromtimestamp(filename.stat().st_mtime)
 					# If the file is not the logfile or a link to it ...
 					if mdate < keepthreshold:
 						# ... and it's to old to keep it, delete it
@@ -1765,10 +1764,10 @@ class URLResourceLogger(StreamLogger):
 							# This will still work, as the file isn't closed yet.
 							self.job.log.sisyphus.delay.info(f"Removing logfiles older than {keepfilelogs}")
 							removedany = True
-						self.remove(fileurl)
+						self.remove(filename)
 					elif mdate < compressthreshold:
 						# ... and it's to old to keep it in uncompressed, compress it
-						if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
+						if filename.suffix not in {".gz", ".bz2", ".xz"}:
 							if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
 								if not warnedcompressany:
 									self.job.log.sisyphus.delay.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
@@ -1777,7 +1776,7 @@ class URLResourceLogger(StreamLogger):
 								if not compressedany:
 									self.job.log.sisyphus.delay.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
 									compressedany = True
-								self.compress(fileurl)
+								self.compress(filename)
 			if not eventful:
 				self.job.log.sisyphus.delay.info("Going to delete current logfile")
 			if removedany or compressedany or not eventful:
@@ -1786,13 +1785,13 @@ class URLResourceLogger(StreamLogger):
 			self.stream.close()
 			if not eventful:
 				# Remove current log file in case of a uneventful run
-				self.fileurl.remove()
+				self.filename.unlink()
 
-	def remove(self, fileurl):
-		self.job.log.sisyphus.delay.info(f"Removing logfile {fileurl.local()}")
-		fileurl.remove()
+	def remove(self, filename):
+		self.job.log.sisyphus.delay.info(f"Removing logfile {filename}")
+		filename.unlink()
 
-	def compress(self, fileurl, bufsize=65536):
+	def compress(self, filename, bufsize=65536):
 		if self.job.compressmode == "gzip":
 			compressor = gzip.GzipFile
 			ext = ".gz"
@@ -1805,46 +1804,48 @@ class URLResourceLogger(StreamLogger):
 		else:
 			raise ValueError(f"unknown compressmode {self.job.compressmode!r}")
 
-		filename = fileurl.local()
-		self.job.log.sisyphus.delay.info(f"Compressing logfile {fileurl.local()}")
-		with open(filename, "rb") as logfile:
-			with compressor(filename + ext, mode="wb") as compressedlogfile:
+		self.job.log.sisyphus.delay.info(f"Compressing logfile {filename}")
+		compressedfilename = str(filename) + ext
+		with filename.open("rb") as logfile:
+			with compressor(compressedfilename, mode="wb") as compressedlogfile:
 				while True:
 					data = logfile.read(bufsize)
 					if not data:
 						break
 					compressedlogfile.write(data)
-		fileurl.remove()
+		# Remove uncompressed log file
+		filename.unlink()
 
 
 class LinkLogger(Logger):
 	"""
 	Baseclass of all loggers that handle links to the log file.
 	"""
-	def __init__(self, job, fileurl, linkurl):
+	def __init__(self, job, filename, linkname):
 		self.job = job
-		self.fileurl = fileurl
-		self.linkurl = linkurl
+		self.filename = filename
+		self.linkname = linkname
 
 	def _makelink(self):
-		linkurl = self.linkurl.abs()
-		fileurl = self.fileurl.relative(linkurl)
+		linkname = self.linkname.absolute()
+		filename = self.filename
 		try:
-			fileurl.symlink(linkurl)
-		except OSError as exc:
-			if exc.errno == errno.EEXIST:
-				linkurl.remove()
-				fileurl.symlink(linkurl)
-			else:
-				raise
+			filename = filename.absolute().relative_to(linkname.parent)
+		except ValueError:
+			pass
+		try:
+			linkname.symlink_to(filename)
+		except FileExistsError:
+			linkname.unlink()
+			linkname.symlink_to(filename)
 
 
 class CurrentLinkLogger(LinkLogger):
 	"""
 	Logger that handles the link to the current log file.
 	"""
-	def __init__(self, job, fileurl, linkurl):
-		super().__init__(job, fileurl, linkurl)
+	def __init__(self, job, filename, linkname):
+		super().__init__(job, filename, linkname)
 		self._makelink()
 
 
@@ -1853,8 +1854,8 @@ class LastLinkLogger(LinkLogger):
 	Logger that handles the link to the log file of the last eventful job run.
 	"""
 
-	def __init__(self, job, fileurl, linkurl):
-		super().__init__(job, fileurl, linkurl)
+	def __init__(self, job, filename, linkname):
+		super().__init__(job, filename, linkname)
 
 	def close(self, eventful):
 		if eventful:
