@@ -364,6 +364,20 @@ def env(varname):
 	return os.environ.get(varname, None)
 
 
+def get_mtime(filename):
+	return datetime.datetime.fromtimestamp(filename.stat().st_mtime)
+
+
+def get_utime(filename):
+	stat = filename.stat()
+	return (datetime.datetime.fromtimestamp(stat.st_atime), datetime.datetime.fromtimestamp(stat.st_mtime))
+
+
+def set_utime(filename, atime, mtime):
+	os.utime(str(filename), times=(atime.timestamp(), mtime.timestamp()))
+
+
+
 ###
 ### The main class
 ###
@@ -1756,7 +1770,7 @@ class FileLogger(StreamLogger):
 				# Decide what to do with this file
 				# (Note that this might delete/compress files that were not produced by sisyphus)
 				if filename not in self.skipfilenames:
-					mdate = datetime.datetime.fromtimestamp(filename.stat().st_mtime)
+					mdate = get_mtime(filename)
 					# If the file is not the logfile or a link to it ...
 					if mdate < keepthreshold:
 						# ... and it's to old to keep it, delete it
@@ -1805,7 +1819,7 @@ class FileLogger(StreamLogger):
 			raise ValueError(f"unknown compressmode {self.job.compressmode!r}")
 
 		self.job.log.sisyphus.delay.info(f"Compressing logfile {filename}")
-		compressedfilename = str(filename) + ext
+		compressedfilename = pathlib.Path(str(filename) + ext)
 		with filename.open("rb") as logfile:
 			with compressor(compressedfilename, mode="wb") as compressedlogfile:
 				while True:
@@ -1815,10 +1829,8 @@ class FileLogger(StreamLogger):
 					compressedlogfile.write(data)
 		# Copy timestamp of original file to the compressed file
 		# (otherwise removal of the compressed log file would be delayed)
-		stat = filename.stat()
-		atime = stat.st_atime
-		mtime = stat.st_mtime
-		os.utime(compressedfilename, times=(atime, mtime))
+		times = get_utime(filename)
+		set_utime(compressedfilename, *times)
 		# Remove uncompressed log file
 		filename.unlink()
 
