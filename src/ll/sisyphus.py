@@ -1482,22 +1482,6 @@ class Job:
 		with os.popen("crontab -l 2>/dev/null") as f:
 			self.crontab = f.read()
 
-	def _makelink(self, logfilename, linknametemplate):
-		"""
-		Make a symbolic link.
-
-		The link goes from ``loglinkname`` to what the UL4 template
-		``linknametemplate`` returns.
-		"""
-		loglinkname = ul4c.Template(linknametemplate, "filename").renders(job=self, env=env)
-		loglinkname = url.File(loglinkname).abs()
-		logfilename = logfilename.relative(loglinkname)
-		try:
-			logfilename.symlink(loglinkname)
-		except FileExistsError:
-			loglinkname.remove()
-			logfilename.symlink(loglinkname)
-		return loglinkname
 
 	def _createlogs(self, full):
 		"""
