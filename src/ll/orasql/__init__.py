@@ -343,6 +343,21 @@ class Record(tuple, abc.Mapping):
 		items = ", ".join(f"{key}={value!r}" for (key, value) in self.items())
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {items} at {id(self):#x}>"
 
+	def _repr_pretty_(self, p, cycle):
+		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
+		suffix = f"at {id(self):#x}"
+
+		if cycle:
+			p.text(f"{prefix} ... {suffix}>")
+		else:
+			with p.group(4, prefix, ">"):
+				for (key, value) in self.items():
+					p.breakable()
+					p.text(f"{key}=")
+					p.pretty(value)
+				p.breakable()
+				p.text(suffix)
+
 
 class SessionPool(SessionPool):
 	"""
