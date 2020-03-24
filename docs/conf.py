@@ -249,7 +249,11 @@ latex_elements = {
 	#'pointsize': '10pt',
 
 	# Additional stuff for the LaTeX preamble.
-	'preamble': '\\setcounter{tocdepth}{2}\n\\usepackage{enumitem}\\definecolor{VerbatimBorderColor}{rgb}{1,1,1}',
+	'preamble':
+		'\\setcounter{tocdepth}{2}\n'
+		'\\usepackage{enumitem}\n'
+		'\\definecolor{VerbatimBorderColor}{rgb}{1,1,1}\n'
+	,
 
 	# Latex figure (float) alignment
 	#'figure_align': 'htbp',
