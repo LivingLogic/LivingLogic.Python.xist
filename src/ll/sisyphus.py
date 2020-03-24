@@ -540,6 +540,12 @@ class Job:
 		job), ``tags`` (list of tags for the line) and ``line`` (the log line
 		itself).
 
+	.. option:: --delaylogs
+
+		Delays log output until the first message without a ``delay`` tag is
+		logged. If all messages during a job run have the ``delay`` tag, no log
+		output will be done.
+
 	.. option:: --keepfilelogs <days>
 
 		The number of days the logfiles are kept. Old logfiles (i.e. all files in
