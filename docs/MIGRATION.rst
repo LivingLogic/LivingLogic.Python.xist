@@ -210,7 +210,7 @@ Changes to ``ul4``
 	-	change ``error(...)`` to ``globals.error(...)``;
 
 	-	change ``foo`` to ``globals.vars.foo`` for a variable ``foo`` defined
-		via :option:`rul4 -D`.
+		via ``rul4 -D``.
 
 
 Migrating to version 5.18
