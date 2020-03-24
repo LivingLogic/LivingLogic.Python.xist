@@ -1490,7 +1490,7 @@ class Node(object, metaclass=_Node_Meta):
 		returned as is.
 
 		Note that whitespace will prevent pretty printing too, so you might want
-		to call :meth:`normalized` and :meth:`compact` before calling
+		to call :meth:`normalized` and :meth:`compacted` before calling
 		:meth:`pretty` to remove whitespace.
 		"""
 		if level:
