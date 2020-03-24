@@ -631,7 +631,7 @@ class DateProto(Proto):
 	def calendar(obj, firstweekday=0, mindaysinfirstweek=4):
 		"""
 		Return the calendar year the date ``obj`` belongs to, the calendar week
-		number and the week dayy. (A day might belong to a different calender year,
+		number and the week day. (A day might belong to a different calender year,
 		if it is in week 1 but before January 1, or if belongs to week 1 of the
 		following year).
 
