@@ -845,6 +845,14 @@ class LocalConnection(Connection):
 
 
 class SshConnection(Connection):
+	"""
+	A :class:`!SshConnection` object is used for accessing and modifying the
+	metadata associated with a file on a remote filesystem. Remote files will
+	be accessed via code executed remotely on the target host via :mod:`execnet`.
+	:class:`!SshConnection` objects are created by calling the :meth:`connect`
+	method on a :class:`URL` object with the ``ssh`` scheme.
+	"""
+
 	remote_code = """
 		import sys, os, pickle, re, fnmatch
 		try:
@@ -1198,6 +1206,12 @@ class SshConnection(Connection):
 
 
 class URLConnection(Connection):
+	"""
+	A :class:`!URLConnection` object is used for accessing and modifying the
+	metadata associated any other resource specified by a URL (except those
+	handled by the other :class:`Connection` subclasses).
+	"""
+
 	def mimetype(self, url):
 		return url.open().mimetype()
 
