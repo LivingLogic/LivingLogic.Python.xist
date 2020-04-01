@@ -165,11 +165,11 @@ class Context(object):
 	"""
 	Working with URLs (e.g. calling :meth:`URL.open` or :meth:`URL.connect`)
 	involves :class:`Connection` objects. To avoid constantly creating new
-	connections you can pass a :class:`Context` object to those methods.
-	Connections will be stored in the :class:`Context` object and will be
+	connections you can pass a :class:`!Context` object to those methods.
+	Connections will be stored in the :class:`!Context` object and will be
 	reused by those methods.
 
-	A :class:`Context` object can also be used as a context manager. This context
+	A :class:`!Context` object can also be used as a context manager. This context
 	object will be used for all :meth:`open` and :meth:`connect` calls inside the
 	:keyword:`with` block. (Note that after the end of the :keyword:`with` block
 	all connections will be closed.)
@@ -212,7 +212,7 @@ def getcontext(context):
 
 class Cursor(object):
 	"""
-	A :class:`Cursor` object is used by the :meth:`walk` method during directory
+	A :class:`!Cursor` object is used by the :meth:`walk` method during directory
 	traversal. It contains information about the state of the traversal and can
 	be used to influence which directories are traversed and in which order.
 
@@ -260,8 +260,8 @@ class Cursor(object):
 	"""
 	def __init__(self, url, beforedir=True, afterdir=False, file=True, enterdir=False):
 		"""
-		Create a new :class:`Cursor` object for a tree traversal rooted at the node
-		``node``.
+		Create a new :class:`!Cursor` object for a tree traversal rooted at the
+		node ``node``.
 
 		The arguments ``beforedir``, ``afterdir``, ``file`` and
 		``enterdir`` are used as the initial values for the attributes of
@@ -288,9 +288,9 @@ class Cursor(object):
 
 class Connection(object):
 	"""
-	A :class:`Connection` object is used for accessing and modifying the
+	A :class:`!Connection` object is used for accessing and modifying the
 	metadata associated with a file. It is created by calling the
-	:meth:`connect` method on a :class:`URL` object.
+	:meth:`~URL.connect` method on a :class:`URL` object.
 	"""
 
 	@misc.notimplemented
@@ -687,6 +687,13 @@ class Connection(object):
 
 
 class LocalConnection(Connection):
+	"""
+	A :class:`!LocalConnection` object is used for accessing and modifying the
+	metadata associated with a file in the local filesystem. It is created by
+	calling the :meth:`~URL.connect` method on a :class:`URL` object with no
+	scheme or the ``file`` or ``root`` scheme.
+	"""
+
 	def _url2filename(self, url):
 		return os.path.expanduser(url.local())
 
@@ -1359,7 +1366,7 @@ def firstfile(urls):
 
 class Resource(object):
 	"""
-	A :class:`Resource` is a base class that provides a file-like interface
+	A :class:`!Resource` is a base class that provides a file-like interface
 	to local and remote files, URLs and other resources.
 
 	Each resource object has the following attributes:
@@ -1473,7 +1480,7 @@ class FileResource(Resource):
 
 class RemoteFileResource(Resource):
 	"""
-	A subclass of :class:`Resource` that handles remote files (those using
+	A subclass of :class:`Resource` that handles remote files (i.e. those using
 	the ``ssh`` scheme).
 	"""
 	def __init__(self, connection, url, mode="rb", *args, **kwargs):
@@ -1656,14 +1663,14 @@ class URLResource(Resource):
 
 class SchemeDefinition(object):
 	"""
-	A :class:`SchemeDefinition` instance defines the properties of a particular
+	A :class:`!SchemeDefinition` instance defines the properties of a particular
 	URL scheme.
 	"""
 	_connection = URLConnection()
 
 	def __init__(self, scheme, usehierarchy, useserver, usefrag, islocal=False, isremote=False, defaultport=None):
 		"""
-		Create a new :class:`SchemeDefinition` instance. Arguments are:
+		Create a new :class:`!SchemeDefinition` instance. Arguments are:
 
 		*	``scheme``: The name of the scheme;
 
@@ -2220,9 +2227,9 @@ class URL(object):
 	"""
 	def __init__(self, url=None):
 		"""
-		Create a new :class:`URL` instance. ``url`` may be a :class:`str`
-		object, or an :class:`URL` (in which case you'll get a copy of ``url``),
-		or :const:`None` (which will create an :class:`URL` referring to the
+		Create a new :class:`!URL` instance. ``url`` may be a :class:`str`
+		object, or an :class:`!URL` (in which case you'll get a copy of ``url``),
+		or :const:`None` (which will create an :class:`!URL` referring to the
 		"current document").
 		"""
 		self.url = url
