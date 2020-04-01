@@ -1310,7 +1310,7 @@ def Dir(name, scheme="file"):
 def Ssh(user, host, path="~/"):
 	"""
 	Return a ssh :class:`URL` for the user ``user`` on the host ``host``
-	with the path ``path``.``path`` (defaulting to the users home
+	with the path ``path``. ``path`` (defaulting to the users home
 	directory) must be a path in URL notation (i.e. use ``/`` as directory
 	separator)::
 
