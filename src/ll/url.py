@@ -1319,7 +1319,7 @@ def Ssh(user, host, path="~/"):
 
 	If the path starts with ``~/`` it is relative to this users home directory,
 	if it starts with ``~user`` it's relative to the home directory of the user
-	``user``. In all othercases the path is considered to be absolute.
+	``user``. In all other cases the path is considered to be absolute.
 	"""
 	url = URL()
 	url.scheme = "ssh"
