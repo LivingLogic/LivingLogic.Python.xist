@@ -221,7 +221,7 @@ For our example class it could be used like this::
 	print("Loaded:", j)
 '''
 
-import sys, datetime, collections, io, ast
+import datetime, collections, io
 from collections import abc
 
 
