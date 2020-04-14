@@ -203,6 +203,7 @@ class Context:
 	A :class:`Context` object stores the context of a call to a template. This
 	consists of local, global and builtin variables and the indent stack.
 	"""
+
 	# "Builtin" functions. Will be exposed to UL4 code
 	functions = {}
 
