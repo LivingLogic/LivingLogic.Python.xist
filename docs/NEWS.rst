@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.57 (released 01/??/2020)
+Changes in 5.57 (released 04/14/2020)
 -------------------------------------
 
 *	Added a "delayed logs" mode to :mod:`ll.sisyphus`. This makes it possible to
@@ -18,8 +18,20 @@ Changes in 5.57 (released 01/??/2020)
 *	Use :mod:`pathlib` internally for handling log file names in
 	:mod:`ll.sisyphus`.
 
-*	When a :mod:`ll.sisyphus` job compresses log files the compresse log file
+*	When a :mod:`ll.sisyphus` job compresses log files the compressed log file
 	now retains the modification timestamp of the original log file.
+
+*	The API for :class:`ll.ul4on.Encoder` and :class:`ll.ul4on.Decoder` has
+	been updated to support multiple calls for encoding/decoding an UL4ON dump
+	to multiple strings or streams that nonetheless keep the state for the
+	encoding/decoding machinery.
+
+*	UL4ON functionality is now available to UL4 template in a ``ul4on`` "module".
+	This module provides the functions/types ``loads``, ``dumps``, ``Decoder``
+	and ``Encoder``.
+
+*	The parameter ``string`` for the UL4 function ``fromul4on`` has been renamed
+	to ``dump``.
 
 
 Changes in 5.56 (released 12/12/2019)

@@ -569,6 +569,24 @@ def test_custom_class(t):
 		assert isinstance(p, PointContent)
 
 
+def test_multiple_encoder_calls():
+	encoder = ul4on.Encoder()
+	s1 = "gurk"
+	s2 = "hurz"
+	assert "S'gurk'" == encoder.dumps(s1)
+	assert "S'hurz'" == encoder.dumps(s2)
+	assert "^0" == encoder.dumps(s1)
+	assert "^1" == encoder.dumps(s2)
+
+
+def test_multiple_decoder_calls():
+	decoder = ul4on.Decoder()
+	assert "gurk" == decoder.loads("S'gurk'")
+	assert "hurz" == decoder.loads("S'hurz'")
+	assert "gurk" == decoder.loads("^0")
+	assert "hurz" == decoder.loads("^1")
+
+
 @pytest.mark.db
 def test_oracle_none(oracle):
 	if oracle:

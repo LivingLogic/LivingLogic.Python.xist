@@ -1348,6 +1348,26 @@ object. (Date objects, color objects and templates are not supported by
 object.
 
 
+``ul4on``
+"""""""""
+
+This "module" contains functions and types for working with :mod:`ll.ul4on`.
+
+``ul4on.dumps(foo)`` returns the UL4ON representation of the object ``foo``.
+
+``ul4on.loads(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
+object.
+
+``ul4on.Encoder(indent)`` creates an encoder object that can be used to create
+multiple UL4ON dump using the same context. An ``ul4on.Encoder`` object has
+a method ``dumps`` that creates an UL4ON dump for the passed in object. 
+
+``ul4on.Decoder()`` creates a decoder object that can be used to recreate
+objects from multiple UL4ON dumps using the same context. An ``ul4on.Decoder``
+object has a method ``loadss`` that recreates an object from the passed in
+UL4ON dump.
+
+
 ``csv``
 """""""
 

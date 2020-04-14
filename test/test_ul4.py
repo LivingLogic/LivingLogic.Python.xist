@@ -2226,11 +2226,11 @@ def test_function_ul4on(T):
 	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
 	assert t.renders(data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
-	# Explicitly check to real output for at least one example
+	# Explicitly check the real output for at least one example
 	assert "i42" == T("<?print asul4on(42)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print repr(fromul4on(string=asul4on(obj=data)))?>").renders(data=42)
+	assert "42" == T("<?print repr(fromul4on(dump=asul4on(obj=data)))?>").renders(data=42)
 
 
 @pytest.mark.ul4
@@ -5944,3 +5944,61 @@ def test_attr_if(T):
 	s = html.ul(compact=ul4.attr_if(True, cond="cond")).conv().string()
 	assert '<ul></ul>' == T(s).renders(cond=False)
 	assert '''<ul compact="compact"></ul>''' == T(s).renders(cond=True)
+
+
+@pytest.mark.ul4
+def test_module_ul4on(T):
+	t = T("<?print repr(ul4on.loads(ul4on.dumps(data)))?>")
+
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.dumps()?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.dumps(1, 2, 3)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.loads()?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.loads(1, 2, 3)?>").renders()
+	assert "None" == t.renders(data=None)
+	assert "False" == t.renders(data=False)
+	assert "True" == t.renders(data=True)
+	assert "42" == t.renders(data=42)
+	# no check for float
+	assert t.renders(data="abc") in ('"abc"', "'abc'")
+	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
+	assert t.renders(data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
+
+	# Explicitly check the real output for at least one example
+	assert "i42" == T("<?print ul4on.dumps(42)?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "42" == T("<?print repr(ul4on.loads(dump=ul4on.dumps(obj=data)))?>").renders(data=42)
+
+
+@pytest.mark.ul4
+def test_module_ul4on_multiple_encoder_calls(T):
+	t = T("""
+		<?whitespace strip?>
+		<?code s1 = 'gurk'?>
+		<?code s2 = 'hurz'?>
+		<?code e = ul4on.Encoder()?>
+		<?print e.dumps(s1)?>
+		<?print e.dumps(s2)?>
+		<?print e.dumps(obj=s1)?>
+		<?print e.dumps(obj=s2)?>
+	""")
+
+	assert "S'gurk'S'hurz'^0^1" == t.renders()
+
+
+@pytest.mark.ul4
+def test_module_ul4on_multiple_decoder_calls(T):
+	t = T("""
+		<?whitespace strip?>
+		<?code d = ul4on.Decoder()?>
+		<?print d.loads("S'gurk'")?>
+		<?print d.loads("S'hurz'")?>
+		<?print d.loads(dump="^0")?>
+		<?print d.loads(dump="^1")?>
+	""")
+
+	assert "gurkhurzgurkhurz" == t.renders()

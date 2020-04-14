@@ -3829,7 +3829,7 @@ class Template(Block):
 	"""
 	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
 
-	version = "49"
+	version = "50"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
@@ -4861,9 +4861,9 @@ def function_asul4on(obj):
 
 
 @Context.makefunction
-def function_fromul4on(string):
+def function_fromul4on(dump):
 	from ll import ul4on
-	return ul4on.loads(string)
+	return ul4on.loads(dump)
 
 
 @Context.makefunction
@@ -5319,6 +5319,10 @@ def function_hasattr(obj, attrname):
 @Context.makefunction
 def function_dir(obj):
 	return proto(obj).dir(obj)
+
+
+from ll import ul4on
+Context.functions["ul4on"] = ul4on
 
 
 class TemplateClosure(Block):

@@ -8,6 +8,34 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.57
+=========================
+
+Changes to ``ll.ul4on``
+-----------------------
+
+:class:`ll.ul4on.Encoder` and :class:`ll.ul4on.Decoder` now expect the stream
+to be passed in the call to :meth:`dump` and :meth:`load` instead of in the
+constructor. I.e. change::
+
+	Encoder(stream).dump(obj)
+
+to::
+
+	Encoder().dump(obj, stream)
+
+and::
+
+	obj = Decoder(stream).load()
+
+to::
+
+	obj = Decoder().load(stream)
+
+The parameter name for the UL4ON function ``fromul4on()`` has changed from
+``string`` to ``dump``.
+
+
 Migrating to version 5.56
 =========================
 
