@@ -328,19 +328,19 @@ static char module__doc__[] =
 and :func:`xmlescape_attr`";
 
 static struct PyModuleDef _miscmodule = {
-    PyModuleDef_HEAD_INIT,
-    "_misc",
-    module__doc__, /* module doc */
-    -1,
-    _functions,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+	PyModuleDef_HEAD_INIT,
+	"_misc",
+	module__doc__, /* module doc */
+	-1,
+	_functions,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 PyMODINIT_FUNC
 PyInit__misc(void)
 {
-    return PyModule_Create(&_miscmodule);
+	return PyModule_Create(&_miscmodule);
 }
