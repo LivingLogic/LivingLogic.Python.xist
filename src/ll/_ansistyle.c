@@ -107,19 +107,19 @@ static char module__doc__[] = PyDoc_STR(
 );
 
 static struct PyModuleDef _ansistylemodule = {
-    PyModuleDef_HEAD_INIT,
-    "_ansistyle",
-    module__doc__, /* module doc */
-    -1,
-    _functions,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+	PyModuleDef_HEAD_INIT,
+	"_ansistyle",
+	module__doc__, /* module doc */
+	0,
+	_functions,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 PyMODINIT_FUNC
 PyInit__ansistyle(void)
 {
-    return PyModule_Create(&_ansistylemodule);
+	return PyModuleDef_Init(&_ansistylemodule);
 }

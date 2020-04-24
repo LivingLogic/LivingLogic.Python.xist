@@ -489,7 +489,7 @@ static struct PyModuleDef _xml_codecmodule = {
 	PyModuleDef_HEAD_INIT,
 	"_xml_codec",
 	0, /* module doc */
-	-1,
+	0,
 	_functions,
 	NULL,
 	NULL,
@@ -500,5 +500,5 @@ static struct PyModuleDef _xml_codecmodule = {
 PyMODINIT_FUNC
 PyInit__xml_codec(void)
 {
-	return PyModule_Create(&_xml_codecmodule);
+	return PyModuleDef_Init(&_xml_codecmodule);
 }

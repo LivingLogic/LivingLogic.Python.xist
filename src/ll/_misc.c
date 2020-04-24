@@ -335,7 +335,7 @@ static struct PyModuleDef _miscmodule = {
 	PyModuleDef_HEAD_INIT,
 	"_misc",
 	module__doc__, /* module doc */
-	-1,
+	0,
 	_functions,
 	NULL,
 	NULL,
@@ -346,5 +346,5 @@ static struct PyModuleDef _miscmodule = {
 PyMODINIT_FUNC
 PyInit__misc(void)
 {
-	return PyModule_Create(&_miscmodule);
+	return PyModuleDef_Init(&_miscmodule);
 }
