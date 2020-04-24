@@ -102,8 +102,9 @@ static PyMethodDef _functions[] =
 	{NULL, NULL}
 };
 
-static char module__doc__[] =
-"This module contains the function switchcolor().";
+static char module__doc__[] = PyDoc_STR(
+	"This module contains the function switchcolor()."
+);
 
 static struct PyModuleDef _ansistylemodule = {
     PyModuleDef_HEAD_INIT,

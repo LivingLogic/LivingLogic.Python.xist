@@ -406,12 +406,13 @@ static PyObject *detectencoding(PyObject *self, PyObject *args)
 }
 
 
-static char detectencoding__doc__[] =
-"detectencoding(str[, final=False]) -> str or None\n\
-\n\
-Tries to detect the XML encoding from the first few bytes of the string\n\
-or the encoding declaration in the XML header. Return the name of the\n\
-encoding or None, if the encoding is ambiguous.";
+static char detectencoding__doc__[] = PyDoc_STR(
+	"detectencoding(str[, final=False]) -> str or None\n\
+	\n\
+	Tries to detect the XML encoding from the first few bytes of the string\n\
+	or the encoding declaration in the XML header. Return the name of the\n\
+	encoding or None, if the encoding is ambiguous."
+);
 
 
 PyObject *fixencoding(PyObject *self, PyObject *args)
@@ -463,13 +464,14 @@ PyObject *fixencoding(PyObject *self, PyObject *args)
 }
 
 
-static char fixencoding__doc__[] =
-"fixencoding(str, encoding) -> str or None\n\
-\n\
-Replaces the encoding specification in the XML declaration at the start of the\n\
-first argument with the encoding specified. If there's no XML declaration the\n\
-original string is returned. If the string isn't long enough to find an encoding\n\
-None is returned.";
+static char fixencoding__doc__[] = PyDoc_STR(
+	"fixencoding(str, encoding) -> str or None\n\
+	\n\
+	Replaces the encoding specification in the XML declaration at the start of the\n\
+	first argument with the encoding specified. If there's no XML declaration the\n\
+	original string is returned. If the string isn't long enough to find an encoding\n\
+	None is returned."
+);
 
 
 /* ==================================================================== */
