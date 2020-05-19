@@ -378,7 +378,7 @@ class SessionPool(SessionPool):
 
 def sqlstr(s):
 	if s is None:
-		return null
+		return "null"
 	else:
 		s = s.replace("'", "''")
 		return f"'{s}'"
