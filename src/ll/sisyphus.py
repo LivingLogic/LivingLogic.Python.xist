@@ -26,8 +26,10 @@ kill itself. In addition to that, job execution can be logged and in case of
 job failure an email can be sent or a message can be posted to a `Mattermost
 chat channel`__.
 
-To use this module, you must derive your own class from :class:`Job` and
-implement the :meth:`execute` method.
+To use this module, you must derive your own class from :class:`Job`,
+implement the :meth:`execute` method and then call :func:`execute` or
+:func:`executewithargs` with your job object (preferably in an
+``if __name__ == "__main__"`` block).
 
 Logs will (by default) be created in the :file:`~/ll.sisyphus` directory.
 This can be changed by deriving a new subclass and overwriting the appropriate
