@@ -23,7 +23,8 @@ execute the job repeatedly.
 
 A job has a maximum allowed runtime. If this maximum is exceeded, the job will
 kill itself. In addition to that, job execution can be logged and in case of
-job failure an email can be sent.
+job failure an email can be sent or a message can be posted to a `Mattermost
+chat channel`__.
 
 To use this module, you must derive your own class from :class:`Job` and
 implement the :meth:`execute` method.
@@ -34,6 +35,8 @@ class attributes.
 
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
+
+__ https://mattermost.com/
 
 
 Example
