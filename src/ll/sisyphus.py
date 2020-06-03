@@ -241,6 +241,8 @@ include the tag ``mattermost``.
 
 .. _Mattermost: https://mattermost.com/
 
+For this to work, :mod:`requests` has be installed.
+
 
 Health checks
 -------------
@@ -286,8 +288,6 @@ For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 
 
 import sys, os, signal, traceback, errno, pprint, time, datetime, argparse, tokenize, json, smtplib, pathlib
-
-import requests
 
 try:
 	import fcntl
@@ -2005,6 +2005,7 @@ class MattermostLogger(Logger):
 
 	def log(self, timestamp, tags, tasks, text):
 		if "mattermost" in tags:
+			import requests
 			if isinstance(text, BaseException):
 				message = _formattraceback(text)
 				type = "exc"
