@@ -1902,6 +1902,9 @@ class EmailLogger(Logger):
 		self._countexceptions = 0
 		self._countmessages = 0
 
+	def name(self):
+		return "<email>"
+
 	def log(self, timestamp, tags, tasks, text):
 		if "email" in tags:
 			if len(self._log) < self.job.maxemailerrors:
@@ -2002,6 +2005,9 @@ class MattermostLogger(Logger):
 
 	def __init__(self, job):
 		self.job = job
+
+	def name(self):
+		return "<mattermost>"
 
 	def log(self, timestamp, tags, tasks, text):
 		if "mattermost" in tags:
