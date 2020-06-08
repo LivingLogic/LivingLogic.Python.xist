@@ -8,6 +8,16 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.58 (released ??/??/2020)
+-------------------------------------
+
+*	For running healthchecks for sisyphus jobs it's no longer neccessary to
+	implement the :meth:`healthcheck` method. Instead the job writes a healthfile
+	at the end of each run, and the age and content of this files will be used
+	to determine the health of the job. The options ``--healthcheckcutoff``
+	can be used to configure the maximum allowed age.
+
+
 Changes in 5.57 (released 04/14/2020)
 -------------------------------------
 

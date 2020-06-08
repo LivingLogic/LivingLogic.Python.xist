@@ -93,12 +93,12 @@ However it is possible to activate repeat mode with the class/instance attribute
 If ``Job.repeat`` is true, execution of the job will be repeated indefinitely.
 
 By default the next job run starts immediately, but it is possible to delay the
-next run. For this the class/instance attribute ``Job.nextrun`` (or the
-command line option :option:`--nextrun`) can be used. In its simplest form this
+next run. For this the class/instance attribute ``nextrun`` (or the command
+line option :option:`--nextrun`) can be used. In its simplest form this
 is the number of seconds to wait until the next job run is started. It can
 also be a :class:`datetime.timedelta` object that specifies the delay, or it
 can be a :class:`datetime.datetime` object specifying the next job run.
-Furthermore ``Job.nextrun`` can be callable (so it can be implemented as a
+Furthermore ``nextrun`` can be callable (so it can be implemented as a
 method) and can return any of the types :class:`int`, :class:`float`,
 :class:`datetime.timedelta` or :class:`datetime.datetime`. And, if
 ``Job.nextrun`` is :const:`None`, the job run will be repeated immediately.
@@ -241,21 +241,37 @@ include the tag ``mattermost``.
 
 .. _Mattermost: https://mattermost.com/
 
-For this to work, :mod:`requests` has be installed.
-
 
 Health checks
 -------------
 
 When a job is started with the option ``--healthcheck``, instead of running the
-job normally the method :meth:`healthcheck` is run. This bypasses the normal
-mechanism that prevents multiple instances of the job from running (i.e. you
-can have a normal job execution and a health check running in parallel).
-Also during the healthcheck no logging is available.
+job normally a health check is done. This bypasses the normal mechanism that
+prevents multiple instances of the job from running (i.e. you can have a normal
+job execution and a health check running in parallel).
 
-This method should check that the job is doing what it's supposed to be doing.
-If that is the case the method must return ``None``, otherwise a short one line
-error message must be returned.
+If the job is healthy this will exit with an exit status of 0, otherwise it will
+exit with an exit status of 1 and a printed error message stating the reason why
+the job is considered unhealthy. There are three possible scenarios for this:
+
+1.	The job has never been run.
+
+2.	The last run has ended with an error.
+
+3.	The last run was too long ago.
+
+To configure how scenario 3 is handled the class/instance attribute
+``healthcheckcutoff`` (or the command line option
+:option:`--healthcheckcutoff`) can be used. In its simplest form this is a
+number of seconds or a :class:`datetime.timedelta` object. A job run that is
+older that this value triggers screnario 3. ``healthcheckcutoff`` can be also be
+a :class:`datetime.datetime` object specifying the cut-off date.
+
+Furthermore ``healthcheckcutoff`` can be callable (so it can be implemented
+as a method) and can return any of the types :class:`int`, :class:`float`,
+:class:`datetime.timedelta` or :class:`datetime.datetime`.
+
+And if ``Job.healthcheckcutoff`` is :const:`None`, scenario 3 will never trigger.
 
 
 Requirements
@@ -281,6 +297,8 @@ process and any of its own child processes after the maximum runtime of the job
 is exceeded. If :mod:`psutil` isn't available just the child process will be
 killed (which is no problem as long as the child process doesn't spawn any
 other processes).
+
+If loggging to Mattermost is used, :mod:`requests` has be installed.
 
 For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 :mod:`lzma` is required (which might not be part of your Python installation).
@@ -633,6 +651,7 @@ class Job:
 	nextrun = None
 	waitchildbreak = datetime.timedelta(seconds=0.5)
 	runhealthcheck = False
+	healthcheckcutoff = None
 
 	logfilename = """
 	~
@@ -656,6 +675,14 @@ class Job:
 	/<?print job.projectname?>
 	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
 	/last_eventful.sisyphuslog
+	"""
+
+	healthfilename = """
+	~
+	/ll.sisyphus
+	/<?print job.projectname?>
+	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
+	/last.sisyphushealth
 	"""
 
 	# URL of final log file (:const:`None` if no logging is done to a file)
@@ -1005,9 +1032,21 @@ class Job:
 		"""
 		Called in parallel to a running job to check whether the job is healthy.
 
-		Must return ``None`` if everything is ok, or a short error message
-		otherwise.
+		Returns ``None`` if everything is ok, or an error message otherwise.
 		"""
+		if self._healthfilename is not None:
+			try:
+				lastwrite = get_mtime(self._healthfilename)
+				cutoff = self._calc_healthcheckcutoff()
+				if lastwrite < cutoff:
+					return f"Not running since {cutoff} (last run at {lastwrite}; {datetime.datetime.now()-lastwrite} ago)"
+				error = self._healthfilename.read_text(encoding=self.encoding, errors=self.errors)
+				return error.strip() or None
+			except FileNotFoundError:
+				return f"Healthfile {self._healthfilename} missing"
+			except ValueError:
+				return f"Healthfile {self._healthfilename} malformed"
+
 		return None
 
 	def argparser(self):
@@ -1046,6 +1085,7 @@ class Job:
 		p.add_argument("-r", "--repeat", dest="repeat", help="Repeat the job run indefinitely? (default: %(default)s)", action=misc.FlagAction, default=self.repeat)
 		p.add_argument(      "--nextrun", dest="nextrun", metavar="SECONDS", help="How many seconds to wait after the run before repeating it? (default: %(default)s)", type=argseconds, default=self.nextrun)
 		p.add_argument(      "--waitchildbreak", dest="waitchildbreak", metavar="SECONDS", help="How many seconds to wait to give the child process time to clean up after CTRL-C? (default: %(default)s)", type=float, default=self.waitchildbreak)
+		p.add_argument(      "--healthcheckcutoff", dest="healthcheckcutoff", metavar="SECONDS", help="How old may a healthcheckfile be before the health check complains about it? (default: %(default)s)", type=float, default=self.healthcheckcutoff)
 		p.add_argument(      "--healthcheck", dest="runhealthcheck", help="Run a heathcheck instead of the normal job? (default: %(default)s)", action=misc.FlagAction, default=self.runhealthcheck)
 
 		return p
@@ -1266,13 +1306,20 @@ class Job:
 						signal.alarm(0) # Cancel maximum runtime alarm
 				except misc.Timeout:
 					self._finished_timeout()
+					self._write_healthfile(f"Timeout after {self.maxtime}")
+					return # finish normally (or continue, if we're in repeat mode)
+				except KeyboardInterrupt:
+					# Don't close logfiles
+					self._write_healthfile("Interrupted")
 					return # finish normally (or continue, if we're in repeat mode)
 				else:
 					status >>= 8
 					if status == 0: # Uneventful run
 						self._closelogs(False)
+						self._write_healthfile(None)
 					elif status == 3: # KeyboardInterrupt
 						# Don't close logfiles
+						self._write_healthfile("Interrupted")
 						raise KeyboardInterrupt
 					else: # Eventful run, exception, timeout
 						self._closelogs(True)
@@ -1301,10 +1348,13 @@ class Job:
 		except KeyboardInterrupt as exc:
 			status = self._finished_break(exc)
 			if not self.fork:
+				self._write_healthfile("Interrupted")
 				raise
 		except Exception as exc:
+			self._write_healthfile(f"Failed with {misc.format_exception(exc)}")
 			status = self._finished_exception(exc)
 		else:
+			self._write_healthfile(None)
 			status = self._finished_success(result)
 		self.notifyfinish(result)
 		if self.fork:
@@ -1314,9 +1364,6 @@ class Job:
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
-		if self.runhealthcheck:
-			result = self.healthcheck()
-			raise SystemExit(result)
 		if self.jobname is None:
 			self.jobname = self.__class__.__qualname__
 		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
@@ -1325,6 +1372,11 @@ class Job:
 		self.keepfilelogs = argdays(self.keepfilelogs)
 		self.compressfilelogs = argdays(self.compressfilelogs)
 		self.waitchildbreak = argseconds(self.waitchildbreak)
+
+		self._createhealthfilename()
+		if self.runhealthcheck:
+			result = self.healthcheck()
+			raise SystemExit(result)
 
 		# Obtain a lock on the script file to make sure we're the only one running
 		with open(misc.sysinfo.script_name, "rb") as f:
@@ -1342,18 +1394,8 @@ class Job:
 					self._handleoneexecution()
 					self._createlogs(False) # Recreate stdin/stdout loggers
 					self._run += 1
-					nextrun = self.nextrun
-					if callable(nextrun):
-						nextrun = nextrun()
-					if nextrun is None:
-						nextrun = datetime.timedelta(0)
-					if isinstance(nextrun, (int, float)):
-						nextrun = datetime.timedelta(seconds=nextrun)
-					if isinstance(nextrun, datetime.timedelta):
-						wait = nextrun
-						nextrun = self.starttime + wait
-					else:
-						wait = nextrun - datetime.datetime.now()
+					nextrun = self._calc_nextrun()
+					wait = nextrun - datetime.datetime.now()
 					wait_seconds = wait.total_seconds()
 					if wait_seconds > 0:
 						self.setproctitle("parent", "Sleeping")
@@ -1507,6 +1549,52 @@ class Job:
 		with os.popen("crontab -l 2>/dev/null") as f:
 			self.crontab = f.read()
 
+	def _createhealthfilename(self):
+		"""
+		Create the filename for the health check file.
+		"""
+
+		self._healthfilename = None
+		if self.healthfilename is not None:
+			# Create the name of the healthcheck file
+			template = ul4c.Template(self.healthfilename, "healthfilename", whitespace="strip")
+			healthfilename = template.renders(job=self, env=env)
+			healthfilename = pathlib.Path(healthfilename).expanduser().absolute()
+			self._healthfilename = healthfilename
+
+	def _calc_nextrun(self):
+		"""
+		Calculate when the job should run next (in repeat mode).
+		"""
+		nextrun = self.nextrun
+		if callable(nextrun):
+			nextrun = nextrun()
+		if nextrun is None:
+			nextrun = datetime.timedelta(0)
+		if isinstance(nextrun, (int, float)):
+			nextrun = datetime.timedelta(seconds=nextrun)
+		if isinstance(nextrun, datetime.timedelta):
+			return self.starttime + nextrun
+		else:
+			return nextrun
+
+	def _calc_healthcheckcutoff(self):
+		"""
+		Calculate cut-off date for the health check.
+
+		A health check file with a timestamp before that date will indicate an
+		unhealthy job.
+		"""
+		cutoff = self.healthcheckcutoff
+		if callable(cutoff):
+			cutoff = cutoff()
+		if cutoff is None:
+			cutoff = datetime.datetime(datetime.MINYEAR, 1, 1)
+		if isinstance(cutoff, (int, float)):
+			cutoff = datetime.timedelta(seconds=cutoff)
+		if isinstance(cutoff, datetime.timedelta):
+			cutoff = datetime.datetime.now() - cutoff
+		return cutoff
 
 	def _createlogs(self, full):
 		"""
@@ -1542,6 +1630,8 @@ class Job:
 				loglinkname = pathlib.Path(loglinkname).expanduser().absolute()
 				self._loggers.append(LastLinkLogger(self, logfilename, loglinkname))
 				skipfilenames.append(loglinkname)
+			if self._healthfilename is not None:
+				skipfilenames.append(self._healthfilename)
 		if self.log2stdout:
 			self._loggers.append(StreamLogger(self, sys.stdout, self._formatlogline))
 		if self.log2stderr:
@@ -1558,6 +1648,16 @@ class Job:
 			logger = self._loggers[0]
 			logger.close(eventful)
 			del self._loggers[0]
+
+	def _write_healthfile(self, error):
+		# Write the file that is used for the healthcheck
+		if self._healthfilename is not None:
+			error = "" if error is None else error + "\n"
+			try:
+				self._healthfilename.write_text(error, encoding=self.encoding, errors=self.errors)
+			except FileNotFoundError:
+				self._healthfilename.parent.mkdir(parents=True)
+				self._healthfilename.write_text(error, encoding=self.encoding, errors=self.errors)
 
 
 class Task:
