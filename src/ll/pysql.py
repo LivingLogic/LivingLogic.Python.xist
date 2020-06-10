@@ -11,9 +11,9 @@
 """
 Overview
 ========
-The module/script :mod:`pysql` can be used to import data into an Oracle
-database. It reads ``pysql`` files which are an extension of normal Oracle SQL
-files.
+The module/script :mod:`pysql` can be used to import data into an Oracle or
+Postgres database. It reads ``pysql`` files which are an extension of normal
+Oracle or Postgres SQL files.
 
 A PySQL file can contain different types of commands.
 
@@ -23,16 +23,16 @@ SQL commands
 
 A PySQL file may contain normal SQL commands. For the :mod:`!pysql` script
 to be able to execute these commands they must be terminated with a comment
-line ``-- @@@``. :mod:`pysql` will strip off a trailing ``;`` or ``/`` from
-the command and execute it. Any exception that is raised as a result of
-executing the command will stop the script and be reported. This is in
-contrast to how ``sqlplus`` executes SQL commands. ``sqlplus`` would continue
-after an error and exit with status code 0 even if there were errors.
-(It is also possible to explicitely ignore any exception raised by the
-command by specifying a different exception handling mode.)
+line ``-- @@@``. :mod:`pysql` will prepare the command for execution and
+execute it. Any exception that is raised as a result of executing the command
+will stop the script and be reported. This is in contrast to how Oracle's
+``sqlplus`` executes SQL commands. ``sqlplus`` would continue after an error
+and exit with status code 0 even if there were errors. (For Oracle it is also
+possible to explicitely ignore any exception raised by the command by
+specifying a different exception handling mode.)
 
-A PySQL file that only contains SQL commands is still a valid SQL file from
-the perspective of Oracle, so it still can be executed via ``sqlplus``.
+A PySQL file that only contains SQL commands is still a valid Oracle or Postgres
+SQL file, so it still can be executed via ``sqlplus`` or ``psql``.
 
 
 Literal Python blocks
@@ -321,7 +321,7 @@ procedure and will call the procedure to insert data into the table::
 This file can then be imported into an Oracle database with the following
 command::
 
-	python -m ll.pysql data.pysql -d user/pwd@database
+	python -m ll.pysql data.pysql -d oracle:user/pwd@database
 
 This will create two sequences, two tables and two procedures. Then it will
 import two records, one by calling ``person_insert`` and one by calling
@@ -360,9 +360,17 @@ connection until a ``disconnect`` command disconnects from the database and
 reverts to the previous connection (which might not exist). An example looks
 like this::
 
-	connect("user/pwd@db")
+	connect("oracle:user/pwd@db")
 	procedure("test")
 	disconnect()
+
+for Oracle or like this::
+
+	connect("postgres:host=localhost user=me password=secret")
+	procedure("test")
+	disconnect()
+
+for Postgres.
 
 
 Variables
@@ -372,11 +380,11 @@ Variable objects can be used to receive out parameters of procedure calls or
 SQL statements. A variable object can be specified like this ``var("foo")``.
 ``"foo"`` is the "name" of the variable. When a variable object is passed
 to a procedure the first time (i.e. the variable object is uninitialized),
-a :mod:`cx_Oracle` ``var`` object will be passed and the resulting value after
-the call will be stored under the name of the variable. When the variable is
-used in a later command the stored value will be used instead. (Note that it's
-not possible to use the same variable twice in the same procedure call,
-if it hasn't been used before, however in later commands this is no problem).
+the resulting value after the call will be stored under the name of the
+variable. When the variable is used in a later command the stored value will
+be used instead. (Note that it's not possible to use the same variable twice
+in the same procedure call, if it hasn't been used before, however in later
+commands this is no problem).
 
 The type of the variable defaults to :class:`int`, but a different type can be
 passed when creating the object like this: ``var("foo", str)``.
@@ -414,9 +422,10 @@ in :class:`procedure` commands, or as file content in :class:`scp` or
 Command line usage
 ==================
 
-``pysql.py`` has no external dependencies except for :mod:`cx_Oracle` and can
-be used as a script for importing a PySQL file into the database (However some
-commands require :mod:`ll.orasql`). As a script it supports the following
+``pysql.py`` has no external dependencies except for :mod:`cx_Oracle`
+(for Oracle) or (:mod:`psycopg2` for Postgres) and can be used as a script for
+importing a PySQL file into the database (However some commands require
+:mod:`ll.orasql` for an Oracle database). As a script it supports the following
 command line options:
 
 	``file``
@@ -433,9 +442,19 @@ command line options:
 		commands)
 
 	``-d``, ``--database``
-		The value is an Oracle connectstring to specify the initial database
-		connection that will be used before any additional :class:`connect`
-		commands.
+		The initial database connection that will be used before any additional
+		:class:`connect` commands.
+
+		For Postgres the value must start with ``postgres:`` the rest of the
+		value will be passed to :func:`psycopg2.connect` as a positional
+		argument. For example::
+
+			postgres:host=localhost dbname=test user=me password=secret
+
+		For Oracle the may may start with ``oracle:``. The rest can be a standard
+		Oracle connectstring. For example::
+
+			me/secret@database
 
 	``-z``, ``--summary``
 		Give a summary of the number of commands executed and procedures called.
@@ -444,7 +463,8 @@ command line options:
 		Specifies that transactions should be rolled back at the end of the script
 		run, or when a :class:`disconnect` command disconnects from the database.
 		The default is to commit at the end or on each disconnect. (But note that
-		DDL in the script will still commit everything up to the DDL statement.)
+		for Oracle DDL in the script will still commit everything up to the DDL
+		statement.)
 
 	``-s``, ``--scpdirectory``
 		The base directory for :class:`scp` file copy commands. As files are
@@ -497,12 +517,22 @@ try:
 except ImportError:
 	grp = None
 
-import cx_Oracle
+try:
+	import cx_Oracle
+except ImportError:
+	cx_Oracle = None
 
 try:
 	from ll import orasql
 except ImportError:
 	orasql = None
+
+try:
+	import psycopg2
+except ImportError:
+	psycopg2 = None
+else:
+	from psycopg2 import extensions
 
 __docformat__ = "reStructuredText"
 
@@ -526,12 +556,315 @@ def shortrepr(value):
 		return repr(value)
 
 
-def connectstring(connection):
-	if connection is None:
-		return ""
-	else:
-		return f"{connection.username}@{connection.tnsentry}"
+###
+### Database handlers: handle stuff for various databases
+###
 
+
+class Handler:
+	@staticmethod
+	def get(connection):
+		if connection is None:
+			return Handler()
+		elif psycopg2 is not None and isinstance(connection, extensions.connection):
+			return PostgresHandler(connection)
+		elif orasql is not None and isinstance(connection, orasql.Connection):
+			return OraSQLHandler(connection)
+		elif cx_Oracle is not None and isinstance(connection, cx_Oracle.Connection):
+			return OracleHandler(connection)
+		else:
+			raise TypeError(f"unknown connection {connection!r}")
+
+	def __init__(self):
+		self.connection = None
+
+	def connectstring(self):
+		return ""
+
+	def user_exists(self, name):
+		raise NoDatabaseError()
+
+	def schema_exists(self, name):
+		raise NoDatabaseError()
+
+	def object_exists(self, name):
+		raise NoDatabaseError()
+
+	def check_errors(self):
+		raise NoDatabaseError()
+
+	def literalsql(self, sql):
+		raise NoDatabaseError()
+
+	def procedure(self, context, name, args):
+		raise NoDatabaseError()
+
+	def sql(self, context, sql, args):
+		raise NoDatabaseError()
+
+	def reset_sequence(self, sequence, table, field, increment, minvalue):
+		raise NoDatabaseError()
+
+	def drop_types(self, drop, keep):
+		raise NoDatabaseError()
+
+	def rollback(self):
+		raise NoDatabaseError()
+
+	def commit(self):
+		raise NoDatabaseError()
+
+	def disconnect(self, commit):
+		raise NoDatabaseError()
+
+
+class RealHandler(Handler):
+	def __init__(self, connection):
+		self.connection = connection
+
+	def commit(self):
+		self.connection.commit()
+
+	def rollback(self):
+		self.connection.rollback()
+
+	def disconnect(self, commit):
+		if commit:
+			self.connection.commit()
+		else:
+			self.connection.rollback()
+		self.connection.close()
+
+
+class OracleHandler(RealHandler):
+	def connectstring(self):
+		return f"oracle:{self.connection.username}@{self.connection.tnsentry}"
+
+	def user_exists(self, name):
+		cursor = self.connection.cursor()
+		cursor.execute("select count(*) from all_users where username = :name", name=name)
+		return cursor.fetchone()[0] > 0
+
+	schema_exists = user_exists
+
+	def object_exists(self, name, owner):
+		cursor = self.connection.cursor()
+		if owner is None:
+			cursor.execute("select count(*) from user_objects where object_name = :name", name=name)
+		else:
+			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=owner, name=name)
+		return cursor.fetchone()[0] > 0
+
+	def check_errors(self):
+		cursor = self.connection.cursor()
+		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
+		invalid_objects = [tuple(r) for r in cursor]
+
+		if invalid_objects:
+			raise CompilationError(invalid_objects)
+		return 0
+
+	def literalsql(self, sql):
+		if sql.endswith((";", "/")):
+			sql = sql[:-1]
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+
+	def procedure(self, context, name, args):
+		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in args.items())
+		query = f"begin {name}({argsql}); end;"
+		return self._executesql(context, query, args)
+
+	def sql(self, context, sql, args):
+		return self._executesql(context, sql, args)
+
+	def reset_sequence(self, sequence, table, field):
+		cursor = self.connection.cursor()
+
+		# Fetch information about the sequence
+		cursor.execute("select min_value, increment_by from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
+		oldvalues = cursor.fetchone()
+		if oldvalues is None:
+			raise ValueError(f"Sequence {sequence!r} unknown")
+		(minvalue, increment) = oldvalues
+		cursor.execute(f"select {sequence}.nextval from dual")
+		seqvalue = cursor.fetchone()[0]
+
+		# Fetch information about the table values
+		cursor.execute(f"select nvl(max({field}), 0) from {table}")
+		tabvalue = cursor.fetchone()[0]
+
+		step = max(tabvalue, minvalue) - seqvalue
+		if step:
+			cursor.execute(f"alter sequence {sequence} increment by {step}")
+			cursor.execute(f"select {sequence}.nextval from dual")
+			seqvalue = cursor.fetchone()[0]
+			cursor.execute(f"alter sequence {sequence} increment by {increment}")
+		else:
+			seqvalue = None
+		return seqvalue
+
+	def drop_types(self, drop, keep):
+		count = 0
+		for (i, obj) in enumerate(self.connection.objects(owner=None, mode="drop")):
+			if obj.owner is None:
+				if (drop is None or obj.type in drop) and (keep is None or obj.type in keep):
+					ddl = obj.dropsql(connection, False)
+					if ddl:
+						cursor.execute(ddl)
+						count += 1
+		return count
+
+	@staticmethod
+	def _createvar(cursor, type, value):
+		var = cursor.var(type)
+		var.setvalue(0, value)
+		return var
+
+	def _executesql(self, context, query, args):
+		cursor = self.connection.cursor()
+
+		queryargvars = {}
+		varargs = {}
+		for (argname, argvalue) in args.items():
+			if isinstance(argvalue, sqlexpr):
+				continue # no value
+			if isinstance(argvalue, var):
+				varargs[argname] = argvalue
+				if argvalue.key is not None and argvalue.key in context._locals:
+					argvalue = context._locals[argvalue.key]
+				else:
+					argvalue = cursor.var(argvalue.type)
+			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
+				argvalue = self._createvar(cursor, cx_Oracle.CLOB, argvalue)
+			elif isinstance(argvalue, bytes) and len(argvalue) >= 4000:
+				argvalue = self._createvar(cursor, cx_Oracle.BLOB, argvalue)
+			queryargvars[argname] = argvalue
+
+		cursor.execute(query, queryargvars)
+
+		newkeys = {}
+		for (argname, argvalue) in varargs.items():
+			if argvalue.key not in context._locals:
+				value = queryargvars[argname].getvalue(0)
+				newkeys[argname] = value
+				if argvalue.key is not None:
+					context._locals[argvalue.key] = value
+		return newkeys
+
+
+class OraSQLHandler(OracleHandler):
+	pass
+
+
+class PostgresHandler(RealHandler):
+	def connectstring(self):
+		info = self.connection.info
+		host = "localhost" if info.host.startswith("/") else info.host
+		result = f"postgres:{info.user}@{host}"
+		if info.port != 5432:
+			result += f":{info.port}"
+		if info.user != info.dbname:
+			result += f"/{info.dbname}"
+		return result
+
+	def user_exists(self, name):
+		cursor = self.connection.cursor()
+		cursor.execute("select count(*) from pg_user where usename = %s", (name,))
+		return cursor.fetchone()[0] > 0
+
+	def schema_exists(self, name):
+		cursor = self.connection.cursor()
+		cursor.execute("select count(*) from pg_namspace where nspname = %s", (name,))
+		return cursor.fetchone()[0] > 0
+
+	def object_exists(self, name, owner):
+		cursor = self.connection.cursor()
+
+		candidates = [
+			("pg_class", "relname"),
+			("pg_constraint", "conname"),
+			("pg_proc", "proname"),
+		]
+		for (table, column) in candidates:
+			cursor.execute(f"select count(*) from pg_catalog.{table} where {column} = %s", (name,))
+			count = cursor.fetchone()[0]
+			if count:
+				return True
+		return False
+
+	def check_errors(self):
+		# We can't check for any errors in Postgres
+		return None
+
+	def literalsql(self, sql):
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+
+	def procedure(self, context, name, args):
+		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>%s" for (an, av) in args.items())
+		sql = f"call {name}({argsql})"
+		return self._executesql(context, sql, args)
+
+	def sql(self, context, sql, args):
+		return self._executesql(context, sql, args)
+
+	def reset_sequence(self, sequence, table, field):
+		cursor = self.connection.cursor()
+
+		# Fetch information about the table values
+		cursor.execute(f"select coalesce(max({field}), 0) from {table}")
+		tabvalue = cursor.fetchone()[0]
+
+		# Find min value
+		cursor.execute("select seqmin from pg_catalog.pg_sequence where seqrelid = %s::regclass", (sequence,))
+		minvalue = cursor.fetchone()[0]
+
+		if tabvalue > minvalue:
+			# Reset sequence
+			cursor.execute(f"alter sequence {sequence} restart with {tabvalue}")
+			# Increment sequence once so the next time we get a value hight that that
+			cursor.execute(f"select nextval('{sequence}')")
+			curvalue = cursor.fetchone()[0]
+			return curvalue
+		else:
+			# We can't set the current value lower than the minimum value, so skip it
+			return None
+
+	def drop_types(self, drop, keep):
+		raise NotImplementedError()
+
+	def _executesql(self, context, sql, args):
+		queryargvars = []
+		varargs = {}
+		for (argname, argvalue) in args.items():
+			if isinstance(argvalue, sqlexpr):
+				continue # no value
+			elif isinstance(argvalue, var):
+				varargs[argname] = argvalue
+				if argvalue.key is not None and argvalue.key in context._locals:
+					argvalue = context._locals[argvalue.key]
+				else:
+					argvalue = None
+			queryargvars.append(argvalue)
+
+		cursor = self.connection.cursor()
+		cursor.execute(sql, queryargvars)
+		newkeys = {}
+		try:
+			result = cursor.fetchone()
+		except psycopg2.ProgrammingError as exc:
+			# The procedure call might not have had any out parameters
+			if exc.args != ("no results to fetch",):
+				# some other problem -> report it
+				raise
+		else:
+			for (value, column) in zip(result, cursor.description):
+				key = varargs[column.name].key
+				if key not in context._locals:
+					newkeys[column.name] = value
+					context._locals[key] = value
+		return newkeys
 
 ###
 ### Command classes
@@ -710,7 +1043,7 @@ class connect(Command):
 			else:
 				try:
 					connection = context.connect(self.connectstring, mode=self.mode)
-				except cx_Oracle.DatabaseError as exc:
+				except Exception as exc:
 					if self.mode is not None:
 						self.log(f"Connection #{i+1:,} to {self.connectstring!r} as {self.mode} failed:")
 					else:
@@ -725,12 +1058,13 @@ class connect(Command):
 				else:
 					break
 
+		handler = Handler.get(connection)
 		if self.mode is not None:
-			self.finish(f"Connected to {self.connectstring!r} as {self.mode}")
+			self.finish(f"Connected to {handler.connectstring()!r} as {self.mode}")
 		else:
-			self.finish(f"Connected to {self.connectstring!r}")
+			self.finish(f"Connected to {handler.connectstring()!r}")
 
-		return connection
+		return handler.connection
 
 	def source_format(self):
 		yield from self._source_format(
@@ -767,14 +1101,16 @@ class disconnect(Command):
 			raise ValueError(f"no connection available")
 
 		commit = self.commit if self.commit is not None else context.commit
-		connection = context.connections[-1]
+		handler = Handler.get(context.connections[-1])
+		# Get connectstring now, as Postgres forgets the info after a disconnect
+		cs = handler.connectstring()
 		context.disconnect(commit)
 		if commit:
-			self.finish(f"Disconnected from {connectstring(connection)!r} (transaction committed)")
+			self.finish(f"Disconnected from {cs!r} (transaction committed)")
 		else:
-			self.finish(f"Disconnected from {connectstring(connection)!r} (transaction rolled back)")
+			self.finish(f"Disconnected from {cs!r} (transaction rolled back)")
 
-		return connection
+		return handler.connection
 
 	def source_format(self):
 		yield from self._source_format(
@@ -805,43 +1141,6 @@ class _SQLCommand(_DatabaseCommand):
 	"""
 	Common base class of :class:`procedure` and :class:`sql`.
 	"""
-
-	@staticmethod
-	def _createvar(cursor, type, value):
-		var = cursor.var(type)
-		var.setvalue(0, value)
-		return var
-
-	def _executesql(self, context, connection, query):
-		cursor = connection.cursor()
-
-		queryargvars = {}
-		varargs = {}
-		for (argname, argvalue) in self.args.items():
-			if isinstance(argvalue, sqlexpr):
-				continue # no value
-			if isinstance(argvalue, var):
-				varargs[argname] = argvalue
-				if argvalue.key is not None and argvalue.key in context._locals:
-					argvalue = context._locals[argvalue.key]
-				else:
-					argvalue = cursor.var(argvalue.type)
-			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, cx_Oracle.CLOB, argvalue)
-			elif isinstance(argvalue, bytes) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, cx_Oracle.BLOB, argvalue)
-			queryargvars[argname] = argvalue
-
-		cursor.execute(query, queryargvars)
-
-		newkeys = {}
-		for (argname, argvalue) in varargs.items():
-			if argvalue.key not in context._locals:
-				value = queryargvars[argname].getvalue(0)
-				newkeys[argname] = value
-				if argvalue.key is not None:
-					context._locals[argvalue.key] = value
-		return newkeys
 
 
 @register
@@ -895,13 +1194,10 @@ class procedure(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
-
-		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in self.args.items())
-		query = f"begin {self.name}({argsql}); end;"
-		result = self._executesql(context, connection, query)
-		self.finish(f"Called procedure {self.name!r} in {connection.connectstring()!r}")
-		self.count(connectstring(connection), self.name)
+		handler = context.gethandler(self.connection)
+		result = handler.procedure(context, self.name, self.args)
+		self.finish(f"Called procedure {self.name!r} in {handler.connectstring()!r}")
+		self.count(handler.connectstring(), self.name)
 		if result:
 			self.log(f"New vars {result!r}")
 		return result or None
@@ -944,11 +1240,11 @@ class sql(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
+		handler = context.gethandler(self.connection)
 
-		result = self._executesql(context, connection, self.sql)
+		result = handler.sql(context, self.sql, self.args)
 		self.finish(f"Executed SQL")
-		self.count(connectstring(connection))
+		self.count(handler.connectstring())
 		if result:
 			self.log(f"New vars {result!r}")
 		return result or None
@@ -979,13 +1275,14 @@ class literalsql(_SQLCommand):
 
 	def execute(self, context):
 		sql = self.sql
-
-		if sql.endswith((";", "/")):
-			sql = sql[:-1]
-		connection = context.getconnection(None)
-		connection.cursor().execute(sql)
+		if self.location is not None:
+			# Prepend empty lines, so in case of an exception the
+			# linenumbers from any database stacktrace match
+			sql = (self.location.startline-1) * "\n" + self.sql
+		handler = context.gethandler(None)
+		handler.literalsql(sql)
 		self.finish(f"Executed literal SQL")
-		self.count(connectstring(connection))
+		self.count(handler.connectstring())
 
 	def source(self, tabsize=None):
 		sql = (self.sql or "").strip()
@@ -1010,12 +1307,12 @@ class commit(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
+		handler = context.gethandler(self.connection)
 
-		self.log(f"Committing transaction in {connectstring(connection)!r}")
-		connection.commit()
-		self.finish(f"Committed transaction in {connectstring(connection)!r}")
-		self.count(connectstring(connection))
+		self.log(f"Committing transaction in {handler.connectstring()!r}")
+		handler.commit()
+		self.finish(f"Committed transaction in {handler.connectstring()!r}")
+		self.count(handler.connectstring())
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1041,12 +1338,12 @@ class rollback(_SQLCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
+		handler = context.gethandler(self.connection)
 
-		context.log(f"Rolling back transaction in {connectstring(connection)!r}")
-		connection.rollback()
-		self.finish(f"Rolled back transaction in {connectstring(connection)!r}")
-		self.count(connectstring(connection))
+		context.log(f"Rolling back transaction in {handler.connectstring()!r}")
+		handler.rollback()
+		self.finish(f"Rolled back transaction in {handler.connectstring()!r}")
+		self.count(handler.connectstring())
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1082,8 +1379,11 @@ class literalpy(_DatabaseCommand):
 		return vars
 
 	def execute(self, context):
-		connection = context.connections[-1] if context.connections else None
-		vars = self.globals(context, connection)
+		if context.connections:
+			handler = Handler.get(context.connections[-1])
+		else:
+			handler = Handler()
+		vars = self.globals(context, handler.connection)
 
 		code = self.location.source(True) if self.location is not None else self.code
 		code += "\n"
@@ -1091,7 +1391,7 @@ class literalpy(_DatabaseCommand):
 		exec(code, vars, context._locals)
 
 		self.finish(f"Executed Python block")
-		self.count(connectstring(connection))
+		self.count(handler.connectstring())
 
 	def source(self, tabsize=None):
 		code = self.code
@@ -1282,19 +1582,14 @@ class checkerrors(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(None)
-
-		self.log(f"Checking errors in {connectstring(connection)!r}")
-
-		cursor = connection.cursor()
-		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
-		invalid_objects = [tuple(r) for r in cursor]
-
-		if invalid_objects:
-			raise CompilationError(invalid_objects)
-
-		self.finish(f"No errors in {connectstring(connection)!r}")
-		self.count(connectstring(connection))
+		handler = context.gethandler(self.connection)
+		self.log(f"Checking errors in {handler.connectstring()!r}")
+		result = handler.check_errors()
+		if result is None:
+			self.finish(f"Skipped error checking in {handler.connectstring()!r}")
+		else:
+			self.finish(f"No errors in {handler.connectstring()!r}")
+		self.count(handler.connectstring())
 
 	def source_format(self):
 		yield from self._source_format()
@@ -1455,63 +1750,27 @@ class resetsequence(_DatabaseCommand):
 		will deliver a value that is larger than the maximum value of the field
 		``field`` in the table ``table``.
 
-	``minvalue``: integer (optional, default taken from sequence)
-		The minimum value for the sequence.
-
-	``increment``: integer (optional, default taken from sequence)
-		The increment (i.e. the step size) for the sequence.
-
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, connection=None, raiseexceptions=None):
+	def __init__(self, sequence, table, field, *, connection=None, raiseexceptions=None):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
-		self.minvalue = minvalue
-		self.increment = increment
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sequence={self.sequence!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
-
-		cursor = connection.cursor()
-
+		handler = context.gethandler(self.connection)
 		self.log(f"Resetting sequence {self.sequence}")
-		# Fetch information about the sequence
-		cursor.execute("select min_value, increment_by, last_number from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
-		oldvalues = cursor.fetchone()
-		if oldvalues is None:
-			raise ValueError(f"sequence {self.sequence!r} unknown")
-		increment = self.increment
-		if increment is None:
-			increment = oldvalues[1]
-		minvalue = self.minvalue
-		if minvalue is None:
-			minvalue = oldvalues[0]
-		cursor.execute(f"select {self.sequence}.nextval from dual")
-		seqvalue = cursor.fetchone()[0]
-
-		# Fetch information about the table values
-		cursor.execute(f"select nvl(max({self.field}), 0) from {self.table}")
-		tabvalue = cursor.fetchone()[0]
-
-		step = max(tabvalue, minvalue) - seqvalue
-		if step:
-			cursor.execute(f"alter sequence {self.sequence} increment by {step}")
-			cursor.execute(f"select {self.sequence}.nextval from dual")
-			seqvalue = cursor.fetchone()[0]
-			cursor.execute(f"alter sequence {self.sequence} increment by {increment}")
+		seqvalue = handler.reset_sequence(self.sequence, self.table, self.field)
+		if seqvalue is not None:
 			self.finish(f"Reset sequence {self.sequence} to {seqvalue}")
 		else:
-			seqvalue = None
 			self.finish(f"Resetting sequence {self.sequence} skipped")
-
-		self.count(connectstring(connection))
-
+		self.count(handler.connectstring())
 		return seqvalue
 
 	def source_format(self):
@@ -1546,12 +1805,43 @@ class user_exists(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
+		handler = context.gethandler(self.connection)
+		result = handler.user_exists(self.name)
+		self.count(handler.connectstring())
 
-		cursor = connection.cursor()
-		cursor.execute("select count(*) from all_users where username = :name", name=self.name)
-		result = cursor.fetchone()[0] > 0
-		self.count(connectstring(connection))
+		return result
+
+	def source_format(self):
+		yield from self._source_format(
+			self.name,
+			connection=self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
+class schema_exists(_DatabaseCommand):
+	"""
+	The :class:`!schema_exists` command returns whether a schema with a specified
+	name exists in the database. It supports the following parameters:
+
+	``name``: string (required)
+		The name of the schema to be checked for existence.
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, name, *, connection=None, raiseexceptions=None):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+		self.name = name
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		handler = context.gethandler(self.connection)
+		result = handler.schema_exists(self.name)
+		self.count(handler.connectstring())
 
 		return result
 
@@ -1588,17 +1878,9 @@ class object_exists(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
-
-		cursor = connection.cursor()
-
-		if self.owner is None:
-			cursor.execute("select count(*) from user_objects where object_name = :name", name=self.name)
-		else:
-			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=self.owner, name=self.name)
-		result = cursor.fetchone()[0] > 0
-		self.count(connectstring(connection))
-
+		handler = context.gethandler(self.connection)
+		result = handler.object_exists(self.name, self.owner)
+		self.count(handler.connectstring())
 		return result
 
 	def source_format(self):
@@ -1642,19 +1924,19 @@ class drop_types(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		connection = context.getconnection(self.connection)
+		handler = context.gethandler(self.connection)
 
 		if self.drop is not None and self.keep is not None:
 			raise ValueError("The parameters 'drop' and 'keep' are mutually exclusive")
 
 		if self.drop is not None:
 			dropstr = " ".join(self.drop)
-			self.log(f"Dropping {dropstr} from {connectstring(connection)!r}")
+			self.log(f"Dropping {dropstr} from {handler.connectstring()!r}")
 		elif self.keep is not None:
 			keepstr = " ".join(self.keep)
-			self.log(f"Dropping everything except {keepstr} from {connectstring(connection)!r}")
+			self.log(f"Dropping everything except {keepstr} from {handler.connectstring()!r}")
 		else:
-			self.log(f"Dropping everything from {connectstring(connection)!r}")
+			self.log(f"Dropping everything from {handler.connectstring()!r}")
 
 		cursor = connection.cursor()
 
@@ -1677,7 +1959,6 @@ class drop_types(_DatabaseCommand):
 
 		self.finish(f"Dropped {count:,} objects from {connectstring(connection)!r}")
 		self.count(connectstring(connection))
-
 		return count
 
 	def source_format(self):
@@ -2068,33 +2349,42 @@ class Context:
 			self.connect(connectstring, None)
 
 	def connect(self, connectstring, mode=None):
-		mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
-		if orasql is not None:
-			connection = orasql.connect(connectstring, mode=mode, readlobs=True)
+		if connectstring.startswith("postgres:"):
+			from psycopg2 import extras
+			connection = psycopg2.connect(connectstring[9:], cursor_factory=extras.DictCursor)
+		elif connectstring.startswith("oracle:"):
+			connectstring = connectstring[7:]
+			mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
+			if orasql is not None:
+				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
+			else:
+				connection = cx_Oracle.connect(connectstring, mode=mode)
 		else:
-			connection = cx_Oracle.connect(connectstring, mode=mode)
+			mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
+			if orasql is not None:
+				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
+			else:
+				connection = cx_Oracle.connect(connectstring, mode=mode)
 		self.connections.append(connection)
 		return connection
 
 	def disconnect(self, commit=None):
 		if commit is None:
 			commit = self.commit
-		if not self.connections:
-			raise ValueError(f"no connection available")
-		connection = self.connections.pop()
-		if commit:
-			connection.commit()
-		else:
-			connection.rollback()
-		connection.close()
+		connection = self.connections.pop() if self.connections else None
+		handler = Handler.get(connection)
+		handler.disconnect(commit)
 		return connection
 
 	def getconnection(self, connection):
 		if connection is not None:
 			return connection
 		if not self.connections:
-			raise ValueError(f"no connection available")
+			raise NoDatabaseError()
 		return self.connections[-1]
+
+	def gethandler(self, connection):
+		return Handler.get(self.getconnection(connection))
 
 	def log(self, command, *objects):
 		if self.verbose in {"log", "full"}:
@@ -2360,6 +2650,11 @@ class pyexpr:
 ###
 ### Exception classes and location information
 ###
+
+class NoDatabaseError(Exception):
+	def __str__(self):
+		return f"no database connection"
+
 
 class LocationError(Exception):
 	def __init__(self, location):

@@ -15,8 +15,8 @@ Changes to ``ll.sisyphus``
 --------------------------
 
 *	The method :meth:`healthcheck` should no longer be implemented. Instead
-	The option ``--healthcheckcutoff`` or the class/instance attribute
-	``healthcheckcutoff``m can be used to configure the maximum allowed age.
+	the option ``--maxhealthcheckage`` or the class/instance attribute
+	``maxhealthcheckage`` can be used to configure the maximum allowed age.
 
 
 Migrating to version 5.57
