@@ -261,17 +261,17 @@ the job is considered unhealthy. There are three possible scenarios for this:
 3.	The last run was too long ago.
 
 To configure how scenario 3 is handled the class/instance attribute
-``healthcheckcutoff`` (or the command line option
-:option:`--healthcheckcutoff`) can be used. In its simplest form this is a
+``maxhealthcheckage`` (or the command line option
+:option:`--maxhealthcheckage`) can be used. In its simplest form this is a
 number of seconds or a :class:`datetime.timedelta` object. A job run that is
-older that this value triggers screnario 3. ``healthcheckcutoff`` can be also be
+older that this value triggers screnario 3. ``maxhealthcheckage`` can be also be
 a :class:`datetime.datetime` object specifying the cut-off date.
 
-Furthermore ``healthcheckcutoff`` can be callable (so it can be implemented
+Furthermore ``maxhealthcheckage`` can be callable (so it can be implemented
 as a method) and can return any of the types :class:`int`, :class:`float`,
 :class:`datetime.timedelta` or :class:`datetime.datetime`.
 
-And if ``Job.healthcheckcutoff`` is :const:`None`, scenario 3 will never trigger.
+And if ``Job.maxhealthcheckage`` is :const:`None`, scenario 3 will never trigger.
 
 
 Requirements
@@ -651,7 +651,7 @@ class Job:
 	nextrun = None
 	waitchildbreak = datetime.timedelta(seconds=0.5)
 	runhealthcheck = False
-	healthcheckcutoff = None
+	maxhealthcheckage = None
 
 	logfilename = """
 	~
@@ -1037,7 +1037,7 @@ class Job:
 		if self._healthfilename is not None:
 			try:
 				lastwrite = get_mtime(self._healthfilename)
-				cutoff = self._calc_healthcheckcutoff()
+				cutoff = self._calc_maxhealthcheckage()
 				if lastwrite < cutoff:
 					return f"Not running since {cutoff} (last run at {lastwrite}; {datetime.datetime.now()-lastwrite} ago)"
 				error = self._healthfilename.read_text(encoding=self.encoding, errors=self.errors)
@@ -1085,7 +1085,7 @@ class Job:
 		p.add_argument("-r", "--repeat", dest="repeat", help="Repeat the job run indefinitely? (default: %(default)s)", action=misc.FlagAction, default=self.repeat)
 		p.add_argument(      "--nextrun", dest="nextrun", metavar="SECONDS", help="How many seconds to wait after the run before repeating it? (default: %(default)s)", type=argseconds, default=self.nextrun)
 		p.add_argument(      "--waitchildbreak", dest="waitchildbreak", metavar="SECONDS", help="How many seconds to wait to give the child process time to clean up after CTRL-C? (default: %(default)s)", type=float, default=self.waitchildbreak)
-		p.add_argument(      "--healthcheckcutoff", dest="healthcheckcutoff", metavar="SECONDS", help="How old may a healthcheckfile be before the health check complains about it? (default: %(default)s)", type=float, default=self.healthcheckcutoff)
+		p.add_argument(      "--maxhealthcheckage", dest="maxhealthcheckage", metavar="SECONDS", help="How old may a healthcheckfile be before the health check complains about it? (default: %(default)s)", type=float, default=self.maxhealthcheckage)
 		p.add_argument(      "--healthcheck", dest="runhealthcheck", help="Run a heathcheck instead of the normal job? (default: %(default)s)", action=misc.FlagAction, default=self.runhealthcheck)
 
 		return p
@@ -1578,14 +1578,14 @@ class Job:
 		else:
 			return nextrun
 
-	def _calc_healthcheckcutoff(self):
+	def _calc_maxhealthcheckage(self):
 		"""
 		Calculate cut-off date for the health check.
 
 		A health check file with a timestamp before that date will indicate an
 		unhealthy job.
 		"""
-		cutoff = self.healthcheckcutoff
+		cutoff = self.maxhealthcheckage
 		if callable(cutoff):
 			cutoff = cutoff()
 		if cutoff is None:
