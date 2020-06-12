@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.58 (released ??/??/2020)
+Changes in 5.58 (released 06/12/2020)
 -------------------------------------
 
 *	For running healthchecks for sisyphus jobs it's no longer neccessary (or even
