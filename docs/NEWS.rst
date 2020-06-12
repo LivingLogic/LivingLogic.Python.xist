@@ -11,11 +11,44 @@ see :ref:`MIGRATION`.
 Changes in 5.58 (released ??/??/2020)
 -------------------------------------
 
-*	For running healthchecks for sisyphus jobs it's no longer neccessary to
-	implement the :meth:`healthcheck` method. Instead the job writes a healthfile
-	at the end of each run, and the age and content of this files will be used
-	to determine the health of the job. The options ``--healthcheckcutoff``
-	can be used to configure the maximum allowed age.
+*	For running healthchecks for sisyphus jobs it's no longer neccessary (or even
+	allowed) to implement the :meth:`healthcheck` method. Instead the job writes
+	a healthfile at the end of each run, and the age and content of this file
+	will be used to determine the health of the job. The option
+	``--maxhealthcheckage`` can be used to configure the maximum allowed age.
+
+*	Logging to emails was broken when sisyphus jobs were running in fork mode
+	(the default): The child process was collecting log messages for the email,
+	but the parent process didn't, so it never sent an email. This has been fixed
+	now: Both processes write log messages to files, and those will be used after
+	the job run to create the email.
+
+*	Now links will be created for every possible result status of a job run.
+	So it's immediate clear when the last successful job run was, when the
+	last job run failed with an exception, was canceled or timed out.
+
+*	The filenames for log files can no longer be changed via options or job
+	attributes, instead one of the following methods must be overwritten:
+
+	*	:meth:`basedir`
+
+	*	:meth:`logfilename`
+
+	*	:meth:`currentloglinkname`
+
+	*	:meth:`lastsuccessfulloglinkname`
+
+	*	:meth:`lastfailedloglinkname`
+
+	*	:meth:`lastinterruptedloglinkname`
+
+	*	:meth:`lasttimeoutloglinkname`
+
+	*	:meth:`healthfilename`
+
+	*	:meth:`emailfilename`
+
+	Those methods must return an absolute path as a :class:`pathlib.Path` object.
 
 
 Changes in 5.57 (released 04/14/2020)

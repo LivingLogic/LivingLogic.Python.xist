@@ -18,6 +18,34 @@ Changes to ``ll.sisyphus``
 	the option ``--maxhealthcheckage`` or the class/instance attribute
 	``maxhealthcheckage`` can be used to configure the maximum allowed age.
 
+*	The method :meth:`failed` is no longer supported. If you need its
+	functionality wrap the content of your :meth:`execute` method in a ``try``
+	block and put the content of you :meth:`failed` method into an ``except``
+	block (and reraise the exception at the end of the ``except`` block).
+
+*	The filenames for log files can no longer be changed via options or job
+	attributes, instead one of the following methods must be overwritten:
+
+	*	:meth:`basedir`
+
+	*	:meth:`logfilename`
+
+	*	:meth:`currentloglinkname`
+
+	*	:meth:`lastsuccessfulloglinkname`
+
+	*	:meth:`lastfailedloglinkname`
+
+	*	:meth:`lastinterruptedloglinkname`
+
+	*	:meth:`lasttimeoutloglinkname`
+
+	*	:meth:`healthfilename`
+
+	*	:meth:`emailfilename`
+
+	Those methods must return an absolute path as a :class:`pathlib.Path` object.
+
 
 Migrating to version 5.57
 =========================

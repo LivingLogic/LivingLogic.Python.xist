@@ -1061,11 +1061,14 @@ class Timeout(Exception):
 	"""
 	Exception that is raised when a timeout in :func:`timeout` occurs.
 	"""
-	def __init__(self, seconds):
-		self.seconds = seconds
+	def __init__(self, duration):
+		self.duration = duration
 
 	def __str__(self):
-		return f"timed out after {self.seconds} seconds"
+		if isinstance(self.duration, (int, float)):
+			return f"timed out after {self.duration} seconds"
+		else:
+			return f"timed out after {self.duration}"
 
 
 @contextlib.contextmanager
