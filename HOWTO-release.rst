@@ -69,7 +69,7 @@ push it to all repos.
 Uploading the release to the cheeseshop
 ---------------------------------------
 
-Upload the release to the chesseshop via (do this in the root directory)::
+Upload the release to the cheeseshop via (do this in the root directory)::
 
 	make upload
 
