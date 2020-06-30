@@ -38,6 +38,8 @@ from collections import abc
 
 from cx_Oracle import *
 
+from cx_Oracle import __version__ as __cx_oracle_version__
+
 from ll import misc, url as url_
 
 
@@ -246,23 +248,30 @@ def _decodelob(value, readlobs):
 
 
 class RecordMaker:
-	def __init__(self, cursor):
-		self._readlobs = cursor.readlobs
-		self._index2name = tuple(d[0].lower() for d in cursor.description)
-		self._index2conv = tuple(getattr(self, d[1].__name__, self.DEFAULT) for d in cursor.description)
+	if int(__cx_oracle_version__.split(".")[0]) < 8:
+		def __init__(self, cursor):
+			self._readlobs = cursor.readlobs
+			self._index2name = tuple(d[0].lower() for d in cursor.description)
+			self._name2index = dict(zip(self._index2name, itertools.count()))
+			self._index2conv = tuple(getattr(self, "DB_TYPE_" + d[1].__name__, self.DEFAULT) for d in cursor.description)
+	else:
+		def __init__(self, cursor):
+			self._readlobs = cursor.readlobs
+			self._index2name = tuple(d[0].lower() for d in cursor.description)
+			self._name2index = dict(zip(self._index2name, itertools.count()))
+			self._index2conv = tuple(getattr(self, d[1].name, self.DEFAULT) for d in cursor.description)
 
 	def __call__(self, *row):
 		row = tuple(conv(value) for (conv, value) in zip(self._index2conv, row))
-		name2index = dict(zip(self._index2name, itertools.count()))
-		return Record(self._index2name, name2index, row)
+		return Record(self._index2name, self._name2index, row)
 
-	def CLOB(self, value):
+	def DB_TYPE_CLOB(self, value):
 		return _decodelob(value, self._readlobs)
 
-	def NCLOB(self, value):
+	def DB_TYPE_NCLOB(self, value):
 		return _decodelob(value, self._readlobs)
 
-	def BLOB(self, value):
+	def DB_TYPE_BLOB(self, value):
 		return _decodelob(value, self._readlobs)
 
 	def DEFAULT(self, value):

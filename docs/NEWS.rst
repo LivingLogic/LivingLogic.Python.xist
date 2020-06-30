@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.59 (released 06/30/2020)
+-------------------------------------
+
+*	:mod:`ll.orasql` now supports :mod:`cx_Oracle` 8.0.
+
+
 Changes in 5.58 (released 06/12/2020)
 -------------------------------------
 
