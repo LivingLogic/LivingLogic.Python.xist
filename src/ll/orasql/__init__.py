@@ -248,18 +248,11 @@ def _decodelob(value, readlobs):
 
 
 class RecordMaker:
-	if int(__cx_oracle_version__.split(".")[0]) < 8:
-		def __init__(self, cursor):
-			self._readlobs = cursor.readlobs
-			self._index2name = tuple(d[0].lower() for d in cursor.description)
-			self._name2index = dict(zip(self._index2name, itertools.count()))
-			self._index2conv = tuple(getattr(self, "DB_TYPE_" + d[1].__name__, self.DEFAULT) for d in cursor.description)
-	else:
-		def __init__(self, cursor):
-			self._readlobs = cursor.readlobs
-			self._index2name = tuple(d[0].lower() for d in cursor.description)
-			self._name2index = dict(zip(self._index2name, itertools.count()))
-			self._index2conv = tuple(getattr(self, d[1].name, self.DEFAULT) for d in cursor.description)
+	def __init__(self, cursor):
+		self._readlobs = cursor.readlobs
+		self._index2name = tuple(d[0].lower() for d in cursor.description)
+		self._name2index = dict(zip(self._index2name, itertools.count()))
+		self._index2conv = tuple(getattr(self, d[1].name, self.DEFAULT) for d in cursor.description)
 
 	def __call__(self, *row):
 		row = tuple(conv(value) for (conv, value) in zip(self._index2conv, row))
