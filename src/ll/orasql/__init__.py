@@ -1855,7 +1855,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		Return the table comment
 		"""
-		return TableComment(self.name, connection=self.getconnection(connection))
+		return TableComment(self.name, self.owner, self.getconnection(connection))
 
 	def comments(self, connection=None):
 		"""

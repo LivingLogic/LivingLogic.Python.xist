@@ -16,6 +16,9 @@ Changes in 5.59 (released 06/30/2020)
 *	:meth:`ll.orasql.Connection.objects` now outputs :class:`TableComment`
 	objects too.
 
+*	Fixed :meth:`ll.orasql.Table.comment` when the table was owner by a
+	different user.
+
 
 Changes in 5.58 (released 06/12/2020)
 -------------------------------------
