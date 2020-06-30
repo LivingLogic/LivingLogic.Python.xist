@@ -592,9 +592,9 @@ class Connection(Connection):
 	def objects(self, owner=None, mode="create"):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
-		comments, unique constraints, indexes, views, functions, procedures,
-		packages, types and jobsin the current users schema (or all users schemas)
-		in a specified order.
+		table and columns comments, unique constraints, indexes, views, functions,
+		procedures, packages, types and jobsin the current users schema
+		(or all users schemas) in a specified order.
 
 		``mode`` specifies the order in which objects will be yielded:
 
@@ -616,8 +616,6 @@ class Connection(Connection):
 			raise UnknownModeError(mode)
 
 		done = set()
-
-		cursor = self.cursor()
 
 		def do(obj):
 			if mode == "create":
@@ -648,7 +646,10 @@ class Connection(Connection):
 				if pk is not None:
 					yield from do(pk)
 
-				# Comments
+				# Table comment
+				yield table.comment()
+
+				# Column comments
 				for comment in table.comments():
 					# No dependency checks necessary, but use ``do`` anyway
 					yield from do(comment)
