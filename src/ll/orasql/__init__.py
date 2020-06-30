@@ -465,7 +465,7 @@ class Connection(Connection):
 		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?
 
 	def _numbersasdecimal(self, cursor, name, defaultType, length, precision, scale):
-		if defaultType is NUMBER and scale:
+		if defaultType is DB_TYPE_NUMBER and scale:
 			return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
 	def connectstring(self):
@@ -3404,8 +3404,8 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		"timestamp with time zone": datetime.datetime,
 		"number": float,
 		"varchar2": str,
-		"clob": CLOB,
-		"blob": BLOB,
+		"clob": DB_TYPE_CLOB,
+		"blob": DB_TYPE_BLOB,
 	}
 
 	def __init__(self, name, owner=None, connection=None):
@@ -3532,9 +3532,9 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		except KeyError:
 			raise TypeError(f"can't handle parameter {arginfo.name} of type {arginfo.datatype} with value {arg!r} in {self!r}")
 		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``
-			t = BLOB
+			t = DB_TYPE_BLOB
 		elif isinstance(arg, str) and len(arg) >= 2000:
-			t = CLOB
+			t = DB_TYPE_CLOB
 		var = cursor.var(t, typename=typename)
 		var.setvalue(0, arg)
 		return var
