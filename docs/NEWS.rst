@@ -11,7 +11,7 @@ see :ref:`MIGRATION`.
 Changes in 5.59 (released 06/30/2020)
 -------------------------------------
 
-*	:mod:`ll.orasql` now supports :mod:`cx_Oracle` 8.0.
+*	:mod:`ll.orasql` now requires :mod:`cx_Oracle` 8.0.
 
 *	:meth:`ll.orasql.Connection.objects` now outputs :class:`TableComment`
 	objects too.
