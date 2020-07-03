@@ -551,6 +551,10 @@ class Job:
 		Should a message be printed/a failure email be sent when the maximum
 		runtime is exceeded?
 
+	.. option:: --exitonerror
+
+		End job execution even in repeat mode when an exception is thrown?
+
 	.. option:: -n, --notify
 
 		Should a notification be issued to the OS X Notification center?
@@ -669,6 +673,8 @@ class Job:
 	fork = True
 
 	noisykills = False
+	exit_on_error = False
+
 	notify = False
 
 	repeat = False
@@ -677,7 +683,8 @@ class Job:
 	runhealthcheck = False
 	maxhealthcheckage = None
 
-	def basedir(self) -> pathlib.Path:
+	def basedir(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the base directory where all log files will be kept.
 
@@ -1169,6 +1176,7 @@ class Job:
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
+		p.add_argument(      "--exitonerror", dest="exit_on_error", help="Stop the job when an error happens in repeat mode? (default: %(default)s)", action=misc.FlagAction, default=self.exit_on_error)
 		p.add_argument("-n", "--notify", dest="notify", help="Should a notification be issued to the OS X notification center? (default: %(default)s)", action=misc.FlagAction, default=self.notify)
 		p.add_argument("-r", "--repeat", dest="repeat", help="Repeat the job run indefinitely? (default: %(default)s)", action=misc.FlagAction, default=self.repeat)
 		p.add_argument(      "--nextrun", dest="nextrun", metavar="SECONDS", help="How many seconds to wait after the run before repeating it? (default: %(default)s)", type=argseconds, default=self.nextrun)
@@ -1185,38 +1193,38 @@ class Job:
 		the result of the parsers :meth:`parse_args` call.
 		"""
 		p = self.argparser()
-		args = p.parse_args(args)
-		self.projectname = args.projectname
-		self.jobname = args.jobname
-		self.fromemail = args.fromemail
-		self.toemail = args.toemail
-		self.smtphost = args.smtphost
-		self.smtpport = args.smtpport
-		self.smtpuser = args.smtpuser
-		self.smtppassword = args.smtppassword
-		self.mattermost_url = args.mattermost_url
-		self.mattermost_channel = args.mattermost_channel
-		self.mattermost_token = args.mattermost_token
-		self.identifier = args.identifier
-		self.maxtime = args.maxtime
-		self.fork = args.fork
-		self.noisykills = args.noisykills
-		self.log2file = args.log2file
-		self.log2stdout = args.log2stdout
-		self.log2stderr = args.log2stderr
-		self.keepfilelogs = args.keepfilelogs
-		self.compressfilelogs = args.compressfilelogs
-		self.compressmode = args.compressmode
-		self.maxemailerrors = args.maxemailerrors
-		self.proctitle = args.proctitle
-		self.encoding = args.encoding
-		self.errors = args.errors
-		self.notify = args.notify
-		self.repeat = args.repeat
-		self.nextrun = args.nextrun
-		self.waitchildbreak = args.waitchildbreak
-		self.runhealthcheck = args.runhealthcheck
-		return args
+		ns = p.parse_args(args)
+		self.projectname = ns.projectname
+		self.jobname = ns.jobname
+		self.fromemail = ns.fromemail
+		self.toemail = ns.toemail
+		self.smtphost = ns.smtphost
+		self.smtpport = ns.smtpport
+		self.smtpuser = ns.smtpuser
+		self.smtppassword = ns.smtppassword
+		self.mattermost_url = ns.mattermost_url
+		self.mattermost_channel = ns.mattermost_channel
+		self.mattermost_token = ns.mattermost_token
+		self.identifier = ns.identifier
+		self.maxtime = ns.maxtime
+		self.fork = ns.fork
+		self.noisykills = ns.noisykills
+		self.log2file = ns.log2file
+		self.log2stdout = ns.log2stdout
+		self.log2stderr = ns.log2stderr
+		self.keepfilelogs = ns.keepfilelogs
+		self.compressfilelogs = ns.compressfilelogs
+		self.compressmode = ns.compressmode
+		self.maxemailerrors = ns.maxemailerrors
+		self.proctitle = ns.proctitle
+		self.encoding = ns.encoding
+		self.errors = ns.errors
+		self.notify = ns.notify
+		self.repeat = ns.repeat
+		self.nextrun = ns.nextrun
+		self.waitchildbreak = ns.waitchildbreak
+		self.runhealthcheck = ns.runhealthcheck
+		return ns
 
 	def _kill_children(self):
 		if psutil is None:
@@ -1342,10 +1350,10 @@ class Job:
 			name = logger.name()
 			if name is not None:
 				logmessage.append(name)
-		logmessage = ", ".join(logmessage)
+		logstr = ", ".join(logmessage)
 
-		if logmessage:
-			return f"logging to {logmessage}"
+		if logstr:
+			return f"logging to {logstr}"
 		else:
 			return "no logging"
 
@@ -1405,7 +1413,10 @@ class Job:
 						signal.alarm(0) # Cancel maximum runtime alarm
 				except misc.Timeout as exc:
 					self._finished_timeout(exc)
-					return # finish normally (or continue, if we're in repeat mode)
+					if self.exit_on_error:
+						raise
+					else:
+						return # finish normally (or continue, if we're in repeat mode)
 				except KeyboardInterrupt as exc:
 					self._finished_break(exc)
 					raise
@@ -1418,9 +1429,15 @@ class Job:
 						self._finished_break(exc)
 						raise exc
 					elif status is Status.TIMEOUT:
-						self._finished_timeout(misc.Timeout(self.maxtime))
+						exc = misc.Timeout(self.maxtime)
+						self._finished_timeout(exc)
+						if self.exit_on_error:
+							raise exc
 					elif status is Status.FAILED:
-						self._finished_exception(None)
+						exc = RuntimeError("failed")
+						self._finished_exception(exc)
+						if self.exit_on_error:
+							raise exc
 					elif status is Status.SUCCESSFUL:
 						self._finished_successful(None)
 					return # finish normally (or continue, if we're in repeat mode)
@@ -1457,6 +1474,8 @@ class Job:
 		except Exception as exc:
 			status = self._finished_exception(exc)
 			result = f"failed with {misc.format_exception(exc)}"
+			if not self.fork and self.exit_on_error:
+				raise
 		else:
 			if result is None:
 				status = self._finished_uneventful()
