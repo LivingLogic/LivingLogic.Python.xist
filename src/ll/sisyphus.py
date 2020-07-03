@@ -2263,8 +2263,10 @@ class EmailLogger(Logger):
 			else:
 				processes = (Process.CHILD, Process.PARENT)
 
-			log = itertools.chain.from_iterable(self._load_dump(p) for p in processes)
-			log = sorted(log, key=operator.itemgetter("timestamp"))
+			log = sorted(
+				itertools.chain.from_iterable(self._load_dump(p) for p in processes),
+				key=operator.itemgetter("timestamp"),
+			)
 
 			# Without log messages, we have nothing to do
 			if log:
