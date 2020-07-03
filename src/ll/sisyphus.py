@@ -1260,145 +1260,60 @@ class Job:
 		self.runhealthcheck = ns.runhealthcheck
 		return ns
 
-	def _kill_children(self):
-		# type: () -> Set[int]
-		if psutil is None:
-			try:
-				os.kill(self.killpid, signal.SIGTERM) # Kill our child
-			except ProcessLookupError:
-				pass # already gone
-			return {self.killpid}
-		else:
-			pids = set()
-			procs = psutil.Process().children(recursive=True)
+	def _handleexecution(self):
+		# type: () -> None
+		"""
+		Handle executing the job including handling of duplicate or hanging jobs.
+		"""
+		if self.jobname is None:
+			self.jobname = self.__class__.__qualname__
+		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
+		self._run = 0
+		self.maxtime = argseconds(self.maxtime)
+		self.keepfilelogs = argdays(self.keepfilelogs)
+		self.compressfilelogs = argdays(self.compressfilelogs)
+		self.waitchildbreak = argseconds(self.waitchildbreak)
 
-			# Send SIGTERM
-			for p in procs:
-				pids.add(p.pid)
-				p.terminate()
+		self._healthfilename = self.healthfilename()
+		if self.runhealthcheck:
+			result = self.healthcheck()
+			raise SystemExit(result)
 
-			seconds = self.waitchildbreak.total_seconds()
-			(gone, alive) = psutil.wait_procs(procs, timeout=seconds)
+		self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", whitespace="strip") # Log line formatting template
+		self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
+		self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
+		self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", whitespace="strip") # Email body formatting template (HTML)
+		self._formatmattermosttitle = ul4c.Template(self.formatmattermosttitle, "formatmattermosttitle", whitespace="strip") # Mattermost chat title formatting template
+		self._formatmattermostmessage = ul4c.Template(self.formatmattermostmessage, "formatmattermostmessage", whitespace="strip") # Mattermost chat message formatting template
 
-			# Send SIGKILL
-			if alive:
-				for p in alive:
-					pids.add(p.pid)
-					p.kill()
-				(gone, alive) = psutil.wait_procs(alive, timeout=seconds)
-				# Ignore whether any processes remain in the ``alive`` list
-			return pids
+		# Obtain a lock on the script file to make sure we're the only one running
+		with open(misc.sysinfo.script_name, "rb") as f:
+			if fcntl is not None:
+				try:
+					fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+				except BlockingIOError:
+					# The previous invocation of the job is still running
+					return # Return without calling :meth:`execute`
 
-	def _finished_uneventful(self):
-		# type: () -> Status
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("Finishing")
-		if self.process is not Process.PARENT:
-			self._write_healthfile(None)
-			# log the result
-			if self._exceptioncount:
-				self.log.sisyphus.result.errors(None)
+			if self.repeat:
+				while True:
+					self._handleoneexecution()
+					self._createlogs(False) # Recreate stdin/stdout loggers
+					self._run += 1
+					nextrun = self._calc_nextrun()
+					wait = nextrun - datetime.datetime.now()
+					wait_seconds = wait.total_seconds()
+					if wait_seconds > 0:
+						self.setproctitle("Sleeping")
+						self.log.sisyphus.delay.info(f"Sleeping for {wait} until {nextrun}")
+						time.sleep(wait_seconds)
+					else:
+						self.log.sisyphus.delay.info(f"Restarting immediately")
 			else:
-				self.log.sisyphus.result.delay.ok(None)
-		self._closelogs(Status.UNEVENTFUL)
-		return Status.UNEVENTFUL
+				self._handleoneexecution()
 
-	def _finished_successful(self, result):
-		# type: (OptStr) -> Status
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("Finishing")
-		self._write_healthfile(None)
-		# log the result
-		if self.process is not Process.PARENT:
-			if self._exceptioncount:
-				self.log.sisyphus.result.errors(result)
-			else:
-				# Throw away delayed logs.
-				if self._delayed_logs is not None:
-					self._delayed_logs = [] # type: LogList
-				self.log.sisyphus.result.ok(result)
-		self._closelogs(Status.SUCCESSFUL)
-		return Status.SUCCESSFUL
-
-	def _finished_exception(self, exc):
-		# type: (BaseException) -> Status
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("Handling exception")
-		if self.process is not Process.PARENT:
-			strexc = misc.format_exception(exc)
-			self._write_healthfile(f"Failed with {strexc}")
-			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
-			self.log.sisyphus.email.mattermost(exc)
-			self.log.sisyphus.result.fail(f"failed with {strexc}")
-		self._closelogs(Status.FAILED)
-		return Status.FAILED
-
-	def _finished_break(self, exc):
-		# type: (KeyboardInterrupt) -> Status
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("Handling break")
-		self._write_healthfile("Interrupted")
-		if self.process is not Process.CHILD:
-			# Don't log to email or mattermost
-			self.log.sisyphus(exc)
-			self.log.sisyphus.result.fail(f"failed with {misc.format_exception(exc)}")
-		self._closelogs(Status.INTERRUPTED)
-		return Status.INTERRUPTED
-
-	def _finished_timeout(self, exc):
-		# type: (misc.Timeout) -> Status
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("Timeout")
-		if self.process is not Process.CHILD:
-			self._write_healthfile(f"Timeout after {self.maxtime}")
-
-		if self.process is Process.PARENT:
-			pids = self._kill_children()
-
-			if len(pids) == 1:
-				pidstr = f"child {misc.first(pids)}"
-			else:
-				pidstr = ", ".join(str(pid) for pid in pids)
-				pidstr = f"children {pidstr}"
-
-			msg = f"Terminated {pidstr} after {self.maxtime}"
-		elif self.process is Process.SOLO:
-			msg = f"Terminated after {self.maxtime}"
-		else:
-			msg = None
-		if msg is not None:
-			if self.noisykills:
-				self.log.email.mattermost(exc)
-			else:
-				self.log(exc)
-			self.log.sisyphus.result.kill(msg)
-		self._closelogs(Status.TIMEOUT)
-		return Status.TIMEOUT
-
-	def _signal_alarm(self, signum, frame):
-		# type: (int, Optional[types.FrameType]) -> NoReturn
-		raise misc.Timeout(self.maxtime)
-
-	def _signal_int(self, signum, frame):
-		# type: (int, Optional[types.FrameType]) -> NoReturn
-		signal.alarm(0) # Cancel maximum runtime alarm
-		# Give the child process time to log the stacktrace
-		time.sleep(self.waitchildbreak.total_seconds())
-		raise KeyboardInterrupt
-
-	def _logmessage(self):
-		# type: () -> str
-		logmessage = []
-		for logger in self._loggers:
-			name = logger.name()
-			if name is not None:
-				logmessage.append(name)
-		logstr = ", ".join(logmessage)
-
-		if logstr:
-			return f"logging to {logstr}"
-		else:
-			return "no logging"
+			if fcntl is not None:
+				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 
 	def _handleoneexecution(self):
 		# type: () -> None
@@ -1410,12 +1325,12 @@ class Job:
 
 		# we were able to obtain the lock, so we are the only one running
 		self.starttime = datetime.datetime.now()
-		self.endtime = None
+		self.endtime = None # type: Optional[datetime.datetime]
 
 		self._getscriptsource() # Get source code
 		self._getcrontab() # Get crontab
 		self.log = Tag(self._log) # Create tagged logger for files
-		self._delayed_logs = [] # type: LogList
+		self._delayed_logs = [] # type: Optional[LogList]
 		self._createlogs(True) # Create loggers
 
 		if self.fork and hasattr(os, "fork"):
@@ -1528,60 +1443,145 @@ class Job:
 		if self.fork:
 			os._exit(status)
 
-	def _handleexecution(self):
-		# type: () -> None
-		"""
-		Handle executing the job including handling of duplicate or hanging jobs.
-		"""
-		if self.jobname is None:
-			self.jobname = self.__class__.__qualname__
-		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
-		self._run = 0
-		self.maxtime = argseconds(self.maxtime)
-		self.keepfilelogs = argdays(self.keepfilelogs)
-		self.compressfilelogs = argdays(self.compressfilelogs)
-		self.waitchildbreak = argseconds(self.waitchildbreak)
+	def _kill_children(self):
+		# type: () -> Set[int]
+		if psutil is None:
+			try:
+				os.kill(self.killpid, signal.SIGTERM) # Kill our child
+			except ProcessLookupError:
+				pass # already gone
+			return {self.killpid}
+		else:
+			pids = set()
+			procs = psutil.Process().children(recursive=True)
 
-		self._healthfilename = self.healthfilename()
-		if self.runhealthcheck:
-			result = self.healthcheck()
-			raise SystemExit(result)
+			# Send SIGTERM
+			for p in procs:
+				pids.add(p.pid)
+				p.terminate()
 
-		self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", whitespace="strip") # Log line formatting template
-		self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
-		self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
-		self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", whitespace="strip") # Email body formatting template (HTML)
-		self._formatmattermosttitle = ul4c.Template(self.formatmattermosttitle, "formatmattermosttitle", whitespace="strip") # Mattermost chat title formatting template
-		self._formatmattermostmessage = ul4c.Template(self.formatmattermostmessage, "formatmattermostmessage", whitespace="strip") # Mattermost chat message formatting template
+			seconds = self.waitchildbreak.total_seconds()
+			(gone, alive) = psutil.wait_procs(procs, timeout=seconds)
 
-		# Obtain a lock on the script file to make sure we're the only one running
-		with open(misc.sysinfo.script_name, "rb") as f:
-			if fcntl is not None:
-				try:
-					fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-				except BlockingIOError:
-					# The previous invocation of the job is still running
-					return # Return without calling :meth:`execute`
+			# Send SIGKILL
+			if alive:
+				for p in alive:
+					pids.add(p.pid)
+					p.kill()
+				(gone, alive) = psutil.wait_procs(alive, timeout=seconds)
+				# Ignore whether any processes remain in the ``alive`` list
+			return pids
 
-			if self.repeat:
-				while True:
-					self._handleoneexecution()
-					self._createlogs(False) # Recreate stdin/stdout loggers
-					self._run += 1
-					nextrun = self._calc_nextrun()
-					wait = nextrun - datetime.datetime.now()
-					wait_seconds = wait.total_seconds()
-					if wait_seconds > 0:
-						self.setproctitle("Sleeping")
-						self.log.sisyphus.delay.info(f"Sleeping for {wait} until {nextrun}")
-						time.sleep(wait_seconds)
-					else:
-						self.log.sisyphus.delay.info(f"Restarting immediately")
+	def _finished_uneventful(self):
+		# type: () -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Finishing")
+		if self.process is not Process.PARENT:
+			self._write_healthfile(None)
+			# log the result
+			if self._exceptioncount:
+				self.log.sisyphus.result.errors(None)
 			else:
-				self._handleoneexecution()
+				self.log.sisyphus.result.delay.ok(None)
+		self._closelogs(Status.UNEVENTFUL)
+		return Status.UNEVENTFUL
 
-			if fcntl is not None:
-				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+	def _finished_successful(self, result):
+		# type: (OptStr) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Finishing")
+		self._write_healthfile(None)
+		# log the result
+		if self.process is not Process.PARENT:
+			if self._exceptioncount:
+				self.log.sisyphus.result.errors(result)
+			else:
+				# Throw away delayed logs.
+				if self._delayed_logs is not None:
+					self._delayed_logs = []
+				self.log.sisyphus.result.ok(result)
+		self._closelogs(Status.SUCCESSFUL)
+		return Status.SUCCESSFUL
+
+	def _finished_exception(self, exc):
+		# type: (BaseException) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Handling exception")
+		if self.process is not Process.PARENT:
+			strexc = misc.format_exception(exc)
+			self._write_healthfile(f"Failed with {strexc}")
+			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
+			self.log.sisyphus.email.mattermost(exc)
+			self.log.sisyphus.result.fail(f"failed with {strexc}")
+		self._closelogs(Status.FAILED)
+		return Status.FAILED
+
+	def _finished_break(self, exc):
+		# type: (KeyboardInterrupt) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Handling break")
+		self._write_healthfile("Interrupted")
+		if self.process is not Process.CHILD:
+			# Don't log to email or mattermost
+			self.log.sisyphus(exc)
+			self.log.sisyphus.result.fail(f"failed with {misc.format_exception(exc)}")
+		self._closelogs(Status.INTERRUPTED)
+		return Status.INTERRUPTED
+
+	def _finished_timeout(self, exc):
+		# type: (misc.Timeout) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Timeout")
+		if self.process is not Process.CHILD:
+			self._write_healthfile(f"Timeout after {self.maxtime}")
+
+		if self.process is Process.PARENT:
+			pids = self._kill_children()
+
+			if len(pids) == 1:
+				pidstr = f"child {misc.first(pids)}"
+			else:
+				pidstr = ", ".join(str(pid) for pid in pids)
+				pidstr = f"children {pidstr}"
+
+			msg = f"Terminated {pidstr} after {self.maxtime}"
+		elif self.process is Process.SOLO:
+			msg = f"Terminated after {self.maxtime}"
+		else:
+			msg = None
+		if msg is not None:
+			if self.noisykills:
+				self.log.email.mattermost(exc)
+			else:
+				self.log(exc)
+			self.log.sisyphus.result.kill(msg)
+		self._closelogs(Status.TIMEOUT)
+		return Status.TIMEOUT
+
+	def _signal_alarm(self, signum, frame):
+		# type: (int, Optional[types.FrameType]) -> NoReturn
+		raise misc.Timeout(self.maxtime)
+
+	def _signal_int(self, signum, frame):
+		# type: (int, Optional[types.FrameType]) -> NoReturn
+		signal.alarm(0) # Cancel maximum runtime alarm
+		# Give the child process time to log the stacktrace
+		time.sleep(self.waitchildbreak.total_seconds())
+		raise KeyboardInterrupt
+
+	def _logmessage(self):
+		# type: () -> str
+		logmessage = []
+		for logger in self._loggers:
+			name = logger.name()
+			if name is not None:
+				logmessage.append(name)
+		logstr = ", ".join(logmessage)
+
+		if logstr:
+			return f"logging to {logstr}"
+		else:
+			return "no logging"
 
 	def notifystart(self):
 		# type: () -> None
@@ -1781,7 +1781,7 @@ class Job:
 		be generated (if configured).
 		"""
 		self._loggers = []
-		skipfilenames = []
+		skipfilenames = [] # type: List[pathlib.Path]
 		if full and self.toemail and self.fromemail and self.smtphost:
 			# Use the email logger as the first logger, so that when sending the email (in :meth:`EmailLogger.close`) fails,
 			# it will still be logged to the log file/stdout/stderr
@@ -1800,9 +1800,9 @@ class Job:
 					(self.lastfailedloglinkname, LastStatusLinkLogger, Status.FAILED),
 					(self.lastinterruptedloglinkname, LastStatusLinkLogger, Status.INTERRUPTED),
 					(self.lasttimeoutloglinkname, LastStatusLinkLogger, Status.TIMEOUT),
-				]
-				for (linkfilename, logger, *additionalargs) in links:
-					linkfilename = linkfilename()
+				] # type: List[Union[Tuple[Callable[[], pathlib.Path], Type[Logger]], Tuple[Callable[[], pathlib.Path], Type[Logger], Status]]]
+				for (makelinkfilename, logger, *additionalargs) in links:
+					linkfilename = makelinkfilename()
 					if linkfilename is not None:
 						self._loggers.append(logger(self, logfilename, linkfilename, *additionalargs))
 						skipfilenames.append(linkfilename)
