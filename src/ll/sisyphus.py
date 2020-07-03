@@ -372,7 +372,7 @@ T = TypeVar("T")
 OptStr = Optional[str]
 OptInt = Optional[int]
 OptStrFromCall = Union[str, None, Callable[..., Union[str, None]]]
-LogList  = List[Tuple[datetime.datetime, Tuple[str, ...], List[Task], Any]]
+LogList  = List[Tuple[datetime.datetime, Tuple[str, ...], List["Task"], Any]]
 
 
 ###
