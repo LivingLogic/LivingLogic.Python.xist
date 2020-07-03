@@ -1663,16 +1663,6 @@ class Job:
 		with os.popen("crontab -l 2>/dev/null") as f:
 			self.crontab = f.read()
 
-	def _createfilename(self, template, filename):
-		"""
-		Create a filename from a template.
-		"""
-
-		template = ul4c.Template(template, filename, whitespace="strip")
-		filename = template.renders(job=self, env=env)
-		filename = pathlib.Path(filename).expanduser().absolute()
-		return filename
-
 	def _calc_nextrun(self):
 		"""
 		Calculate when the job should run next (in repeat mode).
