@@ -573,7 +573,7 @@ class Job:
 		Should a message be printed/a failure email be sent when the maximum
 		runtime is exceeded?
 
-	.. option:: --exitonerror
+	.. option:: --exit_on_error
 
 		End job execution even in repeat mode when an exception is thrown?
 
@@ -1209,7 +1209,7 @@ class Job:
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
-		p.add_argument(      "--exitonerror", dest="exit_on_error", help="Stop the job when an error happens in repeat mode? (default: %(default)s)", action=misc.FlagAction, default=self.exit_on_error)
+		p.add_argument(      "--exit_on_error", dest="exit_on_error", help="Stop the job when an error happens in repeat mode? (default: %(default)s)", action=misc.FlagAction, default=self.exit_on_error)
 		p.add_argument("-n", "--notify", dest="notify", help="Should a notification be issued to the OS X notification center? (default: %(default)s)", action=misc.FlagAction, default=self.notify)
 		p.add_argument("-r", "--repeat", dest="repeat", help="Repeat the job run indefinitely? (default: %(default)s)", action=misc.FlagAction, default=self.repeat)
 		p.add_argument(      "--nextrun", dest="nextrun", metavar="SECONDS", help="How many seconds to wait after the run before repeating it? (default: %(default)s)", type=argseconds, default=self.nextrun)
