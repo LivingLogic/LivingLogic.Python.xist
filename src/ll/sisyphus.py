@@ -2421,7 +2421,7 @@ def execute(job: Job):
 	job._handleexecution()
 
 
-def executewithargs(job: Job, args):
+def executewithargs(job, args=None):
 	# type (Job, Optional[List[str]]) -> None
 	"""
 	Execute the job ``job`` once or repeatedly with command line arguments.
