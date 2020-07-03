@@ -320,8 +320,10 @@ For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 """
 
 
-import sys, os, argparse, time, datetime, pathlib, enum
+import sys, os, argparse, time, datetime, pathlib, enum, types
 import signal, traceback, pprint, tokenize, json, smtplib, operator, itertools
+
+from typing import *
 
 try:
 	import fcntl
@@ -363,14 +365,27 @@ __docformat__ = "reStructuredText"
 
 
 ###
+### Typing stuff
+###
+
+T = TypeVar("T")
+OptStr = Optional[str]
+OptInt = Optional[int]
+OptStrFromCall = Union[str, None, Callable[..., Union[str, None]]]
+LogList  = List[Tuple[datetime.datetime, Tuple[str, ...], List[Task], Any]]
+
+
+###
 ### Helper functions and classes
 ###
 
 def _formattraceback(exc):
+	# type: (BaseException) -> str
 	return "".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__))
 
 
 def _formatlines(obj):
+	# type: (Any) -> List[str]
 	if isinstance(obj, BaseException):
 		obj = _formattraceback(obj)
 	elif not isinstance(obj, str):
@@ -384,6 +399,7 @@ def _formatlines(obj):
 
 
 def argdays(value):
+	# type: (Union[str, int, datetime.timedelta]) -> datetime.timedelta
 	if isinstance(value, str):
 		value = int(value)
 	if not isinstance(value, datetime.timedelta):
@@ -392,6 +408,7 @@ def argdays(value):
 
 
 def argseconds(value):
+	# type: (Union[str, int, datetime.timedelta]) -> datetime.timedelta
 	if isinstance(value, str):
 		value = int(value)
 	if not isinstance(value, datetime.timedelta):
@@ -400,24 +417,29 @@ def argseconds(value):
 
 
 def env(varname):
+	# type: (str) -> OptStr
 	return os.environ.get(varname, None)
 
 
 def get_mtime(filename):
+	# type: (pathlib.Path) -> datetime.datetime
 	return datetime.datetime.fromtimestamp(filename.stat().st_mtime)
 
 
 def get_utime(filename):
+	# type: (pathlib.Path) -> Tuple[datetime.datetime, datetime.datetime]
 	stat = filename.stat()
 	return (datetime.datetime.fromtimestamp(stat.st_atime), datetime.datetime.fromtimestamp(stat.st_mtime))
 
 
 def set_utime(filename, atime, mtime):
+	# type: (pathlib.Path, datetime.datetime, datetime.datetime) -> None
 	os.utime(str(filename), times=(atime.timestamp(), mtime.timestamp()))
 
 
 class DatetimeEncoder(json.JSONEncoder):
 	def default(self, obj):
+		# type: (Any) -> str
 		if isinstance(obj, datetime.datetime):
 			return obj.isoformat()
 		return super().default(obj)
@@ -699,6 +721,7 @@ class Job:
 		return path.expanduser().absolute()
 
 	def logfilename(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename of the logfile for this job.
 
@@ -708,6 +731,7 @@ class Job:
 		return self.basedir() / f"{self.starttime:%Y-%m-%d %H-%M-%S_%f}.sisyphuslog"
 
 	def currentloglinkname(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename of the link to the currently active logfile.
 
@@ -717,6 +741,7 @@ class Job:
 		return self.basedir() / f"current.sisyphuslog"
 
 	def lastsuccessfulloglinkname(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename of the link that points to the logfile of the last
 		successful run of the job.
@@ -727,6 +752,7 @@ class Job:
 		return self.basedir() / f"last_successful.sisyphuslog"
 
 	def lastfailedloglinkname(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename of the link that points to the logfile of the last
 		failed run of the job.
@@ -737,6 +763,7 @@ class Job:
 		return self.basedir() / f"last_failed.sisyphuslog"
 
 	def lastinterruptedloglinkname(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename of the link that points to the logfile of the last
 		interrupted run of the job.
@@ -747,6 +774,7 @@ class Job:
 		return self.basedir() / f"last_interrupted.sisyphuslog"
 
 	def lasttimeoutloglinkname(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename of the link that points to the logfile of the last
 		run of the job with a timeout.
@@ -757,6 +785,7 @@ class Job:
 		return self.basedir() / f"last_timeout.sisyphuslog"
 
 	def healthfilename(self):
+		# type: () -> pathlib.Path
 		"""
 		Return the filename where the health of the last job run is stored.
 
@@ -766,6 +795,7 @@ class Job:
 		return self.basedir() / f"current.sisyphushealth"
 
 	def emailfilename(self, process=None):
+		# type: (Optional[Process]) -> pathlib.Path
 		"""
 		Return the filename where the parent and child process can log message
 		that should be part of the email report.
@@ -1111,6 +1141,7 @@ class Job:
 	process = Process.SOLO
 
 	def execute(self):
+		# type: () -> OptStr
 		"""
 		Execute the job once.
 
@@ -1125,6 +1156,7 @@ class Job:
 		return "done"
 
 	def healthcheck(self):
+		# type: () -> OptStr
 		"""
 		Called in parallel to a running job to check whether the job is healthy.
 
@@ -1146,6 +1178,7 @@ class Job:
 		return None
 
 	def argparser(self):
+		# type: () -> argparse.ArgumentParser
 		"""
 		Return an :mod:`argparse` parser for parsing the command line arguments.
 		This can be overwritten in subclasses to add more arguments.
@@ -1186,7 +1219,8 @@ class Job:
 
 		return p
 
-	def parseargs(self, args=None):
+	def parseargs(self, args):
+		# type: (Optional[List[str]]) -> argparse.Namespace
 		"""
 		Use the parser returned by :meth:`argparser` to parse the argument
 		sequence ``args``, modify ``self`` accordingly and return
@@ -1227,6 +1261,7 @@ class Job:
 		return ns
 
 	def _kill_children(self):
+		# type: () -> Set[int]
 		if psutil is None:
 			try:
 				os.kill(self.killpid, signal.SIGTERM) # Kill our child
@@ -1255,6 +1290,7 @@ class Job:
 			return pids
 
 	def _finished_uneventful(self):
+		# type: () -> Status
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Finishing")
 		if self.process is not Process.PARENT:
@@ -1268,6 +1304,7 @@ class Job:
 		return Status.UNEVENTFUL
 
 	def _finished_successful(self, result):
+		# type: (OptStr) -> Status
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Finishing")
 		self._write_healthfile(None)
@@ -1278,12 +1315,13 @@ class Job:
 			else:
 				# Throw away delayed logs.
 				if self._delayed_logs is not None:
-					self._delayed_logs = []
+					self._delayed_logs = [] # type: LogList
 				self.log.sisyphus.result.ok(result)
 		self._closelogs(Status.SUCCESSFUL)
 		return Status.SUCCESSFUL
 
 	def _finished_exception(self, exc):
+		# type: (BaseException) -> Status
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Handling exception")
 		if self.process is not Process.PARENT:
@@ -1296,6 +1334,7 @@ class Job:
 		return Status.FAILED
 
 	def _finished_break(self, exc):
+		# type: (KeyboardInterrupt) -> Status
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Handling break")
 		self._write_healthfile("Interrupted")
@@ -1307,6 +1346,7 @@ class Job:
 		return Status.INTERRUPTED
 
 	def _finished_timeout(self, exc):
+		# type: (misc.Timeout) -> Status
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Timeout")
 		if self.process is not Process.CHILD:
@@ -1318,8 +1358,8 @@ class Job:
 			if len(pids) == 1:
 				pidstr = f"child {misc.first(pids)}"
 			else:
-				pids = ", ".join(str(pid) for pid in pids)
-				pidstr = f"children {pids}"
+				pidstr = ", ".join(str(pid) for pid in pids)
+				pidstr = f"children {pidstr}"
 
 			msg = f"Terminated {pidstr} after {self.maxtime}"
 		elif self.process is Process.SOLO:
@@ -1336,15 +1376,18 @@ class Job:
 		return Status.TIMEOUT
 
 	def _signal_alarm(self, signum, frame):
+		# type: (int, Optional[types.FrameType]) -> NoReturn
 		raise misc.Timeout(self.maxtime)
 
 	def _signal_int(self, signum, frame):
+		# type: (int, Optional[types.FrameType]) -> NoReturn
 		signal.alarm(0) # Cancel maximum runtime alarm
 		# Give the child process time to log the stacktrace
 		time.sleep(self.waitchildbreak.total_seconds())
 		raise KeyboardInterrupt
 
 	def _logmessage(self):
+		# type: () -> str
 		logmessage = []
 		for logger in self._loggers:
 			name = logger.name()
@@ -1358,8 +1401,9 @@ class Job:
 			return "no logging"
 
 	def _handleoneexecution(self):
-		self._tasks = []
-		self._loggers = []
+		# type: () -> None
+		self._tasks = [] # type: List[Task]
+		self._loggers = [] # type: List[Logger]
 		self._exceptioncount = 0
 
 		self.process = Process.SOLO
@@ -1371,12 +1415,11 @@ class Job:
 		self._getscriptsource() # Get source code
 		self._getcrontab() # Get crontab
 		self.log = Tag(self._log) # Create tagged logger for files
-		self._delayed_logs = []
-
+		self._delayed_logs = [] # type: LogList
 		self._createlogs(True) # Create loggers
 
 		if self.fork and hasattr(os, "fork"):
-			self._tasks = [self.task("parent", os.getpid())]
+			self._tasks = [self.task("parent", str(os.getpid()))]
 
 		self.log.sisyphus.delay.init(f"{misc.sysinfo.script_name} (max time {self.maxtime})")
 
@@ -1486,6 +1529,7 @@ class Job:
 			os._exit(status)
 
 	def _handleexecution(self):
+		# type: () -> None
 		"""
 		Handle executing the job including handling of duplicate or hanging jobs.
 		"""
@@ -1540,10 +1584,12 @@ class Job:
 				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 
 	def notifystart(self):
+		# type: () -> None
 		if self.notify:
 			misc.notifystart()
 
 	def notifyfinish(self, result):
+		# type: (OptStr) -> None
 		if self.notify:
 			misc.notifyfinish(
 				f"{self.projectname} {self.jobname}",
@@ -1552,6 +1598,7 @@ class Job:
 			)
 
 	def task(self, type=None, name=None, index=None, count=None):
+		# type: (OptStr, OptStr, OptInt, OptInt) -> Task
 		"""
 		:meth:`!task` is a context manager and can be used to specify subtasks.
 
@@ -1575,6 +1622,7 @@ class Job:
 		return Task(self, type=type, name=name, index=index, count=count)
 
 	def tasks(self, iterable, type=None, name=None):
+		# type: (Iterable[T], OptStrFromCall, OptStrFromCall) -> Generator[T, None, None]
 		"""
 		:meth:`!tasks` iterates through ``iterable`` and calls :meth:`task` for
 		each item. ``index`` and ``count`` will be passed to :meth:`task`
@@ -1615,6 +1663,7 @@ class Job:
 				yield item
 
 	def makeproctitle(self, detail=None):
+		# type: (OptStr) -> str
 		v = []
 		if self.process is not Process.SOLO:
 			v.append(self.process.name.lower())
@@ -1628,11 +1677,13 @@ class Job:
 		return f"{title} >> {detail}"
 
 	def setproctitle(self, detail=None):
+		# type: (OptStr) -> None
 		if self.proctitle and setproctitle:
 			title = self.makeproctitle(detail)
 			setproctitle.setproctitle(f"{self._originalproctitle} :: {title}")
 
 	def _log(self, tags, obj):
+		# type: (Tuple[str, ...], Any) -> None
 		"""
 		Log ``obj`` to all loggers using ``tags`` as the list of tags.
 
@@ -1654,6 +1705,7 @@ class Job:
 				logger.log(timestamp, tags, self._tasks, obj)
 
 	def _flush_logs(self):
+		# type: () -> None
 		"""
 		Flush delayed logs and switch of "delayed logs" mode.
 		"""
@@ -1664,6 +1716,7 @@ class Job:
 			self._delayed_logs = None # No more delayed logs
 
 	def _getscriptsource(self):
+		# type: () -> None
 		"""
 		Reads the source code of the script into ``self.source``.
 		"""
@@ -1676,6 +1729,7 @@ class Job:
 			self.source = None
 
 	def _getcrontab(self):
+		# type: () -> None
 		"""
 		Reads the current crontab into ``self.crontab``.
 		"""
@@ -1683,6 +1737,7 @@ class Job:
 			self.crontab = f.read()
 
 	def _calc_nextrun(self):
+		# type: () -> datetime.datetime
 		"""
 		Calculate when the job should run next (in repeat mode).
 		"""
@@ -1699,6 +1754,7 @@ class Job:
 			return nextrun
 
 	def _calc_maxhealthcheckage(self):
+		# type: () -> datetime.datetime
 		"""
 		Calculate cut-off date for the health check.
 
@@ -1717,6 +1773,7 @@ class Job:
 		return cutoff
 
 	def _createlogs(self, full):
+		# type: (bool) -> None
 		"""
 		Create the logfile and the link to the logfile (if configured).
 
@@ -1759,6 +1816,7 @@ class Job:
 			self._loggers.append(MattermostLogger(self))
 
 	def _closelogs(self, status):
+		# type: (Status) -> None
 		while self._loggers:
 			# Don't remove the logger from the list immediately
 			# In this way, log messages that the logger outputs during closing will
@@ -1769,6 +1827,7 @@ class Job:
 			del self._loggers[0]
 
 	def _write_healthfile(self, error):
+		# type: (OptStr) -> None
 		# Write the file that is used for the healthcheck
 		if self._healthfilename:
 			error = "" if error is None else error + "\n"
@@ -1787,6 +1846,7 @@ class Task:
 	ul4attrs = {"index", "count", "type", "name", "starttime", "endtime", "success"}
 
 	def __init__(self, job, type=None, name=None, index=None, count=None):
+		# type: (Job, OptStr, OptStr, OptInt, OptInt) -> None
 		"""
 		Create a :class:`!Task` object. For the meaning of the parameters see
 		:meth:`Job.task`.
@@ -1796,11 +1856,12 @@ class Task:
 		self.name = name
 		self.index = index
 		self.count = count
-		self.starttime = None
-		self.endtime = None
-		self.success = None
+		self.starttime = None # type: Optional[datetime.datetime]
+		self.endtime = None # type: Optional[datetime.datetime]
+		self.success = None # type: Optional[bool]
 
 	def __enter__(self):
+		# type: () -> Task
 		self.starttime = datetime.datetime.now()
 		self.job._tasks.append(self)
 		self.job.setproctitle()
@@ -1809,6 +1870,7 @@ class Task:
 		return self
 
 	def __exit__(self, type, value, traceback):
+		# type: (Optional[Type[BaseException]], Optional[BaseException], Optional[types.TracebackType]) -> None
 		self.endtime = datetime.datetime.now()
 		self.success = type is None
 		for logger in self.job._loggers:
@@ -1817,6 +1879,7 @@ class Task:
 		self.job.setproctitle()
 
 	def __str__(self):
+		# type: () -> str
 		v = ""
 		if self.index is not None:
 			v += f"[{self.index+1:,}"
@@ -1831,6 +1894,7 @@ class Task:
 		return v or "?"
 
 	def asdict(self):
+		# type: () -> Dict[str, Any]
 		return dict(
 			type=self.type,
 			name=str(self.name) or None,
@@ -1841,6 +1905,7 @@ class Task:
 		)
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} type={self.type!r} name={self.name!r} at {id(self):#x}"
 
 
@@ -1850,11 +1915,13 @@ class Tag:
 	of tags. Tags can be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
 	"""
 	def __init__(self, func, *tags):
+		# type: (Callable, Tuple[str, ...]) -> None
 		self.func = func
 		self.tags = tags
-		self._map = {}
+		self._map = {} # type: Dict[str, Tag]
 
 	def __getattr__(self, tag):
+		# type: (str) -> Tag
 		if tag in self.tags: # Avoid duplicate tags
 			return self
 		if tag not in self._map:
@@ -1867,6 +1934,7 @@ class Tag:
 	__getitem__ = __getattr__
 
 	def __call__(self, *args, **kwargs):
+		# type: (*Any, **Any) -> Tag
 		return self.func(self.tags, *args, **kwargs)
 
 
@@ -1876,12 +1944,14 @@ class Logger:
 	"""
 
 	def name(self):
+		# type: () -> OptStr
 		"""
 		A name for the logger (using in reporting)
 		"""
 		return None
 
 	def log(self, timestamp, tags, tasks, text):
+		# type: (datetime.datetime, Tuple[str, ...], List[Task], str) -> None
 		"""
 		Called by the :class:`Job` when a log entry has to be made.
 
@@ -1910,6 +1980,7 @@ class Logger:
 		"""
 
 	def taskstart(self, tasks):
+		# type: (List[Task]) -> None
 		"""
 		Called by the :class:`Job` when a new subtask has been started.
 
@@ -1918,6 +1989,7 @@ class Logger:
 		"""
 
 	def taskend(self, tasks):
+		# type: (List[Task]) -> None
 		"""
 		Called by the :class:`Job` when a subtask is about to end.
 
@@ -1926,6 +1998,7 @@ class Logger:
 		"""
 
 	def close(self, status):
+		# type: (Status) -> None
 		"""
 		Called by the :class:`Job` when job execution has finished.
 
@@ -1940,18 +2013,22 @@ class StreamLogger(Logger):
 	"""
 
 	def __init__(self, job, stream, linetemplate):
+		# type: (Job, TextIO, ul4c.Template) -> None
 		self.job = job
 		self.stream = stream
 		self.linetemplate = linetemplate
 		self.lineno = 1 # Current line number
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} stream={self.stream!r} at {id(self):#x}>"
 
 	def name(self):
+		# type: () -> str
 		return self.stream.name
 
 	def log(self, timestamp, tags, tasks, text):
+		# type: (datetime.datetime, Tuple[str, ...], List[Task], str) -> None
 		for line in _formatlines(text):
 			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job, env=env)
 			self.stream.write(line)
@@ -1968,6 +2045,7 @@ class FileLogger(StreamLogger):
 	"""
 
 	def __init__(self, job, filename, encoding, errors, skipfilenames, linetemplate):
+		# type: (Job, pathlib.Path, str, str, List[pathlib.Path], ul4c.Template) -> None
 		self.filename = filename
 		try:
 			file = filename.open("w", encoding=encoding, errors=errors)
@@ -1978,9 +2056,11 @@ class FileLogger(StreamLogger):
 		self.skipfilenames = skipfilenames
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={str(self.filename)!r} at {id(self):#x}>"
 
 	def close(self, status):
+		# type: (Status) -> None
 		keepfilelogs = self.job.keepfilelogs
 		compressfilelogs = self.job.compressfilelogs
 
@@ -2029,10 +2109,12 @@ class FileLogger(StreamLogger):
 				self.filename.unlink()
 
 	def remove(self, filename):
+		# type: (pathlib.Path) -> None
 		self.job.log.sisyphus.delay.info(f"Removing logfile {filename}")
 		filename.unlink()
 
 	def compress(self, filename, bufsize=65536):
+		# type: (pathlib.Path, int) -> None
 		if self.job.compressmode == "gzip":
 			compressor = gzip.GzipFile
 			ext = ".gz"
@@ -2067,6 +2149,7 @@ class LinkLogger(Logger):
 	Baseclass of all loggers that handle links to the log file.
 	"""
 	def __init__(self, job, filename, linkname):
+		# type: (Job, pathlib.Path, pathlib.Path) -> None
 		self.job = job
 		self.filename = filename
 		self.linkname = linkname
@@ -2277,9 +2360,11 @@ class MattermostLogger(Logger):
 	"""
 
 	def __init__(self, job):
+		# type: (Job) -> None
 		self.job = job
 
 	def name(self):
+		# type: () -> str
 		return "<mattermost>"
 
 	def log(self, timestamp, tags, tasks, text):
@@ -2328,14 +2413,16 @@ class MattermostLogger(Logger):
 ### High-level interface for starting jobs
 ###
 
-def execute(job):
+def execute(job: Job):
+	# type (Job) -> None
 	"""
 	Execute the job ``job`` once or repeatedly.
 	"""
 	job._handleexecution()
 
 
-def executewithargs(job, args=None):
+def executewithargs(job: Job, args):
+	# type (Job, Optional[List[str]]) -> None
 	"""
 	Execute the job ``job`` once or repeatedly with command line arguments.
 
