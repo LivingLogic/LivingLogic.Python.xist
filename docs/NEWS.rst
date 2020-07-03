@@ -21,7 +21,7 @@ Changes in 5.60 (released 07/03/2020)
 	The option and the class/instance attribute ``delaylogs`` no longer exist.
 
 *	Added a new option and class/instance attribute ``exit_on_error`` which
-	will stop job exeution in repat mode, when en exception occurs.
+	will stop job execution in repeat mode when an exception occurs.
 
 
 Changes in 5.59 (released 06/30/2020)
