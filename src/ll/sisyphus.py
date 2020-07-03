@@ -86,10 +86,10 @@ Result status of a job run
 
 The method :meth:`Job.execute` (which must be overwritten to implement the jobs
 main functionality) should return a one-line summary of what the job did
-(this is called an "successful run"). It can also return :const:`None` to report
+(this is called a "successful run"). It can also return :const:`None` to report
 that the job had nothing to do (this is called an "uneventful run").
 
-Apoart from "uneventful" and "successful" runs, the following results are
+Apart from "uneventful" and "successful" runs, the following results are
 possible:
 
 "interrupted"
@@ -113,16 +113,17 @@ However it is possible to activate repeat mode with the class/instance attribute
 ``repeat`` (or the command line option :option:`--repeat`).
 If ``repeat`` is true, execution of the job will be repeated indefinitely.
 
-By default the next job run starts immediately, but it is possible to delay the
-next run. For this the class/instance attribute ``nextrun`` (or the command
-line option :option:`--nextrun`) can be used. In its simplest form this
-is the number of seconds to wait until the next job run is started. It can
-also be a :class:`datetime.timedelta` object that specifies the delay, or it
-can be a :class:`datetime.datetime` object specifying the next job run.
-Furthermore ``nextrun`` can be callable (so it can be implemented as a
-method) and can return any of the types :class:`int`, :class:`float`,
-:class:`datetime.timedelta` or :class:`datetime.datetime`. And, if
-``Job.nextrun`` is :const:`None`, the job run will be repeated immediately.
+By default the next job run starts immediately after the end of the previous
+run, but it is possible to delay the next run. For this the class/instance
+attribute ``nextrun`` (or the command line option :option:`--nextrun`) can be
+used. In its simplest form this is the number of seconds to wait until the next
+job run is started. It can also be a :class:`datetime.timedelta` object that
+specifies the delay, or it can be a :class:`datetime.datetime` object specifying
+the next job run. Furthermore ``nextrun`` can be callable (so it can be
+implemented as a method) and can return any of the types :class:`int`,
+:class:`float`, :class:`datetime.timedelta` or :class:`datetime.datetime`.
+And, if ``Job.nextrun`` is :const:`None`, the job run will be repeated
+immediately.
 
 
 Logging and tags
@@ -198,16 +199,12 @@ to the log call automatically.
 Delayed logs
 ------------
 
-If the class/instance attribute ``delaylogs`` is set to either ``"result"``
-or ``"full"`` (the default is ``"none"``) :mod:`sisyphus` runs in "delayed logs"
-mode.  ``delaylogs`` can be set either directly or via the command line option
-:option:`--delaylogs`),
-
-In "delayed logs" mode log messages will be buffered up until the first log
-message that doesn't include the tag ``delay`` is encountered (:mod:`sisyphus`\s
-log messages all do include ``delay``). Then all buffered messages will be
-output. If only delayed messages are output during the complete job run,
-``"result"`` will at least output the result, ``"full"`` won't output anything.
+If a log message has the tag ``delay`` is is considered a delayed message.
+Log messages will be buffered up until the first log message that isn't delayed
+is encountered (:mod:`sisyphus`\s log messages all do include ``delay``).
+Then all buffered messages will be output. If only delayed messages are output
+during the complete job run, only the result of the job run will be output.
+If this output is ``None`` nothing will be output.
 
 
 Log files
@@ -218,9 +215,11 @@ as it includes the start time of the job).
 
 However logging to ``stdout`` and ``stderr`` can also be activated.
 
-Furthermore multiple links will be created that automatically point to the last
-log file. The "current" link (by default named :file:`current.sisyphuslog`) will
-always point to the log file of the currently running job. If no job is running,
+Logfiles for uneventful runs wil be deleted after the run.
+
+Multiple links will be created that automatically point to the last log file.
+The "current" link (by default named :file:`current.sisyphuslog`) will always
+point to the log file of the currently running job. If no job is running,
 but the last run was eventful, it will point to the newest log file. If the last
 run was uneventful the link will point to a nonexistent log file (whose name can
 be used to determine the date of the last run).
@@ -266,8 +265,9 @@ prevents multiple instances of the job from running (i.e. you can have a normal
 job execution and a health check running in parallel).
 
 If the job is healthy this will exit with an exit status of 0, otherwise it will
-exit with an exit status of 1 and a printed error message stating the reason why
-the job is considered unhealthy. There are three possible scenarios for this:
+exit with an exit status of 1 and an error message stating the reason why the
+job is considered unhealthy on ``stdout``. There are three possible scenarios
+for this:
 
 1.	The job has never been run.
 
@@ -279,7 +279,7 @@ To configure how scenario 3 is handled the class/instance attribute
 ``maxhealthcheckage`` (or the command line option
 :option:`--maxhealthcheckage`) can be used. In its simplest form this is a
 number of seconds or a :class:`datetime.timedelta` object. A job run that is
-older that this value triggers screnario 3. ``maxhealthcheckage`` can be also be
+older that this value triggers scenario 3. ``maxhealthcheckage`` can be also be
 a :class:`datetime.datetime` object specifying the cut-off date.
 
 Furthermore ``maxhealthcheckage`` can be callable (so it can be implemented
@@ -592,13 +592,6 @@ class Job:
 		variables are ``time`` (current time), ``starttime`` (start time of the
 		job), ``tags`` (list of tags for the line) and ``line`` (the log line
 		itself).
-
-	.. option:: --delaylogs <mode>
-
-		``no`` outputs all messages immediately. ``result`` and ``full`` delay
-		log output until the first message without a ``delay`` tag is logged.
-		If all messages during a job run have the ``delay`` tag, ``full` will
-		produce no output, ``result`` will output the final result of the run.
 
 	.. option:: --keepfilelogs <days>
 
@@ -1106,8 +1099,6 @@ class Job:
 	encoding = "utf-8"
 	errors = "strict"
 
-	delaylogs = "no"
-
 	ul4attrs = {"sysinfo", "projectname", "jobname", "identifier", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
 
 	process = Process.SOLO
@@ -1170,7 +1161,6 @@ class Job:
 		p.add_argument("-f", "--log2file", dest="log2file", help="Should the job log into a file? (default: %(default)s)", action=misc.FlagAction, default=self.log2file)
 		p.add_argument("-o", "--log2stdout", dest="log2stdout", help="Should the job log to stdout? (default: %(default)s)", action=misc.FlagAction, default=self.log2stdout)
 		p.add_argument("-e", "--log2stderr", dest="log2stderr", help="Should the job log to stderr? (default: %(default)s)", action=misc.FlagAction, default=self.log2stderr)
-		p.add_argument(      "--delaylogs", dest="delaylogs", help="Delay log output until the first message without a 'delay' tag? (default: %(default)s)", default=self.delaylogs, choices=("no", "result", "full"))
 		p.add_argument(      "--keepfilelogs", dest="keepfilelogs", metavar="DAYS", help="Number of days log files are kept (default: %(default)s)", type=argdays, default=self.keepfilelogs)
 		p.add_argument(      "--compressfilelogs", dest="compressfilelogs", metavar="DAYS", help="Number of days log after which log files are gzipped (default: %(default)s)", type=argdays, default=self.compressfilelogs)
 		p.add_argument(      "--compressmode", dest="compressmode", metavar="MODE", help="Method for compressing old log files (default: %(default)s)", choices=("gzip", "bzip2", "lzma"), default=self.compressmode)
@@ -1214,7 +1204,6 @@ class Job:
 		self.log2file = args.log2file
 		self.log2stdout = args.log2stdout
 		self.log2stderr = args.log2stderr
-		self.delaylogs = args.delaylogs
 		self.keepfilelogs = args.keepfilelogs
 		self.compressfilelogs = args.compressfilelogs
 		self.compressmode = args.compressmode
@@ -1265,13 +1254,8 @@ class Job:
 			# log the result
 			if self._exceptioncount:
 				self.log.sisyphus.result.errors(None)
-			elif self.delaylogs == "full":
-				self.log.sisyphus.result.delay.ok(None)
 			else:
-				self._delayed_logs = None
-				self.log.sisyphus.result.ok(None)
-				if self.delaylogs != "no":
-					self._delayed_logs = [] # Ignore the rest of the log messages.
+				self.log.sisyphus.result.delay.ok(None)
 		self._closelogs(Status.UNEVENTFUL)
 		return Status.UNEVENTFUL
 
@@ -1283,13 +1267,11 @@ class Job:
 		if self.process is not Process.PARENT:
 			if self._exceptioncount:
 				self.log.sisyphus.result.errors(result)
-			elif self.delaylogs == "full":
-				self.log.sisyphus.result.delay.ok(result)
 			else:
-				self._delayed_logs = None
+				# Throw away delayed logs.
+				if self._delayed_logs is not None:
+					self._delayed_logs = []
 				self.log.sisyphus.result.ok(result)
-				if self.delaylogs != "no":
-					self._delayed_logs = [] # Ignore the rest of the log messages.
 		self._closelogs(Status.SUCCESSFUL)
 		return Status.SUCCESSFUL
 
@@ -1381,7 +1363,7 @@ class Job:
 		self._getscriptsource() # Get source code
 		self._getcrontab() # Get crontab
 		self.log = Tag(self._log) # Create tagged logger for files
-		self._delayed_logs = [] if self.delaylogs != "no" else None
+		self._delayed_logs = []
 
 		self._createlogs(True) # Create loggers
 

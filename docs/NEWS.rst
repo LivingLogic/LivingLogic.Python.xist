@@ -8,6 +8,19 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.60 (released 07/03/2020)
+-------------------------------------
+
+*	The handling of delayed logs and uneventful runs in :mod:`ll.sisyphus` has
+	been changed: "Delayed logs" mode is now always active. If only delayed
+	log messages are output they will never be written to the logfiles. If a job
+	run is uneventful (i.e. :meth:`~ll.sisyphus.Job.execute` returns ``None``)
+	no log messages will be written. If the job run is successful only the job
+	result will be written.
+
+	The option and the class/instance attribute ``delaylogs`` no longer exists.
+
+
 Changes in 5.59 (released 06/30/2020)
 -------------------------------------
 
