@@ -372,7 +372,8 @@ T = TypeVar("T")
 OptStr = Optional[str]
 OptInt = Optional[int]
 OptStrFromCall = Union[str, None, Callable[..., Union[str, None]]]
-LogList  = List[Tuple[datetime.datetime, Tuple[str, ...], List["Task"], Any]]
+Tags = Tuple[str, ...]
+LogList  = List[Tuple[datetime.datetime, Tags, List["Task"], Any]]
 
 
 ###
@@ -1683,7 +1684,7 @@ class Job:
 			setproctitle.setproctitle(f"{self._originalproctitle} :: {title}")
 
 	def _log(self, tags, obj):
-		# type: (Tuple[str, ...], Any) -> None
+		# type: (Tags, Any) -> None
 		"""
 		Log ``obj`` to all loggers using ``tags`` as the list of tags.
 
@@ -1915,7 +1916,7 @@ class Tag:
 	of tags. Tags can be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
 	"""
 	def __init__(self, func, *tags):
-		# type: (Callable, Tuple[str, ...]) -> None
+		# type: (Callable, *str) -> None
 		self.func = func
 		self.tags = tags
 		self._map = {} # type: Dict[str, Tag]
@@ -1951,7 +1952,7 @@ class Logger:
 		return None
 
 	def log(self, timestamp, tags, tasks, text):
-		# type: (datetime.datetime, Tuple[str, ...], List[Task], str) -> None
+		# type: (datetime.datetime, Tags, List[Task], str) -> None
 		"""
 		Called by the :class:`Job` when a log entry has to be made.
 
@@ -2028,7 +2029,7 @@ class StreamLogger(Logger):
 		return self.stream.name
 
 	def log(self, timestamp, tags, tasks, text):
-		# type: (datetime.datetime, Tuple[str, ...], List[Task], str) -> None
+		# type: (datetime.datetime, Tags, List[Task], str) -> None
 		for line in _formatlines(text):
 			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job, env=env)
 			self.stream.write(line)
@@ -2155,9 +2156,11 @@ class LinkLogger(Logger):
 		self.linkname = linkname
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} linkname={str(self.linkname)!r} at {id(self):#x}>"
 
 	def _makelink(self):
+		# type: () -> None
 		linkname = self.linkname.absolute()
 		filename = self.filename
 		try:
@@ -2176,6 +2179,7 @@ class CurrentLinkLogger(LinkLogger):
 	Logger that handles the link to the current log file.
 	"""
 	def __init__(self, job, filename, linkname):
+		# type: (Job, pathlib.Path, pathlib.Path) -> None
 		super().__init__(job, filename, linkname)
 		self._makelink()
 
@@ -2186,13 +2190,16 @@ class LastStatusLinkLogger(LinkLogger):
 	"""
 
 	def __init__(self, job, filename, linkname, status):
+		# type: (Job, pathlib.Path, pathlib.Path, Status) -> None
 		super().__init__(job, filename, linkname)
 		self.status = status
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} linkname={str(self.linkname)!r} status={self.status.name} at {id(self):#x}>"
 
 	def close(self, status):
+		# type: (Status) -> None
 		if self.job.process is not Process.CHILD and status is self.status:
 			self._makelink()
 
@@ -2203,12 +2210,14 @@ class EmailLogger(Logger):
 	"""
 
 	def __init__(self, job):
+		# type: (Job) -> None
 		self.job = job
 		self.filename = None
 		self.file = None
 		self.encoder = None
 
 	def name(self):
+		# type: () -> str
 		return "<email>"
 
 	def log(self, timestamp, tags, tasks, text):
@@ -2236,6 +2245,7 @@ class EmailLogger(Logger):
 			self.file.flush()
 
 	def _load_dump(self, process):
+		# type: (Process) -> Generator[Any, None, None]
 		decoder = ul4on.Decoder()
 		filename = self.job.emailfilename(process)
 		try:
@@ -2249,6 +2259,7 @@ class EmailLogger(Logger):
 			pass
 
 	def close(self, status):
+		# type: (Status) -> None
 		if self.file is not None:
 			self.file.close()
 		else:
@@ -2370,6 +2381,7 @@ class MattermostLogger(Logger):
 		return "<mattermost>"
 
 	def log(self, timestamp, tags, tasks, text):
+		# type: (datetime.datetime, Tags, List["Task"], Any) -> None
 		if "mattermost" in tags:
 			import requests
 			if isinstance(text, BaseException):
