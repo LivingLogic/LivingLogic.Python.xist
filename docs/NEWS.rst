@@ -18,7 +18,10 @@ Changes in 5.60 (released 07/03/2020)
 	no log messages will be written. If the job run is successful only the job
 	result will be written.
 
-	The option and the class/instance attribute ``delaylogs`` no longer exists.
+	The option and the class/instance attribute ``delaylogs`` no longer exist.
+
+*	Added a new option and class/instance attribute ``exit_on_error`` which
+	will stop job exeution in repat mode, when en exception occurs.
 
 
 Changes in 5.59 (released 06/30/2020)
