@@ -1660,7 +1660,7 @@ class Job:
 			for (timestamp, tags, tasks, obj) in self._delayed_logs:
 				for logger in self._loggers:
 					logger.log(timestamp, tags, tasks, obj)
-			self._delayed_logs = None # No more delated logs
+			self._delayed_logs = None # No more delayed logs
 
 	def _getscriptsource(self):
 		"""
