@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.61 (released 07/07/2020)
+-------------------------------------
+
+*	Updated handling of custom data types when calling functions or procedures
+	in :mod:`ll.orasql` to work with :mod:`cx_Oracle` 8.0.
+
+
 Changes in 5.60 (released 07/03/2020)
 -------------------------------------
 
