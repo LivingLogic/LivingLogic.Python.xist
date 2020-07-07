@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2019 by Walter Dörwald
+## Copyright 1999-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -3413,9 +3413,10 @@ class _PlainTextFormatter:
 			while True:
 				yield items[-1]
 
-	def __init__(self, node, width=80, **styles):
+	def __init__(self, node, width=80, tabwidth=8, **styles):
 		self.node = node
 		self.width = width
+		self.tabwidth = tabwidth
 		self.styles = {key: self.Style(**value) for (key, value) in styles.items()}
 		self.stack = []
 		self.blockspacing = 0
@@ -3514,7 +3515,14 @@ class _PlainTextFormatter:
 			text = " ".join(text.strip().split()).strip()
 			if text:
 				if self.width is not None:
-					lines = textwrap.wrap(text, max(self.width-leftmarginwidth-rightmarginwidth, 20))
+					lines = textwrap.wrap(
+						text,
+						max(self.width-leftmarginwidth-rightmarginwidth, 20),
+						break_long_words=False,
+						break_on_hyphens=False,
+						expand_tabs=True,
+						tabsize=self.tabwidth,
+					)
 				else:
 					lines = [text]
 			else:
@@ -3610,6 +3618,7 @@ class _PlainTextFormatter:
 def astext(
 	node,
 	width=None,
+	tabwidth=8,
 	default=dict(display="inline"),
 	h1=dict(display="block", top=2, bottom=1, whitespace="nowrap", overline="=", underline="="),
 	h2=dict(display="block", top=2, bottom=1, whitespace="nowrap", underline="-"),
@@ -3647,6 +3656,9 @@ def astext(
 
 	``width`` is the maximum line length. If ``width`` is :const:`None`
 	line length is unlimited (i.e. no line wrapping will be done).
+
+	``tabwidth`` specifies the number of spaces for tab expansion (the default
+	is 8).
 
 	The rest of the parameters specify the formatting styles for HTML elements.
 	The parameter names are the names of the HTML elements, except for ``ol_li``
@@ -3713,6 +3725,7 @@ def astext(
 	"""
 	kwargs = {
 		"width": width,
+		"tabwidth": tabwidth,
 		"default": default,
 		"h1": h1,
 		"h2": h2,

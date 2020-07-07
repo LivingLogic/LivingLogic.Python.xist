@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2004-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2004-2019 by Walter Dörwald
+## Copyright 2004-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2004-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -736,7 +736,7 @@ class SysInfo:
 	time.
 	"""
 
-	_keys = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
+	ul4attrs = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
 
 	def __init__(self):
 		# Use ``object`` as a marker for "not initialized"
@@ -918,12 +918,12 @@ class SysInfo:
 		return self._script_url
 
 	def __getitem__(self, key):
-		if key in self._keys:
+		if key in self.ul4attrs:
 			return getattr(self, key)
 		raise KeyError(key)
 
 	def __iter__(self):
-		return iter(self._keys)
+		return iter(self.ul4attrs)
 
 
 # Single instance
@@ -1061,11 +1061,14 @@ class Timeout(Exception):
 	"""
 	Exception that is raised when a timeout in :func:`timeout` occurs.
 	"""
-	def __init__(self, seconds):
-		self.seconds = seconds
+	def __init__(self, duration):
+		self.duration = duration
 
 	def __str__(self):
-		return f"timed out after {self.seconds} seconds"
+		if isinstance(self.duration, (int, float)):
+			return f"timed out after {self.duration} seconds"
+		else:
+			return f"timed out after {self.duration}"
 
 
 @contextlib.contextmanager

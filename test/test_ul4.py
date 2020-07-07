@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2009-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2019 by Walter Dörwald
+## Copyright 2009-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -99,6 +99,15 @@ class TemplatePython:
 	def __call__(self, *args, **kwargs):
 		return self.template(*args, **kwargs)
 
+	def render_with_globals(self, args, kwargs, globals):
+		return "".join(self.template.render_with_globals(args, kwargs, globals))
+
+	def renders_with_globals(self, args, kwargs, globals):
+		return self.template.renders_with_globals(args, kwargs, globals)
+
+	def call_with_globals(self, args, kwargs, globals):
+		return self.template.call_with_globals(args, kwargs, globals)
+
 
 class TemplatePythonDumpS(TemplatePython):
 	def maketemplate(self):
@@ -154,93 +163,69 @@ class TemplateJava:
 		dump = ul4on.dumps(data).encode("utf-8")
 		result = subprocess.run("java com.livinglogic.ul4.Tester", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		# Check if we have an exception
+		print("##########################")
+		print(repr(result.stdout))
+		print(repr(result.stderr))
+		print("##########################")
 		self.findexception(result.stderr.decode("utf-8", "passbytes"))
 		return result.stdout.decode("utf-8", "passbytes")
+
+	def renders(self, *args, **kwargs):
+		data = self._makedata("renders", args, kwargs)
+		return self.run(data)
+
+	def render(self, *args, **kwargs):
+		data = self._makedata("render", args, kwargs)
+		return self.run(data)
+
+	def __call__(self, *args, **kwargs):
+		data = self._makedata("call", args, kwargs)
+		return ul4on.loads(self.run(data))
+
+	def render_with_globals(self, args, kwargs, globals):
+		data = self._makedata("render", args, kwargs, globals)
+		return self.run(data)
+
+	def renders_with_globals(self, args, kwargs, globals):
+		data = self._makedata("renders", args, kwargs, globals)
+		return self.run(data)
+
+	def call_with_globals(self, args, kwargs, globals):
+		data = self._makedata("call", args, kwargs, globals)
+		return ul4on.loads(self.run(data))
 
 
 class TemplateJavaCompiledByPython(TemplateJava):
 	def template(self):
 		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
-	def renders(self, *args, **kwargs):
+	def _makedata(self, command, args, kwargs, globals=None):
 		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="renders",
+			raise ValueError("positional arguments not supported")
+		return dict(
+			command=command,
 			template=self.template(),
 			name=None,
 			whitespace=None,
 			signature=None,
 			variables=kwargs,
+			globalvariables=globals,
 		)
-		return self.run(data)
-
-	def render(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="render",
-			template=self.template(),
-			name=None,
-			whitespace=None,
-			signature=None,
-			variables=kwargs,
-		)
-		return self.run(data)
-
-	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="call",
-			template=self.template(),
-			name=None,
-			whitespace=None,
-			signature=None,
-			variables=kwargs,
-		)
-		return ul4on.loads(self.run(data))
 
 
 class TemplateJavaCompiledByJava(TemplateJava):
-	def renders(self, *args, **kwargs):
+	def _makedata(self, command, args, kwargs, globals=None):
 		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="renders",
+			raise ValueError("positional arguments not supported")
+		return dict(
+			command=command,
 			template=self.source,
 			name=self.name,
 			whitespace=self.whitespace,
 			signature=self.signature,
 			variables=kwargs,
+			globalvariables=globals,
 		)
-		return self.run(data)
-
-	def render(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="render",
-			template=self.source,
-			name=self.name,
-			whitespace=self.whitespace,
-			signature=self.signature,
-			variables=kwargs,
-		)
-		return self.run(data)
-
-	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
-		data = dict(
-			command="call",
-			template=self.source,
-			name=self.name,
-			whitespace=self.whitespace,
-			signature=self.signature,
-			variables=kwargs,
-		)
-		return ul4on.loads(self.run(data))
 
 
 class TemplatePHP:
@@ -366,6 +351,8 @@ class TemplateJavascript:
 			result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8", "passbytes")
 		stderr = result.stderr.decode("utf-8", "passbytes")
+		print(repr(stdout))
+		print(repr(stderr))
 		if stderr:
 			raise RuntimeError(stderr)
 		data = ul4on.loads(stdout)
@@ -377,16 +364,17 @@ class TemplateJavascript:
 
 
 class TemplateJavascriptV8(TemplateJavascript):
-	def renders(self, *args, **kwargs):
+	def _make_source(self, command, args, kwargs, globals={}):
 		if args:
-			raise ValueError("*args not supported")
+			raise ValueError("positional arguments not supported")
 
-		source = f"""
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+		return f"""
+			var template = {self.template.jssource()};
+			var vars = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var globals = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(globals))}));
 			try
 			{{
-				print(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
+				print(ul4.dumps({{"status": "ok", "result": {command}}}));
 			}}
 			catch (exc)
 			{{
@@ -394,44 +382,43 @@ class TemplateJavascriptV8(TemplateJavascript):
 			}}
 		"""
 
+	def renders(self, *args, **kwargs):
+		source = self._make_source("template.renders(vars, {})", args, kwargs)
 		return self.runcode("d8 --stack_size=100 {dir}/dist/umd/ul4.js {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
 
 	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
+		source = self._make_source("template.call(vars, {})", args, kwargs)
+		return self.runcode("d8 {dir}/dist/umd/ul4.js {fn}", source)
 
-		source = f"""
-			template = {self.template.jssource()};
-			data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
-			try
-			{{
-				print(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
-			}}
-			catch (exc)
-			{{
-				print(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
-			}}
-		"""
+	def renders_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.renders(vars, globals)", args, kwargs, globals)
+		return self.runcode("d8 --stack_size=100 {dir}/dist/umd/ul4.js {fn}", source)
 
+	def render_with_globals(self, args, kwargs, globals):
+		return self.renders_with_globals(args, kwargs, globals)
+
+	def call_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.call(vars, globals)", args, kwargs, globals)
 		return self.runcode("d8 {dir}/dist/umd/ul4.js {fn}", source)
 
 
 class TemplateJavascriptNode(TemplateJavascript):
-	def renders(self, *args, **kwargs):
+	def _make_source(self, command, args, kwargs, globals={}):
 		if args:
-			raise ValueError("*args not supported")
+			raise ValueError("positional arguments not supported")
 
-		source = f"""
+		return f"""
 			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
 
 			var template = {self.template.jssource()};
-			var data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var vars = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
+			var globals = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(globals))}));
 			try
 			{{
-				console.log(ul4.dumps({{"status": "ok", "result": template.renders(data)}}));
+				console.log(ul4.dumps({{"status": "ok", "result": {command}}}));
 			}}
 			catch (exc)
 			{{
@@ -439,30 +426,26 @@ class TemplateJavascriptNode(TemplateJavascript):
 			}}
 		"""
 
+	def renders(self, *args, **kwargs):
+		source = self._make_source("template.renders(vars, {})", args, kwargs)
 		return self.runcode("node {fn}", source)
 
 	def render(self, *args, **kwargs):
 		return self.renders(*args, **kwargs)
 
 	def __call__(self, *args, **kwargs):
-		if args:
-			raise ValueError("*args not supported")
+		source = self._make_source("template.call(vars, {})", args, kwargs)
+		return self.runcode("node {fn}", source)
 
-		source = f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
+	def renders_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.renders(vars, globals)", args, kwargs, globals)
+		return self.runcode("node {fn}", source)
 
-			var template = {self.template.jssource()};
-			var data = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));
-			try
-			{{
-				console.log(ul4.dumps({{"status": "ok", "result": template.call(data)}}));
-			}}
-			catch (exc)
-			{{
-				console.log(ul4.dumps({{"status": "error", "result": ul4._stacktrace(exc)}}));
-			}}
-		"""
+	def render_with_globals(self, args, kwargs, globals):
+		return self.renders_with_globals(args, kwargs, globals)
 
+	def call_with_globals(self, args, kwargs, globals):
+		source = self._make_source("template.call(vars, globals)", args, kwargs, globals)
 		return self.runcode("node {fn}", source)
 
 
@@ -2243,11 +2226,11 @@ def test_function_ul4on(T):
 	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
 	assert t.renders(data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
-	# Explicitly check to real output for at least one example
+	# Explicitly check the real output for at least one example
 	assert "i42" == T("<?print asul4on(42)?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print repr(fromul4on(string=asul4on(obj=data)))?>").renders(data=42)
+	assert "42" == T("<?print repr(fromul4on(dump=asul4on(obj=data)))?>").renders(data=42)
 
 
 @pytest.mark.ul4
@@ -3818,6 +3801,16 @@ def test_function_md5(T):
 
 
 @pytest.mark.ul4
+def test_function_scrypt(T):
+	if not issubclass(T, TemplateJavascript):
+		result = "468b5b132508a02f1868576247763abed96ac41db9287d21c8b5379ad71fbe2a2bf77fd3a738dda0572e0761938149f5b91b58d2ff87b9482680540606a710943d2a69f66fe89e2693361300c914b42c24abb29a80ef8840b6a0b67c96e5960292cc38cd959017931fe28e2a921107ade2f845e09a7590e9bf6755bd04ec51af"
+		assert result == T("<?print scrypt('foo', 'bar')?>").renders()
+
+		# Make sure that the parameters have the same name in all implementations
+		assert result == T("<?print scrypt(string='foo', salt='bar')?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_round(T):
 	with raises(argumentmismatchmessage):
 		T("<?print round()?>").renders()
@@ -4686,6 +4679,8 @@ def test_method_insert(T):
 def test_method_pop(T):
 	assert '42;17;23;' == T('<?code l = [17, 23, 42]?><?print l.pop()?>;<?print l.pop(-2)?>;<?print l.pop(0)?>;').renders()
 	assert '42;17;23;' == T('<?code l = [17, 23, 42]?><?code m = l.pop?><?print m()?>;<?print m(-2)?>;<?print m(0)?>;').renders()
+	assert '23;73;{}' == T('<?code d = {17: 23, 42: 73}?><?print d.pop(17)?>;<?print d.pop(42)?>;<?print d?>').renders()
+	assert '23;42;{42: 73}' == T('<?code d = {17: 23, 42: 73}?><?print d.pop(17)?>;<?print d.pop(43, 42)?>;<?print d?>').renders()
 
 
 @pytest.mark.ul4
@@ -5502,7 +5497,7 @@ def test_custommethods():
 
 		@ul4c.withcontext
 		def bar(self, context):
-			return len(context.vars)
+			return len(context.vars.maps[0])
 
 		def baz(self):
 			pass
@@ -5882,6 +5877,43 @@ def test_template_signature_loop_call_local_template(T):
 
 
 @pytest.mark.ul4
+def test_render_in_renderblock(T):
+	s = """
+		<?def f(content=None)?>
+		<?end def?>
+
+		<?renderblock f()?>
+			<?render f()?>
+		<?end renderblock?>
+	"""
+	assert "\n\n\t" == T(s, whitespace="smart").renders()
+
+
+@pytest.mark.ul4
+def test_render_with_globals(T):
+	t1 = ul4c.Template("<?print sum?>")
+	t2 = T("<?render t1()?>")
+
+	assert "42" == t2.render_with_globals([], {"t1": t1}, {"sum": 42})
+
+
+@pytest.mark.ul4
+def test_renders_with_globals(T):
+	t1 = ul4c.Template("<?print sum?>")
+	t2 = T("<?render t1()?>")
+
+	assert "42" == t2.renders_with_globals([], {"t1": t1}, {"sum": 42})
+
+
+@pytest.mark.ul4
+def test_call_with_globals(T):
+	t1 = ul4c.Template("<?return sum?>")
+	t2 = T("<?return t1()?>")
+
+	assert 42 == t2.call_with_globals([], {"t1": t1}, {"sum": 42})
+
+
+@pytest.mark.ul4
 def test_jssource():
 	t = universaltemplate()
 	t.jssource()
@@ -5912,3 +5944,61 @@ def test_attr_if(T):
 	s = html.ul(compact=ul4.attr_if(True, cond="cond")).conv().string()
 	assert '<ul></ul>' == T(s).renders(cond=False)
 	assert '''<ul compact="compact"></ul>''' == T(s).renders(cond=True)
+
+
+@pytest.mark.ul4
+def test_module_ul4on(T):
+	t = T("<?print repr(ul4on.loads(ul4on.dumps(data)))?>")
+
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.dumps()?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.dumps(1, 2, 3)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.loads()?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.loads(1, 2, 3)?>").renders()
+	assert "None" == t.renders(data=None)
+	assert "False" == t.renders(data=False)
+	assert "True" == t.renders(data=True)
+	assert "42" == t.renders(data=42)
+	# no check for float
+	assert t.renders(data="abc") in ('"abc"', "'abc'")
+	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
+	assert t.renders(data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
+
+	# Explicitly check the real output for at least one example
+	assert "i42" == T("<?print ul4on.dumps(42)?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "42" == T("<?print repr(ul4on.loads(dump=ul4on.dumps(obj=data)))?>").renders(data=42)
+
+
+@pytest.mark.ul4
+def test_module_ul4on_multiple_encoder_calls(T):
+	t = T("""
+		<?whitespace strip?>
+		<?code s1 = 'gurk'?>
+		<?code s2 = 'hurz'?>
+		<?code e = ul4on.Encoder()?>
+		<?print e.dumps(s1)?>
+		<?print e.dumps(s2)?>
+		<?print e.dumps(obj=s1)?>
+		<?print e.dumps(obj=s2)?>
+	""")
+
+	assert "S'gurk'S'hurz'^0^1" == t.renders()
+
+
+@pytest.mark.ul4
+def test_module_ul4on_multiple_decoder_calls(T):
+	t = T("""
+		<?whitespace strip?>
+		<?code d = ul4on.Decoder()?>
+		<?print d.loads("S'gurk'")?>
+		<?print d.loads("S'hurz'")?>
+		<?print d.loads(dump="^0")?>
+		<?print d.loads(dump="^1")?>
+	""")
+
+	assert "gurkhurzgurkhurz" == t.renders()

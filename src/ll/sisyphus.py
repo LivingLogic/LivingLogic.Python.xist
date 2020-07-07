@@ -1,32 +1,35 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2000-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2000-2019 by Walter Dörwald
+## Copyright 2000-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2000-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/xist/__init__.py for the license
 
 
-"""
+r"""
 .. program:: sisyphus
 
-:mod:`!ll.sisyphus` simplifies running Python stuff as jobs.
+:mod:`sisyphus` simplifies running Python stuff as jobs.
 
 This can either be done under the direction of a cron daemon or a similar
-process runner, then :mod:`!ll.sisyphus` makes sure that there will be no more
+process runner, then :mod:`sisyphus` makes sure that there will be no more
 than one job of a certain name running at any given time.
 
-Or :mod:`!ll.sisyphus` can be used as its own minimal cron daemon and can
+Or :mod:`sisyphus` can be used as its own minimal cron daemon and can
 execute the job repeatedly.
 
 A job has a maximum allowed runtime. If this maximum is exceeded, the job will
 kill itself. In addition to that, job execution can be logged and in case of
-job failure an email can be sent.
+job failure an email can be sent or a message can be posted to a `Mattermost
+chat channel`__.
 
-To use this module, you must derive your own class from :class:`Job` and
-implement the :meth:`execute` method.
+To use this module, you must derive your own class from :class:`Job`,
+implement the :meth:`execute` method and then call :func:`execute` or
+:func:`executewithargs` with your job object (preferably in an
+``if __name__ == "__main__"`` block).
 
 Logs will (by default) be created in the :file:`~/ll.sisyphus` directory.
 This can be changed by deriving a new subclass and overwriting the appropriate
@@ -34,6 +37,8 @@ class attributes.
 
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
+
+__ https://mattermost.com/
 
 
 Example
@@ -76,15 +81,25 @@ You will find the log files for this job in
 :file:`~/ll.sisyphus/ACME.FooBar/Fetch/`.
 
 
-Eventful und uneventful job runs
---------------------------------
+Result status of a job run
+--------------------------
 
 The method :meth:`Job.execute` (which must be overwritten to implement the jobs
 main functionality) should return a one-line summary of what the job did
-(this is called an "eventful run"). It can also return :const:`None` to report
-that the job had nothing to do (this is called an "uneventful run"). In case of
-an uneventful run, the log file will be deleted immediately at the end of the
-run.
+(this is called a "successful run"). It can also return :const:`None` to report
+that the job had nothing to do (this is called an "uneventful run").
+
+Apart from "uneventful" and "successful" runs, the following results are
+possible:
+
+"interrupted"
+	The job failed with an :exc:`KeyboardInterrupt`.
+
+"failed"
+	The job failed with an exception (other than :exc:`KeyboardInterrupt`).
+
+"timeout"
+	The job ran longer than that the allowed maximum runtime.
 
 
 Repeat mode
@@ -95,19 +110,20 @@ runner. In this mode the method :meth:`Job.execute` is executed once and after
 that execution of the Python script ends.
 
 However it is possible to activate repeat mode with the class/instance attribute
-``Job.repeat`` (or the command line option :option:`--repeat`).
-If ``Job.repeat`` is true, execution of the job will be repeated indefinitely.
+``repeat`` (or the command line option :option:`--repeat`).
+If ``repeat`` is true, execution of the job will be repeated indefinitely.
 
-By default the next job run starts immediately, but it is possible to delay the
-next run. For this the class/instance attribute ``Job.nextrun`` (or the
-command line option :option:`--nextrun`) can be used. In its simplest form this
-is the number of seconds to wait until the next job run is started. It can
-also be a :class:`datetime.timedelta` object that specifies the delay, or it
-can be a :class:`datetime.datetime` object specifying the next job run.
-Furthermore ``Job.nextrun`` can be callable (so it can be implemented as a
-method) and can return any of the types :class:`int`, :class:`float`,
-:class:`datetime.timedelta` or :class:`datetime.datetime`. And, if
-``Job.nextrun`` is :const:`None`, the job run will be repeated immediately.
+By default the next job run starts immediately after the end of the previous
+run, but it is possible to delay the next run. For this the class/instance
+attribute ``nextrun`` (or the command line option :option:`--nextrun`) can be
+used. In its simplest form this is the number of seconds to wait until the next
+job run is started. It can also be a :class:`datetime.timedelta` object that
+specifies the delay, or it can be a :class:`datetime.datetime` object specifying
+the next job run. Furthermore ``nextrun`` can be callable (so it can be
+implemented as a method) and can return any of the types :class:`int`,
+:class:`float`, :class:`datetime.timedelta` or :class:`datetime.datetime`.
+And, if ``Job.nextrun`` is :const:`None`, the job run will be repeated
+immediately.
 
 
 Logging and tags
@@ -136,10 +152,10 @@ written like this:
 
 	self.log['xml']['warning'](f"can't parse XML file {filename}")
 
-:mod:`!ll.sisyphus` itself uses the following tags:
+:mod:`sisyphus` itself uses the following tags:
 
 ``sisyphus``
-	This tag will be added to all log lines produced by :mod:`!ll.sisyphus`
+	This tag will be added to all log lines produced by :mod:`sisyphus`
 	itself.
 
 ``init``
@@ -170,7 +186,7 @@ written like this:
 
 ``info``
 	This tag is used for all other informational log messages output by
-	:mod:`!ll.sisyphus` itself (like log file cleanup etc.).
+	:mod:`sisyphus` itself (like log file cleanup etc.).
 
 
 Exceptions
@@ -178,6 +194,17 @@ Exceptions
 
 When an exception object is passed to ``self.log`` the tag ``exc`` will be added
 to the log call automatically.
+
+
+Delayed logs
+------------
+
+If a log message has the tag ``delay`` is is considered a delayed message.
+Log messages will be buffered up until the first log message that isn't delayed
+is encountered (:mod:`sisyphus`\s log messages all do include ``delay``).
+Then all buffered messages will be output. If only delayed messages are output
+during the complete job run, only the result of the job run will be output.
+If this output is ``None`` nothing will be output.
 
 
 Log files
@@ -188,15 +215,22 @@ as it includes the start time of the job).
 
 However logging to ``stdout`` and ``stderr`` can also be activated.
 
-Furthermore two links will be created that automatically point to the last log
-file. The "current" link (by default named :file:`current.sisyphuslog`) will
-always point to the log file of the currently running job. If no job is running,
-but the last run was eventful, it will point the newest log file. If the last
+Logfiles for uneventful runs wil be deleted after the run.
+
+Multiple links will be created that automatically point to the last log file.
+The "current" link (by default named :file:`current.sisyphuslog`) will always
+point to the log file of the currently running job. If no job is running,
+but the last run was eventful, it will point to the newest log file. If the last
 run was uneventful the link will point to a nonexistent log file (whose name can
-be used to determine the date of the last run). The "last eventful" link
-(by default named :file:`last_eventful.sisyphuslog`) will always point to the
-last eventful job run (but will only be created at the end of the job run).
-This link will never point to a nonexistent file.
+be used to determine the date of the last run).
+
+The following links will be created at the end of the job run and will only
+start to point to non-existent files when the log file they point get cleaned up:
+The "last successful" link (by default named :file:`last_successful.sisyphuslog`)
+will always point to the last successful job run, :file:`last_failed.sisyphuslog`
+points to the last failed run, :file:`last_interrupted.sisyphuslog`
+points to the last interrupted run and :file:`last_timeout.sisyphuslog` points
+to the last run that timed out.
 
 
 Email
@@ -206,9 +240,53 @@ It is possible to send an email when a job fails. For this, the options
 :option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
 set. If the job terminates because of an exception or exceeds its maximum
 runtime (and the option :option:`--noisykills` is set) or any of the calls
-to :meth:`~Job.log` include the tag ``email``, the email will be sent. This
+to :meth:`~Job.log` include the tag ``email``, an email will be sent. This
 email includes the last 10 logging calls and the final exception (if there is
 any) in plain text and HTML format as well as as a JSON attachment.
+
+
+Mattermost
+----------
+
+It is possible to send log entries to a Mattermost_ chat channel. For this the
+options :option:`--mattermost_url`, :option:`--mattermost_channel` and
+:option:`--mattermost_token` must be specified and the log entry must
+include the tag ``mattermost``.
+
+.. _Mattermost: https://mattermost.com/
+
+
+Health checks
+-------------
+
+When a job is started with the option ``--healthcheck``, instead of running the
+job normally a health check is done. This bypasses the normal mechanism that
+prevents multiple instances of the job from running (i.e. you can have a normal
+job execution and a health check running in parallel).
+
+If the job is healthy this will exit with an exit status of 0, otherwise it will
+exit with an exit status of 1 and an error message stating the reason why the
+job is considered unhealthy on ``stdout``. There are three possible scenarios
+for this:
+
+1.	The job has never been run.
+
+2.	The last run has ended with an error.
+
+3.	The last run was too long ago.
+
+To configure how scenario 3 is handled the class/instance attribute
+``maxhealthcheckage`` (or the command line option
+:option:`--maxhealthcheckage`) can be used. In its simplest form this is a
+number of seconds or a :class:`datetime.timedelta` object. A job run that is
+older that this value triggers scenario 3. ``maxhealthcheckage`` can be also be
+a :class:`datetime.datetime` object specifying the cut-off date.
+
+Furthermore ``maxhealthcheckage`` can be callable (so it can be implemented
+as a method) and can return any of the types :class:`int`, :class:`float`,
+:class:`datetime.timedelta` or :class:`datetime.datetime`.
+
+And if ``Job.maxhealthcheckage`` is :const:`None`, scenario 3 will never trigger.
 
 
 Requirements
@@ -220,12 +298,12 @@ expired (via :func:`os.fork` and :func:`signal.signal`). This won't work on
 Windows. So on Windows the job will always run to completion without being
 killed after the maximum runtime.
 
-To make sure that only one job instance runs concurrently, :mod:`!ll.sisyphus`
+To make sure that only one job instance runs concurrently, :mod:`sisyphus`
 uses :mod:`fcntl` to create an exclusive lock on the file of the running script.
 This won't work on Windows either. So on Windows you might have multiple
 running instances of the job.
 
-:mod:`!ll.sisyphus` uses the module :mod:`setproctitle` to change the process
+:mod:`sisyphus` uses the module :mod:`setproctitle` to change the process
 title during various phases of running the job. If :mod:`setproctitle` is not
 available the process title will not be changed.
 
@@ -235,12 +313,17 @@ is exceeded. If :mod:`psutil` isn't available just the child process will be
 killed (which is no problem as long as the child process doesn't spawn any
 other processes).
 
+If loggging to Mattermost is used, :mod:`requests` has be installed.
+
 For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 :mod:`lzma` is required (which might not be part of your Python installation).
 """
 
 
-import sys, os, signal, traceback, errno, pprint, time, datetime, argparse, tokenize, json, smtplib
+import sys, os, argparse, time, datetime, pathlib, enum, types
+import signal, traceback, pprint, tokenize, json, smtplib, operator, itertools
+
+from typing import *
 
 try:
 	import fcntl
@@ -275,21 +358,35 @@ try:
 except ImportError:
 	setproctitle = None
 
-from ll import url, ul4c, misc
+from ll import url, ul4c, ul4on, misc
 
 
 __docformat__ = "reStructuredText"
 
 
 ###
-### Helper functions
+### Typing stuff
+###
+
+T = TypeVar("T")
+OptStr = Optional[str]
+OptInt = Optional[int]
+OptStrFromCall = Union[str, None, Callable[..., Union[str, None]]]
+Tags = Tuple[str, ...]
+LogList  = List[Tuple[datetime.datetime, Tags, List["Task"], Any]]
+
+
+###
+### Helper functions and classes
 ###
 
 def _formattraceback(exc):
+	# type: (BaseException) -> str
 	return "".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__))
 
 
 def _formatlines(obj):
+	# type: (Any) -> List[str]
 	if isinstance(obj, BaseException):
 		obj = _formattraceback(obj)
 	elif not isinstance(obj, str):
@@ -303,6 +400,7 @@ def _formatlines(obj):
 
 
 def argdays(value):
+	# type: (Union[str, int, datetime.timedelta]) -> datetime.timedelta
 	if isinstance(value, str):
 		value = int(value)
 	if not isinstance(value, datetime.timedelta):
@@ -311,11 +409,61 @@ def argdays(value):
 
 
 def argseconds(value):
+	# type: (Union[str, int, datetime.timedelta]) -> datetime.timedelta
 	if isinstance(value, str):
 		value = int(value)
 	if not isinstance(value, datetime.timedelta):
 		value = datetime.timedelta(seconds=value)
 	return value
+
+
+def env(varname):
+	# type: (str) -> OptStr
+	return os.environ.get(varname, None)
+
+
+def get_mtime(filename):
+	# type: (pathlib.Path) -> datetime.datetime
+	return datetime.datetime.fromtimestamp(filename.stat().st_mtime)
+
+
+def get_utime(filename):
+	# type: (pathlib.Path) -> Tuple[datetime.datetime, datetime.datetime]
+	stat = filename.stat()
+	return (datetime.datetime.fromtimestamp(stat.st_atime), datetime.datetime.fromtimestamp(stat.st_mtime))
+
+
+def set_utime(filename, atime, mtime):
+	# type: (pathlib.Path, datetime.datetime, datetime.datetime) -> None
+	os.utime(str(filename), times=(atime.timestamp(), mtime.timestamp()))
+
+
+class DatetimeEncoder(json.JSONEncoder):
+	def default(self, obj):
+		# type: (Any) -> str
+		if isinstance(obj, datetime.datetime):
+			return obj.isoformat()
+		return super().default(obj)
+
+
+class Status(enum.IntEnum):
+	"""
+	The result status of a job run.
+	"""
+	UNEVENTFUL = 0
+	SUCCESSFUL = 1
+	FAILED = 2
+	INTERRUPTED = 3
+	TIMEOUT = 4
+
+
+class Process(enum.Enum):
+	"""
+	The type of a running :mod:`!sisyphus` process.
+	"""
+	SOLO = 0
+	PARENT = 1
+	CHILD = 2
 
 
 ###
@@ -378,6 +526,34 @@ class Job:
 
 		The password used to log into the SMTP server.
 
+	.. option:: --mattermost_url <url>
+
+		The URL where log entries can be posted to a Mattermost chat. For
+		example::
+		
+			https://mattermost.example.org/api/v4/posts
+
+		A log entry will only be posted to the Mattermost chat channel if the
+		options :option:`--mattermost_url`, :option:`--mattermost_channel` and
+		:option:`--mattermost_token` are set (and the log entry has the tag
+		``mattermost``).
+
+		Note that using this feature requires :mod:`requests`.
+
+	.. option:: --mattermost_channel <id>
+
+		The channel id of the Mattermost chat channel where log entries should be
+		posted. For example::
+
+			4cnszmopr3ntjexi4qmx499inc
+
+	.. option:: --mattermost_token <auth>
+
+		The "Personal Access Token" used for authorizing the post with the
+		Mattermost server. For example::
+
+			9xuqwrwgstrb3mzrxb83nb357a
+
 	.. option:: -m <seconds>, --maxtime <seconds>
 
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -397,6 +573,10 @@ class Job:
 
 		Should a message be printed/a failure email be sent when the maximum
 		runtime is exceeded?
+
+	.. option:: --exit_on_error
+
+		End job execution even in repeat mode when an exception is thrown?
 
 	.. option:: -n, --notify
 
@@ -420,22 +600,14 @@ class Job:
 		to implement this as a method). Also :class:`datetime.datetime` is
 		supported and specifies the start date for the next job run.
 
-	.. option:: --logfilename <filename>
+	.. option:: --healthcheck
 
-		Name of the logfile for this job as an UL4 template. Variables
-		available in the template include ``user_name``, ``projectname``,
-		``jobname`` and ``starttime``.
+		Instead of normally executing the job, run a health check instead.
 
-	.. option:: --currentloglinkname <filename>
+	.. option:: --maxhealthcheckage <seconds>
 
-		The filename of a link that points to the currently active logfile
-		(as an UL4 template). If this is :const:`None` no link will be created.
-
-	.. option:: --lasteventfulloglinkname <filename>
-
-		The filename of a link that points to the logfile of the last eventful
-		run of the job (as an UL4 template). If this is :const:`None` no
-		link will be created.
+		if the last uneventful or successful job run is older then this number
+		of seconds, consider the job to be unhealthy.
 
 	.. option:: -f, --log2file
 
@@ -513,6 +685,10 @@ class Job:
 	smtpuser = None
 	smtppassword = None
 
+	mattermost_url = None
+	mattermost_channel = None
+	mattermost_token = None
+
 	identifier = None
 
 	maxtime = datetime.timedelta(minutes=5)
@@ -520,35 +696,117 @@ class Job:
 	fork = True
 
 	noisykills = False
+	exit_on_error = False
+
 	notify = False
 
 	repeat = False
 	nextrun = None
 	waitchildbreak = datetime.timedelta(seconds=0.5)
+	runhealthcheck = False
+	maxhealthcheckage = None
 
-	logfilename = """
-	~
-	/ll.sisyphus
-	/<?print job.projectname?>
-	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
-	/<?print format(job.starttime, '%Y-%m-%d-%H-%M-%S-%f')?>.sisyphuslog
-	"""
+	def basedir(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the base directory where all log files will be kept.
 
-	currentloglinkname = """
-	~
-	/ll.sisyphus
-	/<?print job.projectname?>
-	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
-	/current.sisyphuslog
-	"""
+		The path must be absolute.
+		"""
+		path = pathlib.Path(
+			"~",
+			"ll.sisyphus",
+			self.projectname,
+			self.jobname if self.identifier is None else f"{self.jobname}.{self.identifier}",
+		)
+		return path.expanduser().absolute()
 
-	lasteventfulloglinkname = """
-	~
-	/ll.sisyphus
-	/<?print job.projectname?>
-	/<?print job.jobname?><?if job.identifier?>.<?print job.identifier?><?end if?>
-	/last_eventful.sisyphuslog
-	"""
+	def logfilename(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename of the logfile for this job.
+
+		The value must by an absolute :class:`pathlib.Path` object (or ``None``
+		the disable creating the logfile).
+		"""
+		return self.basedir() / f"{self.starttime:%Y-%m-%d %H-%M-%S_%f}.sisyphuslog"
+
+	def currentloglinkname(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename of the link to the currently active logfile.
+
+		The value must by an absolute :class:`pathlib.Path` object (or ``None``
+		the disable creating the link).
+		"""
+		return self.basedir() / f"current.sisyphuslog"
+
+	def lastsuccessfulloglinkname(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename of the link that points to the logfile of the last
+		successful run of the job.
+
+		The value must by an absolute :class:`pathlib.Path` object (or ``None``
+		the disable creating the link).
+		"""
+		return self.basedir() / f"last_successful.sisyphuslog"
+
+	def lastfailedloglinkname(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename of the link that points to the logfile of the last
+		failed run of the job.
+
+		The value must by an absolute :class:`pathlib.Path` object (or ``None``
+		the disable creating the link).
+		"""
+		return self.basedir() / f"last_failed.sisyphuslog"
+
+	def lastinterruptedloglinkname(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename of the link that points to the logfile of the last
+		interrupted run of the job.
+
+		The value must by an absolute :class:`pathlib.Path` object (or ``None``
+		the disable creating the link).
+		"""
+		return self.basedir() / f"last_interrupted.sisyphuslog"
+
+	def lasttimeoutloglinkname(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename of the link that points to the logfile of the last
+		run of the job with a timeout.
+
+		The value must by an absolute :class:`pathlib.Path` object (or ``None``
+		the disable creating the link).
+		"""
+		return self.basedir() / f"last_timeout.sisyphuslog"
+
+	def healthfilename(self):
+		# type: () -> pathlib.Path
+		"""
+		Return the filename where the health of the last job run is stored.
+
+		The value must by an absolute :class:`pathlib.Path` object and may not be
+		``None``.
+		"""
+		return self.basedir() / f"current.sisyphushealth"
+
+	def emailfilename(self, process=None):
+		# type: (Optional[Process]) -> pathlib.Path
+		"""
+		Return the filename where the parent and child process can log message
+		that should be part of the email report.
+
+		The value must by an absolute :class:`pathlib.Path` object and may not be
+		``None``.
+		"""
+		if process is None:
+			process = self.process
+		return self.basedir() / f"email.{process.name.lower()}.ul4on"
 
 	# URL of final log file (:const:`None` if no logging is done to a file)
 	logfileurl = None
@@ -565,10 +823,10 @@ class Job:
 			<?print " :: "?>
 			<?code desc = [task.type, task.name]?>
 			<?code desc = " ".join(str(d) for d in desc if d)?>
-			<?if not isnone(task.index)?>
+			<?if task.index is not None?>
 				[
 					<?print task.index+1?>
-					<?if not isnone(task.count)?>
+					<?if task.count is not None?>
 						/<?print task.count?>
 					<?end if?>
 				]
@@ -593,7 +851,7 @@ class Job:
 	"""
 
 	formatemailbodytext = r"""
-		<?def line?>
+		<?def line(label, value)?>
 			<?if value?>
 				<?code value = str(value).split("\n")?>
 				<?for line in value?>
@@ -602,42 +860,47 @@ class Job:
 				<?end for?>
 			<?end if?>
 		<?end def?>
-		<?def tasklabel?>
+		<?def tasklabel(task)?>
 			<?code desc = " ".join(str(part) for part in [task.type, task.name] if part)?>
-			<?print desc?>
-			<?if not isnone(task.index)?>
+			<?if task.index is not None?>
 				[
 					<?print task.index+1?>
-					<?if not isnone(task.count)?>
+					<?if task.count is not None?>
 						/<?print task.count?>
 					<?end if?>
 				]
-				<?if desc?> <?end if?>
+				<?if desc?>
+					<?print " "?>
+				<?end if?>
 			<?elif not desc?>
 				?
 			<?end if?>
 			<?print desc?>
-			<?print "\n@"?>
-			<?print task.starttime?>
+			<?if task.starttime?>
+				<?print " "?>
+				@
+				<?print " "?>
+				<?print task.starttime?>
+			<?end if?>
 		<?end def?>
-		<?render line(label="Project", value=job.projectname)?>
-		<?render line(label="Job", value=job.jobname)?>
-		<?render line(label="Identifier", value=job.identifier)?>
-		<?render line(label="Script", value=sysinfo.script_name)?>
-		<?render line(label="User", value=sysinfo.user_name)?>
-		<?render line(label="Python", value=sysinfo.python_executable)?>
-		<?render line(label="Version", value=sysinfo.python_version)?>
-		<?render line(label="Host", value=sysinfo.host_fqdn)?>
-		<?render line(label="IP", value=sysinfo.host_ip)?>
-		<?render line(label="PID", value=sysinfo.pid)?>
-		<?render line(label="Start", value=job.starttime)?>
-		<?render line(label="End", value=job.endtime)?>
+		<?render line("Project", job.projectname)?>
+		<?render line("Job", job.jobname)?>
+		<?render line("Identifier", job.identifier)?>
+		<?render line("Script", sysinfo.script_name)?>
+		<?render line("User", sysinfo.user_name)?>
+		<?render line("Python", sysinfo.python_executable)?>
+		<?render line("Version", sysinfo.python_version)?>
+		<?render line("Host", sysinfo.host_fqdn)?>
+		<?render line("IP", sysinfo.host_ip)?>
+		<?render line("PID", sysinfo.pid)?>
+		<?render line("Start", job.starttime)?>
+		<?render line("End", job.endtime)?>
 		<?if job.starttime and job.endtime?>
-			<?render line(label="Duration", value=job.endtime-job.starttime)?>
+			<?render line("Duration", job.endtime-job.starttime)?>
 		<?end if?>
-		<?render line(label="Exceptions", value=countexceptions)?>
-		<?render line(label="Messages", value=countmessages)?>
-		<?render line(label="Logfile", value=job.logfileurl)?>
+		<?render line("Exceptions", countexceptions)?>
+		<?render line("Messages", countmessages)?>
+		<?render line("Logfile", job.logfileurl)?>
 
 		<?code reportedexceptions = 0?>
 		<?code reportedmessages = 0?>
@@ -650,10 +913,10 @@ class Job:
 				#<?print i?>: Exception<?print "\n"?>
 				<?print "\n"?>
 				<?for task in entry.tasks?>
-					<?render line(label="Task", value=tasklabel.renders(task=task))?>
+					<?render line("Task", tasklabel.renders(task))?>
 				<?end for?>
-				<?render line(label="Class", value=entry.class)?>
-				<?render line(label="Value", value=entry.value)?>
+				<?render line("Class", entry.class)?>
+				<?render line("Value", entry.value)?>
 				<?if entry.traceback?>
 					<?print "\n"?>
 					<?print entry.traceback?>
@@ -663,9 +926,9 @@ class Job:
 				#<?print i?>: Message<?print "\n"?>
 				<?print "\n"?>
 				<?for task in entry.tasks?>
-					<?render line(label="Task", value=tasklabel.renders(task=task))?>
+					<?render line("Task", tasklabel.renders(task))?>
 				<?end for?>
-				<?render line(label="Message", value=entry.message)?>
+				<?render line("Message", entry.message)?>
 			<?end if?>
 		<?end for?>
 		<?if countexceptions + countmessages > reportedexceptions + reportedmessages?>
@@ -680,28 +943,34 @@ class Job:
 
 	formatemailbodyhtml = r"""
 		<?note Subtemplates?>
-		<?def line?>
+		<?def line(label, value, whitespace=None)?>
 			<?if value?>
 				<tr style="vertical-align: baseline;"><th style="text-align:right;"><?printx label?></th><td style="padding-left: 1em;<?if whitespace?>white-space: <?printx whitespace?>;<?end if?>"><?printx value?></td></tr>
 			<?end if?>
 		<?end def?>
-		<?def tasklabel?>
+		<?def tasklabel(task)?>
 			<?code desc = [task.type, task.name]?>
 			<?code desc = " ".join(str(d) for d in desc if d)?>
-			<?printx desc?>
-			<?if not isnone(task.index)?>
-				<?if desc?> <?end if?>
-				(
+			<?if task.index is not None?>
+				[
 				<?printx task.index+1?>
-				<?if not isnone(task.count)?>
+				<?if task.count is not None?>
 					/<?printx task.count?>
 				<?end if?>
-				)
+				]
+				<?if desc?>
+					<?printx " "?>
+				<?end if?>
 			<?elif not desc?>
 				?
 			<?end if?>
-			<?print "\n@"?>
-			<?printx task.starttime?>
+			<?printx desc?>
+			<?if task.starttime?>
+				<?printx " "?>
+				@
+				<?printx " "?>
+				<?printx task.starttime?>
+			<?end if?>
 		<?end def?>
 
 		<?xml version='1.0' encoding='utf-8'?>
@@ -712,24 +981,24 @@ class Job:
 			<body style="font-family: monospace;">
 				<h1><?printx job.projectname?>/<?printx job.jobname?> for <?printx sysinfo.user_name?>@<?printx sysinfo.host_fqdn?> (<?printx sysinfo.host_ip?>) failed</h1>
 				<table>
-					<?render line(label="Project", value=job.projectname)?>
-					<?render line(label="Job", value=job.jobname)?>
-					<?render line(label="Identifier", value=job.identifier)?>
-					<?render line(label="Script", value=sysinfo.script_name)?>
-					<?render line(label="User", value=sysinfo.user_name)?>
-					<?render line(label="Python", value=sysinfo.python_executable)?>
-					<?render line(label="Version", value=sysinfo.python_version)?>
-					<?render line(label="Host", value=sysinfo.host_fqdn)?>
-					<?render line(label="IP", value=sysinfo.host_ip)?>
-					<?render line(label="PID", value=sysinfo.pid)?>
-					<?render line(label="Start", value=job.starttime)?>
-					<?render line(label="End", value=job.endtime)?>
+					<?render line("Project", job.projectname)?>
+					<?render line("Job", job.jobname)?>
+					<?render line("Identifier", job.identifier)?>
+					<?render line("Script", sysinfo.script_name)?>
+					<?render line("User", sysinfo.user_name)?>
+					<?render line("Python", sysinfo.python_executable)?>
+					<?render line("Version", sysinfo.python_version)?>
+					<?render line("Host", sysinfo.host_fqdn)?>
+					<?render line("IP", sysinfo.host_ip)?>
+					<?render line("PID", sysinfo.pid)?>
+					<?render line("Start", job.starttime)?>
+					<?render line("End", job.endtime)?>
 					<?if job.starttime and job.endtime?>
-						<?render line(label="Duration", value=job.endtime-job.starttime)?>
+						<?render line("Duration", job.endtime-job.starttime)?>
 					<?end if?>
-					<?render line(label="Exceptions", value=countexceptions)?>
-					<?render line(label="Messages", value=countmessages)?>
-					<?render line(label="Logfile", value=job.logfileurl)?>
+					<?render line("Exceptions", countexceptions)?>
+					<?render line("Messages", countmessages)?>
+					<?render line("Logfile", job.logfileurl)?>
 				</table>
 				<?code reportedexceptions = 0?>
 				<?code reportedmessages = 0?>
@@ -740,11 +1009,11 @@ class Job:
 						<h2>#<?printx i?>: Exception</h2>
 						<table>
 							<?for task in entry.tasks?>
-								<?render line(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
+								<?render line("Task", tasklabel.renders(task), whitespace="pre")?>
 							<?end for?>
-							<?render line(label="Timestamp", value=entry.timestamp)?>
-							<?render line(label="Class", value=entry.class)?>
-							<?render line(label="Value", value=entry.value)?>
+							<?render line("Timestamp", entry.timestamp)?>
+							<?render line("Class", entry.class)?>
+							<?render line("Value", entry.value)?>
 						</table>
 						<?if entry.traceback?>
 							<h3>Traceback<h3>
@@ -757,10 +1026,10 @@ class Job:
 						<h2>#<?printx i?>: Message</h2>
 						<table>
 							<?for task in entry.tasks?>
-								<?render line(label="Task", value=tasklabel.renders(task=task), whitespace="pre")?>
+								<?render line("Task", tasklabel.renders(task), whitespace="pre")?>
 							<?end for?>
-							<?render line(label="Timestamp", value=entry.timestamp)?>
-							<?render line(label="Message", value=entry.message, whitespace="pre")?>
+							<?render line("Timestamp", entry.timestamp)?>
+							<?render line("Message", entry.message, whitespace="pre")?>
 						</table>
 					<?end if?>
 				<?end for?>
@@ -777,6 +1046,86 @@ class Job:
 		</html>
 	"""
 
+	formatmattermosttitle = r"""
+		<?if "error" in tags?>
+			<?if type == "exc"?>
+				<?code header = "Exception"?>
+			<?elif type == "obj"?>
+				<?code header = "Error object"?>
+			<?else?>
+				<?code header = "Error message"?>
+			<?end if?>
+		<?else?>
+			<?if type == "exc"?>
+				<?code header = "Exception"?>
+			<?elif type == "obj"?>
+				<?code header = "Object"?>
+			<?else?>
+				<?code header = "Message"?>
+			<?end if?>
+		<?end if?>
+		<?print header?> in sisyphus job `<?print job.projectname?>`/`<?print job.jobname?>` from `<?print sysinfo.user_name?>@<?print sysinfo.host_fqdn?>` (<?print sysinfo.host_ip?>)
+	"""
+
+	formatmattermostmessage = r"""
+		<?if type == "exc"?>
+			```
+			<?print "\n"?>
+			<?print message?>
+			<?print "\n"?>
+			```
+		<?elif type == "obj"?>
+			```py
+			<?print "\n"?>
+			<?print message?>
+			<?print "\n"?>
+			```
+		<?else?>
+			<?print message?>
+		<?end if?>
+		<?print "\n"?>
+		<?if tags?>
+			**Tags**: <?for (f, t) in isfirst(tags)?><?if not f?>, <?end if?>`<?print t?>`<?end for?>
+			<?print "\n"?>
+		<?end if?>
+		<?if len(tasks) > 1?>
+			**Task**:<?print " "?>
+			<?print " "?>
+			<?for (f, task) in isfirst(tasks[1:])?>
+				<?if not f?>
+					<?print " ⟶ "?>
+				<?end if?>
+				<?code output = False?>
+				<?if task.type is not None?>
+					<?if output?> <?end if?>
+					`<?print task.type?>`
+					<?code output = True?>
+				<?end if?>
+				<?if task.name is not None?>
+					<?if output?> <?end if?>
+					`<?print task.name?>`
+					<?code output = True?>
+				<?end if?>
+				<?if task.index is not None?>
+					<?if output?> <?end if?>
+					[
+						<?print task.index+1?>
+						<?if task.count is not None?>
+							/<?print task.count?>
+						<?end if?>
+					]
+					<?code output = True?>
+				<?end if?>
+				<?if not output?>
+					?
+				<?end if?>
+			<?end for?>
+			<?print "\n"?>
+		<?end if?>
+		**Timestamp**: <?print time?> — t+<?print time-job.starttime?>
+		<?print "\n"?>
+	"""
+
 	keepfilelogs = datetime.timedelta(days=30)
 	compressfilelogs = datetime.timedelta(days=7)
 	compressmode = "bzip2"
@@ -790,7 +1139,10 @@ class Job:
 
 	ul4attrs = {"sysinfo", "projectname", "jobname", "identifier", "maxtime", "starttime", "endtime", "maxemailerrors", "logfileurl"}
 
+	process = Process.SOLO
+
 	def execute(self):
+		# type: () -> OptStr
 		"""
 		Execute the job once.
 
@@ -804,14 +1156,30 @@ class Job:
 		"""
 		return "done"
 
-	def failed(self):
+	def healthcheck(self):
+		# type: () -> OptStr
 		"""
-		Called when running the job generated an exception. Overwrite in
-		subclasses, to e.g. rollback your database transactions.
+		Called in parallel to a running job to check whether the job is healthy.
+
+		Returns ``None`` if everything is ok, or an error message otherwise.
 		"""
-		pass
+		healthfilename = self.healthfilename()
+		try:
+			lastwrite = get_mtime(healthfilename)
+			cutoff = self._calc_maxhealthcheckage()
+			if lastwrite < cutoff:
+				return f"Not running since {cutoff} (last run at {lastwrite}; {datetime.datetime.now()-lastwrite} ago)"
+			error = healthfilename.read_text(encoding=self.encoding, errors=self.errors)
+			return error.strip() or None
+		except FileNotFoundError:
+			return f"Healthfile {healthfilename} missing"
+		except ValueError:
+			return f"Healthfile {healthfilename} malformed"
+
+		return None
 
 	def argparser(self):
+		# type: () -> argparse.ArgumentParser
 		"""
 		Return an :mod:`argparse` parser for parsing the command line arguments.
 		This can be overwritten in subclasses to add more arguments.
@@ -825,6 +1193,9 @@ class Job:
 		p.add_argument(      "--smtpport", dest="smtpport", metavar="PORT", help="The port number used for the connection to the SMTP server (default: %(default)s)", type=int, default=self.smtpport)
 		p.add_argument(      "--smtpuser", dest="smtpuser", metavar="USER", help="The user name used to log into the SMTP server. (default: %(default)s)", default=self.smtpuser)
 		p.add_argument(      "--smtppassword", dest="smtppassword", metavar="PASSWORD", help="The password used to log into the SMTP server. (default: %(default)s)", default=self.smtppassword)
+		p.add_argument(      "--mattermost_url", dest="mattermost_url", metavar="URL", help="URL for logging to mattermost chat channel. (default: %(default)s)", default=self.mattermost_url)
+		p.add_argument(      "--mattermost_channel", dest="mattermost_channel", metavar="ID", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_channel)
+		p.add_argument(      "--mattermost_token", dest="mattermost_token", metavar="AUTH", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_token)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=argseconds, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -839,50 +1210,242 @@ class Job:
 		p.add_argument(      "--encoding", dest="encoding", metavar="ENCODING", help="Encoding for the log file (default: %(default)s)", default=self.encoding)
 		p.add_argument(      "--errors", dest="errors", metavar="METHOD", help="Error handling method for encoding errors in log texts (default: %(default)s)", default=self.errors)
 		p.add_argument(      "--noisykills", dest="noisykills", help="Should a message be printed/failure email be sent if the maximum runtime is exceeded? (default: %(default)s)", action=misc.FlagAction, default=self.noisykills)
+		p.add_argument(      "--exit_on_error", dest="exit_on_error", help="Stop the job when an error happens in repeat mode? (default: %(default)s)", action=misc.FlagAction, default=self.exit_on_error)
 		p.add_argument("-n", "--notify", dest="notify", help="Should a notification be issued to the OS X notification center? (default: %(default)s)", action=misc.FlagAction, default=self.notify)
 		p.add_argument("-r", "--repeat", dest="repeat", help="Repeat the job run indefinitely? (default: %(default)s)", action=misc.FlagAction, default=self.repeat)
 		p.add_argument(      "--nextrun", dest="nextrun", metavar="SECONDS", help="How many seconds to wait after the run before repeating it? (default: %(default)s)", type=argseconds, default=self.nextrun)
-		p.add_argument(      "--waitchildbreak", dest="waitchildbreak", metavar="SECONDS", help="How many seconds to wait to give the child process time to clean up after CTRL-C? (default: %(default)s)", type=float, default=self.waitchildbreak)
+		p.add_argument(      "--waitchildbreak", dest="waitchildbreak", metavar="SECONDS", help="How many seconds to wait to give the child process time to clean up? (default: %(default)s)", type=float, default=self.waitchildbreak)
+		p.add_argument(      "--maxhealthcheckage", dest="maxhealthcheckage", metavar="SECONDS", help="How old may a healthcheckfile be before the health check complains about it? (default: %(default)s)", type=float, default=self.maxhealthcheckage)
+		p.add_argument(      "--healthcheck", dest="runhealthcheck", help="Run a heathcheck instead of the normal job? (default: %(default)s)", action=misc.FlagAction, default=self.runhealthcheck)
 
 		return p
 
-	def parseargs(self, args=None):
+	def parseargs(self, args):
+		# type: (Optional[List[str]]) -> argparse.Namespace
 		"""
 		Use the parser returned by :meth:`argparser` to parse the argument
 		sequence ``args``, modify ``self`` accordingly and return
 		the result of the parsers :meth:`parse_args` call.
 		"""
 		p = self.argparser()
-		args = p.parse_args(args)
-		self.projectname = args.projectname
-		self.jobname = args.jobname
-		self.fromemail = args.fromemail
-		self.toemail = args.toemail
-		self.smtphost = args.smtphost
-		self.smtpport = args.smtpport
-		self.smtpuser = args.smtpuser
-		self.smtppassword = args.smtppassword
-		self.identifier = args.identifier
-		self.maxtime = args.maxtime
-		self.fork = args.fork
-		self.noisykills = args.noisykills
-		self.log2file = args.log2file
-		self.log2stdout = args.log2stdout
-		self.log2stderr = args.log2stderr
-		self.keepfilelogs = args.keepfilelogs
-		self.compressfilelogs = args.compressfilelogs
-		self.compressmode = args.compressmode
-		self.maxemailerrors = args.maxemailerrors
-		self.proctitle = args.proctitle
-		self.encoding = args.encoding
-		self.errors = args.errors
-		self.notify = args.notify
-		self.repeat = args.repeat
-		self.nextrun = args.nextrun
-		self.waitchildbreak = args.waitchildbreak
-		return args
+		ns = p.parse_args(args)
+		self.projectname = ns.projectname
+		self.jobname = ns.jobname
+		self.fromemail = ns.fromemail
+		self.toemail = ns.toemail
+		self.smtphost = ns.smtphost
+		self.smtpport = ns.smtpport
+		self.smtpuser = ns.smtpuser
+		self.smtppassword = ns.smtppassword
+		self.mattermost_url = ns.mattermost_url
+		self.mattermost_channel = ns.mattermost_channel
+		self.mattermost_token = ns.mattermost_token
+		self.identifier = ns.identifier
+		self.maxtime = ns.maxtime
+		self.fork = ns.fork
+		self.noisykills = ns.noisykills
+		self.log2file = ns.log2file
+		self.log2stdout = ns.log2stdout
+		self.log2stderr = ns.log2stderr
+		self.keepfilelogs = ns.keepfilelogs
+		self.compressfilelogs = ns.compressfilelogs
+		self.compressmode = ns.compressmode
+		self.maxemailerrors = ns.maxemailerrors
+		self.proctitle = ns.proctitle
+		self.encoding = ns.encoding
+		self.errors = ns.errors
+		self.notify = ns.notify
+		self.repeat = ns.repeat
+		self.nextrun = ns.nextrun
+		self.waitchildbreak = ns.waitchildbreak
+		self.runhealthcheck = ns.runhealthcheck
+		return ns
+
+	def _handleexecution(self):
+		# type: () -> None
+		"""
+		Handle executing the job including handling of duplicate or hanging jobs.
+		"""
+		if self.jobname is None:
+			self.jobname = self.__class__.__qualname__
+		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
+		self._run = 0
+		self.maxtime = argseconds(self.maxtime)
+		self.keepfilelogs = argdays(self.keepfilelogs)
+		self.compressfilelogs = argdays(self.compressfilelogs)
+		self.waitchildbreak = argseconds(self.waitchildbreak)
+
+		self._healthfilename = self.healthfilename()
+		if self.runhealthcheck:
+			result = self.healthcheck()
+			raise SystemExit(result)
+
+		self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", whitespace="strip") # Log line formatting template
+		self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
+		self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
+		self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", whitespace="strip") # Email body formatting template (HTML)
+		self._formatmattermosttitle = ul4c.Template(self.formatmattermosttitle, "formatmattermosttitle", whitespace="strip") # Mattermost chat title formatting template
+		self._formatmattermostmessage = ul4c.Template(self.formatmattermostmessage, "formatmattermostmessage", whitespace="strip") # Mattermost chat message formatting template
+
+		# Obtain a lock on the script file to make sure we're the only one running
+		with open(misc.sysinfo.script_name, "rb") as f:
+			if fcntl is not None:
+				try:
+					fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+				except BlockingIOError:
+					# The previous invocation of the job is still running
+					return # Return without calling :meth:`execute`
+
+			if self.repeat:
+				while True:
+					self._handleoneexecution()
+					self._createlogs(False) # Recreate stdin/stdout loggers
+					self._run += 1
+					nextrun = self._calc_nextrun()
+					wait = nextrun - datetime.datetime.now()
+					wait_seconds = wait.total_seconds()
+					if wait_seconds > 0:
+						self.setproctitle("Sleeping")
+						self.log.sisyphus.delay.info(f"Sleeping for {wait} until {nextrun}")
+						time.sleep(wait_seconds)
+					else:
+						self.log.sisyphus.delay.info(f"Restarting immediately")
+			else:
+				self._handleoneexecution()
+
+			if fcntl is not None:
+				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+
+	def _handleoneexecution(self):
+		# type: () -> None
+		self._tasks = [] # type: List[Task]
+		self._loggers = [] # type: List[Logger]
+		self._exceptioncount = 0
+
+		self.process = Process.SOLO
+
+		# we were able to obtain the lock, so we are the only one running
+		self.starttime = datetime.datetime.now()
+		self.endtime = None # type: Optional[datetime.datetime]
+
+		self._getscriptsource() # Get source code
+		self._getcrontab() # Get crontab
+		self.log = Tag(self._log) # Create tagged logger for files
+		self._delayed_logs = [] # type: Optional[LogList]
+		self._createlogs(True) # Create loggers
+
+		if self.fork and hasattr(os, "fork"):
+			self._tasks = [self.task("parent", str(os.getpid()))]
+
+		self.log.sisyphus.delay.init(f"{misc.sysinfo.script_name} (max time {self.maxtime})")
+
+		logmessage = self._logmessage()
+		self.log.sisyphus.delay.init(logmessage)
+
+		# Check for support of various thing we'd like to use
+		if fcntl is None:
+			self.log.sisyphus.init.delay.warning("Can't lock script file (module fcntl not available)")
+		if self.fork and not hasattr(os, "fork"):
+			self.log.sisyphus.init.delay.warning("Can't fork (function os.fork not available)")
+			self.fork = False
+		if not hasattr(signal, "SIGALRM"):
+			self.log.sisyphus.init.delay.warning("Can't use signals (signal.SIGALRM not available)")
+			self.fork = False
+		if self.setproctitle and setproctitle is None:
+			self.log.sisyphus.init.delay.warning("Can't set process title (module setproctitle not available)")
+
+		if self.fork: # Forking mode?
+			# Fork the process; the child will do the work; the parent will monitor the maximum runtime
+			self.killpid = pid = os.fork()
+			if pid: # We are the parent process
+				self.process = Process.PARENT
+				self.setproctitle(f"{logmessage} (max time {self.maxtime})")
+				# set a signal to delay CTRL-C handling until the child has cleaned up
+				signal.signal(signal.SIGINT, self._signal_int)
+				# set a signal to wake us up to kill the child process after the maximum runtime
+				if self.maxtime is not None:
+					signal.signal(signal.SIGALRM, self._signal_alarm)
+					signal.alarm(int(self.maxtime.total_seconds()))
+				try:
+					(pid, status) = os.waitpid(pid, 0) # Wait for the child process to terminate
+					if self.maxtime is not None:
+						signal.alarm(0) # Cancel maximum runtime alarm
+				except misc.Timeout as exc:
+					self._finished_timeout(exc)
+					if self.exit_on_error:
+						raise
+					else:
+						return # finish normally (or continue, if we're in repeat mode)
+				except KeyboardInterrupt as exc:
+					self._finished_break(exc)
+					raise
+				else:
+					status = Status(status >> 8)
+					if status is Status.UNEVENTFUL:
+						self._finished_uneventful()
+					elif status is Status.INTERRUPTED:
+						exc = KeyboardInterrupt()
+						self._finished_break(exc)
+						raise exc
+					elif status is Status.TIMEOUT:
+						exc = misc.Timeout(self.maxtime)
+						self._finished_timeout(exc)
+						if self.exit_on_error:
+							raise exc
+					elif status is Status.FAILED:
+						exc = RuntimeError("failed")
+						self._finished_exception(exc)
+						if self.exit_on_error:
+							raise exc
+					elif status is Status.SUCCESSFUL:
+						self._finished_successful(None)
+					return # finish normally (or continue, if we're in repeat mode)
+			# Here we are in the child process
+			self.process = Process.CHILD
+			self.setproctitle()
+			task = self.task("child", misc.sysinfo.pid, self._run if self.repeat else None)
+			self._tasks = [task] # This replaces the task stack inherited from the parent
+			self.log.sisyphus.init.delay(f"forked worker child")
+		else: # We didn't fork
+			# set a signal to kill ourselves after the maximum runtime
+			if self.maxtime is not None and hasattr(signal, "SIGALRM"):
+				signal.signal(signal.SIGALRM, self._signal_alarm)
+				signal.alarm(int(self.maxtime.total_seconds()))
+
+		self.setproctitle("Setting up")
+		self.notifystart()
+		result = None
+		try:
+			with url.Context():
+				self.setproctitle("Working")
+				result = self.execute()
+				signal.alarm(0) # Cancel alarm
+		except misc.Timeout as exc:
+			status = self._finished_timeout(exc)
+			if not self.fork:
+				raise
+			result = str(exc)
+		except KeyboardInterrupt as exc:
+			status = self._finished_break(exc)
+			if not self.fork:
+				raise
+			result = "interrupted"
+		except Exception as exc:
+			status = self._finished_exception(exc)
+			result = f"failed with {misc.format_exception(exc)}"
+			if not self.fork and self.exit_on_error:
+				raise
+		else:
+			if result is None:
+				status = self._finished_uneventful()
+			else:
+				status = self._finished_successful(result)
+		self.notifyfinish(result)
+		if self.fork:
+			os._exit(status)
 
 	def _kill_children(self):
+		# type: () -> Set[int]
 		if psutil is None:
 			try:
 				os.kill(self.killpid, signal.SIGTERM) # Kill our child
@@ -897,269 +1460,146 @@ class Job:
 			for p in procs:
 				pids.add(p.pid)
 				p.terminate()
-			(gone, alive) = psutil.wait_procs(procs, timeout=3)
+
+			seconds = self.waitchildbreak.total_seconds()
+			(gone, alive) = psutil.wait_procs(procs, timeout=seconds)
 
 			# Send SIGKILL
 			if alive:
 				for p in alive:
-					print(f"Killing {p}")
 					pids.add(p.pid)
 					p.kill()
-				(gone, alive) = psutil.wait_procs(alive, timeout=3)
+				(gone, alive) = psutil.wait_procs(alive, timeout=seconds)
 				# Ignore whether any processes remain in the ``alive`` list
 			return pids
 
-	def _finished_timeout(self):
-		self.setproctitle("parent", "Timeout")
-
+	def _finished_uneventful(self):
+		# type: () -> Status
 		self.endtime = datetime.datetime.now()
+		self.setproctitle("Finishing")
+		if self.process is not Process.PARENT:
+			self._write_healthfile(None)
+			# log the result
+			if self._exceptioncount:
+				self.log.sisyphus.result.errors(None)
+			else:
+				self.log.sisyphus.result.delay.ok(None)
+		self._closelogs(Status.UNEVENTFUL)
+		return Status.UNEVENTFUL
 
-		if self.fork:
+	def _finished_successful(self, result):
+		# type: (OptStr) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Finishing")
+		self._write_healthfile(None)
+		# log the result
+		if self.process is not Process.PARENT:
+			if self._exceptioncount:
+				self.log.sisyphus.result.errors(result)
+			else:
+				# Throw away delayed logs.
+				if self._delayed_logs is not None:
+					self._delayed_logs = []
+				self.log.sisyphus.result.ok(result)
+		self._closelogs(Status.SUCCESSFUL)
+		return Status.SUCCESSFUL
+
+	def _finished_exception(self, exc):
+		# type: (BaseException) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Handling exception")
+		if self.process is not Process.PARENT:
+			strexc = misc.format_exception(exc)
+			self._write_healthfile(f"Failed with {strexc}")
+			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
+			self.log.sisyphus.email.mattermost(exc)
+			self.log.sisyphus.result.fail(f"failed with {strexc}")
+		self._closelogs(Status.FAILED)
+		return Status.FAILED
+
+	def _finished_break(self, exc):
+		# type: (KeyboardInterrupt) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Handling break")
+		self._write_healthfile("Interrupted")
+		if self.process is not Process.CHILD:
+			# Don't log to email or mattermost
+			self.log.sisyphus(exc)
+			self.log.sisyphus.result.fail(f"failed with {misc.format_exception(exc)}")
+		self._closelogs(Status.INTERRUPTED)
+		return Status.INTERRUPTED
+
+	def _finished_timeout(self, exc):
+		# type: (misc.Timeout) -> Status
+		self.endtime = datetime.datetime.now()
+		self.setproctitle("Timeout")
+		if self.process is not Process.CHILD:
+			self._write_healthfile(f"Timeout after {self.maxtime}")
+
+		if self.process is Process.PARENT:
 			pids = self._kill_children()
 
 			if len(pids) == 1:
 				pidstr = f"child {misc.first(pids)}"
 			else:
-				pids = ", ".join(str(pid) for pid in pids)
-				pidstr = f"children {pids}"
+				pidstr = ", ".join(str(pid) for pid in pids)
+				pidstr = f"children {pidstr}"
 
-			exc = RuntimeError(f"maximum runtime {self.maxtime} exceeded in forked {pidstr}")
 			msg = f"Terminated {pidstr} after {self.maxtime}"
-		else:
-			exc = RuntimeError(f"maximum runtime {self.maxtime} exceeded")
+		elif self.process is Process.SOLO:
 			msg = f"Terminated after {self.maxtime}"
-		if self.noisykills:
-			self.log.email(exc)
 		else:
-			self.log(exc)
-		self.log.sisyphus.result.kill(msg)
-		self._closelogs(True)
-		return 4
-
-	def _finished_break(self, exc):
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("child", "Handling break")
-		result = f"failed with {misc.format_exception(exc)}"
-		self.log.sisyphus(exc)
-		self.log.sisyphus.result.fail(result)
-		self.failed()
-		if not self.fork:
-			self._closelogs(True)
-		return 3
-
-	def _finished_exception(self, exc):
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("child", "Handling exception")
-		result = f"failed with {misc.format_exception(exc)}"
-		# log the error to the logfile, because :meth:`execute` probably didn't have a chance to do it
-		self.log.sisyphus.email(exc)
-		self.log.sisyphus.result.fail(result)
-		self.failed()
-		if not self.fork:
-			self._closelogs(True)
-		return 2
-
-	def _finished_success(self, result):
-		self.endtime = datetime.datetime.now()
-		self.setproctitle("child", "Finishing")
-		# log the result
-		if self._exceptioncount:
-			self.log.sisyphus.result.errors(result)
-		else:
-			self.log.sisyphus.result.ok(result)
-		if not self.fork:
-			self._closelogs(result is not None)
-		return 1 if result is not None else 0
+			msg = None
+		if msg is not None:
+			if self.noisykills:
+				self.log.email.mattermost(exc)
+			else:
+				self.log(exc)
+			self.log.sisyphus.result.kill(msg)
+		self._closelogs(Status.TIMEOUT)
+		return Status.TIMEOUT
 
 	def _signal_alarm(self, signum, frame):
-		raise misc.Timeout(0)
+		# type: (int, Optional[types.FrameType]) -> NoReturn
+		raise misc.Timeout(self.maxtime)
 
 	def _signal_int(self, signum, frame):
+		# type: (int, Optional[types.FrameType]) -> NoReturn
 		signal.alarm(0) # Cancel maximum runtime alarm
 		# Give the child process time to log the stacktrace
 		time.sleep(self.waitchildbreak.total_seconds())
 		raise KeyboardInterrupt
 
 	def _logmessage(self):
+		# type: () -> str
 		logmessage = []
 		for logger in self._loggers:
 			name = logger.name()
 			if name is not None:
 				logmessage.append(name)
-		logmessage = ", ".join(logmessage)
+		logstr = ", ".join(logmessage)
 
-		if logmessage:
-			return f"logging to {logmessage}"
+		if logstr:
+			return f"logging to {logstr}"
 		else:
 			return "no logging"
 
-	def _handleoneexecution(self):
-		self._tasks = []
-		self._loggers = []
-		self._exceptioncount = 0
-
-		# we were able to obtain the lock, so we are the only one running
-		self.starttime = datetime.datetime.now()
-		self.endtime = None
-
-		self._getscriptsource() # Get source code
-		self._getcrontab() # Get crontab
-		self.log = Tag(self._log) # Create tagged logger for files
-		self._formatlogline = ul4c.Template(self.formatlogline, "formatlogline", whitespace="strip") # Log line formatting template
-		self._formatemailsubject = ul4c.Template(self.formatemailsubject, "formatemailsubject", whitespace="strip") # Email subject formatting template
-		self._formatemailbodytext = ul4c.Template(self.formatemailbodytext, "formatemailbodytext", whitespace="strip") # Email body formatting template (plain text)
-		self._formatemailbodyhtml = ul4c.Template(self.formatemailbodyhtml, "formatemailbodyhtml", whitespace="strip") # Email body formatting template (HTML)
-
-		self._createlogs(True) # Create loggers
-
-		if self.fork and hasattr(os, "fork"):
-			self._tasks = [self.task("parent", os.getpid())]
-
-		self.log.sisyphus.init(f"{misc.sysinfo.script_name} (max time {self.maxtime})")
-
-		logmessage = self._logmessage()
-		self.log.sisyphus.init(logmessage)
-
-		# Check for support of various thing we'd like to use
-		if fcntl is None:
-			self.log.sisyphus.init.warning("Can't lock script file (module fcntl not available)")
-		if self.fork and not hasattr(os, "fork"):
-			self.log.sisyphus.init.warning("Can't fork (function os.fork not available)")
-			self.fork = False
-		if not hasattr(signal, "SIGALRM"):
-			self.log.sisyphus.init.warning("Can't use signals (signal.SIGALRM not available)")
-			self.fork = False
-		if self.setproctitle and setproctitle is None:
-			self.log.sisyphus.init.warning("Can't set process title (module setproctitle not available)")
-
-		if self.fork: # Forking mode?
-			# Fork the process; the child will do the work; the parent will monitor the maximum runtime
-			self.killpid = pid = os.fork()
-			if pid: # We are the parent process
-				self.setproctitle("parent", f"{logmessage} (max time {self.maxtime})")
-				# set a signal to delay CTRL-C handling until the child has cleaned up
-				signal.signal(signal.SIGINT, self._signal_int)
-				# set a signal to wake us up to kill the child process after the maximum runtime
-				if self.maxtime is not None:
-					signal.signal(signal.SIGALRM, self._signal_alarm)
-					signal.alarm(int(self.maxtime.total_seconds()))
-				try:
-					(pid, status) = os.waitpid(pid, 0) # Wait for the child process to terminate
-					if self.maxtime is not None:
-						signal.alarm(0) # Cancel maximum runtime alarm
-				except misc.Timeout as exc:
-					self._finished_timeout()
-					return # finish normally (or continue, if we're in repeat mode)
-				else:
-					status >>= 8
-					if status == 0: # Uneventful run
-						self._closelogs(False)
-					elif status == 3: # KeyboardInterrupt
-						# Don't close logfiles
-						raise KeyboardInterrupt
-					else: # Eventful run, exception, timeout
-						self._closelogs(True)
-					return # finish normally (or continue, if we're in repeat mode)
-			# Here we are in the child process
-			self.setproctitle("child")
-			task = self.task("child", misc.sysinfo.pid, self._run if self.repeat else None)
-			self._tasks = [task] # This replaces the task stack inherited from the parent
-			self.log.sisyphus.init(f"forked worker child")
-		else: # We didn't fork
-			# set a signal to kill ourselves after the maximum runtime
-			if self.maxtime is not None and hasattr(signal, "SIGALRM"):
-				signal.signal(signal.SIGALRM, self._signal_alarm)
-				signal.alarm(int(self.maxtime.total_seconds()))
-
-		self.setproctitle("child", "Setting up")
-		self.notifystart()
-		result = None
-		try:
-			with url.Context():
-				self.setproctitle("child", "Working")
-				result = self.execute()
-				signal.alarm(0) # Cancel alarm
-		except misc.Timeout as exc:
-			status = self._finished_timeout()
-		except KeyboardInterrupt as exc:
-			status = self._finished_break(exc)
-			if not self.fork:
-				raise
-		except Exception as exc:
-			status = self._finished_exception(exc)
-		else:
-			status = self._finished_success(result)
-		self.notifyfinish(result)
-		if self.fork:
-			os._exit(status)
-
-	def _handleexecution(self):
-		"""
-		Handle executing the job including handling of duplicate or hanging jobs.
-		"""
-		if self.jobname is None:
-			self.jobname = self.__class__.__qualname__
-		self._originalproctitle = setproctitle.getproctitle() if self.setproctitle and setproctitle else None
-		self._run = 0
-		self.maxtime = argseconds(self.maxtime)
-		self.keepfilelogs = argdays(self.keepfilelogs)
-		self.compressfilelogs = argdays(self.compressfilelogs)
-		self.waitchildbreak = argseconds(self.waitchildbreak)
-
-		# Obtain a lock on the script file to make sure we're the only one running
-		with open(misc.sysinfo.script_name, "rb") as f:
-			if fcntl is not None:
-				try:
-					fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-				except IOError as exc:
-					if exc.errno != errno.EWOULDBLOCK: # some other error
-						raise
-					# The previous invocation of the job is still running
-					return # Return without calling :meth:`execute`
-
-			if self.repeat:
-				while True:
-					self._handleoneexecution()
-					self._createlogs(False) # Recreate stdin/stdout loggers
-					self._run += 1
-					nextrun = self.nextrun
-					if callable(nextrun):
-						nextrun = nextrun()
-					if nextrun is None:
-						nextrun = datetime.timedelta(0)
-					if isinstance(nextrun, (int, float)):
-						nextrun = datetime.timedelta(seconds=nextrun)
-					if isinstance(nextrun, datetime.timedelta):
-						wait = nextrun
-						nextrun = self.starttime + wait
-					else:
-						wait = nextrun - datetime.datetime.now()
-					wait_seconds = wait.total_seconds()
-					if wait_seconds > 0:
-						self.setproctitle("parent", "Sleeping")
-						self.log.sisyphus.info(f"Sleeping for {wait} until {nextrun}")
-						time.sleep(wait_seconds)
-					else:
-						self.log.sisyphus.info(f"Restarting immediately")
-			else:
-				self._handleoneexecution()
-
-			if fcntl is not None:
-				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-
 	def notifystart(self):
+		# type: () -> None
 		if self.notify:
 			misc.notifystart()
 
 	def notifyfinish(self, result):
+		# type: (OptStr) -> None
 		if self.notify:
 			misc.notifyfinish(
 				f"{self.projectname} {self.jobname}",
 				f"finished after {self.endtime-self.starttime}",
-				result,
+				result or "uneventful",
 			)
 
 	def task(self, type=None, name=None, index=None, count=None):
+		# type: (OptStr, OptStr, OptInt, OptInt) -> Task
 		"""
 		:meth:`!task` is a context manager and can be used to specify subtasks.
 
@@ -1183,6 +1623,7 @@ class Job:
 		return Task(self, type=type, name=name, index=index, count=count)
 
 	def tasks(self, iterable, type=None, name=None):
+		# type: (Iterable[T], OptStrFromCall, OptStrFromCall) -> Generator[T, None, None]
 		"""
 		:meth:`!tasks` iterates through ``iterable`` and calls :meth:`task` for
 		each item. ``index`` and ``count`` will be passed to :meth:`task`
@@ -1222,10 +1663,11 @@ class Job:
 			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
 				yield item
 
-	def makeproctitle(self, process, detail=None):
+	def makeproctitle(self, detail=None):
+		# type: (OptStr) -> str
 		v = []
-		if self.fork:
-			v.append(process)
+		if self.process is not Process.SOLO:
+			v.append(self.process.name.lower())
 		for task in self._tasks:
 			v.append(str(task))
 		title = " :: ".join(v)
@@ -1235,23 +1677,47 @@ class Job:
 			return detail
 		return f"{title} >> {detail}"
 
-	def setproctitle(self, process, detail=None):
+	def setproctitle(self, detail=None):
+		# type: (OptStr) -> None
 		if self.proctitle and setproctitle:
-			title = self.makeproctitle(process, detail)
+			title = self.makeproctitle(detail)
 			setproctitle.setproctitle(f"{self._originalproctitle} :: {title}")
 
 	def _log(self, tags, obj):
+		# type: (Tags, Any) -> None
 		"""
 		Log ``obj`` to all loggers using ``tags`` as the list of tags.
+
+		If we're in "delayed logs" mode, buffer up messages instead.
 		"""
 		timestamp = datetime.datetime.now()
 		if isinstance(obj, BaseException) and "exc" not in tags:
 			tags += ("exc",)
 			self._exceptioncount += 1
-		for logger in self._loggers:
-			logger.log(timestamp, tags, self._tasks, obj)
+
+		delayed = "delay" in tags
+		if delayed:
+			tags = tuple(tag for tag in tags if tag != "delay")
+		if delayed and self._delayed_logs is not None:
+			self._delayed_logs.append((timestamp, tags, self._tasks[:], obj))
+		else:
+			self._flush_logs()
+			for logger in self._loggers:
+				logger.log(timestamp, tags, self._tasks, obj)
+
+	def _flush_logs(self):
+		# type: () -> None
+		"""
+		Flush delayed logs and switch of "delayed logs" mode.
+		"""
+		if self._delayed_logs is not None:
+			for (timestamp, tags, tasks, obj) in self._delayed_logs:
+				for logger in self._loggers:
+					logger.log(timestamp, tags, tasks, obj)
+			self._delayed_logs = None # No more delayed logs
 
 	def _getscriptsource(self):
+		# type: () -> None
 		"""
 		Reads the source code of the script into ``self.source``.
 		"""
@@ -1264,33 +1730,51 @@ class Job:
 			self.source = None
 
 	def _getcrontab(self):
+		# type: () -> None
 		"""
 		Reads the current crontab into ``self.crontab``.
 		"""
 		with os.popen("crontab -l 2>/dev/null") as f:
 			self.crontab = f.read()
 
-	def _makelink(self, logfilename, linknametemplate):
+	def _calc_nextrun(self):
+		# type: () -> datetime.datetime
 		"""
-		Make a symbolic link.
+		Calculate when the job should run next (in repeat mode).
+		"""
+		nextrun = self.nextrun
+		if callable(nextrun):
+			nextrun = nextrun()
+		if nextrun is None:
+			nextrun = datetime.timedelta(0)
+		if isinstance(nextrun, (int, float)):
+			nextrun = datetime.timedelta(seconds=nextrun)
+		if isinstance(nextrun, datetime.timedelta):
+			return self.starttime + nextrun
+		else:
+			return nextrun
 
-		The link goes from ``loglinkname`` to what the UL4 template
-		``linknametemplate`` returns.
+	def _calc_maxhealthcheckage(self):
+		# type: () -> datetime.datetime
 		"""
-		loglinkname = ul4c.Template(linknametemplate, "filename").renders(job=self)
-		loglinkname = url.File(loglinkname).abs()
-		logfilename = logfilename.relative(loglinkname)
-		try:
-			logfilename.symlink(loglinkname)
-		except OSError as exc:
-			if exc.errno == errno.EEXIST:
-				loglinkname.remove()
-				logfilename.symlink(loglinkname)
-			else:
-				raise
-		return loglinkname
+		Calculate cut-off date for the health check.
+
+		A health check file with a timestamp before that date will indicate an
+		unhealthy job.
+		"""
+		cutoff = self.maxhealthcheckage
+		if callable(cutoff):
+			cutoff = cutoff()
+		if cutoff is None:
+			cutoff = datetime.datetime(datetime.MINYEAR, 1, 1)
+		if isinstance(cutoff, (int, float)):
+			cutoff = datetime.timedelta(seconds=cutoff)
+		if isinstance(cutoff, datetime.timedelta):
+			cutoff = datetime.datetime.now() - cutoff
+		return cutoff
 
 	def _createlogs(self, full):
+		# type: (bool) -> None
 		"""
 		Create the logfile and the link to the logfile (if configured).
 
@@ -1298,47 +1782,61 @@ class Job:
 		be generated (if configured).
 		"""
 		self._loggers = []
+		skipfilenames = [] # type: List[pathlib.Path]
 		if full and self.toemail and self.fromemail and self.smtphost:
-			# Use the email logger as the first logger, so that when sending the email (in :meth:`EmailLogger.close`) fails, it will still be logged to the log file/stdout/stderr
+			# Use the email logger as the first logger, so that when sending the email (in :meth:`EmailLogger.close`) fails,
+			# it will still be logged to the log file/stdout/stderr
 			self._loggers.append(EmailLogger(self))
 		if full and self.log2file:
-			# Create the log file
-			template = ul4c.Template(self.logfilename, "logfilename", whitespace="strip")
-			logfilename = template.renders(job=self)
-			logfilename = url.File(logfilename).abs()
-			self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, logfilename.local()))
-			skipurls = [logfilename]
-			logfile = logfilename.open(mode="w", encoding=self.encoding, errors=self.errors)
-			self._loggers.append(URLResourceLogger(self, logfilename, logfile, skipurls, self._formatlogline))
-			if self.currentloglinkname is not None:
-				# Create the link to the current log file
-				template = ul4c.Template(self.currentloglinkname, "currentloglinkname", whitespace="strip")
-				loglinkname = template.renders(job=self)
-				loglinkname = url.File(loglinkname).abs()
-				self._loggers.append(CurrentLinkLogger(self, logfilename, loglinkname))
-				skipurls.append(loglinkname)
-			if self.lasteventfulloglinkname is not None:
-				# Create the link to the log file of the last eventful run
-				# (deferred to the end of the run)
-				template = ul4c.Template(self.lasteventfulloglinkname, "lasteventfulloglinkname", whitespace="strip")
-				loglinkname = template.renders(job=self)
-				loglinkname = url.File(loglinkname).abs()
-				self._loggers.append(LastLinkLogger(self, logfilename, loglinkname))
-				skipurls.append(loglinkname)
+			logfilename = self.logfilename()
+			if logfilename is not None:
+				# Create the logger for the log file
+				self.logfileurl = str(url.Ssh(misc.sysinfo.user_name, misc.sysinfo.host_fqdn or misc.sysinfo.host_name, str(logfilename)))
+				self._loggers.append(FileLogger(self, logfilename, self.encoding, self.errors, skipfilenames, self._formatlogline))
+				skipfilenames.append(logfilename) # Note that we can still append URLs after the logger has been created, as the list object is shared
+				# Create logger for links
+				links = [
+					(self.currentloglinkname, CurrentLinkLogger),
+					(self.lastsuccessfulloglinkname, LastStatusLinkLogger, Status.SUCCESSFUL),
+					(self.lastfailedloglinkname, LastStatusLinkLogger, Status.FAILED),
+					(self.lastinterruptedloglinkname, LastStatusLinkLogger, Status.INTERRUPTED),
+					(self.lasttimeoutloglinkname, LastStatusLinkLogger, Status.TIMEOUT),
+				] # type: List[Union[Tuple[Callable[[], pathlib.Path], Type[Logger]], Tuple[Callable[[], pathlib.Path], Type[Logger], Status]]]
+				for (makelinkfilename, logger, *additionalargs) in links:
+					linkfilename = makelinkfilename()
+					if linkfilename is not None:
+						self._loggers.append(logger(self, logfilename, linkfilename, *additionalargs))
+						skipfilenames.append(linkfilename)
+				if self._healthfilename is not None:
+					skipfilenames.append(self._healthfilename)
 		if self.log2stdout:
 			self._loggers.append(StreamLogger(self, sys.stdout, self._formatlogline))
 		if self.log2stderr:
 			self._loggers.append(StreamLogger(self, sys.stderr, self._formatlogline))
+		if self.mattermost_url is not None and self.mattermost_channel is not None and self.mattermost_token is not None:
+			self._loggers.append(MattermostLogger(self))
 
-	def _closelogs(self, eventful):
+	def _closelogs(self, status):
+		# type: (Status) -> None
 		while self._loggers:
 			# Don't remove the logger from the list immediately
 			# In this way, log messages that the logger outputs during closing will
 			# be logged by the logger itself (i.e. logfile cleanup will be logged
 			# in the logfile)
 			logger = self._loggers[0]
-			logger.close(eventful)
+			logger.close(status)
 			del self._loggers[0]
+
+	def _write_healthfile(self, error):
+		# type: (OptStr) -> None
+		# Write the file that is used for the healthcheck
+		if self._healthfilename:
+			error = "" if error is None else error + "\n"
+			try:
+				self._healthfilename.write_text(error, encoding=self.encoding, errors=self.errors)
+			except FileNotFoundError:
+				self._healthfilename.parent.mkdir(parents=True)
+				self._healthfilename.write_text(error, encoding=self.encoding, errors=self.errors)
 
 
 class Task:
@@ -1349,6 +1847,7 @@ class Task:
 	ul4attrs = {"index", "count", "type", "name", "starttime", "endtime", "success"}
 
 	def __init__(self, job, type=None, name=None, index=None, count=None):
+		# type: (Job, OptStr, OptStr, OptInt, OptInt) -> None
 		"""
 		Create a :class:`!Task` object. For the meaning of the parameters see
 		:meth:`Job.task`.
@@ -1358,32 +1857,30 @@ class Task:
 		self.name = name
 		self.index = index
 		self.count = count
-		self.starttime = None
-		self.endtime = None
-		self.success = None
-		self.exc = None
+		self.starttime = None # type: Optional[datetime.datetime]
+		self.endtime = None # type: Optional[datetime.datetime]
+		self.success = None # type: Optional[bool]
 
 	def __enter__(self):
+		# type: () -> Task
 		self.starttime = datetime.datetime.now()
 		self.job._tasks.append(self)
-		self.job.setproctitle("child")
+		self.job.setproctitle()
 		for logger in self.job._loggers:
 			logger.taskstart(self.job._tasks)
 		return self
 
 	def __exit__(self, type, value, traceback):
+		# type: (Optional[Type[BaseException]], Optional[BaseException], Optional[types.TracebackType]) -> None
 		self.endtime = datetime.datetime.now()
-		if type is None:
-			self.success = True
-		else:
-			self.success = False
-			self.exc = value
+		self.success = type is None
 		for logger in self.job._loggers:
 			logger.taskend(self.job._tasks)
 		self.job._tasks.pop()
-		self.job.setproctitle("child")
+		self.job.setproctitle()
 
 	def __str__(self):
+		# type: () -> str
 		v = ""
 		if self.index is not None:
 			v += f"[{self.index+1:,}"
@@ -1397,18 +1894,19 @@ class Task:
 			v += d
 		return v or "?"
 
-	def asjson(self):
+	def asdict(self):
+		# type: () -> Dict[str, Any]
 		return dict(
 			type=self.type,
-			name=self.name,
+			name=str(self.name) or None,
 			index=self.index,
 			count=self.count,
-			starttime=self.starttime.isoformat() if self.starttime else None,
-			endtime=self.endtime.isoformat() if self.endtime else None,
-			success=self.success
+			starttime=self.starttime,
+			endtime=self.endtime,
 		)
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} type={self.type!r} name={self.name!r} at {id(self):#x}"
 
 
@@ -1418,11 +1916,13 @@ class Tag:
 	of tags. Tags can be added via :meth:`__getattr__` or :meth:`__getitem__` calls.
 	"""
 	def __init__(self, func, *tags):
+		# type: (Callable, *str) -> None
 		self.func = func
 		self.tags = tags
-		self._map = {}
+		self._map = {} # type: Dict[str, Tag]
 
 	def __getattr__(self, tag):
+		# type: (str) -> Tag
 		if tag in self.tags: # Avoid duplicate tags
 			return self
 		if tag not in self._map:
@@ -1435,6 +1935,7 @@ class Tag:
 	__getitem__ = __getattr__
 
 	def __call__(self, *args, **kwargs):
+		# type: (*Any, **Any) -> Tag
 		return self.func(self.tags, *args, **kwargs)
 
 
@@ -1444,12 +1945,14 @@ class Logger:
 	"""
 
 	def name(self):
+		# type: () -> OptStr
 		"""
 		A name for the logger (using in reporting)
 		"""
 		return None
 
 	def log(self, timestamp, tags, tasks, text):
+		# type: (datetime.datetime, Tags, List[Task], str) -> None
 		"""
 		Called by the :class:`Job` when a log entry has to be made.
 
@@ -1478,6 +1981,7 @@ class Logger:
 		"""
 
 	def taskstart(self, tasks):
+		# type: (List[Task]) -> None
 		"""
 		Called by the :class:`Job` when a new subtask has been started.
 
@@ -1486,6 +1990,7 @@ class Logger:
 		"""
 
 	def taskend(self, tasks):
+		# type: (List[Task]) -> None
 		"""
 		Called by the :class:`Job` when a subtask is about to end.
 
@@ -1493,12 +1998,12 @@ class Logger:
 		the task that's about to end).
 		"""
 
-	def close(self, eventful):
+	def close(self, status):
+		# type: (Status) -> None
 		"""
 		Called by the :class:`Job` when job execution has finished.
 
-		``eventful`` specified whether the run was eventful (as returned by
-		:meth:`Job.execute`).
+		``status`` (an :class:`Status`) is the result status of the job run.
 		"""
 
 
@@ -1509,95 +2014,108 @@ class StreamLogger(Logger):
 	"""
 
 	def __init__(self, job, stream, linetemplate):
+		# type: (Job, TextIO, ul4c.Template) -> None
 		self.job = job
 		self.stream = stream
 		self.linetemplate = linetemplate
 		self.lineno = 1 # Current line number
 
 	def __repr__(self):
+		# type: () -> str
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} stream={self.stream!r} at {id(self):#x}>"
 
 	def name(self):
+		# type: () -> str
 		return self.stream.name
 
 	def log(self, timestamp, tags, tasks, text):
+		# type: (datetime.datetime, Tags, List[Task], str) -> None
 		for line in _formatlines(text):
-			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job)
+			line = self.linetemplate.renders(line=line, time=timestamp, tags=tags, tasks=tasks, sysinfo=misc.sysinfo, job=self.job, env=env)
 			self.stream.write(line)
 			self.stream.write("\n")
 			self.lineno += 1
 		self.stream.flush()
 
 
-class URLResourceLogger(StreamLogger):
+class FileLogger(StreamLogger):
 	"""
 	Logger that writes logging events into a file specified via an
 	:class:`~ll.url.URL` object. This is used for logging to the standard log
 	file.
 	"""
 
-	def __init__(self, job, fileurl, resource, skipurls, linetemplate):
-		StreamLogger.__init__(self, job, resource, linetemplate)
-		self.fileurl = fileurl
-		self.skipurls = skipurls
+	def __init__(self, job, filename, encoding, errors, skipfilenames, linetemplate):
+		# type: (Job, pathlib.Path, str, str, List[pathlib.Path], ul4c.Template) -> None
+		self.filename = filename
+		try:
+			file = filename.open("w", encoding=encoding, errors=errors)
+		except FileNotFoundError:
+			filename.parent.mkdir(parents=True)
+			file = filename.open("w", encoding=encoding, errors=errors)
+		StreamLogger.__init__(self, job, file, linetemplate)
+		self.skipfilenames = skipfilenames
 
-	def name(self):
-		return self.fileurl.local()
+	def __repr__(self):
+		# type: () -> str
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={str(self.filename)!r} at {id(self):#x}>"
 
-	def close(self, eventful):
+	def close(self, status):
+		# type: (Status) -> None
 		keepfilelogs = self.job.keepfilelogs
 		compressfilelogs = self.job.compressfilelogs
 
-		if keepfilelogs is not None or compressfilelogs is not None:
-			now = datetime.datetime.utcnow()
+		if self.job.process is not Process.CHILD and (keepfilelogs is not None or compressfilelogs is not None):
+			now = datetime.datetime.now()
 			keepthreshold = now - keepfilelogs # Files older that this will be deleted
 			compressthreshold = now - compressfilelogs # Files older that this will be compressed
-			logdir = self.stream.url.withoutfile()
+			logdir = pathlib.Path(self.stream.name).parent
 			removedany = False
 			compressedany = False
 			warnedcompressany = False
-			for fileurl in logdir/logdir.files():
-				fileurl = logdir/fileurl
-
+			for filename in sorted(list(logdir.iterdir())):
 				# Decide what to do with this file
 				# (Note that this might delete/compress files that were not produced by sisyphus)
-				if fileurl not in self.skipurls:
-					mdate = fileurl.mdate()
+				if filename not in self.skipfilenames:
 					# If the file is not the logfile or a link to it ...
+					mdate = get_mtime(filename)
 					if mdate < keepthreshold:
 						# ... and it's to old to keep it, delete it
 						if not removedany: # Only log this line for the first logfile we remove
 							# This will still work, as the file isn't closed yet.
-							self.job.log.sisyphus.info(f"Removing logfiles older than {keepfilelogs}")
+							self.job.log.sisyphus.delay.info(f"Removing logfiles older than {keepfilelogs}")
 							removedany = True
-						self.remove(fileurl)
+						self.remove(filename)
 					elif mdate < compressthreshold:
 						# ... and it's to old to keep it in uncompressed, compress it
-						if not fileurl.file.endswith((".gz", ".bz2", ".xz")):
+						if filename.suffix not in {".gz", ".bz2", ".xz"}:
 							if (self.job.compressmode == "gzip" and gzip is None) or (self.job.compressmode == "gzip2" and bz2 is None) or (self.job.compressmode == "lzma" and lzma is None):
 								if not warnedcompressany:
-									self.job.log.sisyphus.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
+									self.job.log.sisyphus.delay.warning(f"{self.job.compressmode} compression not available, leaving log files uncompressed")
 									warnedcompressany = True
 							else:
 								if not compressedany:
-									self.job.log.sisyphus.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
+									self.job.log.sisyphus.delay.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
 									compressedany = True
-								self.compress(fileurl)
-			if not eventful:
-				self.job.log.sisyphus.info("Going to delete current logfile")
-			if removedany or compressedany or not eventful:
-				self.job.log.sisyphus.info("Logfiles cleaned up")
-			# Close the stream now, so that we're able to delete it (even on Windows)
-			self.stream.close()
-			if not eventful:
+								self.compress(filename)
+			if status is Status.UNEVENTFUL:
+				self.job.log.sisyphus.delay.info("Going to delete current logfile")
+			if removedany or compressedany or status in (Status.UNEVENTFUL, Status.SUCCESSFUL):
+				self.job.log.sisyphus.delay.info("Logfiles cleaned up")
+		# Close the stream now, so that we're able to delete it (even on Windows)
+		self.stream.close()
+		if self.job.process is not Process.CHILD:
+			if status is Status.UNEVENTFUL:
 				# Remove current log file in case of a uneventful run
-				self.fileurl.remove()
+				self.filename.unlink()
 
-	def remove(self, fileurl):
-		self.job.log.sisyphus.info(f"Removing logfile {fileurl.local()}")
-		fileurl.remove()
+	def remove(self, filename):
+		# type: (pathlib.Path) -> None
+		self.job.log.sisyphus.delay.info(f"Removing logfile {filename}")
+		filename.unlink()
 
-	def compress(self, fileurl, bufsize=65536):
+	def compress(self, filename, bufsize=65536):
+		# type: (pathlib.Path, int) -> None
 		if self.job.compressmode == "gzip":
 			compressor = gzip.GzipFile
 			ext = ".gz"
@@ -1610,59 +2128,79 @@ class URLResourceLogger(StreamLogger):
 		else:
 			raise ValueError(f"unknown compressmode {self.job.compressmode!r}")
 
-		filename = fileurl.local()
-		self.job.log.sisyphus.info(f"Compressing logfile {fileurl.local()}")
-		with open(filename, "rb") as logfile:
-			with compressor(filename + ext, mode="wb") as compressedlogfile:
+		self.job.log.sisyphus.delay.info(f"Compressing logfile {filename}")
+		compressedfilename = pathlib.Path(str(filename) + ext)
+		with filename.open("rb") as logfile:
+			with compressor(compressedfilename, mode="wb") as compressedlogfile:
 				while True:
 					data = logfile.read(bufsize)
 					if not data:
 						break
 					compressedlogfile.write(data)
-		fileurl.remove()
+		# Copy timestamp of original file to the compressed file
+		# (otherwise removal of the compressed log file would be delayed)
+		times = get_utime(filename)
+		set_utime(compressedfilename, *times)
+		# Remove uncompressed log file
+		filename.unlink()
 
 
 class LinkLogger(Logger):
 	"""
 	Baseclass of all loggers that handle links to the log file.
 	"""
-	def __init__(self, job, fileurl, linkurl):
+	def __init__(self, job, filename, linkname):
+		# type: (Job, pathlib.Path, pathlib.Path) -> None
 		self.job = job
-		self.fileurl = fileurl
-		self.linkurl = linkurl
+		self.filename = filename
+		self.linkname = linkname
+
+	def __repr__(self):
+		# type: () -> str
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} linkname={str(self.linkname)!r} at {id(self):#x}>"
 
 	def _makelink(self):
-		linkurl = self.linkurl.abs()
-		fileurl = self.fileurl.relative(linkurl)
+		# type: () -> None
+		linkname = self.linkname.absolute()
+		filename = self.filename
 		try:
-			fileurl.symlink(linkurl)
-		except OSError as exc:
-			if exc.errno == errno.EEXIST:
-				linkurl.remove()
-				fileurl.symlink(linkurl)
-			else:
-				raise
+			filename = filename.absolute().relative_to(linkname.parent)
+		except ValueError:
+			pass
+		try:
+			linkname.symlink_to(filename)
+		except FileExistsError:
+			linkname.unlink()
+			linkname.symlink_to(filename)
 
 
 class CurrentLinkLogger(LinkLogger):
 	"""
 	Logger that handles the link to the current log file.
 	"""
-	def __init__(self, job, fileurl, linkurl):
-		super().__init__(job, fileurl, linkurl)
+	def __init__(self, job, filename, linkname):
+		# type: (Job, pathlib.Path, pathlib.Path) -> None
+		super().__init__(job, filename, linkname)
 		self._makelink()
 
 
-class LastLinkLogger(LinkLogger):
+class LastStatusLinkLogger(LinkLogger):
 	"""
-	Logger that handles the link to the log file of the last eventful job run.
+	Logger that handles the link to the log file for a specific job status.
 	"""
 
-	def __init__(self, job, fileurl, linkurl):
-		super().__init__(job, fileurl, linkurl)
+	def __init__(self, job, filename, linkname, status):
+		# type: (Job, pathlib.Path, pathlib.Path, Status) -> None
+		super().__init__(job, filename, linkname)
+		self.status = status
 
-	def close(self, eventful):
-		if eventful:
+	def __repr__(self):
+		# type: () -> str
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} linkname={str(self.linkname)!r} status={self.status.name} at {id(self):#x}>"
+
+	def close(self, status):
+		# type: (Status) -> None
+		if self.job.process is not Process.CHILD and status is self.status:
 			self._makelink()
 
 
@@ -1672,108 +2210,225 @@ class EmailLogger(Logger):
 	"""
 
 	def __init__(self, job):
+		# type: (Job) -> None
 		self.job = job
-		self._log = []
-		self._countexceptions = 0
-		self._countmessages = 0
+		self.filename = None
+		self.file = None
+		self.encoder = None
+
+	def name(self):
+		# type: () -> str
+		return "<email>"
 
 	def log(self, timestamp, tags, tasks, text):
 		if "email" in tags:
-			if len(self._log) < self.job.maxemailerrors:
-				self._log.append((timestamp, tags, tasks[:], text))
+			if self.file is None:
+				filename = self.job.emailfilename()
+				try:
+					file = filename.open("w", encoding="utf-8", buffering=1)
+				except FileNotFoundError:
+					filename.parent.mkdir(parents=True)
+					file = filename.open("w", encoding="utf-8", buffering=1)
+				self.file = file
+				self.encoder = ul4on.Encoder()
+			data = {"timestamp": timestamp, "tags": tags, "tasks": [t.asdict() for t in tasks]}
 			if isinstance(text, BaseException):
-				self._countexceptions += 1
+				data["type"] = "exception"
+				data["class"] = misc.format_class(text)
+				data["value"] = str(text) or None
+				data["traceback"] = _formattraceback(text)
 			else:
-				self._countmessages += 1
+				data["type"] = "message"
+				data["message"] = "\n".join(_formatlines(text))
+			self.file.write(self.encoder.dumps(data))
+			self.file.write("\n")
+			self.file.flush()
 
-	def close(self, eventful):
-		if self._log:
-			ul4log = []
-			jsonlog = []
-			for (timestamp, tags, tasks, obj) in self._log:
-				if isinstance(obj, BaseException):
-					excclass = misc.format_class(obj)
-					value = str(obj) or None
-					tb = _formattraceback(obj)
-					ul4log.append({"type": "exception", "timestamp": timestamp, "class": excclass, "value": value, "traceback": tb, "tasks": tasks})
-					jsonlog.append({"type": "exception", "timestamp": timestamp.isoformat(), "class": excclass, "value": value, "traceback": tb, "tasks": [task.asjson() for task in tasks]})
-				else:
-					message = "\n".join(_formatlines(obj))
-					ul4log.append({"type": "message", "timestamp": timestamp, "message": message, "tasks": tasks})
-					jsonlog.append({"type": "message", "timestamp": timestamp.isoformat(), "message": message, "tasks": [task.asjson() for task in tasks]})
+	def _load_dump(self, process):
+		# type: (Process) -> Generator[Any, None, None]
+		decoder = ul4on.Decoder()
+		filename = self.job.emailfilename(process)
+		try:
+			with filename.open("r", encoding="utf-8") as f:
+				while True:
+					try:
+						yield decoder.load(f)
+					except EOFError:
+						break
+		except FileNotFoundError:
+			pass
 
-			jsondata = dict(
-				projectname=self.job.projectname,
-				jobname=self.job.jobname,
-				identifier=self.job.identifier,
-				log=jsonlog,
-				countexceptions=self._countexceptions,
-				countmessages=self._countmessages,
-				host_name=misc.sysinfo.host_name,
-				host_fqdn=misc.sysinfo.host_fqdn,
-				host_ip=misc.sysinfo.host_ip,
-				host_sysname=misc.sysinfo.host_sysname,
-				host_nodename=misc.sysinfo.host_nodename,
-				host_release=misc.sysinfo.host_release,
-				host_version=misc.sysinfo.host_version,
-				host_machine=misc.sysinfo.host_machine,
-				user_name=misc.sysinfo.user_name,
-				user_uid=misc.sysinfo.user_uid,
-				user_gid=misc.sysinfo.user_gid,
-				user_gecos=misc.sysinfo.user_gecos,
-				user_dir=misc.sysinfo.user_dir,
-				user_shell=misc.sysinfo.user_shell,
-				python_executable=misc.sysinfo.python_executable,
-				python_version=misc.sysinfo.python_version,
-				pid=misc.sysinfo.pid,
-				script_name=misc.sysinfo.script_name,
-				short_script_name=misc.sysinfo.short_script_name,
-				starttime=self.job.starttime.isoformat() if self.job.starttime else None,
-				endtime=self.job.endtime.isoformat() if self.job.endtime else None,
-				logfileurl=self.job.logfileurl,
-			)
-			variables = dict(
-				job=self.job,
-				sysinfo=misc.sysinfo,
-				log=ul4log,
-				countexceptions=self._countexceptions,
-				countmessages=self._countmessages,
-			)
-			emailsubject = self.job._formatemailsubject.renders(**variables)
-			emailbodytext = self.job._formatemailbodytext.renders(**variables)
-			emailbodyhtml = self.job._formatemailbodyhtml.renders(**variables)
-
-			textpart = text.MIMEText(emailbodytext)
-			htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
-			jsonpart = application.MIMEApplication(json.dumps(jsondata).encode("utf-8"), _subtype="json", _encoder=encoders.encode_base64)
-			jsonpart.add_header('Content-Disposition', 'attachment', filename=f"{self.job.projectname}.{self.job.jobname}.json")
-
-			msg = multipart.MIMEMultipart(
-				_subparts=[
-					multipart.MIMEMultipart(_subtype="alternative", _subparts=[textpart, htmlpart]),
-					jsonpart,
-				]
-			)
-
-			msg["To"] = self.job.toemail
-			msg["From"] = self.job.fromemail
-			msg["Subject"] = emailsubject
+	def close(self, status):
+		# type: (Status) -> None
+		if self.file is not None:
+			self.file.close()
+		else:
+			# If we never wrote any logs, remove the log file (shoudn't exist anyway)
 			try:
-				server = smtplib.SMTP(self.job.smtphost, self.job.smtpport)
-				if self.job.smtpuser and self.job.smtppassword:
-					server.login(self.job.smtpuser, self.job.smtppassword)
-				server.send_message(msg)
-				server.quit()
-				self.job.log.sisyphus.report(f"Sent email report to {self.job.toemail}")
-			except smtplib.SMTPException as exc:
-				self.job.log.sisyphus.report(exc)
+				self.job.emailfilename().unlink()
+			except FileNotFoundError:
+				pass
+		if self.job.process is not Process.CHILD:
+			if self.job.process is Process.SOLO:
+				processes = (Process.SOLO,)
+			else:
+				processes = (Process.CHILD, Process.PARENT)
+
+			log = sorted(
+				itertools.chain.from_iterable(self._load_dump(p) for p in processes),
+				key=operator.itemgetter("timestamp"),
+			)
+
+			# Without log messages, we have nothing to do
+			if log:
+				countexceptions = 0
+				countmessages = 0
+				for data in log:
+					if data["type"] == "exception":
+						countexceptions += 1
+					else:
+						countmessages += 1
+
+				# Limit size of email
+				log = log[:self.job.maxemailerrors]
+
+				jsondata = dict(
+					projectname=self.job.projectname,
+					jobname=self.job.jobname,
+					identifier=self.job.identifier,
+					log=log,
+					countexceptions=countexceptions,
+					countmessages=countmessages,
+					host_name=misc.sysinfo.host_name,
+					host_fqdn=misc.sysinfo.host_fqdn,
+					host_ip=misc.sysinfo.host_ip,
+					host_sysname=misc.sysinfo.host_sysname,
+					host_nodename=misc.sysinfo.host_nodename,
+					host_release=misc.sysinfo.host_release,
+					host_version=misc.sysinfo.host_version,
+					host_machine=misc.sysinfo.host_machine,
+					user_name=misc.sysinfo.user_name,
+					user_uid=misc.sysinfo.user_uid,
+					user_gid=misc.sysinfo.user_gid,
+					user_gecos=misc.sysinfo.user_gecos,
+					user_dir=misc.sysinfo.user_dir,
+					user_shell=misc.sysinfo.user_shell,
+					python_executable=misc.sysinfo.python_executable,
+					python_version=misc.sysinfo.python_version,
+					pid=misc.sysinfo.pid,
+					script_name=misc.sysinfo.script_name,
+					short_script_name=misc.sysinfo.short_script_name,
+					starttime=self.job.starttime,
+					endtime=self.job.endtime,
+					logfileurl=self.job.logfileurl,
+				)
+				variables = dict(
+					job=self.job,
+					env=env,
+					sysinfo=misc.sysinfo,
+					log=log,
+					countexceptions=countexceptions,
+					countmessages=countmessages,
+				)
+				emailsubject = self.job._formatemailsubject.renders(**variables)
+				emailbodytext = self.job._formatemailbodytext.renders(**variables)
+				emailbodyhtml = self.job._formatemailbodyhtml.renders(**variables)
+
+				textpart = text.MIMEText(emailbodytext)
+				htmlpart = text.MIMEText(emailbodyhtml, _subtype="html")
+				jsonpart = application.MIMEApplication(json.dumps(jsondata, cls=DatetimeEncoder).encode("utf-8"), _subtype="json", _encoder=encoders.encode_base64)
+				jsonpart.add_header('Content-Disposition', 'attachment', filename=f"{self.job.projectname}.{self.job.jobname}.json")
+
+				msg = multipart.MIMEMultipart(
+					_subparts=[
+						multipart.MIMEMultipart(_subtype="alternative", _subparts=[textpart, htmlpart]),
+						jsonpart,
+					]
+				)
+
+				msg["To"] = self.job.toemail
+				msg["From"] = self.job.fromemail
+				msg["Subject"] = emailsubject
+				try:
+					server = smtplib.SMTP(self.job.smtphost, self.job.smtpport)
+					if self.job.smtpuser and self.job.smtppassword:
+						server.login(self.job.smtpuser, self.job.smtppassword)
+					server.send_message(msg)
+					server.quit()
+					self.job.log.sisyphus.report(f"Sent email report to {self.job.toemail}")
+				except smtplib.SMTPException as exc:
+					self.job.log.sisyphus.report(exc)
+
+			# Remove files
+			for p in processes:
+				try:
+					self.job.emailfilename(p).unlink()
+				except FileNotFoundError:
+					pass
+
+
+class MattermostLogger(Logger):
+	"""
+	Logger that logs messages to a Mattermost chat channel.
+	"""
+
+	def __init__(self, job):
+		# type: (Job) -> None
+		self.job = job
+
+	def name(self):
+		# type: () -> str
+		return "<mattermost>"
+
+	def log(self, timestamp, tags, tasks, text):
+		# type: (datetime.datetime, Tags, List["Task"], Any) -> None
+		if "mattermost" in tags:
+			import requests
+			if isinstance(text, BaseException):
+				message = _formattraceback(text)
+				type = "exc"
+			elif not isinstance(text, str):
+				message = pprint.pformat(text)
+				type = "obj"
+			else:
+				message = text
+				type = "str"
+			message = message.strip("\n")
+			if len(message) > 14000:
+				message = message[:14000] + "..."
+			vars = dict(
+				job=self.job,
+				env=env,
+				sysinfo=misc.sysinfo,
+				type=type,
+				message=message,
+				time=timestamp,
+				tags=tags,
+				tasks=tasks,
+			)
+			title = self.job._formatmattermosttitle.renders(**vars)
+			message = self.job._formatmattermostmessage.renders(**vars)
+
+			message = f"# {title}\n{message}"
+
+			requests.post(
+				self.job.mattermost_url,
+				headers={
+					"Authorization": f"Bearer {self.job.mattermost_token}",
+				},
+				json={
+					"channel_id": self.job.mattermost_channel,
+					"message": message[:15000],
+				}
+			)
 
 
 ###
 ### High-level interface for starting jobs
 ###
 
-def execute(job):
+def execute(job: Job):
+	# type (Job) -> None
 	"""
 	Execute the job ``job`` once or repeatedly.
 	"""
@@ -1781,6 +2436,7 @@ def execute(job):
 
 
 def executewithargs(job, args=None):
+	# type (Job, Optional[List[str]]) -> None
 	"""
 	Execute the job ``job`` once or repeatedly with command line arguments.
 

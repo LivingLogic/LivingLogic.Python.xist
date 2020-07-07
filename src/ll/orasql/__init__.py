@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2004-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2004-2019 by Walter Dörwald
+## Copyright 2004-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2004-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -33,10 +33,12 @@ __ https://oracle.github.io/python-cx_Oracle/
 """
 
 
-import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, fnmatch, unicodedata, decimal
+import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
 from collections import abc
 
 from cx_Oracle import *
+
+from cx_Oracle import __version__ as __cx_oracle_version__
 
 from ll import misc, url as url_
 
@@ -249,20 +251,20 @@ class RecordMaker:
 	def __init__(self, cursor):
 		self._readlobs = cursor.readlobs
 		self._index2name = tuple(d[0].lower() for d in cursor.description)
-		self._index2conv = tuple(getattr(self, d[1].__name__, self.DEFAULT) for d in cursor.description)
+		self._name2index = dict(zip(self._index2name, itertools.count()))
+		self._index2conv = tuple(getattr(self, d[1].name, self.DEFAULT) for d in cursor.description)
 
 	def __call__(self, *row):
 		row = tuple(conv(value) for (conv, value) in zip(self._index2conv, row))
-		name2index = dict(zip(self._index2name, itertools.count()))
-		return Record(self._index2name, name2index, row)
+		return Record(self._index2name, self._name2index, row)
 
-	def CLOB(self, value):
+	def DB_TYPE_CLOB(self, value):
 		return _decodelob(value, self._readlobs)
 
-	def NCLOB(self, value):
+	def DB_TYPE_NCLOB(self, value):
 		return _decodelob(value, self._readlobs)
 
-	def BLOB(self, value):
+	def DB_TYPE_BLOB(self, value):
 		return _decodelob(value, self._readlobs)
 
 	def DEFAULT(self, value):
@@ -343,6 +345,21 @@ class Record(tuple, abc.Mapping):
 		items = ", ".join(f"{key}={value!r}" for (key, value) in self.items())
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {items} at {id(self):#x}>"
 
+	def _repr_pretty_(self, p, cycle):
+		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
+		suffix = f"at {id(self):#x}"
+
+		if cycle:
+			p.text(f"{prefix} ... {suffix}>")
+		else:
+			with p.group(4, prefix, ">"):
+				for (key, value) in self.items():
+					p.breakable()
+					p.text(f"{key}=")
+					p.pretty(value)
+				p.breakable()
+				p.text(suffix)
+
 
 class SessionPool(SessionPool):
 	"""
@@ -363,7 +380,7 @@ class SessionPool(SessionPool):
 
 def sqlstr(s):
 	if s is None:
-		return null
+		return "null"
 	else:
 		s = s.replace("'", "''")
 		return f"'{s}'"
@@ -448,7 +465,7 @@ class Connection(Connection):
 		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?
 
 	def _numbersasdecimal(self, cursor, name, defaultType, length, precision, scale):
-		if defaultType is NUMBER and scale:
+		if defaultType is DB_TYPE_NUMBER and scale:
 			return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
 	def connectstring(self):
@@ -568,9 +585,9 @@ class Connection(Connection):
 	def objects(self, owner=None, mode="create"):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
-		comments, unique constraints, indexes, views, functions, procedures,
-		packages, types and jobsin the current users schema (or all users schemas)
-		in a specified order.
+		table and columns comments, unique constraints, indexes, views, functions,
+		procedures, packages, types and jobsin the current users schema
+		(or all users schemas) in a specified order.
 
 		``mode`` specifies the order in which objects will be yielded:
 
@@ -592,8 +609,6 @@ class Connection(Connection):
 			raise UnknownModeError(mode)
 
 		done = set()
-
-		cursor = self.cursor()
 
 		def do(obj):
 			if mode == "create":
@@ -619,15 +634,18 @@ class Connection(Connection):
 				if mode == "create" or mode == "flat":
 					yield from do(table)
 
+				# Table comment
+				yield table.comment()
+
+				# Column comments
+				for comment in table.comments():
+					# No dependency checks necessary, but use ``do`` anyway
+					yield from do(comment)
+
 				# Primary key
 				pk = table.pk()
 				if pk is not None:
 					yield from do(pk)
-
-				# Comments
-				for comment in table.comments():
-					# No dependency checks necessary, but use ``do`` anyway
-					yield from do(comment)
 
 				if mode == "drop":
 					yield from do(table)
@@ -1297,7 +1315,7 @@ class OwnedSchemaObject(SchemaObject):
 
 	def synonyms(self, connection=None):
 		"""
-		Generator the yields all synonyms for this object.
+		Generator that yields all synonyms for this object.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
@@ -1317,7 +1335,7 @@ class OwnedSchemaObject(SchemaObject):
 
 	def privileges(self, connection=None):
 		"""
-		Generator the yields all privileges on this object.
+		Generator that yields all privileges on this object.
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		if self.owner is None:
@@ -1545,16 +1563,28 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		cursor.execute(query, owner=self.owner, name=self.name)
 		_inlinepkfields = {rec.column_name for rec in cursor}
 
-		(organization, logging) = self._info(connection)
+		(organization, logging, compression) = self._info(connection)
 
 		query = f"""
 			select
-				*
+				c.column_name,
+				c.data_type,
+				c.data_precision,
+				c.data_scale,
+				c.char_length,
+				c.char_used,
+				c.data_default,
+				c.nullable,
+				decode(l.compression, 'NO', null, 'NONE', null, l.compression) as compression
 			from
-				{ddprefix}_tab_columns
+				{ddprefix}_tab_columns c,
+				{ddprefix}_lobs l
 			where
-				owner = nvl(:owner, user) and
-				table_name = :name
+				c.owner = nvl(:owner, user) and
+				c.table_name = :name and
+				c.owner = l.owner(+) and
+				c.table_name = l.table_name(+) and
+				c.column_name = l.column_name(+)
 			order by
 				column_id asc
 		"""
@@ -1575,6 +1605,16 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		code.append("\n)")
 		if not logging:
 			code.append(" nologging")
+		if compression is not None:
+			if compression == "BASIC":
+				code.append(" compress")
+			elif compression == "ADVANCED":
+				code.append(" row store compress advanced")
+			else:
+				code.append(f"column store compress for {compression}")
+		for rec in recs:
+			if rec.compression:
+				code.append(f"\nlob({rec.column_name}) store as securefile (compress {rec.compression.lower()})")
 		if term:
 			code.append(";")
 		code.append("\n")
@@ -1647,7 +1687,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		query = f"""
 			select
 				logging,
-				iot_type
+				iot_type,
+				compress_for
 			from
 				{ddprefix}_tables
 			where
@@ -1658,7 +1699,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		return ("heap" if rec.iot_type is None else "index", rec.logging == "YES")
+		return ("heap" if rec.iot_type is None else "index", rec.logging == "YES", rec.compress_for)
 
 	def organization(self, connection=None):
 		"""
@@ -1669,9 +1710,17 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 
 	def logging(self, connection=None):
 		"""
-		Return whether to table is in logging mode or not.
+		Return whether the table is in logging mode or not.
 		"""
 		return self._info(connection)[1]
+
+	def compression(self, connection=None):
+		"""
+		Return the compression mode of the table.
+
+		(``None``, ``"BASIC"`` or ``"ADVANCED"``).
+		"""
+		return self._info(connection)[2]
 
 	@classmethod
 	def names(cls, connection, owner=None):
@@ -1795,6 +1844,12 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		cursor.execute(query)
 		return iter(cursor)
 
+	def comment(self, connection=None):
+		"""
+		Return the table comment
+		"""
+		return TableComment(self.name, self.owner, self.getconnection(connection))
+
 	def comments(self, connection=None):
 		"""
 		Generator that yields all column comments of this table.
@@ -1814,7 +1869,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		cursor.execute(query, owner=self.owner, name=self.name)
 		for rec in cursor:
-			yield Comment(f"{self.name}.{rec.column_name}", self.owner, connection)
+			yield ColumnComment(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
@@ -1860,6 +1915,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 
 	def referencedby(self, connection=None):
 		if not self.ismview(connection):
+			yield self.comment(connection)
 			yield from self.comments(connection)
 			yield from self.constraints(connection)
 		for obj in super().referencedby(connection):
@@ -1868,11 +1924,79 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				yield obj
 
 
-class Comment(OwnedSchemaObject):
+class TableComment(OwnedSchemaObject):
+	"""
+	Models a table comment in the database.
+	"""
+	type = "tablecomment"
+
+	def exists(self, connection=None):
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"""
+			select
+				comments
+			from
+				{ddprefix}_tab_comments
+			where
+				owner=nvl(:owner, user) and
+				table_name=:name
+		"""
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		return rec is not None
+
+	def comment(self, connection=None):
+		"""
+		Return the comment text for this table.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		ddprefix = cursor.ddprefix()
+		query = f"""
+			select
+				comments
+			from
+				{ddprefix}_tab_comments
+			where
+				owner = nvl(:owner, user) and
+				table_name = :name
+		"""
+		cursor.execute(query, owner=self.owner, name=self.name)
+		rec = cursor.fetchone()
+		if rec is None:
+			raise SQLObjectNotFoundError(self)
+
+		return rec.comments
+
+	def createsql(self, connection=None, term=True):
+		comment = (self.comment(connection) or "").replace("'", "''")
+		name = self.getfullname()
+		code = f"comment on table {name} is '{comment}'"
+		if term:
+			code += ";\n"
+		else:
+			code += "\n"
+		return code
+
+	def dropsql(self, connection=None, term=True):
+		# will be dropped with the table
+		return ""
+
+	def fixname(self, code):
+		code = code.split(None, 5)
+		code = f"comment on table {self.getfullname()} is {code[5]}"
+		return code
+
+	def references(self, connection=None):
+		connection = self.getconnection(connection)
+		yield Table(self.name, self.owner, connection)
+
+
+class ColumnComment(OwnedSchemaObject):
 	"""
 	Models a column comment in the database.
 	"""
-	type = "comment"
+	type = "columncomment"
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -3280,8 +3404,8 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		"timestamp with time zone": datetime.datetime,
 		"number": float,
 		"varchar2": str,
-		"clob": CLOB,
-		"blob": BLOB,
+		"clob": DB_TYPE_CLOB,
+		"blob": DB_TYPE_BLOB,
 	}
 
 	def __init__(self, name, owner=None, connection=None):
@@ -3397,21 +3521,18 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		return queryargs
 
 	def _wraparg(self, cursor, arginfo, arg):
-		typename = None
 		try:
 			if arg is None:
 				t = self._ora2cx[arginfo.datatype]
 			else:
-				t = type(arg)
-				if isinstance(arg, Object):
-					typename = f"{arg.type.schema}.{arg.type.name}"
+				t = arg.type if isinstance(arg, Object) else type(arg)
 		except KeyError:
 			raise TypeError(f"can't handle parameter {arginfo.name} of type {arginfo.datatype} with value {arg!r} in {self!r}")
 		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``
-			t = BLOB
+			t = DB_TYPE_BLOB
 		elif isinstance(arg, str) and len(arg) >= 2000:
-			t = CLOB
-		var = cursor.var(t, typename=typename)
+			t = DB_TYPE_CLOB
+		var = cursor.var(t)
 		var.setvalue(0, arg)
 		return var
 
@@ -3884,11 +4005,15 @@ class Column(OwnedSchemaObject):
 			select
 				*
 			from
-				{ddprefix}_tab_columns
+				{ddprefix}_tab_columns c,
+				{ddprefix}_lobs l
 			where
-				owner = nvl(:owner, user) and
-				table_name = :table_name and
-				column_name = :column_name
+				c.owner = nvl(:owner, user) and
+				c.table_name = :table_name and
+				c.column_name = :column_name and
+				c.owner = l.owner(+) and
+				c.table_name = l.table_name(+) and
+				c.column_name = l.column_name(+)
 		"""
 		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
 		rec = cursor.fetchone()
@@ -4025,6 +4150,19 @@ class Column(OwnedSchemaObject):
 		(connection, cursor) = self.getcursor(connection)
 		rec = self._getcolumnrecord(cursor)
 		return rec.nullable == "Y"
+
+	def compression(self, connection=None):
+		"""
+		The compression mode for this LOB column.
+
+		Return ``None`` if this is not a LOB column, or it isn't compressed.
+		"""
+		(connection, cursor) = self.getcursor(connection)
+		rec = self._getcolumnrecord(cursor)
+		compression = rec.compression
+		if compression == "NO":
+			compression = None
+		return compression
 
 	def comment(self, connection=None):
 		"""
@@ -4564,7 +4702,7 @@ class OracleURLConnection(url_.Connection):
 		type = self._type(absurl)
 		if type == "root": # directory of types for the current user
 			for childname in sorted(SchemaObject.name2type):
-				if childname not in ("comment", "column"):
+				if childname not in ("tablecomment", "columncomment", "column"):
 					yield from _dir(f"{childname}/")
 		elif type == "type": # directory of objects of the specified type for current user
 			path = absurl.path
@@ -4573,7 +4711,11 @@ class OracleURLConnection(url_.Connection):
 				class_ = SchemaObject.name2type[type]
 			except KeyError:
 				raise FileNotFoundError(errno.ENOENT, f"no such file or directory: {url!r}") from None
-			for (name, owner) in class_.names(self.dbconnection, None):
+			if issubclass(class_, OwnedSchemaObject):
+				names = (name for (name, owner) in class_.names(self.dbconnection, None))
+			else:
+				names = class_.names(self.dbconnection)
+			for name in names:
 				if cursor.file:
 					yield _event(url / f"{makeurl(name)}.sql", "file")
 					cursor.restore()
@@ -4584,7 +4726,7 @@ class OracleURLConnection(url_.Connection):
 		elif type == "user": # directory of types for a specific user
 			path = absurl.path
 			for childname in sorted(SchemaObject.name2type):
-				if childname not in ("comment", "column"):
+				if childname not in ("tablecomment", "columncomment", "column"):
 					yield from _dir(f"{childname}/")
 		elif type == "usertype": # directory of objects of the specified type for a specific user
 			path = absurl.path

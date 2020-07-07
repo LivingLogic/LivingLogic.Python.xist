@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2019 by Walter Dörwald
+## Copyright 1999-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -631,12 +631,12 @@ class attrstartswith(Selector):
 		... 	parse.Node(pool=xsc.Pool(xml, html, chars))
 		... )
 		>>> for node in doc.walknodes(xfind.attrstartswith("class", "icon-")):
-		... 	print(node.string())
+		... 	print(node.bytes())
 		...
-		<span aria-hidden="true" class="icon-arrow-down"><span>▼</span></span>
-		<span aria-hidden="true" class="icon-arrow-up"><span>▲</span></span>
-		<span aria-hidden="true" class="icon-search"></span>
-		<span aria-hidden="true" class="icon-google-plus"></span>
+		b'<span aria-hidden="true" class="icon-arrow-down"><span>\\xe2\\x96\\xbc</span></span>'
+		b'<span aria-hidden="true" class="icon-arrow-up"><span>\\xe2\\x96\\xb2</span></span>'
+		b'<span aria-hidden="true" class="icon-search"></span>'
+		b'<span aria-hidden="true" class="icon-facebook"></span>'
 		...
 	"""
 

@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2011-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2011-2019 by Walter Dörwald
+## Copyright 2011-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2011-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See ll/xist/__init__.py for the license
 
 
-import sys, io, os, json, datetime, math, tempfile, shutil, subprocess
+import sys, os, json, datetime, math, tempfile, shutil, subprocess
 
 import pytest
 
@@ -567,6 +567,24 @@ def test_custom_class(t):
 		assert p.x == 0
 		assert p.y == 0
 		assert isinstance(p, PointContent)
+
+
+def test_multiple_encoder_calls():
+	encoder = ul4on.Encoder()
+	s1 = "gurk"
+	s2 = "hurz"
+	assert "S'gurk'" == encoder.dumps(s1)
+	assert "S'hurz'" == encoder.dumps(s2)
+	assert "^0" == encoder.dumps(s1)
+	assert "^1" == encoder.dumps(s2)
+
+
+def test_multiple_decoder_calls():
+	decoder = ul4on.Decoder()
+	assert "gurk" == decoder.loads("S'gurk'")
+	assert "hurz" == decoder.loads("S'hurz'")
+	assert "gurk" == decoder.loads("^0")
+	assert "hurz" == decoder.loads("^1")
 
 
 @pytest.mark.db

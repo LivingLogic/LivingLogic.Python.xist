@@ -985,7 +985,7 @@ supported:
 	(comparison is done by value not by identity)
 *	string, dict: Checks whether the key ``a`` is in the dictionary ``b``.
 	(Note that some implementations might support keys other than strings too.
-	E.g. Python and Java do, Javascript doesn't.)
+	E.g. Python and Java do, Javascript does only for ``Map`` objects.)
 
 The ``not in`` operator
 +++++++++++++++++++++++
@@ -1104,7 +1104,7 @@ are supported:
 For operations involving ``date`` objects, if the resulting day falls out of the
 range of valid days for the target month, the last day for the target month
 will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
-``2000-02-29 00:00:00``.
+``2000-02-29``.
 
 
 ``isundefined``
@@ -1346,6 +1346,26 @@ object. (Date objects, color objects and templates are not supported by
 
 ``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
 object.
+
+
+``ul4on``
+"""""""""
+
+This "module" contains functions and types for working with :mod:`ll.ul4on`.
+
+``ul4on.dumps(foo)`` returns the UL4ON representation of the object ``foo``.
+
+``ul4on.loads(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
+object.
+
+``ul4on.Encoder(indent)`` creates an encoder object that can be used to create
+multiple UL4ON dump using the same context. An ``ul4on.Encoder`` object has
+a method ``dumps`` that creates an UL4ON dump for the passed in object. 
+
+``ul4on.Decoder()`` creates a decoder object that can be used to recreate
+objects from multiple UL4ON dumps using the same context. An ``ul4on.Decoder``
+object has a method ``loadss`` that recreates an object from the passed in
+UL4ON dump.
 
 
 ``csv``
@@ -1620,6 +1640,18 @@ prints ``#fff``.
 """""""
 
 ``md5(str)`` returns the MD5 hash of the string ``str``.
+
+
+``scrypt``
+""""""""""
+
+``scrypt(str, salt)`` returns the scrypt hash of the string ``str`` using the
+salt value ``salt``. The returned string contains 256 hex digits.
+
+For more info on scrypt, see https://en.wikipedia.org/wiki/Scrypt
+
+.. note::
+	``scrypt`` is not implemented in the Javascript version of UL4.
 
 
 ``random``
@@ -2010,6 +2042,40 @@ When no ``<?return?>`` tag is encountered, ``None`` will be returned.
 
 When a ``<?return?>`` tag is encountered when the template is used as a
 template, output will simply stop and the return value will be ignored.
+
+
+Global variables
+================
+
+UL4 templates support global variables. To be able to pass parameters and
+global variables to an UL4 template a second set of methods is available, so
+that a list of positional arguments, a dictionary with keyword arguments and a
+dictionary with global variables can be passed.
+
+These methods are :meth:`render_with_globals`, :meth:`renders_with_globals` and
+:meth:`call_with_globals`.
+
+An example using :meth:`renders_with_globals` looks like this::
+
+	from ll import ul4c
+
+	t1 = ul4c.Template("<?print x?>")
+	t2 = ul4c.Template("<?render t1()?>")
+
+	output = t2.renders_with_globals((), {"t1": t1}, {"x": 42})
+
+With this ``output`` will be the string ``"42"``.
+
+And an example using :meth:`call_with_globals` looks like this::
+
+	from ll import ul4c
+
+	t1 = ul4c.Template("<?return x?>")
+	t2 = ul4c.Template("<?return t1()?>")
+
+	result = t2.call_with_globals((), {"t1": t1}, {"x": 42})
+
+With this ``result`` will be ``42``.
 
 
 Exposing attributes

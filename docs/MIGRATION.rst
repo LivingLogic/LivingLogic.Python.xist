@@ -3,9 +3,85 @@
 Migration
 #########
 
-This document describes how to update your code to each versions of XIST. Only
+This document describes how to update your code to each version of XIST. Only
 incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
+
+
+Migrating to version 5.58
+=========================
+
+Changes to ``ll.sisyphus``
+--------------------------
+
+*	The method :meth:`healthcheck` should no longer be implemented. Instead
+	the option ``--maxhealthcheckage`` or the class/instance attribute
+	``maxhealthcheckage`` can be used to configure the maximum allowed age.
+
+*	The method :meth:`failed` is no longer supported. If you need its
+	functionality wrap the content of your :meth:`execute` method in a ``try``
+	block and put the content of you :meth:`failed` method into an ``except``
+	block (and reraise the exception at the end of the ``except`` block).
+
+*	The filenames for log files can no longer be changed via options or job
+	attributes, instead one of the following methods must be overwritten:
+
+	*	:meth:`basedir`
+
+	*	:meth:`logfilename`
+
+	*	:meth:`currentloglinkname`
+
+	*	:meth:`lastsuccessfulloglinkname`
+
+	*	:meth:`lastfailedloglinkname`
+
+	*	:meth:`lastinterruptedloglinkname`
+
+	*	:meth:`lasttimeoutloglinkname`
+
+	*	:meth:`healthfilename`
+
+	*	:meth:`emailfilename`
+
+	Those methods must return an absolute path as a :class:`pathlib.Path` object.
+
+
+Migrating to version 5.57
+=========================
+
+Changes to ``ll.ul4on``
+-----------------------
+
+:class:`ll.ul4on.Encoder` and :class:`ll.ul4on.Decoder` now expect the stream
+to be passed in the call to :meth:`dump` and :meth:`load` instead of in the
+constructor. I.e. change::
+
+	Encoder(stream).dump(obj)
+
+to::
+
+	Encoder().dump(obj, stream)
+
+and::
+
+	obj = Decoder(stream).load()
+
+to::
+
+	obj = Decoder().load(stream)
+
+The parameter name for the UL4ON function ``fromul4on()`` has changed from
+``string`` to ``dump``.
+
+
+Migrating to version 5.56
+=========================
+
+Changes to ``ll.orasql``
+------------------------
+
+:class:`ll.orasql.Comment` has been renamed to :class:`ll.orasql.ColumnComment`.
 
 
 Migrating to version 5.52
@@ -201,7 +277,7 @@ Changes to ``ul4``
 	-	change ``error(...)`` to ``globals.error(...)``;
 
 	-	change ``foo`` to ``globals.vars.foo`` for a variable ``foo`` defined
-		via :option:`rul4 -D`.
+		via ``rul4 -D``.
 
 
 Migrating to version 5.18

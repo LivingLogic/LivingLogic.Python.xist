@@ -358,7 +358,6 @@ The output of this script will be:
 	<h4>Executable Python Scripts</h4>
 	<h4>Source Code Encoding</h4>
 	<h4>The Interactive Startup File</h4>
-	</tty>
 
 
 Formatting HTML as plain text

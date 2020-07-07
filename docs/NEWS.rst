@@ -8,6 +8,193 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.61 (released 07/07/2020)
+-------------------------------------
+
+*	Updated handling of custom data types when calling functions or procedures
+	in :mod:`ll.orasql` to work with :mod:`cx_Oracle` 8.0.
+
+*	Reordered table comments, column comments and the primary key of a table
+	in the output of :meth:`ll.orasql.Connection.objects` so that these objects
+	have the same order as in :meth:`ll.orasql.Table.referencedby`.
+
+
+Changes in 5.60 (released 07/03/2020)
+-------------------------------------
+
+*	The handling of delayed logs and uneventful runs in :mod:`ll.sisyphus` has
+	been changed: "Delayed logs" mode is now always active. If only delayed
+	log messages are output they will never be written to the logfiles. If a job
+	run is uneventful (i.e. :meth:`~ll.sisyphus.Job.execute` returns ``None``)
+	no log messages will be written. If the job run is successful only the job
+	result will be written.
+
+	The option and the class/instance attribute ``delaylogs`` no longer exist.
+
+*	Added a new option and class/instance attribute ``exit_on_error`` which
+	will stop job execution in repeat mode when an exception occurs.
+
+
+Changes in 5.59 (released 06/30/2020)
+-------------------------------------
+
+*	:mod:`ll.orasql` now requires :mod:`cx_Oracle` 8.0.
+
+*	:meth:`ll.orasql.Connection.objects` now outputs :class:`TableComment`
+	objects too.
+
+*	Fixed :meth:`ll.orasql.Table.comment` when the table was owned by a
+	different user.
+
+
+Changes in 5.58 (released 06/12/2020)
+-------------------------------------
+
+*	For running healthchecks for sisyphus jobs it's no longer neccessary (or even
+	allowed) to implement the :meth:`healthcheck` method. Instead the job writes
+	a healthfile at the end of each run, and the age and content of this file
+	will be used to determine the health of the job. The option
+	``--maxhealthcheckage`` can be used to configure the maximum allowed age.
+
+*	Logging to emails was broken when sisyphus jobs were running in fork mode
+	(the default): The child process was collecting log messages for the email,
+	but the parent process didn't, so it never sent an email. This has been fixed
+	now: Both processes write log messages to files, and those will be used after
+	the job run to create the email.
+
+*	Now links will be created for every possible result status of a job run.
+	So it's immediate clear when the last successful job run was, when the
+	last job run failed with an exception, was canceled or timed out.
+
+*	The filenames for log files can no longer be changed via options or job
+	attributes, instead one of the following methods must be overwritten:
+
+	*	:meth:`basedir`
+
+	*	:meth:`logfilename`
+
+	*	:meth:`currentloglinkname`
+
+	*	:meth:`lastsuccessfulloglinkname`
+
+	*	:meth:`lastfailedloglinkname`
+
+	*	:meth:`lastinterruptedloglinkname`
+
+	*	:meth:`lasttimeoutloglinkname`
+
+	*	:meth:`healthfilename`
+
+	*	:meth:`emailfilename`
+
+	Those methods must return an absolute path as a :class:`pathlib.Path` object.
+
+
+Changes in 5.57 (released 04/14/2020)
+-------------------------------------
+
+*	Added a "delayed logs" mode to :mod:`ll.sisyphus`. This makes it possible to
+	delay output of any log messages until something interesting happens. When
+	nothing interesting happens, log messages will be thrown away.
+
+*	Use :mod:`pathlib` internally for handling log file names in
+	:mod:`ll.sisyphus`.
+
+*	When a :mod:`ll.sisyphus` job compresses log files the compressed log file
+	now retains the modification timestamp of the original log file.
+
+*	The API for :class:`ll.ul4on.Encoder` and :class:`ll.ul4on.Decoder` has
+	been updated to support multiple calls for encoding/decoding an UL4ON dump
+	to multiple strings or streams that nonetheless keep the state for the
+	encoding/decoding machinery.
+
+*	UL4ON functionality is now available to UL4 template in a ``ul4on`` "module".
+	This module provides the functions/types ``loads``, ``dumps``, ``Decoder``
+	and ``Encoder``.
+
+*	The parameter ``string`` for the UL4 function ``fromul4on`` has been renamed
+	to ``dump``.
+
+
+Changes in 5.56 (released 12/12/2019)
+-------------------------------------
+
+*	:class:`ll.orasql.Comment` has been renamed to
+	:class:`ll.orasql.ColumnComment`.
+
+*	Added a class :class:`ll.orasql.TableComment` for table comments.
+
+*	Added a method :meth:`ll.orasql.Table.comment` that returns the
+	:class:`ll.orasql.TableComment` object for this table.
+
+*	UL4 templates now support global variables. To be able to pass global
+	variables to UL4 templates the following methods have been added to
+	:class:`ll.ul4c.Template`: :meth:`render_with_globals`,
+	:meth:`renders_with_globals` and :meth:`call_with_globals`.
+
+
+Changes in 5.55 (released 11/11/2019)
+-------------------------------------
+
+*	Added an option ``--ignoreerrors`` to ``orareindex``.
+
+*	UL4 dictionaries now have a method ``pop()``.
+
+*	Added an UL4 function ``scrypt`` implementing the scrypt hashing function
+	(see https://en.wikipedia.org/wiki/Scrypt).
+
+*	Added a new method :meth:`ll.orasql.Table.compression` that returns the table
+	compression (``None``, ``"BASIC"`` or ``"ADVANCED"``).
+
+*	Added a new method :meth:`ll.orasql.Column.compression` that returns the
+	column compression for LOB columns (``None``, ``"LOW"``, ``"MEDIUM"``
+	or ``"HIGH"``).
+
+*	:meth:`ll.orasql.Table.createsql` now can handle table and LOB column
+	compression.
+
+*	Added a method :meth:`loadcontentitems` to the class
+	:class:`ll.ul4on.Decoder` which can be used to load the content of an object
+	as ``(key, value)`` pairs.
+
+
+Changes in 5.54.1 (released 10/24/2019)
+---------------------------------------
+
+*	Fixed wrong HTTP header when posting sisyphus log entries to Mattermost.
+
+
+Changes in 5.54 (released 10/24/2019)
+-------------------------------------
+
+*	The tab width used by :func:`ll.xist.ns.html.astext` is now configurable and
+	long words will no longer be broken across multiple lines. This should
+	prevent long URLs from being broken.
+
+*	``ll.misc.sysinfo`` now exposes its attributes to UL4.
+
+*	:mod:`ll.sisyphus` log entries can now be logged to a Mattermost chat
+	channel.
+
+
+Changes in 5.53 (released 09/30/2019)
+-------------------------------------
+
+*	Fixed a bug in the handling of users and job classes (i.e. objects that
+	don't have an owner) in :meth:`ll.orasql.OracleURLConnection.walk`.
+
+*	Added an option ``--healthcheck`` to :mod:`ll.sispyhus` jobs: Starting a
+	job with this option runs a separate method :meth:`healthcheck` that is used
+	to check that the job is doing what it's supposed to be doing.
+
+
+Changes in 5.52.1 (released 09/05/2019)
+---------------------------------------
+
+*	Fixed handling of indentation when an UL4 ``<?renderblock?>`` contains a
+	``<?render?>`` call.
+
+
 Changes in 5.52 (released 07/29/2019)
 -------------------------------------
 
@@ -28,7 +215,7 @@ Changes in 5.52 (released 07/29/2019)
 *	A new method :meth:`ll.orasql.Connection.synonyms` has been added.
 
 *	:meth:`ll.orasql.Synonym.createsql` now omits the schema name from the name
-	for the objects if it's the current user.
+	for the object if it's the current user.
 
 
 

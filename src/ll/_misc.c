@@ -1,6 +1,6 @@
 /*
-** Copyright 2007-2019 by LivingLogic AG, Bayreuth, Germany.
-** Copyright 2007-2019 by Walter Dörwald
+** Copyright 2007-2020 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 2007-2020 by Walter Dörwald
 **
 ** All Rights Reserved
 **
@@ -286,10 +286,11 @@ static PyObject *xmlescape(PyObject *self, PyObject *arg)
 }
 
 
-static char xmlescape_doc[] =
-"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
-``&``, ``\"``, ``'`` and every restricted character has been replaced with\n\
-their XML character entity or character reference.";
+static char xmlescape_doc[] = PyDoc_STR(
+	"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
+	``&``, ``\"``, ``'`` and every restricted character has been replaced with\n\
+	their XML character entity or character reference."
+);
 
 
 static PyObject *xmlescape_text(PyObject *self, PyObject *arg)
@@ -298,10 +299,11 @@ static PyObject *xmlescape_text(PyObject *self, PyObject *arg)
 }
 
 
-static char xmlescape_text_doc[] =
-"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
-``&`` and every restricted character has been replaced with their XML character\n\
-entity or character reference.";
+static char xmlescape_text_doc[] = PyDoc_STR(
+	"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
+	``&`` and every restricted character has been replaced with their XML character\n\
+	entity or character reference."
+);
 
 
 static PyObject *xmlescape_attr(PyObject *self, PyObject *arg)
@@ -310,10 +312,11 @@ static PyObject *xmlescape_attr(PyObject *self, PyObject *arg)
 }
 
 
-static char xmlescape_attr_doc[] =
-"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
-``&``, , ``\"`` and every restricted character has been replaced with their\n\
-XML character entity or character reference.";
+static char xmlescape_attr_doc[] = PyDoc_STR(
+	"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
+	``&``, , ``\"`` and every restricted character has been replaced with their\n\
+	XML character entity or character reference."
+);
 
 
 static PyMethodDef _functions[] = {
@@ -323,24 +326,25 @@ static PyMethodDef _functions[] = {
 	{NULL,     NULL} /* sentinel */
 };
 
-static char module__doc__[] =
-"This module contains the functions :func:`xmlescape`, :func:`xmlescape_text`\n\
-and :func:`xmlescape_attr`";
+static char module__doc__[] = PyDoc_STR(
+	"This module contains the functions :func:`xmlescape`, :func:`xmlescape_text`\n\
+	and :func:`xmlescape_attr`"
+);
 
 static struct PyModuleDef _miscmodule = {
-    PyModuleDef_HEAD_INIT,
-    "_misc",
-    module__doc__, /* module doc */
-    -1,
-    _functions,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+	PyModuleDef_HEAD_INIT,
+	"_misc",
+	module__doc__, /* module doc */
+	0,
+	_functions,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 PyMODINIT_FUNC
 PyInit__misc(void)
 {
-    return PyModule_Create(&_miscmodule);
+	return PyModuleDef_Init(&_miscmodule);
 }

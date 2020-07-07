@@ -1,6 +1,6 @@
 /*
-** Copyright 1999-2019 by LivingLogic AG, Bayreuth, Germany.
-** Copyright 1999-2019 by Walter Dörwald
+** Copyright 1999-2020 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 1999-2020 by Walter Dörwald
 **
 ** All Rights Reserved
 **
@@ -102,23 +102,24 @@ static PyMethodDef _functions[] =
 	{NULL, NULL}
 };
 
-static char module__doc__[] =
-"This module contains the function switchcolor().";
+static char module__doc__[] = PyDoc_STR(
+	"This module contains the function switchcolor()."
+);
 
 static struct PyModuleDef _ansistylemodule = {
-    PyModuleDef_HEAD_INIT,
-    "_ansistyle",
-    module__doc__, /* module doc */
-    -1,
-    _functions,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+	PyModuleDef_HEAD_INIT,
+	"_ansistyle",
+	module__doc__, /* module doc */
+	0,
+	_functions,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 PyMODINIT_FUNC
 PyInit__ansistyle(void)
 {
-    return PyModule_Create(&_ansistylemodule);
+	return PyModuleDef_Init(&_ansistylemodule);
 }

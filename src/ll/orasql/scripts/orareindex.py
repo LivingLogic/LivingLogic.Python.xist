@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2014-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2014-2019 by Walter Dörwald
+## Copyright 2014-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2014-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -81,6 +81,7 @@ def main(args=None):
 	p.add_argument("-r", "--rebuild", dest="rebuild", help="Rebuild indexes instead of recreating them? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-x", "--execute", dest="execute", action=misc.FlagAction, help="immediately execute the commands instead of printing them? (default %(default)s)")
 	p.add_argument(      "--format", dest="format", help="The output format (default %(default)s)", choices=("sql", "pysql"), default="sql")
+	p.add_argument(      "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
 
 	args = p.parse_args(args)
 
@@ -106,7 +107,13 @@ def main(args=None):
 			stderr.writeln("orareindex.py: ", cs, f": {'Rebuilding' if rebuild else 'Recreating'} #{i+1:,} ", s4object(str(obj)))
 		if rebuild:
 			if args.execute:
-				cursor.execute(obj.rebuildsql(term=False))
+				if args.ignoreerrors:
+					try:
+						cursor.execute(obj.rebuildsql(term=False))
+					except Exception:
+						pass
+				else:
+					cursor.execute(obj.rebuildsql(term=False))
 			else:
 				stdout.writeln(obj.rebuildsql(term=True).strip())
 				if args.format == "pysql":
@@ -116,8 +123,15 @@ def main(args=None):
 		else:
 			if args.execute:
 				sql = obj.createsql(term=False)
-				cursor.execute(obj.dropsql(term=False))
-				cursor.execute(sql)
+				if args.ignoreerrors:
+					try:
+						cursor.execute(obj.dropsql(term=False))
+						cursor.execute(sql)
+					except Exception:
+						pass
+				else:
+					cursor.execute(obj.dropsql(term=False))
+					cursor.execute(sql)
 			else:
 				stdout.writeln(obj.dropsql(term=True).strip())
 				if args.format == "pysql":

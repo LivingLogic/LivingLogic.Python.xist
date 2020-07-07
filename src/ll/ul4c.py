@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2009-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2019 by Walter Dörwald
+## Copyright 2009-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -201,16 +201,26 @@ class UndefinedVariable(Undefined):
 class Context:
 	"""
 	A :class:`Context` object stores the context of a call to a template. This
-	consists of the local variables and the indent stack.
+	consists of local, global and builtin variables and the indent stack.
 	"""
-	# "Global" functions. Will be exposed to UL4 code
+
+	# "Builtin" functions. Will be exposed to UL4 code
 	functions = {}
 
-	def __init__(self):
-		self.vars = {}
+	def __init__(self, globals=None):
+		self._globals = globals if globals is not None else {}
+		self.vars = collections.ChainMap({}, self.globals, self.functions)
 		self.indents = [] # Stack of additional indentations for the ``<?render?>`` tag
 		self.escapes = [] # Stack of functions for escaping the output
 		self.asts = [] # Call stack (of :class:`AST` objects)
+
+	@property
+	def globals(self):
+		return self._globals
+
+	@globals.setter
+	def globals(self, vars):
+		self.vars.maps[-2] = self._globals = vars
 
 	@classmethod
 	def makefunction(cls, f):
@@ -222,21 +232,20 @@ class Context:
 
 	@contextlib.contextmanager
 	def replacevars(self, vars):
-		oldvars = self.vars
+		oldvars = self.vars.maps[0]
 		try:
-			self.vars = vars
+			self.vars.maps[0] = vars
 			yield
 		finally:
-			self.vars = oldvars
+			self.vars.maps[0] = oldvars
 
 	@contextlib.contextmanager
 	def chainvars(self):
-		oldvars = self.vars
 		try:
-			self.vars = collections.ChainMap({}, self.vars)
+			self.vars.maps.insert(0, {})
 			yield
 		finally:
-			self.vars = oldvars
+			del self.vars.maps[0]
 
 	def output(self, string):
 		for escape in self.escapes:
@@ -576,7 +585,7 @@ class ListProto(Proto):
 
 class DictProto(Proto):
 	name = "dict"
-	plainattrs = {"items", "values", "clear"}
+	plainattrs = {"items", "values", "clear", "pop"}
 	wrappedmethattrs = {"get", "update"}
 
 	@staticmethod
@@ -623,7 +632,7 @@ class DateProto(Proto):
 	def calendar(obj, firstweekday=0, mindaysinfirstweek=4):
 		"""
 		Return the calendar year the date ``obj`` belongs to, the calendar week
-		number and the week dayy. (A day might belong to a different calender year,
+		number and the week day. (A day might belong to a different calender year,
 		if it is in week 1 but before January 1, or if belongs to week 1 of the
 		following year).
 
@@ -2128,10 +2137,7 @@ class Var(Code):
 		try:
 			return context.vars[self.name]
 		except KeyError:
-			try:
-				return context.functions[self.name]
-			except KeyError:
-				return UndefinedVariable(self.name)
+			return UndefinedVariable(self.name)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -2172,6 +2178,12 @@ class Block(Code):
 
 	def append(self, item):
 		self.content.append(item)
+
+	def _pop_trailing_indent(self):
+		if self.content and isinstance(self.content[-1], Indent):
+			return self.content.pop()
+		else:
+			return None
 
 	def finish(self, endtag):
 		self.stoppos = endtag.startpos
@@ -2232,6 +2244,12 @@ class CondBlock(Block):
 		super().finish(endtag)
 		if self.content:
 			self.content[-1].stoppos = slice(endtag.startpos.start, endtag.startpos.start)
+
+	def _pop_trailing_indent(self):
+		if self.content:
+			return self.content[-1]._pop_trailing_indent()
+		else:
+			return None
 
 	def newblock(self, block):
 		if self.content:
@@ -3642,6 +3660,12 @@ class RenderBlock(Render):
 		self.content.startpos = slice(self.content.startpos.start, self.content.startpos.start)
 		self.content.stoppos = slice(endtag.startpos.start, endtag.startpos.start)
 
+	def _pop_trailing_indent(self):
+		if self.content is not None:
+			return self.content._pop_trailing_indent()
+		else:
+			return None
+
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
 
@@ -3697,6 +3721,12 @@ class RenderBlocks(Render):
 
 	def finish(self, endtag):
 		self.stoppos = endtag.startpos
+
+	def _pop_trailing_indent(self):
+		if self.content and isinstance(self.content[-1], Indent):
+			return self.content.pop()
+		else:
+			return None
 
 	def _str(self):
 		yield self.type
@@ -3790,12 +3820,16 @@ class Template(Block):
 	of the first ``<?return?>`` tag encountered). In this case all output of the
 	template will be ignored.
 
+	For rendering and calling a template with global variables the following
+	methods are available: :meth:`render_with_globals`,
+	:meth:`renders_with_globals` and :meth:`call_with_globals`.
+
 	A :class:`Template` object is itself an AST node. Evaluating it will store
 	the template object under its name in the local variables.
 	"""
 	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
 
-	version = "47"
+	version = "50"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
@@ -4060,8 +4094,7 @@ class Template(Block):
 	@classmethod
 	def loads(cls, data):
 		"""
-		The class method :meth:`loads` loads the template from string ``data``.
-		``data`` must contain the template in compiled UL4ON format.
+		Loads a template as an UL4ON dump from the string ``data``.
 		"""
 		from ll import ul4on
 		return ul4on.loads(data)
@@ -4069,8 +4102,7 @@ class Template(Block):
 	@classmethod
 	def load(cls, stream):
 		"""
-		The class method :meth:`load` loads the template from the stream
-		``stream``. The stream must contain the template in compiled UL4ON
+		Loads the template as an UL4ON dump from the stream ``stream``.
 		format.
 		"""
 		from ll import ul4on
@@ -4078,22 +4110,21 @@ class Template(Block):
 
 	def dump(self, stream):
 		"""
-		:meth:`dump` dumps the template in compiled UL4ON format to the
-		stream ``stream``.
+		Dump the template in compiled UL4ON format to the stream ``stream``.
 		"""
 		from ll import ul4on
 		ul4on.dump(self, stream)
 
 	def dumps(self):
 		"""
-		:meth:`dumps` returns the template in compiled UL4ON format
-		(as a string).
+		Return the template in compiled UL4ON format (as a string).
 		"""
 		from ll import ul4on
 		return ul4on.dumps(self)
 
 	def _renderbound(self, context):
-		# Helper method used by :meth:`render` and :meth:`TemplateClosure.render` where arguments have already been bound
+		# Helper method used by :meth:`render` and :meth:`TemplateClosure.render`
+		# where arguments have already been bound
 		try:
 			# Bypass ``self.eval()`` which simply stores the object as a local variable
 			# Also bypass ``super().eval()`` as this would add additional stackframe in exception messages
@@ -4116,20 +4147,36 @@ class Template(Block):
 	def render(*args, **kwargs):
 		"""
 		Render the template iteratively (i.e. this is a generator).
-		``args`[1:]` and ``kwargs`` contain the top level variables available
-		to the template code. (``args`[0]` is the ``self`` parameter, but
-		:meth:`render` is defined in this way, to allow a keyword argument named
-		``self``).
+
+		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. (``args`[0]` is the ``self``
+		parameter, but :meth:`render` is defined in this way, to allow a keyword
+		argument named ``self``). Positional arguments will only be supported if
+		the template has a signature.
 		"""
 		context = Context()
 		yield from args[0].ul4render(context, *args[1:], **kwargs)
 
+	def render_with_globals(self, args, kwargs, globals):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. ``globals`` contains global
+		variables. Positional arguments will only be supported if the template
+		has a signature.
+		"""
+		context = Context(globals)
+		yield from self.ul4render(context, *args, **kwargs)
+
 	def _rendersbound(self, context):
-		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders` where arguments have already been bound
+		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders`
+		# where arguments have already been bound
 		return "".join(self._renderbound(context))
 
+	# This will be exposed to UL4 as ``renders``
 	@withcontext
-	def ul4renders(*args, **kwargs): # This will be exposed to UL4 as ``renders``
+	def ul4renders(*args, **kwargs):
 		self = args[0]
 		context = args[1]
 		args = args[2:]
@@ -4139,16 +4186,32 @@ class Template(Block):
 
 	def renders(*args, **kwargs):
 		"""
-		Render the template as a string. ``args`[1:]` and ``kwargs`` contain
-		the top level variables available to the template code. (``args`[0]`
-		is the ``self`` parameter, but :meth:`renders` is defined in this way,
-		to allow a keyword argument named ``self``).
+		Render the template as a string.
+
+		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. (``args`[0]` is the ``self``
+		parameter, but :meth:`renders` is defined in this way, to allow a keyword
+		argument named ``self``). Positional arguments will only be supported if
+		the template has a signature.
 		"""
 		context = Context()
 		return args[0].ul4renders(context, *args[1:], **kwargs)
 
+	def renders_with_globals(self, args, kwargs, globals):
+		"""
+		Render the template as a string.
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. ``globals`` contains global
+		variables. Positional arguments will only be supported if the template
+		has a signature.
+		"""
+		context = Context(globals)
+		return self.ul4renders(context, *args, **kwargs)
+
 	def _callbound(self, context):
-		# Helper method used by :meth:`__call__` and :meth:`TemplateClosure.__call__` where arguments have already been bound
+		# Helper method used by :meth:`__call__` and :meth:`TemplateClosure.__call__`
+		# where arguments have already been bound
 		try:
 			for output in super().eval(context): # Bypass ``self.eval()`` which simply stores the object as a local variable
 				pass # Ignore all output
@@ -4159,10 +4222,12 @@ class Template(Block):
 	def ul4call(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
-		``args`[1:]` and ``kwargs`` contain the top level variables available
-		to the template code. (``args`[0]` is the ``self`` parameter, but
-		:meth:`ul4call` is defined in this way, to allow a keyword argument named
-		``self``).
+
+		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. (``args`[0]` is the ``self``
+		parameter, but :meth:`ul4call` is defined in this way, to allow a keyword
+		argument named ``self``). Positional arguments will only be supported if
+		the template has a signature.
 		"""
 		self = args[0]
 		context = args[1]
@@ -4174,13 +4239,27 @@ class Template(Block):
 	def __call__(*args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
-		``args`[1:]` and ``kwargs`` contain the top level variables available
-		to the template code. (``args`[0]` is the ``self`` parameter, but
-		:meth:`__call__` is defined in this way, to allow a keyword argument named
-		``self``).
+
+		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. (``args`[0]` is the ``self``
+		parameter, but :meth:`ul4call` is defined in this way, to allow a keyword
+		argument named ``self``). Positional arguments will only be supported if
+		the template has a signature.
 		"""
 		context = Context()
 		return args[0].ul4call(context, *args[1:], **kwargs)
+
+	def call_with_globals(self, args, kwargs, globals):
+		"""
+		Call the template as a function and return the resulting value.
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. ``globals`` contains global
+		variables. Positional arguments will only be supported if the template
+		has a signature.
+		"""
+		context = Context(globals)
+		return self.ul4call(context, *args, **kwargs)
 
 	def jssource(self):
 		"""
@@ -4416,7 +4495,7 @@ class Template(Block):
 			try:
 				return self._parser(tag, "declaration required").definition()
 			except Exception as exc:
-				_decorateexception(exc, template)
+				_decorateexception(exc, self)
 				raise
 
 		def parseexpr(tag):
@@ -4583,16 +4662,11 @@ class Template(Block):
 					render = parserender(tag)
 					# Find innermost block
 					innerblock = blockstack[-1]
-					if isinstance(innerblock, CondBlock):
-						innerblock = innerblock.content[-1]
-					innerblock = innerblock.content
 					# If we have an indentation before the ``<?render?>`` tag, move it
 					# into the ``indent`` attribute of the :class`Render` object,
 					# because this indentation must be added to every line that the
 					# rendered template outputs.
-					if innerblock and isinstance(innerblock[-1], Indent):
-						render.indent = innerblock[-1]
-						innerblock.pop()
+					render.indent = innerblock._pop_trailing_indent()
 					blockstack[-1].append(render)
 					if tag.tag in {"renderblock", "renderblocks"}:
 						blockstack.append(render)
@@ -4787,9 +4861,9 @@ def function_asul4on(obj):
 
 
 @Context.makefunction
-def function_fromul4on(string):
+def function_fromul4on(dump):
 	from ll import ul4on
-	return ul4on.loads(string)
+	return ul4on.loads(dump)
 
 
 @Context.makefunction
@@ -5148,6 +5222,12 @@ def function_md5(string):
 
 
 @Context.makefunction
+def function_scrypt(string, salt):
+	import scrypt
+	return scrypt.hash(string, salt, N=16384, r=8, p=1, buflen=128).hex()
+
+
+@Context.makefunction
 def function_round(x, digits=0):
 	result = round(x, digits)
 	if digits <= 0:
@@ -5241,12 +5321,16 @@ def function_dir(obj):
 	return proto(obj).dir(obj)
 
 
+from ll import ul4on
+Context.functions["ul4on"] = ul4on
+
+
 class TemplateClosure(Block):
 	ul4attrs = Template.ul4attrs
 
 	def __init__(self, template, context, signature):
 		self.template = template
-		self.vars = context.vars
+		self.vars = context.vars.maps[0]
 		self.signature = signature
 
 	@withcontext
@@ -5261,8 +5345,9 @@ class TemplateClosure(Block):
 			# (which wouldn't work anyway as ``self.template.signature`` is an :class:`AST` object)
 			yield from self.template._renderbound(context)
 
+	# This will be exposed to UL4 as ``renders``
 	@withcontext
-	def ul4renders(*args, **kwargs): # This will be exposed to UL4 as ``renders``
+	def ul4renders(*args, **kwargs):
 		self = args[0]
 		context = args[1]
 		args = args[2:]

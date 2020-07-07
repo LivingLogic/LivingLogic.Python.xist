@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2019 by Walter Dörwald
+## Copyright 1999-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -66,7 +66,7 @@ class RedefinedElementError(Error):
 				msg += f" ({msgs})"
 		elif self.duplicates == "merge":
 			incompatible = [attr.name for attr in self.oldelement.attrs if attr != self.newelement.attrs[attr.name]]
-			msg += f" (attribute{'s' if len(added) > 1 else ''} {', '.join(incompatible)} incompatible)"
+			msg += f" (attribute{'s' if len(incompatible) > 1 else ''} {', '.join(incompatible)} incompatible)"
 		# else self.duplicates == "reject"
 		return msg
 

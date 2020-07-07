@@ -243,7 +243,7 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.52",
+	version="5.61",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -310,9 +310,10 @@ args = dict(
 		"cssutils == 1.0.2",
 	],
 	extras_require={
-		"oracle": ["cx_Oracle >= 7.1"],
+		"oracle": ["cx_Oracle >= 8.0"],
 		"proctitle": ["setproctitle >= 1.1.8"],
 		"html": ["lxml >= 4.3.4"],
+		"requests": ["requests >= 2.22.0"],
 	},
 	zip_safe=False,
 )

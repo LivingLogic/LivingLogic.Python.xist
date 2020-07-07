@@ -67,7 +67,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'XIST'
-copyright = '1999-2019, Walter Dörwald'
+copyright = '1999-2020, Walter Dörwald'
 author = 'Walter Dörwald'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -247,7 +247,11 @@ latex_elements = {
 	#'pointsize': '10pt',
 
 	# Additional stuff for the LaTeX preamble.
-	'preamble': '\\setcounter{tocdepth}{2}\n\\usepackage{enumitem}\\definecolor{VerbatimBorderColor}{rgb}{1,1,1}',
+	'preamble':
+		'\\setcounter{tocdepth}{2}\n'
+		'\\usepackage{enumitem}\n'
+		'\\definecolor{VerbatimBorderColor}{rgb}{1,1,1}\n'
+	,
 
 	# Latex figure (float) alignment
 	#'figure_align': 'htbp',
@@ -318,6 +322,7 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
 	'python': ('https://docs.python.org/3.6', None),
+	'requests': ('https://requests.kennethreitz.org/en/master/', None),
 }
 
 autodoc_default_options = {

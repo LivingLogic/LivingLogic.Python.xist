@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2011-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2011-2019 by Walter Dörwald
+## Copyright 2011-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2011-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -219,9 +219,42 @@ For our example class it could be used like this::
 	output = """o s'com.example.person' s'John' )"""
 	j = ul4on.loads(output, {"com.example.person": Person})
 	print("Loaded:", j)
+
+:mod:`!ll.ul4on` also provides access to the classes that implement UL4ON
+encoding and decoding. This can be used to create multiple UL4ON dumps using the
+same context, or recreate multiple objects from multiple UL4ON dumps that use
+the same context.
+
+An example for encoding::
+
+	encoder = ul4on.Encoder()
+	obj = "spam"
+	print(encoder.dumps(obj))
+	print(encoder.dumps(obj))
+
+This prints::
+
+	S'spam'
+	^0
+
+since the encoder remembers that the string "spam" has already been output.
+
+An example for decoding::
+
+	decoder = ul4on.Decoder()
+	print(decoder.loads("S'spam'"))
+	print(decoder.loads("^0"))
+
+This prints::
+
+	spam
+	spam
+
+since the decoder remembers which object has been decodes as the first object
+from the dump.
 '''
 
-import sys, datetime, collections, io, ast
+import datetime, collections, io
 from collections import abc
 
 
@@ -256,13 +289,13 @@ class Encoder:
 	It manages the internal state required for handling backreferences and other
 	stuff.
 	"""
-	def __init__(self, stream, indent=None):
-		"""
-		Create an encoder for serializing objects to  ``self.stream``.
+	ul4attrs = {"dumps"}
 
-		``stream`` must provide a :meth:`!write` method.
+	def __init__(self, indent=None):
 		"""
-		self.stream = stream
+		Create an encoder for serializing objects.
+		"""
+		self.stream = None
 		self._level = 0
 		self.indent = indent
 		self._lastwaslf = False
@@ -294,14 +327,40 @@ class Encoder:
 		if self.indent:
 			self.stream.write("\n")
 
-	def dump(self, obj):
+	def dumps(self, obj):
 		"""
-		Serialize ``obj`` into the stream as an UL4ON formatted dump.
+		Serialize ``obj`` and return the resulting dump as a string.
 		"""
+
+		self.stream = io.StringIO()
+		self._level = 0
+		self._lastwaslf = False
+		self._first = True
+		self.dump(obj)
+		result = self.stream.getvalue()
+		self.stream = None
+		return result
+
+	def dump(self, obj, stream=None):
+		"""
+		Serialize ``obj`` into the stream ``stream`` as an UL4ON formatted dump.
+
+		``stream`` must provide a :meth:`!write` method.
+
+		Passing :const:`None` for ``stream`` may only be done by objects that
+		implement UL4ON serialization in their :meth:`ul4ondump` method.
+		"""
+		if stream is not None:
+			self.stream = stream
+			self._level = 0
+			self._lastwaslf = False
+			self._first = True
+
 		# Have we written this object already?
 		if id(obj) in self._id2index:
 			# Yes: Store a backreference to the object
-			self._line(f"^{self._id2index[id(obj)]}")
+			index = self._id2index[id(obj)]
+			self._line(f"^{index}")
 		else:
 			from ll import color, misc
 			# No: Write the object itself
@@ -377,6 +436,8 @@ class Encoder:
 				obj.ul4ondump(self)
 				self._level -= 1
 				self._line(")")
+		if stream is not None:
+			self.stream = None
 
 
 class Decoder:
@@ -386,23 +447,23 @@ class Decoder:
 	It manages the internal state required for handling backreferences and other
 	stuff.
 	"""
-	def __init__(self, stream, registry=None):
-		"""
-		Create a decoder for deserializing objects from  ``self.stream``.
+	ul4attrs = {"loads"}
 
-		``stream`` must provide a :meth:`!read` method.
+	def __init__(self, registry=None):
+		"""
+		Create a decoder for deserializing objects from an UL4ON dump.
 
 		``registry`` is used as a "custom type registry". It must map UL4ON
 		type names to callables that create new empty instances of those types.
 		Any type not found in ``registry`` will be looked up in the global
 		registry (see :func:`register`).
 		"""
-		self.stream = stream
+		self.stream = None
 		self._bufferedchar = None # Next character to be read by :meth:`_nextchar`
 		self._objects = []
 		self._keycache = {} # Used for "interning" dictionary keys
 		self.registry = registry
-		self._stack = [] # A stack of types that are currently in the process of being decoded (used in exception messages)
+		self._stack = None # A stack of types that are currently in the process of being decoded (used in exception messages)
 
 	def _readint(self):
 		buffer = io.StringIO()
@@ -451,19 +512,36 @@ class Decoder:
 		# Fix backreference in object list
 		self._objects[oldpos] = value
 
-	def load(self):
+	def loads(self, dump):
 		"""
-		Deserialize the next object in the stream and return it.
+		Deserialize the object in the string ``dump`` and return it.
 		"""
+
+		return self.load(io.StringIO(dump))
+
+	def load(self, stream=None):
+		"""
+		Deserialize the next object from the stream ``stream`` and return it.
+
+		``stream`` must provide a :meth:`!read` method.
+
+		Passing :const:`None` for ``stream`` may only be done by objects that
+		implement UL4ON deserialization in their :meth:`ul4onload` method.
+		"""
+		if stream is not None:
+			self.stream = stream
+			self._stack = []
+			self._bufferedchar = None
+
 		from ll import misc
 		typecode = self._nextchar()
 		if typecode == "^":
 			position = self._readint()
-			return self._objects[position]
+			value = self._objects[position]
 		elif typecode in "nN":
 			if typecode == "N":
 				self._loading(None)
-			return None
+			value = None
 		elif typecode in "bB":
 			value = self.stream.read(1)
 			if value == "T":
@@ -474,12 +552,10 @@ class Decoder:
 				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,}: expected 'T' or 'F' for bool; got {value!r}")
 			if typecode == "B":
 				self._loading(value)
-			return value
 		elif typecode in "iI":
 			value = self._readint()
 			if typecode == "I":
 				self._loading(value)
-			return value
 		elif typecode in "fF":
 			chars = []
 			while True:
@@ -491,7 +567,6 @@ class Decoder:
 					break
 			if typecode == "F":
 				self._loading(value)
-			return value
 		elif typecode in "sS":
 			delimiter = self.stream.read(1)
 			if not delimiter:
@@ -512,7 +587,6 @@ class Decoder:
 					buffer.append(c2)
 			if typecode == "S":
 				self._loading(value)
-			return value
 		elif typecode in "cC":
 			from ll import color
 			if typecode == "C":
@@ -524,7 +598,6 @@ class Decoder:
 			value = color.Color(r, g, b, a)
 			if typecode == "C":
 				self._endfakeloading(oldpos, value)
-			return value
 		elif typecode in "zZ":
 			if typecode == "Z":
 				oldpos = self._beginfakeloading()
@@ -538,7 +611,6 @@ class Decoder:
 			value = datetime.datetime(year, month, day, hour, minute, second, microsecond)
 			if typecode == "Z":
 				self._endfakeloading(oldpos, value)
-			return value
 		elif typecode in "xX":
 			if typecode == "X":
 				oldpos = self._beginfakeloading()
@@ -548,7 +620,6 @@ class Decoder:
 			value = datetime.date(year, month, day)
 			if typecode == "X":
 				self._endfakeloading(oldpos, value)
-			return value
 		elif typecode in "rR":
 			if typecode == "R":
 				oldpos = self._beginfakeloading()
@@ -567,7 +638,6 @@ class Decoder:
 			value = datetime.timedelta(days, seconds, microseconds)
 			if typecode == "T":
 				self._endfakeloading(oldpos, value)
-			return value
 		elif typecode in "mM":
 			from ll import misc
 			if typecode == "M":
@@ -576,7 +646,6 @@ class Decoder:
 			value = misc.monthdelta(months)
 			if typecode == "M":
 				self._endfakeloading(oldpos, value)
-			return value
 		elif typecode in "lL":
 			self._stack.append("list")
 			value = []
@@ -586,7 +655,7 @@ class Decoder:
 				typecode = self._nextchar()
 				if typecode == "]":
 					self._stack.pop()
-					return value
+					break
 				else:
 					self._bufferedchar = typecode
 					item = self.load()
@@ -600,7 +669,7 @@ class Decoder:
 				typecode = self._nextchar()
 				if typecode == "}":
 					self._stack.pop()
-					return value
+					break
 				else:
 					self._bufferedchar = typecode
 					key = self.load()
@@ -620,7 +689,7 @@ class Decoder:
 				typecode = self._nextchar()
 				if typecode == "}":
 					self._stack.pop()
-					return value
+					break
 				else:
 					self._bufferedchar = typecode
 					item = self.load()
@@ -645,9 +714,13 @@ class Decoder:
 			if typecode != ")":
 				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): object terminator ')' expected, got {typecode!r}")
 			self._stack.pop()
-			return value
 		else:
 			raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): unknown typecode {typecode!r}")
+
+		if stream is not None:
+			self.stream = None
+			self._stack = None
+		return value
 
 	def loadcontent(self):
 		"""
@@ -664,12 +737,32 @@ class Decoder:
 		while True:
 			typecode = self._nextchar()
 			# We always "push back" the typecode we've read so that :meth:`load`
-			# can treat both cases (i.e. whether :meth:`ul4onload` uses
-			# :meth:`load` or :meth:`loadcontent`) the same way.
+			# can treat all cases (i.e. whether :meth:`ul4onload` uses :meth:`load`
+			# :meth:`loadcontent` or  :meth:`loadcontentitems`) the same way.
 			self._bufferedchar = typecode
 			if typecode == ")":
 				break
 			yield self.load()
+
+	def loadcontentitems(self):
+		"""
+		Similar to :meth:`loadcontent`, but will load the content of an object as
+		(key, value) pairs.
+
+		For further info see :meth:`loadcontent`.
+		"""
+
+		while True:
+			typecode = self._nextchar()
+			# We always "push back" the typecode we've read so that :meth:`load`
+			# can treat all cases (i.e. whether :meth:`ul4onload` uses :meth:`load`
+			# :meth:`loadcontent` or  :meth:`loadcontentitems`) the same way.
+			self._bufferedchar = typecode
+			if typecode == ")":
+				break
+			key = self.load()
+			value = self.load()
+			yield (key, value)
 
 
 class StreamBuffer:
@@ -698,7 +791,7 @@ def dumps(obj, indent=None):
 	Serialize ``obj`` as an UL4ON formatted string.
 	"""
 	stream = io.StringIO()
-	Encoder(stream, indent=indent).dump(obj)
+	Encoder(indent=indent).dump(obj, stream)
 	return stream.getvalue()
 
 
@@ -708,7 +801,7 @@ def dump(obj, stream, indent=None):
 
 	``stream`` must provide a :meth:`write` method.
 	"""
-	Encoder(stream, indent=indent).dump(obj)
+	Encoder(indent=indent).dump(obj, stream)
 
 
 def loadclob(clob, bufsize=1024*1024, registry=None):
@@ -721,17 +814,17 @@ def loadclob(clob, bufsize=1024*1024, registry=None):
 
 	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
 	"""
-	return Decoder(StreamBuffer(clob, bufsize), registry).load()
+	return Decoder(registry).load(StreamBuffer(clob, bufsize))
 
 
-def loads(string, registry=None):
+def loads(dump, registry=None):
 	"""
-	Deserialize ``string`` (which must be a string containing an UL4ON
+	Deserialize ``dump`` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
 
 	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
 	"""
-	return Decoder(io.StringIO(string), registry).load()
+	return Decoder(registry).loads(dump)
 
 
 def load(stream, registry=None):
@@ -741,4 +834,7 @@ def load(stream, registry=None):
 
 	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
 	"""
-	return Decoder(stream, registry).load()
+	return Decoder(registry).load(stream)
+
+
+ul4attrs = {"loads", "dumps", "Encoder", "Decoder"}

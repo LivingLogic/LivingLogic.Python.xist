@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2007-2019 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2007-2019 by Walter Dörwald
+## Copyright 2007-2020 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2007-2020 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -186,9 +186,10 @@ class Daemon:
 		try:
 			with open(self.pidfile, "rb") as f:
 				data = f.read()
-				pid = int(data.decode("utf-8"))
 		except IOError as exc:
 			sys.exit(f"can't open pidfile {self.pidfile}: {exc}")
+		try:
+			pid = int(data.decode("utf-8"))
 		except ValueError:
 			sys.exit(f"mangled pidfile {self.pidfile}: {data}")
 		os.kill(pid, signal.SIGTERM)
