@@ -634,11 +634,6 @@ class Connection(Connection):
 				if mode == "create" or mode == "flat":
 					yield from do(table)
 
-				# Primary key
-				pk = table.pk()
-				if pk is not None:
-					yield from do(pk)
-
 				# Table comment
 				yield table.comment()
 
@@ -646,6 +641,11 @@ class Connection(Connection):
 				for comment in table.comments():
 					# No dependency checks necessary, but use ``do`` anyway
 					yield from do(comment)
+
+				# Primary key
+				pk = table.pk()
+				if pk is not None:
+					yield from do(pk)
 
 				if mode == "drop":
 					yield from do(table)

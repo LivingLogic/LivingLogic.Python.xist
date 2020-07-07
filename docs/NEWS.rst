@@ -14,6 +14,10 @@ Changes in 5.61 (released 07/07/2020)
 *	Updated handling of custom data types when calling functions or procedures
 	in :mod:`ll.orasql` to work with :mod:`cx_Oracle` 8.0.
 
+*	Reordered table comments, column comments and the primary key of a table
+	in the output of :meth:`ll.orasql.Connection.objects` so that these objects
+	have the same order as in :meth:`ll.orasql.Table.referencedby`.
+
 
 Changes in 5.60 (released 07/03/2020)
 -------------------------------------
