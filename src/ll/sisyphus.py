@@ -1476,6 +1476,15 @@ class Job:
 				# Ignore whether any processes remain in the ``alive`` list
 			return pids
 
+	def _termination_message(self, exc, pids):
+		if not pids:
+			return f"Terminated: {exc}"
+		elif len(pids) == 1:
+			return f"Terminated child {misc.first(pids)}: {exc}"
+		else:
+			pidstr = ", ".join(str(pid) for pid in pids)
+			return f"Ternminated children {pidstr}: {exc}"
+
 	def _finished_uneventful(self):
 		# type: () -> Status
 		self.endtime = datetime.datetime.now()
@@ -1537,16 +1546,9 @@ class Job:
 
 		if self.process is Process.PARENT:
 			pids = self._kill_children()
-
-			if len(pids) == 1:
-				pidstr = f"child {misc.first(pids)}"
-			else:
-				pidstr = ", ".join(str(pid) for pid in pids)
-				pidstr = f"children {pidstr}"
-
-			msg = f"Terminated {pidstr} after {self.maxtime}"
+			msg = self._termination_message(exc, pids)
 		elif self.process is Process.SOLO:
-			msg = f"Terminated after {self.maxtime}"
+			msg = self._termination_message(exc, set())
 		else:
 			msg = None
 		if msg is not None:
