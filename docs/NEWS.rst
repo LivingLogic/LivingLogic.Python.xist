@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.61.2 (released 07/10/2020)
+Changes in 5.61.2 (released 07/09/2020)
 ---------------------------------------
 
 *	Fixed a regression in :mod:`ll.sisyphus` from 5.61.1: Stay in delayed logs
