@@ -1363,10 +1363,10 @@ class Job:
 				self.process = Process.PARENT
 				self.setproctitle(f"{logmessage} (max time {self.maxtime})")
 				# set a signal to delay CTRL-C handling until the child has cleaned up
-				signal.signal(signal.SIGINT, self._signal_int)
+				signal.signal(signal.SIGINT, self._signal_interupt)
 				# set a signal to wake us up to kill the child process after the maximum runtime
 				if self.maxtime is not None:
-					signal.signal(signal.SIGALRM, self._signal_alarm)
+					signal.signal(signal.SIGALRM, self._signal_timeout)
 					signal.alarm(int(self.maxtime.total_seconds()))
 				try:
 					(pid, status) = os.waitpid(pid, 0) # Wait for the child process to terminate
@@ -1411,7 +1411,7 @@ class Job:
 		else: # We didn't fork
 			# set a signal to kill ourselves after the maximum runtime
 			if self.maxtime is not None and hasattr(signal, "SIGALRM"):
-				signal.signal(signal.SIGALRM, self._signal_alarm)
+				signal.signal(signal.SIGALRM, self._signal_timeout)
 				signal.alarm(int(self.maxtime.total_seconds()))
 
 		self.setproctitle("Setting up")
@@ -1557,11 +1557,11 @@ class Job:
 			self.log.sisyphus.result.kill(self._termination_message(exc, pids))
 		return Status.TIMEOUT
 
-	def _signal_alarm(self, signum, frame):
+	def _signal_timeout(self, signum, frame):
 		# type: (int, Optional[types.FrameType]) -> NoReturn
 		raise misc.Timeout(self.maxtime)
 
-	def _signal_int(self, signum, frame):
+	def _signal_interupt(self, signum, frame):
 		# type: (int, Optional[types.FrameType]) -> NoReturn
 		signal.alarm(0) # Cancel maximum runtime alarm
 		# Give the child process time to log the stacktrace
