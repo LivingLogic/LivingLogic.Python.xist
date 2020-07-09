@@ -146,7 +146,17 @@ html_theme_path = ["."]
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+
+if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
+	html_theme_options = {
+		"font_awesome_url": "../fontawesome-pro-5.13.0-web/css/all.min.css",
+		"font_awesome_style": "fal",
+	}
+else:
+	html_theme_options = {
+		"font_awesome_url": "../fontawesome-free-5.13.0-web/css/all.min.css",
+		"font_awesome_style": "fas",
+	}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
