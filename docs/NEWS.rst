@@ -8,12 +8,20 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.61.2 (released 07/10/2020)
+---------------------------------------
+
+*	Fixed a regression in :mod:`ll.sisyphus` from 5.61.1: Successful job runs
+	without delayed log messages would deactive delayed logs.
+
+
 Changes in 5.61.1 (released 07/09/2020)
 ---------------------------------------
 
 *	Fixed handling of the ``--exit_on_error`` option in :mod:`ll.sisyphus`.
 
-*	Rewrote handling of delayed logs to work better in forking mode.
+*	Rewrote handling of delayed logs in :mod:`ll.sisyphus` to work better in
+	forking mode.
 
 
 Changes in 5.61 (released 07/07/2020)
