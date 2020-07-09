@@ -1299,26 +1299,28 @@ class Job:
 
 			if self.repeat:
 				while True:
-					self._handleoneexecution()
-					self._createlogs(False) # Recreate stdin/stdout loggers
+					status = self._handleoneexecution()
 					self._run += 1
 					nextrun = self._calc_nextrun()
 					wait = nextrun - datetime.datetime.now()
 					wait_seconds = wait.total_seconds()
+					log = self.log.sisyphus.delay.info if status is Status.UNEVENTFUL else self.log.sisyphus.info
+					self._closelogs(status)
 					if wait_seconds > 0:
 						self.setproctitle("Sleeping")
-						self.log.sisyphus.delay.info(f"Sleeping for {wait} until {nextrun}")
+						log(f"Sleeping for {wait} until {nextrun}")
 						time.sleep(wait_seconds)
 					else:
-						self.log.sisyphus.delay.info(f"Restarting immediately")
+						log(f"Restarting immediately")
 			else:
-				self._handleoneexecution()
+				status = self._handleoneexecution()
+				self._closelogs(status)
 
 			if fcntl is not None:
 				fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 
 	def _handleoneexecution(self):
-		# type: () -> None
+		# type: () -> Status
 		self._tasks = [] # type: List[Task]
 		self._loggers = [] # type: List[Logger]
 		self._exceptioncount = 0
@@ -1333,7 +1335,7 @@ class Job:
 		self._getcrontab() # Get crontab
 		self.log = Tag(self._log) # Create tagged logger for files
 		self._delayed_logs = [] # type: Optional[LogList]
-		self._createlogs(True) # Create loggers
+		self._createlogs() # Create loggers
 
 		if self.fork and hasattr(os, "fork"):
 			self._tasks = [self.task("parent", str(os.getpid()))]
@@ -1400,7 +1402,7 @@ class Job:
 							raise exc
 					elif status is Status.SUCCESSFUL:
 						self._finished_successful(None)
-					return # finish normally (or continue, if we're in repeat mode)
+					return status # finish normally (or continue, if we're in repeat mode)
 			# Here we are in the child process
 			self.process = Process.CHILD
 			self.setproctitle()
@@ -1444,6 +1446,7 @@ class Job:
 		self.notifyfinish(result)
 		if self.fork:
 			os._exit(status)
+		return status
 
 	def _kill_children(self):
 		# type: () -> Set[int]
@@ -1485,7 +1488,6 @@ class Job:
 				self.log.sisyphus.result.errors(None)
 			else:
 				self.log.sisyphus.result.delay.ok(None)
-		self._closelogs(Status.UNEVENTFUL)
 		return Status.UNEVENTFUL
 
 	def _finished_successful(self, result):
@@ -1502,7 +1504,6 @@ class Job:
 				if self._delayed_logs is not None:
 					self._delayed_logs = []
 				self.log.sisyphus.result.ok(result)
-		self._closelogs(Status.SUCCESSFUL)
 		return Status.SUCCESSFUL
 
 	def _finished_exception(self, exc):
@@ -1515,7 +1516,6 @@ class Job:
 			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
 			self.log.sisyphus.email.mattermost(exc)
 			self.log.sisyphus.result.fail(f"failed with {strexc}")
-		self._closelogs(Status.FAILED)
 		return Status.FAILED
 
 	def _finished_break(self, exc):
@@ -1527,7 +1527,6 @@ class Job:
 			# Don't log to email or mattermost
 			self.log.sisyphus(exc)
 			self.log.sisyphus.result.fail(f"failed with {misc.format_exception(exc)}")
-		self._closelogs(Status.INTERRUPTED)
 		return Status.INTERRUPTED
 
 	def _finished_timeout(self, exc):
@@ -1557,7 +1556,6 @@ class Job:
 			else:
 				self.log(exc)
 			self.log.sisyphus.result.kill(msg)
-		self._closelogs(Status.TIMEOUT)
 		return Status.TIMEOUT
 
 	def _signal_alarm(self, signum, frame):
@@ -1774,21 +1772,18 @@ class Job:
 			cutoff = datetime.datetime.now() - cutoff
 		return cutoff
 
-	def _createlogs(self, full):
-		# type: (bool) -> None
+	def _createlogs(self):
+		# type: () -> None
 		"""
 		Create the logfile and the link to the logfile (if configured).
-
-		If ``full`` is false, only the loggers for `stdout` and `stderr` will
-		be generated (if configured).
 		"""
 		self._loggers = []
 		skipfilenames = [] # type: List[pathlib.Path]
-		if full and self.toemail and self.fromemail and self.smtphost:
+		if self.toemail and self.fromemail and self.smtphost:
 			# Use the email logger as the first logger, so that when sending the email (in :meth:`EmailLogger.close`) fails,
 			# it will still be logged to the log file/stdout/stderr
 			self._loggers.append(EmailLogger(self))
-		if full and self.log2file:
+		if self.log2file:
 			logfilename = self.logfilename()
 			if logfilename is not None:
 				# Create the logger for the log file
@@ -1819,14 +1814,27 @@ class Job:
 
 	def _closelogs(self, status):
 		# type: (Status) -> None
-		while self._loggers:
+
+		# Note that in forking mode the child process inherits the delayed log
+		# messages of the parent process. If both processes would log a
+		# non-delayed message, the inherited messages would be output twice.
+		# To avoid this problem, we clear the delayed log queue in the parent
+		# before continuing.
+		if self._delayed_logs:
+			self._delayed_logs = []
+		index = 0
+		while index < len(self._loggers):
 			# Don't remove the logger from the list immediately
 			# In this way, log messages that the logger outputs during closing will
 			# be logged by the logger itself (i.e. logfile cleanup will be logged
 			# in the logfile)
-			logger = self._loggers[0]
-			logger.close(status)
-			del self._loggers[0]
+			logger = self._loggers[index]
+			if logger.close(status):
+				# Logger has closed, so remove it
+				del self._loggers[index]
+			else:
+				# Logger didn't close, keep it and go to the next one
+				index += 1
 
 	def _write_healthfile(self, error):
 		# type: (OptStr) -> None
@@ -2000,11 +2008,14 @@ class Logger:
 		"""
 
 	def close(self, status):
-		# type: (Status) -> None
+		# type: (Status) -> bool
 		"""
 		Called by the :class:`Job` when job execution has finished.
 
 		``status`` (an :class:`Status`) is the result status of the job run.
+
+		Return whether the logfile has been closed. (All normal loggers
+		will close except ``stdout`` and ``stderr`` loggers).
 		"""
 
 
@@ -2037,6 +2048,10 @@ class StreamLogger(Logger):
 			self.stream.write("\n")
 			self.lineno += 1
 		self.stream.flush()
+
+	def close(self, status):
+		# type: (Status) -> bool
+		return False
 
 
 class FileLogger(StreamLogger):
@@ -2109,6 +2124,7 @@ class FileLogger(StreamLogger):
 			if status is Status.UNEVENTFUL:
 				# Remove current log file in case of a uneventful run
 				self.filename.unlink()
+		return True
 
 	def remove(self, filename):
 		# type: (pathlib.Path) -> None
@@ -2174,6 +2190,10 @@ class LinkLogger(Logger):
 			linkname.unlink()
 			linkname.symlink_to(filename)
 
+	def close(self, status):
+		# type: (Status) -> bool
+		return True
+
 
 class CurrentLinkLogger(LinkLogger):
 	"""
@@ -2200,9 +2220,10 @@ class LastStatusLinkLogger(LinkLogger):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} linkname={str(self.linkname)!r} status={self.status.name} at {id(self):#x}>"
 
 	def close(self, status):
-		# type: (Status) -> None
+		# type: (Status) -> bool
 		if self.job.process is not Process.CHILD and status is self.status:
 			self._makelink()
+		return True
 
 
 class EmailLogger(Logger):
@@ -2260,7 +2281,7 @@ class EmailLogger(Logger):
 			pass
 
 	def close(self, status):
-		# type: (Status) -> None
+		# type: (Status) -> bool
 		if self.file is not None:
 			self.file.close()
 		else:
@@ -2366,6 +2387,7 @@ class EmailLogger(Logger):
 					self.job.emailfilename(p).unlink()
 				except FileNotFoundError:
 					pass
+		return True
 
 
 class MattermostLogger(Logger):
@@ -2422,6 +2444,10 @@ class MattermostLogger(Logger):
 					"message": message[:15000],
 				}
 			)
+
+	def close(self, status):
+		# type: (Status) -> bool
+		return True
 
 
 ###
