@@ -2113,10 +2113,10 @@ class FileLogger(StreamLogger):
 									self.job.log.sisyphus.delay.info(f"Compressing logfiles older than {compressfilelogs} via {self.job.compressmode}")
 									compressedany = True
 								self.compress(filename)
-			if status is Status.UNEVENTFUL:
-				self.job.log.sisyphus.delay.info("Going to delete current logfile")
-			if removedany or compressedany or status in (Status.UNEVENTFUL, Status.SUCCESSFUL):
-				self.job.log.sisyphus.delay.info("Logfiles cleaned up")
+			if removedany or compressedany:
+				self.job.log.sisyphus.delay.info("Old logfiles cleaned up")
+		if self.job.process is not Process.CHILD and status is Status.UNEVENTFUL:
+			self.job.log.sisyphus.delay.info("Going to delete current logfile")
 		# Close the stream now, so that we're able to delete it (even on Windows)
 		self.stream.close()
 		if self.job.process is not Process.CHILD:
