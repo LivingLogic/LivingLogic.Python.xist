@@ -1244,6 +1244,7 @@ class Job:
 		self.maxtime = ns.maxtime
 		self.fork = ns.fork
 		self.noisykills = ns.noisykills
+		self.exit_on_error = ns.exit_on_error
 		self.log2file = ns.log2file
 		self.log2stdout = ns.log2stdout
 		self.log2stderr = ns.log2stderr
