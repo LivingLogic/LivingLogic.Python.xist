@@ -1546,17 +1546,15 @@ class Job:
 
 		if self.process is Process.PARENT:
 			pids = self._kill_children()
-			msg = self._termination_message(exc, pids)
 		elif self.process is Process.SOLO:
-			msg = self._termination_message(exc, set())
-		else:
-			msg = None
-		if msg is not None:
+			pids = set()
+
+		if self.process is not Process.CHILD:
 			if self.noisykills:
 				self.log.email.mattermost(exc)
 			else:
 				self.log(exc)
-			self.log.sisyphus.result.kill(msg)
+			self.log.sisyphus.result.kill(self._termination_message(exc, pids))
 		return Status.TIMEOUT
 
 	def _signal_alarm(self, signum, frame):
