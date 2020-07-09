@@ -1304,14 +1304,13 @@ class Job:
 					nextrun = self._calc_nextrun()
 					wait = nextrun - datetime.datetime.now()
 					wait_seconds = wait.total_seconds()
-					log = self.log.sisyphus.delay.info if status is Status.UNEVENTFUL else self.log.sisyphus.info
 					self._closelogs(status)
 					if wait_seconds > 0:
 						self.setproctitle("Sleeping")
-						log(f"Sleeping for {wait} until {nextrun}")
+						self.log.sisyphus.delay.info(f"Sleeping for {wait} until {nextrun}")
 						time.sleep(wait_seconds)
 					else:
-						log(f"Restarting immediately")
+						self.log.sisyphus.delay.info(f"Restarting immediately")
 			else:
 				status = self._handleoneexecution()
 				self._closelogs(status)
