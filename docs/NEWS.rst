@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.61.1 (released 07/09/2020)
+---------------------------------------
+
+*	Fixed handling of the ``--exit_on_error`` option in :mod:`ll.sisyphus`.
+
+
 Changes in 5.61 (released 07/07/2020)
 -------------------------------------
 
