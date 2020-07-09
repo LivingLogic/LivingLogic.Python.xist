@@ -11,8 +11,8 @@ see :ref:`MIGRATION`.
 Changes in 5.61.2 (released 07/10/2020)
 ---------------------------------------
 
-*	Fixed a regression in :mod:`ll.sisyphus` from 5.61.1: Successful job runs
-	without delayed log messages would deactive delayed logs.
+*	Fixed a regression in :mod:`ll.sisyphus` from 5.61.1: Stay in delayed logs
+	mode after a successful job run.
 
 
 Changes in 5.61.1 (released 07/09/2020)
