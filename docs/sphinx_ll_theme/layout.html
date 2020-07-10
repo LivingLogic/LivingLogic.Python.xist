@@ -110,9 +110,9 @@
 				{% block sidebartitle %}
 
 				{% if logo and theme_logo_only %}
-				<a href="{{ pathto(master_doc) }}">
+				<a href="{{ pathto(master_doc) }}" class="home">
 				{% else %}
-				<a href="{{ pathto(master_doc) }}"><i class="{{theme_font_awesome_style}} fa-home"></i> {{ project }}
+				<a href="{{ pathto(master_doc) }}" class="home"><i class="{{theme_font_awesome_style}} fa-home"></i> {{ project }}
 				{% endif %}
 
 				{% if logo %}
@@ -168,7 +168,7 @@
 			<nav class="wy-nav-top" aria-label="top navigation">
 				{% block mobile_nav %}
 					<i data-toggle="wy-nav-top" class="{{theme_font_awesome_style}} fa-bars"></i>
-					<a href="{{ pathto(master_doc) }}">{{ project }}</a>
+					<a class="home" href="{{ pathto(master_doc) }}">{{ project }}</a>
 				{% endblock %}
 			</nav>
 

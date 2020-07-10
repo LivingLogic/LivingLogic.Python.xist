@@ -828,20 +828,104 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 }
 .wy-side-nav-search input[type=text]{width:100%;border-radius:50px;padding:6px 12px;border-color:#2472a4}
 .wy-side-nav-search img{display:block;margin:auto auto .809em auto;height:45px;width:45px;background-color:#2980B9;padding:5px;border-radius:100%}
-.wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a{color:#fcfcfc;font-size:100%;font-weight:bold;display:inline-block;padding:4px 6px;margin-bottom:.809em}
-.wy-side-nav-search>a:hover,.wy-side-nav-search .wy-dropdown>a:hover{background:rgba(255,255,255,0.1)}
-.wy-side-nav-search>a img.logo,.wy-side-nav-search .wy-dropdown>a img.logo{display:block;margin:0 auto;height:auto;width:auto;border-radius:0;max-width:100%;background:transparent}
-.wy-side-nav-search>a.icon img.logo,.wy-side-nav-search .wy-dropdown>a.icon img.logo{margin-top:.85em}
-.wy-side-nav-search>div.version{margin-top:-.4045em;margin-bottom:.809em;font-weight:normal;color:rgba(255,255,255,0.3)}
-.wy-nav .wy-menu-vertical header{color:#2980B9}
-.wy-nav .wy-menu-vertical a{color:#b3b3b3}
-.wy-nav .wy-menu-vertical a:hover{background-color:#2980B9;color:#fff}
-[data-menu-wrap]{-webkit-transition:all .2s ease-in;-moz-transition:all .2s ease-in;transition:all .2s ease-in;position:absolute;opacity:1;width:100%;opacity:0}
-[data-menu-wrap].move-center{left:0;right:auto;opacity:1}
-[data-menu-wrap].move-left{right:auto;left:-100%;opacity:0}
-[data-menu-wrap].move-right{right:-100%;left:auto;opacity:0}
 
-nav
+.wy-side-nav-search > a,
+.wy-side-nav-search .wy-dropdown > a
+{
+	color: #fcfcfc;
+	font-size: 100%;
+	display: inline-block;
+	padding: 3px 8px;
+	margin-bottom: 0.809em;
+}
+
+.wy-side-nav-search>a:hover,
+.wy-side-nav-search .wy-dropdown>a:hover
+{
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 0.5em;
+}
+
+.wy-side-nav-search > a.home
+{
+	font-size: 140%;
+	border-radius: 0.5em;
+}
+
+.wy-side-nav-search > a img.logo,
+.wy-side-nav-search .wy-dropdown > a img.logo
+{
+	display: block;
+	margin: 0 auto;
+	height: auto;
+	width: auto;
+	border-radius: 0;
+	max-width: 100%;
+	background: transparent;
+}
+
+.wy-side-nav-search > a.icon img.logo,
+.wy-side-nav-search .wy-dropdown > a.icon img.logo
+{
+	margin-top:.85em;
+}
+
+.wy-side-nav-search > div.version
+{
+	margin-top: -1.4em;
+	margin-bottom: 1.8em;
+	font-weight: normal;
+	color: rgba(255,255,255,0.5);
+}
+
+.wy-nav .wy-menu-vertical header
+{
+	color:#2980B9;
+}
+
+.wy-nav .wy-menu-vertical a
+{
+	color:#b3b3b3;
+}
+
+.wy-nav .wy-menu-vertical a:hover
+{
+	background-color: #2980B9;
+	color: #fff;
+}
+
+[data-menu-wrap]
+{
+	-webkit-transition: all .2s ease-in;
+	-moz-transition: all .2s ease-in;
+	transition: all .2s ease-in;
+	position: absolute;
+	opacity: 1;
+	width: 100%;
+	opacity: 0;
+}
+[data-menu-wrap].move-center
+{
+	left: 0;
+	right: auto;
+	opacity: 1;
+}
+
+[data-menu-wrap].move-left
+{
+	right: auto;
+	left: -100%;
+	opacity: 0;
+}
+
+[data-menu-wrap].move-right
+{
+	right: -100%;
+	left: auto;
+	opacity: 0;
+}
+
+nav.wy-nav-side
 {
 	flex: 1 3 auto;
 	min-width: 15rem;
@@ -856,19 +940,50 @@ nav:-webkit-scrollbar
 	display: none;
 }
 
-nav ul,
-nav li
+nav.wy-nav-side ul,
+nav.wy-nav-side li
 {
 	display: block;
 	margin: 0;
 	padding: 0;
 }
-.wy-nav-top{display:none;background:#2980B9;color:#fff;padding:.4045em .809em;position:relative;line-height:50px;text-align:center;font-size:100%;*zoom:1}
-.wy-nav-top:before,.wy-nav-top:after{display:table;content:""}
-.wy-nav-top:after{clear:both}
-.wy-nav-top a{color:#fff;font-weight:bold}
-.wy-nav-top img{margin-right:12px;height:45px;width:45px;background-color:#2980B9;padding:5px;border-radius:100%}
-.wy-nav-top i{font-size:30px;float:left;cursor:pointer;padding-top:inherit}
+
+.wy-nav-top
+{
+	display: none;
+	flex-flow: row nowrap;
+	align-items: center;
+	background: #2980B9;
+	color: #fff;
+	padding: 1rem;
+	font-size: 100%;
+	*zoom: 1;
+}
+
+.wy-nav-top a
+{
+	color: #fff;
+	font-size: 140%;
+	flex: 1 1 auto;
+	text-align: center;
+}
+
+.wy-nav-top img
+{
+	margin-right: 12px;
+	height: 45px;
+	width: 45px;
+	background-color: #2980B9;
+	border-radius: 100%;
+}
+
+.wy-nav-top i
+{
+	font-size: 30px;
+	cursor: pointer;
+	flex: 0 1 auto;
+}
+
 .wy-nav-content-wrap
 {
 	flex: 3 2 auto;
@@ -892,10 +1007,12 @@ main
 	display:none;
 	z-index:499;
 }
+
 .wy-body-mask.on
 {
 	display:block;
 }
+
 footer
 {
 	margin: 0;
@@ -904,7 +1021,8 @@ footer
 	color: #999;
 }
 
-footer div:not(:last-child) {
+footer div:not(:last-child)
+{
 	margin: 0 0 1.2rem 0;
 }
 footer p
@@ -1053,21 +1171,39 @@ aside .breadcrumbs
 #search-results .search li a{font-size:120%;margin-bottom:12px;display:inline-block}
 #search-results .context{color:gray;font-size:90%}
 .genindextable li>ul{margin-left:24px}
-@media screen and (max-width: 768px){
-	.wy-body-for-nav{background:#fcfcfc}
-	.wy-nav-top{display:block}
-	.wy-nav-side{left:-300px}
-	.wy-nav-side.shift{width:85%;left:0}
-	.wy-menu.wy-menu-vertical{width:auto}
-	.wy-nav-content-wrap{margin-left:0}
-	.wy-nav-content-wrap .wy-nav-content{padding:1.618em}
-	.wy-nav-content-wrap.shift{
-		position:fixed;
-		min-width:100%;
-		left:85%;
-		top:0;
-		height:100%;
-		overflow:hidden
+
+@media screen and (max-width: 768px)
+{
+	.wy-body-for-nav
+	{
+		background: #fcfcfc;
+	}
+
+	.wy-nav-top
+	{
+		display: flex;
+	}
+
+	nav.wy-nav-side
+	{
+		display: none;
+	}
+
+	.breadcrumbs, main, footer
+	{
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+
+	.wy-nav-side.shift
+	{
+		display: block;
+		width: 85%;
+	}
+
+	.wy-menu.wy-menu-vertical
+	{
+		width: auto;
 	}
 }
 
@@ -1077,6 +1213,7 @@ aside .breadcrumbs
 	{
 		display:none;
 	}
+
 	.wy-nav-content-wrap
 	{
 		margin-left:0;
@@ -1335,8 +1472,29 @@ main .viewcode-block:hover .viewcode-back
 .rst-content tt.download span:first-child:before,.rst-content code.download span:first-child:before{margin-right:4px}
 .rst-content .guilabel{border:1px solid #7fbbe3;background:#e7f2fa;font-size:80%;font-weight:700;border-radius:4px;padding:2.4px 6px;margin:auto 2px}
 .rst-content .versionmodified{font-style:italic}
-@media screen and (max-width: 480px){.rst-content .sidebar{width:100%}
+@media screen and (max-width: 480px)
+{
+	.rst-content .sidebar
+	{
+		width: 100%;
+	}
+
+	footer .rst-buttons
+	{
+		flex-flow: column nowrap;
+	}
+
+	footer .rst-buttons > a:not(:first-child)
+	{
+		margin-left: 0;
+	}
+
+	footer .rst-buttons > a:not(:last-child)
+	{
+		margin-right: 0;
+	}
 }
+
 span[id*='MathJax-Span']{color:#404040}
 .math
 {
