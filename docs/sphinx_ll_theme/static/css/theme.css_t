@@ -842,8 +842,8 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-side-nav-search>a:hover,
 .wy-side-nav-search .wy-dropdown>a:hover
 {
-	background: rgba(255, 255, 255, 0.1);
-	border-radius: 0.5em;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 0.4em;
 }
 
 .wy-side-nav-search > a.home
@@ -875,7 +875,7 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 	margin-top: -1.4em;
 	margin-bottom: 1.8em;
 	font-weight: normal;
-	color: rgba(255,255,255,0.5);
+	opacity: 0.5;
 }
 
 .wy-nav .wy-menu-vertical header
@@ -953,8 +953,8 @@ nav.wy-nav-side li
 	display: none;
 	flex-flow: row nowrap;
 	align-items: center;
-	background: #2980B9;
-	color: #fff;
+	background-color: #edf0f2;
+	border-bottom: 1px solid #ccc;
 	padding: 1rem;
 	font-size: 100%;
 	*zoom: 1;
@@ -962,7 +962,6 @@ nav.wy-nav-side li
 
 .wy-nav-top a
 {
-	color: #fff;
 	font-size: 140%;
 	flex: 1 1 auto;
 	text-align: center;
@@ -981,7 +980,14 @@ nav.wy-nav-side li
 {
 	font-size: 30px;
 	cursor: pointer;
+	color: #2980B9;
 	flex: 0 1 auto;
+}
+
+.wy-nav-top .version
+{
+	font-size: 90%;
+	opacity: 0.7;
 }
 
 .wy-nav-content-wrap
