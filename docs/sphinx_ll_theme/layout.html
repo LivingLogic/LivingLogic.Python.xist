@@ -168,7 +168,20 @@
 			<nav class="wy-nav-top" aria-label="top navigation">
 				{% block mobile_nav %}
 					<i data-toggle="wy-nav-top" class="{{theme_font_awesome_style}} fa-bars"></i>
-					<a class="home" href="{{ pathto(master_doc) }}">{{ project }}</a>
+					<a class="home" href="{{ pathto(master_doc) }}">
+						{{ project }}
+						{% if theme_display_version %}
+							{%- set nav_version = version %}
+							{% if READTHEDOCS and current_version %}
+								{%- set nav_version = current_version %}
+							{% endif %}
+							{% if nav_version %}
+							<span class="version">
+								{{ nav_version }}
+							</div>
+							{% endif %}
+						{% endif %}
+				</a>
 				{% endblock %}
 			</nav>
 
