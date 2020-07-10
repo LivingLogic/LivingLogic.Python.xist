@@ -1189,6 +1189,12 @@ aside .breadcrumbs
 		display: none;
 	}
 
+	.wy-nav-content-wrap.shift
+	{
+		width: 15%;
+		overflow: hidden;
+	}
+
 	.breadcrumbs, main, footer
 	{
 		padding-left: 1rem;
