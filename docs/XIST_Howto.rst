@@ -187,7 +187,7 @@ This will output:
 
 .. sourcecode:: html
 
-	HTML
+	&html;
 
 
 Creating XML trees with :keyword:`with` blocks
