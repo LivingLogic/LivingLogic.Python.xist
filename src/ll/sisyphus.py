@@ -1603,18 +1603,18 @@ class Job:
 
 		Arguments have the following meaning:
 
-		``type`` : string or :const:`None`
+		``type`` : :class:`str` or :const:`None`
 			The type of the task.
 
-		``name`` : string or :const:`None`
+		``name`` : :class:`str` or :const:`None`
 			The name of the task.
 
-		``index`` : integer or :const:`None`
+		``index`` : :class:`int` or :const:`None`
 			If this task is one in a sequence of similar tasks, ``index`` should
 			be the index of this task, i.e. the first task of this type has
 			``index==0``, the second one ``index==1`` etc.
 
-		``count`` : integer or :const:`None`
+		``count`` : :class:`int` or :const:`None`
 			If this task is one in a sequence of similar tasks and the total number
 			of tasks is known, ``count`` should be the total number of tasks.
 		"""

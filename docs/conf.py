@@ -16,8 +16,6 @@
 import sys
 import os
 
-import sphinx_rtd_theme
-
 from sphinx.writers import latex
 
 def visit_definition_list(self, node):
@@ -139,16 +137,28 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'sphinx_ll_theme'
 
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
-html_style = 'css/overwrite.css'
+html_theme_path = ["."]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+
+if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
+	html_theme_options = {
+		"font_awesome_url": "../fontawesome-pro-5.13.0-web/css/all.min.css",
+		"font_awesome_style": "fal",
+		"font_awesome_name": "Font Awesome 5 Pro",
+		"font_awesome_weight": "400",
+	}
+else:
+	html_theme_options = {
+		"font_awesome_url": "../fontawesome-free-5.13.0-web/css/all.min.css",
+		"font_awesome_style": "fas",
+		"font_awesome_name": "Font Awesome 5 Free",
+		"font_awesome_weight": "900",
+	}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []

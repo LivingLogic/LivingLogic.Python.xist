@@ -175,7 +175,7 @@ following events are used:
 
 	``"xmldeclnode"``
 		The XML declaration. The event data is an instance of
-		:class:`ll.xist.xml.XML`.
+		:class:`ll.xist.ns.xml.XML`.
 
 	``"doctypenode"``
 		The doctype. The event data is an instance of :class:`ll.xist.xsc.DocType`.
