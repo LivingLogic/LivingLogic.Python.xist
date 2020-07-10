@@ -1399,7 +1399,7 @@ main dl:not(.docutils) dl.attribute > dt
 	border-top-right-radius: 0.3em;
 	padding: 0.3em {{theme_horizontal_indent}};
 	font-family: "Source Code Pro", monospace;
-	background-color: rgba(1, 1, 1, 0.05);
+	background-color: rgba(1, 1, 1, 0.02);
 }
 
 main dl.class > dd,
