@@ -16,8 +16,6 @@
 import sys
 import os
 
-import sphinx_rtd_theme
-
 from sphinx.writers import latex
 
 def visit_definition_list(self, node):
