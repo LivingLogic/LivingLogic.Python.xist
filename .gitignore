@@ -1,10 +1,8 @@
 __pycache__
 build
 dist
-CVS
 *.pyc
 *.so
-src/ll/xist/*.so
 src/*.egg-info
 docs/build
 .cache
