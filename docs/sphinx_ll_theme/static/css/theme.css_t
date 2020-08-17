@@ -1336,13 +1336,13 @@ div.literal-block-wrapper div.code-block-caption
 	margin: 0.1em 0 0 0;
 }
 
-div.literal-block-wrapper div.code-block-caption a
+div.literal-block-wrapper div.code-block-caption a.headerlink
 {
 	display: none;
 	padding-left: 0.5em;
 }
 
-div.literal-block-wrapper div.code-block-caption:hover a
+div.literal-block-wrapper div.code-block-caption:hover a.headerlink
 {
 	display: inline;
 }
