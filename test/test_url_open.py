@@ -22,7 +22,7 @@ def test_remove():
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
-			u2 = u/"foo"
+			u2 = u/"foo_remove"
 			r = u2.open("wb")
 			try:
 				r.write(b"testing...")
@@ -42,7 +42,7 @@ def test_link():
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
-			u2 = u/"foo"
+			u2 = u/"foo_link"
 			try:
 				u.link(u2)
 				assert u2.exists()
@@ -61,7 +61,7 @@ def test_symlink():
 	def check(u):
 		with url.Context():
 			u = url.URL(u)
-			u2 = u/"foo"
+			u2 = u/"foo_symlink"
 			try:
 				u.symlink(u2)
 				assert u2.exists()
@@ -90,7 +90,7 @@ def test_chmod():
 			finally:
 				u.remove()
 
-	check("~/foo")
+	check("~/foo_chmod")
 	check("ssh://livpython@python.livinglogic.de/~/checkouts/LivingLogic.Python.xist/foo")
 
 
@@ -127,7 +127,7 @@ def test_chown():
 			finally:
 				u1.remove()
 
-	check("ssh://livpython@python.livinglogic.de/~/foo", "ssh://livpython@python.livinglogic.de/~/bar", "livpython", "livpython")
+	check("ssh://livpython@python.livinglogic.de/~/foo_chown", "ssh://livpython@python.livinglogic.de/~/bar", "livpython", "livpython")
 
 
 @pytest.mark.net
@@ -256,7 +256,7 @@ def test_seek_tell():
 def test_truncate():
 	def check(u):
 		with url.Context():
-			u = url.URL(u)/"foo"
+			u = url.URL(u)/"foo_truncate"
 			try:
 				r = u.open("wb")
 				r.write(b"testing...")
@@ -454,7 +454,7 @@ def test_resdata():
 def test_mkdir_rmdir():
 	def check(u):
 		with url.Context():
-			u = url.URL(u)/"foo/"
+			u = url.URL(u)/"foo_mkdir_rmdir/"
 			u.mkdir(0o755)
 			try:
 				assert u.isdir()
@@ -470,7 +470,7 @@ def test_mkdir_rmdir():
 def test_makedirs():
 	def check(u):
 		with url.Context():
-			u = url.URL(u)/"foo/bar/"
+			u = url.URL(u)/"foo_makedirs/bar/"
 			u.makedirs(0o755)
 			try:
 				assert u.isdir()
