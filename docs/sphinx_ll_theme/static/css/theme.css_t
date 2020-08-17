@@ -1327,7 +1327,8 @@ div.literal-block-wrapper
 	margin: 0;
 }
 
-div.literal-block-wrapper div.code-block-caption
+div.literal-block-wrapper div.code-block-caption,
+.caption .caption-text
 {
 	color: #999;
 	font-size: 90%;
@@ -1336,13 +1337,15 @@ div.literal-block-wrapper div.code-block-caption
 	margin: 0.1em 0 0 0;
 }
 
-div.literal-block-wrapper div.code-block-caption a.headerlink
+div.literal-block-wrapper div.code-block-caption a.headerlink,
+.caption a.headerlink
 {
 	display: none;
 	padding-left: 0.5em;
 }
 
-div.literal-block-wrapper div.code-block-caption:hover a.headerlink
+div.literal-block-wrapper div.code-block-caption:hover a.headerlink,
+.caption:hover a.headerlink
 {
 	display: inline;
 }
