@@ -13,3 +13,4 @@ UL4.tokens
 .pytest_cache
 .vscode
 docs/sphinx_ll_theme/static/fontawesome-pro-5.13.0-web
+report.html
