@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, json, datetime, math, tempfile, shutil, subprocess
+import sys, os, json, datetime, math, tempfile, shutil, subprocess, re
 
 import pytest
 
@@ -23,6 +23,29 @@ home = os.environ["HOME"]
 # must point to an Oracle schema where the packages ``UL4ON_PKG`` and
 # ``UL4ONBUFFER_PKG`` from https://github.com/LivingLogic/LivingLogic.Oracle.ul4
 # are installed
+
+re_test_name = re.compile("(?P<file>[a-z0-9_/.]+)::(?P<test>[a-zA-Z0-9_]+)(?:\\[(?P<param>[a-z0-9_]+)\\])? \\((?P<phase>[a-z]+)\\)")
+
+
+def make_func_name():
+	m = re_test_name.match(os.environ.get("PYTEST_CURRENT_TEST"))
+	test = m.group('test')
+	if test.startswith("test_oracle_"):
+		test = test[12:]
+	elif test.startswith("test_"):
+		test = test[5:]
+	funcname = f"test_ul4on_{test}"
+	param = m.group('param')
+	if param:
+		if param.startswith("oracle_"):
+			param = param[7:]
+		if param == "ul4on":
+			param = ""
+		elif param == "ul4onbuffer":
+			param = "buf"
+		if param:
+			funcname = f"{funcname}_{param}"
+	return funcname
 
 
 def oracle_ul4on(code):
@@ -45,12 +68,13 @@ def oracle_ul4on(code):
 	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
+		funcname = make_func_name()
+
 		from ll import orasql
 		db = orasql.connect(connectstring, readlobs=True)
 		cursor = db.cursor()
-		print(code)
-		cursor.execute(f"""
-			create or replace function ul4ontest
+		code = f"""
+			create or replace function {funcname}
 			return clob
 			as
 				c_out clob;
@@ -58,9 +82,11 @@ def oracle_ul4on(code):
 				{code}
 				return c_out;
 			end;
-		""")
-		cursor.execute("select ul4ontest from dual")
-		dump = cursor.fetchone().ul4ontest
+		"""
+		print(code)
+		cursor.execute(code)
+		cursor.execute(f"select {funcname} as ul4ondump from dual")
+		dump = cursor.fetchone().ul4ondump
 		return ul4on.loads(dump)
 	else:
 		return None
@@ -93,11 +119,13 @@ def oracle_ul4onbuffer(code):
 	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
+		funcname = make_func_name()
+
 		from ll import orasql
 		db = orasql.connect(connectstring, readlobs=True)
 		cursor = db.cursor()
-		cursor.execute(f"""
-			create or replace function ul4ontest
+		code = f"""
+			create or replace function {funcname}
 			return clob
 			as
 				c_out clob;
@@ -107,9 +135,11 @@ def oracle_ul4onbuffer(code):
 				ul4onbuffer_pkg.flush(c_out);
 				return c_out;
 			end;
-		""")
-		cursor.execute("select ul4ontest from dual")
-		dump = cursor.fetchone().ul4ontest
+		"""
+		print(code)
+		cursor.execute(code)
+		cursor.execute(f"select {funcname} as ul4ondump from dual")
+		dump = cursor.fetchone().ul4ondump
 		return ul4on.loads(dump)
 	else:
 		return None
