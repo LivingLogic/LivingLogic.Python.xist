@@ -1380,7 +1380,6 @@ main div[class^='highlight'] pre .hll
 .rst-content .align-center{margin:auto}
 .rst-content .align-center:not(table){display:block}
 
-main dl:not(.docutils) > dt > .reference.internal:after,
 main dl:not(.docutils) > dt > .headerlink,
 main h1 > .headerlink,
 main h2 > .headerlink,
@@ -1401,13 +1400,6 @@ main .reference.internal .viewcode-link
 	display: none;
 }
 
-main dl:not(.docutils) > dt > .reference.internal:after{
-	content: "\f121";
-	font-family: "{{theme_font_awesome_name}}";
-	font-weight: {{theme_font_awesome_weight}};
-	font-size: 1rem;
-}
-
 main dl:not(.docutils) > dt > .headerlink:after,
 main h1 .headerlink:after,
 main h2 .headerlink:after,
@@ -1423,7 +1415,6 @@ main .toctree-wrapper p.caption .headerlink:after
 	font-size: 1rem;
 }
 
-main dl:not(.docutils) > dt:hover > .reference.internal:after,
 main dl:not(.docutils) > dt:hover > .headerlink:after,
 main h1:hover .reference.internal:after,
 main h1:hover .headerlink:after,
