@@ -19,7 +19,7 @@ deploy:
 
 doc:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	mkdir download
+	mkdir -p download
 	cp build/latex/XIST.pdf download
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
