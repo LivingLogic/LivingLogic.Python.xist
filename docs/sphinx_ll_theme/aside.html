@@ -9,7 +9,7 @@
 		{% endblock %}
 	 </div>
 
-	 {% if (theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev) %}
+	 {% if ((theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev)) or theme_pdf or (show_source and source_url_prefix) or (show_source and has_source and sourcename) %}
 		<div class="rst-buttons" role="navigation" aria-label="aside navigation">
 			{% if prev %}
 				<a href="{{ prev.link|e }}" accesskey="p" rel="prev" class="iconpanel prev">
@@ -33,18 +33,54 @@
 					</span>
 				</a>
 			{% endif %}
+			{%- if theme_pdf %}
+				<a class="iconpanel" rel="alternate" type="application/pdf" href="{{ pathto(theme_pdf, 1) }}">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-file-pdf"></i>
+					</span>
+					<span class="text">
+						<span class="label">
+							{{ theme_pdf_header }}
+						</span>
+						<span class="title">
+							{{ theme_pdf_text }}
+						</span>
+					</span>
+				</a>
+			{%- endif %}
+			{%- if show_source and source_url_prefix %}
+			  <a href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}" class="iconpanel">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-code"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ _('Page source') }}</span>
+						<span class="title">{{ _('Source of this page') }}</span>
+					</span>
+				</a>
+			{%- elif show_source and has_source and sourcename %}
+				<a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow" class="iconpanel">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-code"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ _('Page source') }}</span>
+						<span class="title">{{ _('Source of this page') }}</span>
+					</span>
+				</a>
+			{%- endif %}
 		</div>
 	{% endif %}
 
-  <div class="wy-breadcrumbs-aside">
-	 {% if hasdoc(pagename) %}
-		  {% if display_github %}
-		  {% if check_meta and 'github_url' in meta %}
+	<div class="wy-breadcrumbs-aside">
+		{% if hasdoc(pagename) %}
+			{% if display_github %}
+			{% if check_meta and 'github_url' in meta %}
 			 <!-- User defined GitHub URL -->
 			 <a href="{{ meta['github_url'] }}" class="{{theme_font_awesome_style}} fa-github"> {{ _('Edit on GitHub') }}</a>
-		  {% else %}
+			{% else %}
 			 <a href="https://{{ github_host|default("github.com") }}/{{ github_user }}/{{ github_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ github_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
-		  {% endif %}
+			{% endif %}
 		{% elif display_bitbucket %}
 		  {% if check_meta and 'bitbucket_url' in meta %}
 			 <!-- User defined Bitbucket URL -->
@@ -59,27 +95,11 @@
 		  {% else %}
 			 <a href="https://{{ gitlab_host|default("gitlab.com") }}/{{ gitlab_user }}/{{ gitlab_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ gitlab_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
 		  {% endif %}
-		{% elif show_source and source_url_prefix %}
-		  <a href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}" class="iconpanel">
-			  <span class="icon"><i class="{{theme_font_awesome_style}} fa-fw fa-code"></i></span>
-			  <span class="text">
-					<span class="label">Source</span>
-					<span class="title">{{ _('View page source') }}</span>
-			  </span>
-			</a>
-		{% elif show_source and has_source and sourcename %}
-		  <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow" class="iconpanel">
-			<span class="icon"><i class="{{theme_font_awesome_style}} fa-fw fa-code"></i></span>
-			<span class="text">
-				<span class="label">Source</span>
-				<span class="title">{{ _('View page source') }}</span>
-			</span>
-		</a>
+		{% endif %}
 	 {% endif %}
-	 {% endif %}
-  </div>
+	</div>
 
-  <div role="contentinfo" class="iconpanel">
+	<div role="contentinfo" class="iconpanel">
 		{%- if show_copyright %}
 			<span class="icon">
 				<i class="{{theme_font_awesome_style}} fa-fw fa-copyright"></i>

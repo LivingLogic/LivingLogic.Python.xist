@@ -1048,15 +1048,18 @@ footer span.commit .rst-content tt,
 	color:gray;
 }
 
-footer .rst-buttons
+footer div.rst-buttons
 {
 	display: flex;
-	flex-flow: row nowrap;
+	flex-flow: row wrap;
+	margin: -{{theme_vertical_spacing}} -{{theme_horizontal_indent}};
 }
 
 footer .rst-buttons > *
 {
 	flex: 1 1 0px;
+	min-width: 18em;
+	margin: {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 }
 
 aside .rst-buttons
@@ -1064,16 +1067,6 @@ aside .rst-buttons
 	display: flex;
 	flex-flow: column nowrap;
 	justify-content: space-between;
-}
-
-footer .rst-buttons a:not(:last-child)
-{
-	margin-right: {{theme_horizontal_indent}};
-}
-
-footer .rst-buttons a:not(:first-child)
-{
-	margin-left: {{theme_horizontal_indent}};
 }
 
 .iconpanel
@@ -1499,21 +1492,6 @@ main .viewcode-block:hover .viewcode-back
 	.rst-content .sidebar
 	{
 		width: 100%;
-	}
-
-	footer .rst-buttons
-	{
-		flex-flow: column nowrap;
-	}
-
-	footer .rst-buttons > a:not(:first-child)
-	{
-		margin-left: 0;
-	}
-
-	footer .rst-buttons > a:not(:last-child)
-	{
-		margin-right: 0;
 	}
 }
 

@@ -142,6 +142,8 @@ html_theme = 'sphinx_ll_theme'
 
 html_theme_path = ["."]
 
+html_extra_path = ["download"]
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -160,6 +162,12 @@ else:
 		"font_awesome_name": "Font Awesome 5 Free",
 		"font_awesome_weight": "900",
 	}
+
+html_theme_options.update(
+	pdf="XIST.pdf",
+	pdf_header="PDF",
+	pdf_text="This documentation as a PDF",
+)
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -341,6 +349,7 @@ intersphinx_mapping = {
 autodoc_default_options = {
 	"members": True,
 	"special-members": True,
+	"inherited-members": False,
 	"show-inheritance": True,
 	"show-inheritance-diagram": True,
 	"inherit-docstrings": False,

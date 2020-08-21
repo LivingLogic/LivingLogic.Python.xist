@@ -10,6 +10,9 @@ For the release process to work you need to install :mod:`wheel` and
 
 	pip install wheel twine
 
+Also for building the PDF version of the documentation you needs a TeX
+installation suitable for :mod:`sphinx`.
+
 
 Preparing for the release
 -------------------------
@@ -60,7 +63,7 @@ Creating and deploying the documentation
 Recreate the documentation in ``docs/`` via (do this in the ``docs/``
 subdirectory) and deploy it to ``python.livinglogic.de``::
 
-	make clean download html deploy
+	make clean download doc deploy
 
 As this has changed ``docs/DOWNLOAD.rst`` you need to check in the result and
 push it to all repos.
@@ -88,6 +91,6 @@ finished their release dance.
 
 Go to the ``docs/`` subdirectory, recreate the documentation and deploy it::
 
-	make clean download html deploy
+	make clean download doc deploy
 
 Check in the result and push it to all repos.

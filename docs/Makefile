@@ -17,6 +17,12 @@ download:
 deploy:
 	scp -r build/html/* livpython@python.livinglogic.de:~/public_html/
 
+doc:
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	mkdir download
+	cp build/latex/XIST.pdf download
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
 .PHONY: help download deploy
 
 # Catch-all target: route all unknown targets to Sphinx using the new

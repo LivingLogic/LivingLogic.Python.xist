@@ -1,5 +1,5 @@
 <footer>
-	{% if (theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev) %}
+	{% if ((theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev)) or theme_pdf %}
 		<div class="rst-buttons" role="navigation" aria-label="footer navigation">
 			{% if prev %}
 				<a href="{{ prev.link|e }}" accesskey="p" rel="prev" class="iconpanel prev">
@@ -23,39 +23,67 @@
 					</span>
 				</a>
 			{% endif %}
+			{%- if theme_pdf %}
+				<a href="{{ pathto(theme_pdf, 1) }}" rel="alternate" type="application/pdf" class="iconpanel">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-file-pdf"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ theme_pdf_header }}</span>
+						<span class="title">{{ theme_pdf_text }}</span>
+					</span>
+				</a>
+			{%- endif %}
+			{%- if show_source and source_url_prefix %}
+				<a href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}" rel="alternate" class="iconpanel">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-code"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ _('Page source') }}</span>
+						<span class="title">{{ _('Source code of this page') }}</span>
+					</span>
+				</a>
+			{%- elif show_source and has_source and sourcename %}
+				<a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="alternate" class="iconpanel">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-code"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ _('Page source') }}</span>
+						<span class="title">{{ _('Source code of this page') }}</span>
+					</span>
+				</a>
+			{%- endif %}
 		</div>
 	{% endif %}
 
-  <div class="wy-breadcrumbs-aside">
-	 {% if hasdoc(pagename) %}
-		  {% if display_github %}
-		  {% if check_meta and 'github_url' in meta %}
-			 <!-- User defined GitHub URL -->
-			 <a href="{{ meta['github_url'] }}" class="{{theme_font_awesome_style}} fa-fw fa-github"> {{ _('Edit on GitHub') }}</a>
-		  {% else %}
-			 <a href="https://{{ github_host|default("github.com") }}/{{ github_user }}/{{ github_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ github_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
-		  {% endif %}
-		{% elif display_bitbucket %}
-		  {% if check_meta and 'bitbucket_url' in meta %}
-			 <!-- User defined Bitbucket URL -->
-			 <a href="{{ meta['bitbucket_url'] }}" class="{{theme_font_awesome_style}} fa-fw fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
-		  {% else %}
-			 <a href="https://bitbucket.org/{{ bitbucket_user }}/{{ bitbucket_repo }}/src/{{ bitbucket_version}}{{ conf_py_path }}{{ pagename }}{{ suffix }}?mode={{ theme_vcs_pageview_mode|default("view") }}" class="fa fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
-		  {% endif %}
-		{% elif display_gitlab %}
-		  {% if check_meta and 'gitlab_url' in meta %}
-			 <!-- User defined GitLab URL -->
-			 <a href="{{ meta['gitlab_url'] }}" class="{{theme_font_awesome_style}} fa-fw fa-gitlab"> {{ _('Edit on GitLab') }}</a>
-		  {% else %}
-			 <a href="https://{{ gitlab_host|default("gitlab.com") }}/{{ gitlab_user }}/{{ gitlab_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ gitlab_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
-		  {% endif %}
-		{% elif show_source and source_url_prefix %}
-		  <a href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}"><i class="{{theme_font_awesome_style}} fa-fw fa-code"></i> {{ _('View page source') }}</a>
-		{% elif show_source and has_source and sourcename %}
-		  <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow"><i class="{{theme_font_awesome_style}} fa-fw fa-code"></i> {{ _('View page source') }}</a>
+	<div class="wy-breadcrumbs-aside">
+		{% if hasdoc(pagename) %}
+			{% if display_github %}
+				{% if check_meta and 'github_url' in meta %}
+					<!-- User defined GitHub URL -->
+					<a href="{{ meta['github_url'] }}" class="{{theme_font_awesome_style}} fa-fw fa-github"> {{ _('Edit on GitHub') }}</a>
+				{% else %}
+					<a href="https://{{ github_host|default("github.com") }}/{{ github_user }}/{{ github_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ github_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
+				{% endif %}
+			{% elif display_bitbucket %}
+				{% if check_meta and 'bitbucket_url' in meta %}
+					<!-- User defined Bitbucket URL -->
+					<a href="{{ meta['bitbucket_url'] }}" class="{{theme_font_awesome_style}} fa-fw fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
+				{% else %}
+					<a href="https://bitbucket.org/{{ bitbucket_user }}/{{ bitbucket_repo }}/src/{{ bitbucket_version}}{{ conf_py_path }}{{ pagename }}{{ suffix }}?mode={{ theme_vcs_pageview_mode|default("view") }}" class="fa fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
+				{% endif %}
+			{% elif display_gitlab %}
+				{% if check_meta and 'gitlab_url' in meta %}
+					<!-- User defined GitLab URL -->
+					<a href="{{ meta['gitlab_url'] }}" class="{{theme_font_awesome_style}} fa-fw fa-gitlab"> {{ _('Edit on GitLab') }}</a>
+				{% else %}
+					<a href="https://{{ gitlab_host|default("gitlab.com") }}/{{ gitlab_user }}/{{ gitlab_repo }}/{{ theme_vcs_pageview_mode|default("blob") }}/{{ gitlab_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
+				{% endif %}
+			{% endif %}
 		{% endif %}
-	 {% endif %}
-  </div>
+	</div>
 
 	<div role="contentinfo">
 		<p>
