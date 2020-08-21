@@ -63,6 +63,9 @@ Like any other XML tree API, XIST provides the usual classes:
 *	:class:`ll.xist.xsc.DocType` for document type declarations
 	(e.g. ``<!DOCTYPE html PUBLIC ...>``).
 
+.. inheritance-diagram:: ll.xist.xsc.Node ll.xist.xsc.Frag ll.xist.xsc.Element ll.xist.xsc.Attrs ll.xist.xsc.Entity ll.xist.xsc.Attr ll.xist.xsc.BoolAttr ll.xist.xsc.ColorAttr ll.xist.xsc.NumberAttr ll.xist.xsc.FloatAttr ll.xist.xsc.IntAttr ll.xist.xsc.IDAttr ll.xist.xsc.StyleAttr ll.xist.xsc.TextAttr ll.xist.xsc.URLAttr ll.xist.xsc.CharacterData ll.xist.xsc.Text ll.xist.xsc.CharRef ll.xist.xsc.amp ll.xist.xsc.apos ll.xist.xsc.gt ll.xist.xsc.lt ll.xist.xsc.quot ll.xist.xsc.Comment ll.xist.xsc.DocType ll.xist.xsc.ProcInst
+	:parts: 1
+
 
 Creating plain elements, processing instructions and entities
 -------------------------------------------------------------
