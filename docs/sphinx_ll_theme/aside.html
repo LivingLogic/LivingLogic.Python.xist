@@ -55,7 +55,7 @@
 					</span>
 					<span class="text">
 						<span class="label">{{ _('Page source') }}</span>
-						<span class="title">{{ _('Source of this page') }}</span>
+						<span class="title">{{ _('Source code of this page') }}</span>
 					</span>
 				</a>
 			{%- elif show_source and has_source and sourcename %}
@@ -65,7 +65,7 @@
 					</span>
 					<span class="text">
 						<span class="label">{{ _('Page source') }}</span>
-						<span class="title">{{ _('Source of this page') }}</span>
+						<span class="title">{{ _('Source code of this page') }}</span>
 					</span>
 				</a>
 			{%- endif %}
@@ -99,8 +99,8 @@
 	 {% endif %}
 	</div>
 
-	<div role="contentinfo" class="iconpanel">
-		{%- if show_copyright %}
+	{%- if show_copyright %}
+		<div role="contentinfo" class="iconpanel copyright">
 			<span class="icon">
 				<i class="{{theme_font_awesome_style}} fa-fw fa-copyright"></i>
 			</span>
@@ -109,48 +109,77 @@
 					{%- if hasdoc('copyright') %}
 						{% trans path=pathto('copyright'), copyright=copyright|e %}<a href="{{ path }}">Copyright</a>{% endtrans %}
 					{%- else %}
-						{% trans copyright=copyright|e %}Copyright{% endtrans %}
+						{% trans %}Copyright{% endtrans %}
 					{%- endif %}
 				</span>
-				<span class="title">{{ copyright }}</span>
+				<span class="title">{{ copyright|e }}</span>
 			</span>
-		{%- endif %}
+		</div>
+	{%- endif %}
 
-		<p>
-			{%- if build_id and build_url %}
+	{%- if build_id and build_url %}
+		<div role="contentinfo" class="iconpanel build">
+			<span class="icon">
+				<i class="{{theme_font_awesome_style}} fa-fw fa-code-branch"></i>
+			</span>
+			<span class="text">
 				{% trans build_url=build_url, build_id=build_id %}
-					<span class="build">
+					<span class="label">
 						Build
+					</span>
+					<span class="title">
 						<a href="{{ build_url }}">{{ build_id }}</a>.
 					</span>
 				{% endtrans %}
-			{%- elif commit %}
+			</span>
+		</div>
+	{%- elif commit %}
+		<div role="contentinfo" class="iconpanel commit">
+			<span class="icon">
+				<i class="{{theme_font_awesome_style}} fa-fw fa-code-commit"></i>
+			</span>
+			<span class="text">
+				<span class="label">
+					{{ _('Revision') }}
+				</span>
 				{% trans commit=commit %}
-					<span class="commit">
-						Revision <code>{{ commit }}</code>.
+					<span class="title">
+						{{ commit }}
 					</span>
 				{% endtrans %}
-			{%- elif last_updated %}
-				<span class="lastupdated">
-					{% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}
+			</span>
+		</div>
+	{%- elif last_updated %}
+		<div role="contentinfo" class="iconpanel lastupdated">
+			<span class="icon">
+				<i class="{{theme_font_awesome_style}} fa-fw fa-calendar"></i>
+			</span>
+			<span class="text">
+				<span class="label">
+					{{ _('Last updated on') }}
 				</span>
-			{%- endif %}
-		</p>
-	</div>
+				<span class="title">
+					{{ last_updated|e }}
+				</span>
+			</span>
+		</div>
+	{%- endif %}
 
 	{%- if show_sphinx -%}
-		<div class="iconpanel">
-			<span class="icon"><i class="{{theme_font_awesome_style}} fa-fw fa-cog"></i></span>
+		<div role="contentinfo" class="iconpanel">
+			<span class="icon">
+				<i class="{{theme_font_awesome_style}} fa-fw fa-cog"></i>
+			</span>
 			<span class="text">
 				<span class="label">
 					{% trans %}Built{% endtrans %}
 				</span>
 				<span class="title">
-						{% trans %}with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>{% endtrans %}.
+					{% trans %}with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>{% endtrans %}
 				</span>
 			</span>
 		</div>
-	{%- endif -%}
+	{%- endif %}
 
 	{%- block extraaside %} {% endblock %}
 </aside>

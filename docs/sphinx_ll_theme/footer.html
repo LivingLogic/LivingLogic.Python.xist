@@ -86,37 +86,37 @@
 	</div>
 
 	<div role="contentinfo">
-		<p>
-			{%- if show_copyright %}
+		{%- if show_copyright %}
+			<p class="copyright">
 				{%- if hasdoc('copyright') %}
 					{% trans path=pathto('copyright'), copyright=copyright|e %}<i class="{{theme_font_awesome_style}} fa-fw fa-copyright"></i> <a href="{{ path }}">Copyright</a> {{ copyright }}{% endtrans %}
 				{%- else %}
 					{% trans copyright=copyright|e %}<i class="{{theme_font_awesome_style}} fa-fw fa-copyright"></i> Copyright {{ copyright }}{% endtrans %}
 				{%- endif %}
-			{%- endif %}
+			</p>
+		{%- endif %}
 
-			{%- if build_id and build_url %}
+		{%- if build_id and build_url %}
+			<p class="build">
 				{% trans build_url=build_url, build_id=build_id %}
-					<span class="build">
-						Build
-						<a href="{{ build_url }}">{{ build_id }}</a>.
-					</span>
+					<i class="{{theme_font_awesome_style}} fa-fw fa-code-branch"></i> Build <a href="{{ build_url }}">{{ build_id }}</a>
 				{% endtrans %}
-			{%- elif commit %}
+			</p>
+		{%- elif commit %}
+			<p class="commit">
 				{% trans commit=commit %}
-					<span class="commit">
-						Revision <code>{{ commit }}</code>.
-					</span>
+					<i class="{{theme_font_awesome_style}} fa-fw fa-code-commit"></i> Revision <code>{{ commit }}</code>
 				{% endtrans %}
-			{%- elif last_updated %}
-				<span class="lastupdated">
-					{% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}
-				</span>
-			{%- endif %}
-		</p>
+			</p>
+		{%- elif last_updated %}
+			<p class="lastupdated">
+				<i class="{{theme_font_awesome_style}} fa-fw fa-calendar"></i> {{ _('Last updated on') }} {{ last_updated }}
+			</p>
+		{%- endif %}
+
 		{%- if show_sphinx -%}
 			<p>
-				<i class="{{theme_font_awesome_style}} fa-fw fa-cog"></i> {% trans %}Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>{% endtrans %}.
+				<i class="{{theme_font_awesome_style}} fa-fw fa-cog"></i> {% trans %}Built{% endtrans %} {% trans %}with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>{% endtrans %}.
 			</p>
 		{%- endif -%}
 	</div>
