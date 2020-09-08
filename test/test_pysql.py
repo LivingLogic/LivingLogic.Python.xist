@@ -82,6 +82,14 @@ sql(
 	),
 )
 
+object_exists(
+	"pysql_test_procedure"
+)
+
+constraint_exists(
+	"doesnt_exist"
+)
+
 {
 	"type": "sql",
 	"sql": "begin :filename_scp := 'gurk_scp.txt'; end;",

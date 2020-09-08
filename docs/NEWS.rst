@@ -13,6 +13,9 @@ Changes in HEAD (release 09/??/2020)
 
 *	All PySQL commands now support the argument ``cond``.
 
+*	Added a PySQL command ``constraint_exists`` that checks the existance of
+	database constraints.
+
 
 Changes in 5.62 (released 07/13/2020)
 -------------------------------------

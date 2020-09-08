@@ -552,7 +552,7 @@ class Command:
 		should be ignored (:const:`False`). :const:`None` (the default)
 		uses the global configuration.
 
-	``cond``: bool (optional)
+	``cond`` : bool (optional)
 		Specifies whether this command should be executed or not.
 		If ``cond`` is true (the default), the command will be executed,
 		else it won't.
@@ -1658,7 +1658,7 @@ class user_exists(_DatabaseCommand):
 @register
 class object_exists(_DatabaseCommand):
 	"""
-	The :class:`!object_exists` command return whether an object with a
+	The :class:`!object_exists` command returns whether an object with a
 	specified name exists in the database. It supports the following parameters:
 
 	``name``: string (required)
@@ -1669,6 +1669,9 @@ class object_exists(_DatabaseCommand):
 		or :const:`None`).
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+
+	Note that :class:`!object_exists` won't test for constraints. For this use
+	:class:`constraint_exists`.
 	"""
 
 	def __init__(self, name, *, owner=None, connection=None, raiseexceptions=None, cond=True):
@@ -1691,6 +1694,57 @@ class object_exists(_DatabaseCommand):
 			cursor.execute("select count(*) from user_objects where object_name = :name", name=self.name)
 		else:
 			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=self.owner, name=self.name)
+		result = cursor.fetchone()[0] > 0
+		self.count(connectstring(connection))
+
+		return result
+
+	def source_format(self):
+		yield from self._source_format(
+			self.name,
+			owner=self.owner,
+			connection=self.connection,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
+class constraint_exists(_DatabaseCommand):
+	"""
+	The :class:`!constraint_exists` command returns whether a constraint (i.e.
+	a primary key, foreign key, unique or check constraint) with a specified name
+	exists in the database. It supports the following parameters:
+
+	``name``: string (required)
+		The name of the object to be checked for existence.
+
+	``owner``: string (optional)
+		The owner of the constraint (defaults to the current user if not specified
+		or :const:`None`).
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, name, *, owner=None, connection=None, raiseexceptions=None, cond=True):
+		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
+		self.name = name
+		self.owner = owner
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
+
+	def execute(self, context):
+		if not self.cond:
+			return None
+
+		connection = context.getconnection(self.connection)
+
+		cursor = connection.cursor()
+
+		if self.owner is None:
+			cursor.execute("select count(*) from user_constraints where constraint_name = :name", name=self.name)
+		else:
+			cursor.execute("select count(*) from all_constraints where owner = :owner and constraint_name = :name", owner=self.owner, name=self.name)
 		result = cursor.fetchone()[0] > 0
 		self.count(connectstring(connection))
 
