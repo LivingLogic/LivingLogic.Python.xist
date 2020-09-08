@@ -8,8 +8,8 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.63 (release 09/08/2020)
-------------------------------------
+Changes in 5.63 (released 09/08/2020)
+-------------------------------------
 
 *	All PySQL commands now support the argument ``cond``.
 
