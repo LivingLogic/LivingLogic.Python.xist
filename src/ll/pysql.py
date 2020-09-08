@@ -134,6 +134,10 @@ The following commands are available:
 :class:`object_exists`
 	Tests whether a database object (table, package, procedure, etc.) exists;
 
+:class:`constraint_exists`
+	Tests whether a database constraint (primary key, foriegn key, unique or
+	check constraint) exists;
+
 :class:`drop_types`
 	Drops all database objects of a certain type;
 
