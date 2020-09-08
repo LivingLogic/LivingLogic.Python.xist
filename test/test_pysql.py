@@ -102,6 +102,35 @@ sql(
 	"name": "{filename_scp}",
 	"content": b"gurk_scp",
 }
+
+procedure(
+	"doesnt_exist",
+	cond=False,
+)
+
+resetsequence(
+	"doesnt_exist",
+	table="doesnt_exist",
+	field="de_id",
+	cond=False,
+)
+
+sql(
+	"begin doesnt_exist; end;",
+	cond=False,
+)
+
+file(
+	name="doesnt_exist",
+	content=b"nothing",
+	cond=False,
+)
+
+scp(
+	name="doesnt_exist",
+	content=b"nothing",
+	cond=False,
+)
 """
 
 
