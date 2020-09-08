@@ -549,16 +549,16 @@ class Command:
 	``raiseexceptions`` : bool (optional)
 		Specifies whether exceptions that happen during the execution of the
 		command should be reported and terminate the script (:const:`True`), or
-		should be ignored (:const:`False`). :const:`None` uses the global
-		configuration.
+		should be ignored (:const:`False`). :const:`None` (the default)
+		uses the global configuration.
 
-	``cond``: any (optional)
+	``cond``: bool (optional)
 		Specifies whether this command should be executed or not.
-		If ``cond`` is :const:`None` or true, the command will be executed,
+		If ``cond`` is true (the default), the command will be executed,
 		else it won't.
 	"""
 
-	def __init__(self, *, raiseexceptions=None, cond=None):
+	def __init__(self, *, raiseexceptions=None, cond=True):
 		self.location = None
 		self.raiseexceptions = raiseexceptions
 		self.cond = cond
@@ -647,7 +647,7 @@ class include(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, raiseexceptions=None, cond=None):
+	def __init__(self, filename, *, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.filename = filename
 
@@ -657,7 +657,7 @@ class include(Command):
 	def execute(self, context):
 		filename = self.filename
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped file {context.strfilename(filename)!r}")
 		else:
 			self.log(f"Including file {context.strfilename(filename)!r}")
@@ -693,7 +693,7 @@ class connect(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raiseexceptions=None, cond=None):
+	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.connectstring = connectstring
 		self.mode = mode
@@ -704,7 +704,7 @@ class connect(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectstring={self.connectstring!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped connecting to {self.connectstring!r}")
 			return None
 
@@ -763,7 +763,7 @@ class disconnect(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, commit=None, raiseexceptions=None, cond=None):
+	def __init__(self, *, commit=None, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.commit = commit
 
@@ -773,7 +773,7 @@ class disconnect(Command):
 	def execute(self, context):
 		connection = context.connections[-1] if context.connections else None
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			if connection is not None:
 				self.finish(f"Skipped disconnecting from {connectstring(connection)!r}")
 			else:
@@ -813,7 +813,7 @@ class _DatabaseCommand(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, *, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.connection = connection
 
@@ -903,7 +903,7 @@ class procedure(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, connection=None, raiseexceptions=None, cond=None, args=None):
+	def __init__(self, name, *, connection=None, raiseexceptions=None, cond=True, args=None):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.args = args or {}
@@ -914,7 +914,7 @@ class procedure(_SQLCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped procedure {self.name!r} in {connection.connectstring()!r}")
 			return None
 
@@ -956,7 +956,7 @@ class sql(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=None, args=None):
+	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=True, args=None):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 		self.sql = sql
 		self.args = args or {}
@@ -967,7 +967,7 @@ class sql(_SQLCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped SQL in {connectstring(connection)!r}")
 			return None
 
@@ -997,7 +997,7 @@ class literalsql(_SQLCommand):
 	the :class:`!literalsql` command is invoked directly.
 	"""
 
-	def __init__(self, sql, raiseexceptions=None, cond=None):
+	def __init__(self, sql, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.sql = sql
 
@@ -1007,7 +1007,7 @@ class literalsql(_SQLCommand):
 	def execute(self, context):
 		connection = context.getconnection(None)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped literal SQL in {connectstring(connection)!r}")
 			return None
 
@@ -1035,7 +1035,7 @@ class commit(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
@@ -1044,7 +1044,7 @@ class commit(_SQLCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped committing transaction in {connectstring(connection)!r}")
 			return None
 
@@ -1070,7 +1070,7 @@ class rollback(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
@@ -1079,7 +1079,7 @@ class rollback(_SQLCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped rolling back transaction in {connectstring(connection)!r}")
 			return None
 
@@ -1106,7 +1106,7 @@ class literalpy(_DatabaseCommand):
 	can be implemented in the Python block itself).
 	"""
 
-	def __init__(self, code, raiseexceptions=None, cond=None):
+	def __init__(self, code, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		prefix = f"{Context.literalpy_begin}\n"
 		suffix = f"\n{Context.literalpy_end}"
@@ -1127,7 +1127,7 @@ class literalpy(_DatabaseCommand):
 	def execute(self, context):
 		connection = context.connections[-1] if context.connections else None
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped Python block")
 			return None
 
@@ -1164,7 +1164,7 @@ class setvar(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, name, value, *, raiseexceptions=None, cond=None):
+	def __init__(self, name, value, *, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.value = value
@@ -1173,7 +1173,7 @@ class setvar(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} value={self.value!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			return None
 
 		context._locals[self.name] = self.value
@@ -1196,7 +1196,7 @@ class unsetvar(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None, cond=None):
+	def __init__(self, name, *, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 
@@ -1204,7 +1204,7 @@ class unsetvar(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			return None
 
 		context._locals.pop(self.name, None)
@@ -1239,7 +1239,7 @@ class raiseexceptions(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, value, raiseexceptions=None, cond=None):
+	def __init__(self, *, value, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.value = value
 
@@ -1247,7 +1247,7 @@ class raiseexceptions(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped setting raiseexceptions")
 			return None
 
@@ -1283,7 +1283,7 @@ class pushraiseexceptions(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, value, *, raiseexceptions=None, cond=None):
+	def __init__(self, value, *, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.value = value
 
@@ -1291,7 +1291,7 @@ class pushraiseexceptions(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped pushing raiseexceptions")
 			return None
 
@@ -1316,14 +1316,14 @@ class popraiseexceptions(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, raiseexceptions=None, cond=None):
+	def __init__(self, *, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped popping raiseexceptions")
 			return None
 
@@ -1355,7 +1355,7 @@ class checkerrors(_DatabaseCommand):
 	def execute(self, context):
 		connection = context.getconnection(None)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped checking errors in {connectstring(connection)!r}")
 			return None
 
@@ -1396,7 +1396,7 @@ class scp(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, name, content, raiseexceptions=None, cond=None):
+	def __init__(self, *, name, content, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.content = content
@@ -1405,7 +1405,7 @@ class scp(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped copying file")
 			return None
 
@@ -1463,7 +1463,7 @@ class file(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, name, content, *, mode=None, owner=None, group=None, raiseexceptions=None, cond=None):
+	def __init__(self, name, content, *, mode=None, owner=None, group=None, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.content = content
@@ -1475,7 +1475,7 @@ class file(Command):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped saving file")
 			return None
 
@@ -1549,7 +1549,7 @@ class resetsequence(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 		self.sequence = sequence
 		self.table = table
@@ -1563,7 +1563,7 @@ class resetsequence(_DatabaseCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped resetting sequence in {connectstring(connection)!r}")
 			return None
 
@@ -1627,7 +1627,7 @@ class user_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, name, *, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 
@@ -1637,7 +1637,7 @@ class user_exists(_DatabaseCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			return None
 
 		cursor = connection.cursor()
@@ -1671,7 +1671,7 @@ class object_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, owner=None, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, name, *, owner=None, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.owner = owner
@@ -1680,7 +1680,7 @@ class object_exists(_DatabaseCommand):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def execute(self, context):
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			return None
 
 		connection = context.getconnection(self.connection)
@@ -1728,7 +1728,7 @@ class drop_types(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, *, drop=None, keep=None, connection=None, raiseexceptions=None, cond=None):
+	def __init__(self, *, drop=None, keep=None, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 		self.drop = drop
 		self.keep = keep
@@ -1739,7 +1739,7 @@ class drop_types(_DatabaseCommand):
 	def execute(self, context):
 		connection = context.getconnection(self.connection)
 
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			self.finish(f"Skipped dropping types in {connectstring(connection)!r}")
 			return None
 
@@ -1828,7 +1828,7 @@ class loadbytes(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, raiseexceptions=None, cond=None):
+	def __init__(self, filename, *, raiseexceptions=None, cond=True):
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.filename = filename
 
@@ -1839,7 +1839,7 @@ class loadbytes(Command):
 		"""
 		Read the file and return the file content as a :class:`bytes` object.
 		"""
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			return None
 
 		filename = pathlib.Path(self.filename)
@@ -1873,7 +1873,7 @@ class loadstr(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None, cond=None):
+	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None, cond=True):
 		"""
 		Create a new :class:`loadbytes` object. 
 		"""
@@ -1895,7 +1895,7 @@ class loadstr(Command):
 		"""
 		Read the file and return the file content as a :class:`str` object.
 		"""
-		if self.cond is not None and not self.cond:
+		if not self.cond:
 			return None
 
 		filename = pathlib.Path(self.filename)
