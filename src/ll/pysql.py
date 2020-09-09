@@ -2486,10 +2486,10 @@ class Context:
 		else:
 			return str(filename)
 
+
 ###
 ### Classes to be used by the PySQL commands
 ###
-
 
 class sqlexpr:
 	"""
