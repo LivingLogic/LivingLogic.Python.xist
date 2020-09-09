@@ -2767,7 +2767,7 @@ def main(args=None):
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
 	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of context lines when printing source code (default %(default)r)", type=int, default=None)
-	p.add_argument("-a", "--ascii", dest="ascii", help="Don't use fancy unicode characters (default %(default)r)", default=False, action="store_true")
+	p.add_argument("-a", "--ascii", dest="ascii", help="Don't use fancy unicode characters", default=False, action="store_true")
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
 	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
 
