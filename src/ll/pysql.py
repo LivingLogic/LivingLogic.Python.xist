@@ -997,7 +997,8 @@ class literalsql(_SQLCommand):
 	PySQL file. Apart from the ``sql`` attribute it supports the parameters
 	``raiseexceptions`` and ``cond``, but those parameters can't be passed
 	when the :class:`!literalsql` object is created from literal SQL, only when
-	the :class:`!literalsql` command is invoked directly.
+	the :class:`!literalsql` command is invoked directly (which won't work in
+	a PySQL file).
 	"""
 
 	def __init__(self, sql, raiseexceptions=None, cond=True):
@@ -1104,9 +1105,10 @@ class literalpy(_DatabaseCommand):
 	PySQL file. Apart from the ``code`` attribute it supports the parameters
 	``raiseexceptions`` and ``cond``, but those parameters can't be passed
 	when the :class:`!literalpy` object is created via a Python block, only when
-	the :class:`!literalpy` command is invoked directly (which doesn't make
-	much sense, since the functionality of ``raiseexceptions`` and ``cond``
-	can be implemented in the Python block itself).
+	the :class:`!literalpy` command is invoked directly (which won't work in a
+	PySQL file and doesn't make much sense anyway, since the functionality of
+	``raiseexceptions`` and ``cond`` can be implemented in the Python block
+	itself).
 	"""
 
 	def __init__(self, code, raiseexceptions=None, cond=True):
