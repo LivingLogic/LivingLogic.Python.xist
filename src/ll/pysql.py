@@ -2466,7 +2466,7 @@ class Context:
 			if anyoutput:
 				print(flush=True)
 				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed", flush=True)
-			if not anyoutput:
+			else:
 				print("    no commands executed", flush=True)
 
 	def count(self, *args):
