@@ -69,7 +69,7 @@ procedure(
 	)
 )
 
-resetsequence(
+reset_sequence(
 	"pysql_test_sequence",
 	table="pysql_test_table",
 	field="odtt_id",
@@ -80,6 +80,14 @@ sql(
 	args=dict(
 		filename_file=var("filename_file", str),
 	),
+)
+
+object_exists(
+	"pysql_test_procedure"
+)
+
+constraint_exists(
+	"doesnt_exist"
 )
 
 {
@@ -102,6 +110,35 @@ sql(
 	"name": "{filename_scp}",
 	"content": b"gurk_scp",
 }
+
+procedure(
+	"doesnt_exist",
+	cond=False,
+)
+
+reset_sequence(
+	"doesnt_exist",
+	table="doesnt_exist",
+	field="de_id",
+	cond=False,
+)
+
+sql(
+	"begin doesnt_exist; end;",
+	cond=False,
+)
+
+file(
+	name="doesnt_exist",
+	content=b"nothing",
+	cond=False,
+)
+
+scp(
+	name="doesnt_exist",
+	content=b"nothing",
+	cond=False,
+)
 """
 
 

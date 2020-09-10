@@ -8,11 +8,20 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.63 (released 09/08/2020)
+-------------------------------------
+
+*	All PySQL commands now support the argument ``cond``.
+
+*	Added a PySQL command ``constraint_exists`` that checks the existance of
+	database constraints.
+
+
 Changes in 5.62 (released 07/13/2020)
 -------------------------------------
 
-*	Update HTML for the documentation to use our own (RTD based) theme instead of
-	using and overwriting the RTD theme.
+*	Update HTML for the documentation to use our own (RTD based) theme instead
+	of using and overwriting the RTD theme.
 
 
 Changes in 5.61.2 (released 07/09/2020)

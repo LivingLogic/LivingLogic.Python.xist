@@ -11,9 +11,9 @@
 """
 Overview
 ========
-The module/script :mod:`pysql` can be used to import data into an Oracle or
-Postgres database. It reads ``pysql`` files which are an extension of normal
-Oracle or Postgres SQL files.
+The module/script :mod:`pysql` can be used to import data into one or more
+Oracle or Postgres databases. It reads ``pysql`` files which are an extension
+of normal Oracle or Postgres SQL files.
 
 A PySQL file can contain different types of commands.
 
@@ -27,9 +27,9 @@ line ``-- @@@``. :mod:`pysql` will prepare the command for execution and
 execute it. Any exception that is raised as a result of executing the command
 will stop the script and be reported. This is in contrast to how Oracle's
 ``sqlplus`` executes SQL commands. ``sqlplus`` would continue after an error
-and exit with status code 0 even if there were errors. (For Oracle it is also
-possible to explicitely ignore any exception raised by the command by
-specifying a different exception handling mode.)
+and exit with status code 0 even if there were errors. (For Oracle :mod:`pysql`
+can also explicitely ignore any exception raised by commands by specifying
+a different exception handling mode.)
 
 A PySQL file that only contains SQL commands is still a valid Oracle or Postgres
 SQL file, so it still can be executed via ``sqlplus`` or ``psql``.
@@ -88,18 +88,11 @@ The following commands are available:
 	Executes an SQL statement in the database (and handles OUT parameter via
 	:class:`var` objects);
 
-:class:`literalsql`
-	Executes an SQL statement in the database (this is what SQL commands get
-	converted to);
-
 :class:`commit`
 	Commits the transaction in the active database connection;
 
 :class:`rollback`
 	Rolls back the transaction in the active database connection;
-
-:class:`literalpy`
-	Executes Python code (this is what literal Python blocks get converted to);
 
 :class:`setvar`
 	Sets a variable;
@@ -116,7 +109,7 @@ The following commands are available:
 :class:`popraiseexceptions`
 	Reverts to the previously active exception handling mode;
 
-:class:`checkerrors`
+:class:`check_errors`
 	Checks whether there are invalid database objects;
 
 :class:`scp`
@@ -125,14 +118,22 @@ The following commands are available:
 :class:`file`
 	Creates a file on the local machine;
 
-:class:`resetsequence`
+:class:`reset_sequence`
 	Resets a database sequence to the maximum value of a field in a table;
 
 :class:`user_exists`
 	Tests whether a database user exists;
 
+:class:`schema_exists`
+	Tests whether a database schema exists (which is the same as a user for
+	Oracle);
+
 :class:`object_exists`
 	Tests whether a database object (table, package, procedure, etc.) exists;
+
+:class:`constraint_exists`
+	Tests whether a database constraint (primary key, foreign key, unique or
+	check constraint) exists;
 
 :class:`drop_types`
 	Drops all database objects of a certain type;
@@ -310,13 +311,13 @@ procedure and will call the procedure to insert data into the table::
 		b'\\x89PNG\\r\\n\\x1a\\n...',
 	)
 
-	resetsequence(
+	reset_sequence(
 		'person_seq',
 		table='person',
 		field='per_id',
 	}
 
-	checkerrors()
+	check_errors()
 
 This file can then be imported into an Oracle database with the following
 command::
@@ -325,7 +326,7 @@ command::
 
 This will create two sequences, two tables and two procedures. Then it will
 import two records, one by calling ``person_insert`` and one by calling
-``contact_insert``. The PL/SQL equivalent of the above is::
+``contact_insert``. The PL/SQL equivalent of procedure calls is::
 
 	declare
 		v_per_id_max integer;
@@ -357,8 +358,8 @@ PySQL can handle multiple database connections. New database connections can be
 opened with the ``connect`` command. This command opens a new database
 connection. Subsequent commands that talk to the database will use this
 connection until a ``disconnect`` command disconnects from the database and
-reverts to the previous connection (which might not exist). An example looks
-like this::
+reverts to the previous connection (or the ``None`` if this was the outermost
+open database connection). An example looks like this::
 
 	connect("oracle:user/pwd@db")
 	procedure("test")
@@ -376,7 +377,7 @@ for Postgres.
 Variables
 =========
 
-Variable objects can be used to receive out parameters of procedure calls or
+Variable objects can be used to receive OUT parameters of procedure calls or
 SQL statements. A variable object can be specified like this ``var("foo")``.
 ``"foo"`` is the "name" of the variable. When a variable object is passed
 to a procedure the first time (i.e. the variable object is uninitialized),
@@ -387,7 +388,8 @@ in the same procedure call, if it hasn't been used before, however in later
 commands this is no problem).
 
 The type of the variable defaults to :class:`int`, but a different type can be
-passed when creating the object like this: ``var("foo", str)``.
+passed when creating the object by passing the Python type like this:
+``var("foo", str)``.
 
 It is also possible to create variable objects via command line parameters.
 
@@ -423,7 +425,7 @@ Command line usage
 ==================
 
 ``pysql.py`` has no external dependencies except for :mod:`cx_Oracle`
-(for Oracle) or (:mod:`psycopg2` for Postgres) and can be used as a script for
+(for Oracle) or :mod:`psycopg2` (for Postgres) and can be used as a script for
 importing a PySQL file into the database (However some commands require
 :mod:`ll.orasql` for an Oracle database). As a script it supports the following
 command line options:
@@ -451,8 +453,8 @@ command line options:
 
 			postgres:host=localhost dbname=test user=me password=secret
 
-		For Oracle the may may start with ``oracle:``. The rest can be a standard
-		Oracle connectstring. For example::
+		For Oracle the value may start with ``oracle:``. The rest can be a
+		standard Oracle connectstring. For example::
 
 			me/secret@database
 
@@ -461,10 +463,10 @@ command line options:
 
 	``-r``, ``--rollback``
 		Specifies that transactions should be rolled back at the end of the script
-		run, or when a :class:`disconnect` command disconnects from the database.
+		run, or when a :class:`disconnect` command disconnects from a database.
 		The default is to commit at the end or on each disconnect. (But note that
-		for Oracle DDL in the script will still commit everything up to the DDL
-		statement.)
+		for Oracle when a DDL statement is in the script, Oracle will still
+		implicitely commit everything up to the statement.)
 
 	``-s``, ``--scpdirectory``
 		The base directory for :class:`scp` file copy commands. As files are
@@ -504,7 +506,7 @@ command line options:
 			``false``, ``False``, ``1``, ``yes``, ``true`` and ``True``.
 """
 
-# We're importing :mod:`datetime` to make it available to :func:`eval` and :func:`exec`
+# We're importing :mod:`datetime` to make it available to :func:`exec`
 import sys, os, os.path, argparse, collections, time, datetime, pathlib, tempfile, subprocess, contextlib
 
 try:
@@ -531,8 +533,6 @@ try:
 	import psycopg2
 except ImportError:
 	psycopg2 = None
-else:
-	from psycopg2 import extensions
 
 __docformat__ = "reStructuredText"
 
@@ -557,162 +557,590 @@ def shortrepr(value):
 
 
 ###
-### Database handlers: handle stuff for various databases
+### Database handlers: Execute commands (and handle other stuff) for various databases
 ###
 
 
 class Handler:
 	@staticmethod
-	def get(connection):
-		if connection is None:
+	def from_connectstring(connectstring, mode=None):
+		"""
+		Create an appropriate :class:`!Handler` from a connectstring.
+		"""
+		if connectstring is None:
 			return Handler()
-		elif psycopg2 is not None and isinstance(connection, extensions.connection):
+		elif connectstring.startswith("postgres:"):
+			from psycopg2 import extras
+			connection = psycopg2.connect(connectstring[9:], cursor_factory=extras.DictCursor)
 			return PostgresHandler(connection)
-		elif orasql is not None and isinstance(connection, orasql.Connection):
-			return OraSQLHandler(connection)
-		elif cx_Oracle is not None and isinstance(connection, cx_Oracle.Connection):
-			return OracleHandler(connection)
 		else:
-			raise TypeError(f"unknown connection {connection!r}")
+			if connectstring.startswith("oracle:"):
+				connectstring = connectstring[7:]
+			mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
+			if orasql is not None:
+				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
+				return OraSQLHandler(connection)
+			else:
+				connection = cx_Oracle.connect(connectstring, mode=mode)
+				return OracleHandler(connection)
+
+	@staticmethod
+	def from_command(command):
+		"""
+		Create an appropriate :class:`!Handler` from :class:`connect` command.
+		"""
+		return Handler.from_connectstring(command.connectstring, command.mode)
 
 	def __init__(self):
 		self.connection = None
 
 	def connectstring(self):
+		"""
+		Return a string identifying the database connection for this handler.
+		"""
 		return ""
 
-	def user_exists(self, name):
+	def connect(self, context, command):
+		"""
+		Execute the :class:`connect` command ``command``.
+		"""
+		cs = command.connectstring
+		if not command.cond:
+			command.finish(f"Skipped connecting to {cs!r}")
+			return None
+
+		retry = command.retry if command.retry is not None else 1
+		retrydelay = command.retrydelay if command.retrydelay is not None else 10
+
+		for i in range(retry+1):
+			if i == retry:
+				handler = Handler.from_command(command)
+			else:
+				try:
+					handler = Handler.from_command(command)
+				except Exception as exc:
+					if command.mode is not None:
+						command.log(f"Connection #{i+1:,} to {cs!r} as {command.mode} failed:")
+					else:
+						command.log(f"Connection #{i+1:,} to {cs!r} failed:")
+					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+					command.log(f"{format_class(exc.__class__)}: {exctext}")
+					if retrydelay > 0:
+						command.log(f"Retrying after {retrydelay!r} seconds")
+						time.sleep(retrydelay)
+					else:
+						command.log(f"Retrying immediately")
+				else:
+					break
+
+		if command.mode is not None:
+			command.finish(f"Connected to {cs!r} as {command.mode}")
+		else:
+			command.finish(f"Connected to {cs!r}")
+		context.handlers.append(handler)
+		return handler.connection
+
+	def include(self, context, command):
+		"""
+		Execute the :class:`include` command ``command``.
+		"""
+		filename = command.filename
+
+		if not command.cond:
+			command.finish(f"Skipped file {context.strfilename(filename)!r}")
+		else:
+			command.log(f"Including file {context.strfilename(filename)!r}")
+			with context.changed_filename(filename) as fn:
+				with fn.open("r", encoding="utf-8") as f:
+					context._load(f)
+			command.finish(f"Included file {context.strfilename(filename)!r}")
+
+	def user_exists(self, context, command):
+		"""
+		Execute the :class:`user_exists` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def schema_exists(self, name):
+	def schema_exists(self, context, command):
+		"""
+		Execute the :class:`schema_exists` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def object_exists(self, name):
+	def object_exists(self, context, command):
+		"""
+		Execute the :class:`object_exists` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def check_errors(self):
+	def constraint_exists(self, context, command):
+		"""
+		Execute the :class:`constraint_exists` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def literalsql(self, sql):
+	def check_errors(self, context, command):
+		"""
+		Execute the :class:`check_errors` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def procedure(self, context, name, args):
+	def literalsql(self, context, command):
+		"""
+		Execute the :class:`literalsql` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def sql(self, context, sql, args):
+	def literalpy(self, context, command):
+		"""
+		Execute the :class:`literalpy` command ``command``.
+		"""
+		if not command.cond:
+			self.finish(f"Skipped Python block")
+			return None
+
+		vars = context.globals()
+
+		code = command.location.source(True) if command.location is not None else command.code
+		code += "\n"
+		code = compile(code, context.filename, "exec")
+		exec(code, vars, context._locals)
+
+		command.finish(f"Executed Python block")
+		command.count(self.connectstring())
+
+	def procedure(self, context, command):
+		"""
+		Execute the :class:`procedure` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def reset_sequence(self, sequence, table, field, increment, minvalue):
+	def sql(self, context, command):
+		"""
+		Execute the :class:`sql` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def drop_types(self, drop, keep):
+	def reset_sequence(self, context, command):
+		"""
+		Execute the :class:`reset_sequence` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def rollback(self):
+	def drop_types(self, context, command):
+		"""
+		Execute the :class:`drop_types` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def commit(self):
+	def rollback(self, context, command):
+		"""
+		Execute the :class:`rollback` command ``command``.
+		"""
 		raise NoDatabaseError()
 
-	def disconnect(self, commit):
+	def commit(self, context, command):
+		"""
+		Execute the :class:`commit` command ``command``.
+		"""
 		raise NoDatabaseError()
+
+	def disconnect(self, context, command):
+		"""
+		Execute the :class:`disconnect` command ``command``.
+		"""
+		raise NoDatabaseError()
+
+	def setvar(self, context, command):
+		"""
+		Execute the :class:`setvar` command ``command``.
+		"""
+		if command.cond:
+			context._locals[command.name] = command.value
+
+	def unsetvar(self, context, command):
+		"""
+		Execute the :class:`unsetvar` command ``command``.
+		"""
+		if self.cond:
+			context._locals.pop(command.name, None)
+
+	def raiseexceptions(self, context, command):
+		"""
+		Execute the :class:`raiseexceptions` command ``command``.
+		"""
+		if not command.cond:
+			command.finish(f"Skipped setting raiseexceptions")
+			return None
+
+		self.log(f"Setting raiseexceptions to {command.value}")
+		context.raiseexceptions[-1] = command.value
+
+	def pushraiseexceptions(self, context, command):
+		"""
+		Execute the :class:`pushraiseexceptions` command ``command``.
+		"""
+		if not command.cond:
+			command.finish(f"Skipped pushing raiseexceptions")
+			return None
+
+		command.log(f"Pushing raiseexceptions value {command.value}")
+		context.raiseexceptions.append(command.value)
+
+	def popraisexceptions(self, context, command):
+		"""
+		Execute the :class:`popraisexceptions` command ``command``.
+		"""
+		if not command.cond:
+			command.finish(f"Skipped popping raiseexceptions")
+			return None
+
+		if len(context.raiseexceptions) <= 1:
+			raise ValueError("raiseexception stack empty")
+		oldvalue = context.raiseexceptions.pop()
+		command.finish(f"Popped raiseexceptions value {oldvalue}: returning to {context.raiseexceptions[-1]}")
+		return oldvalue
+
+	def scp(self, context, command):
+		"""
+		Execute the :class:`scp` command ``command``.
+		"""
+		if not command.cond:
+			command.finish(f"Skipped copying file")
+			return None
+
+		filename = context.scpdirectory + command.name.format(**context._locals)
+		command.log(f"Copying file to {filename!r}")
+
+		with tempfile.NamedTemporaryFile(delete=False) as f:
+			f.write(command.content)
+			tempname = f.name
+		try:
+			result = subprocess.run(["scp", "-q", tempname, filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			if result.returncode:
+				raise SCPError(result.returncode, (result.stdout or result.stderr).decode(errors="replace"))
+		finally:
+			os.remove(tempname)
+		command.finish(f"Copied to {filename!r}")
+
+	def file(self, context, command):
+		"""
+		Execute the :class:`file` command ``command``.
+		"""
+		if not command.cond:
+			command.finish(f"Skipped saving file")
+			return None
+
+		filename = context.filedirectory / command.name.format(**context._locals)
+
+		command.log(f"Saving file {context.strfilename(filename)!r}")
+		try:
+			filename.write_bytes(command.content)
+		except FileNotFoundError: # probably the directory doesn't exist
+			parent = filename.parent
+			if parent != filename:
+				parent.mkdir(parents=True)
+				filename.write_bytes(command.content)
+			else:
+				raise # we don't have a directory to make so pass the error on
+
+		if command.mode:
+			os.chmod(filename, command.mode)
+		if command.owner or command.group:
+			if command.owner:
+				uid = command.owner
+				if isinstance(uid, str):
+					uid = pwd.getpwnam(uid)[2]
+			else:
+				uid = -1
+			if command.group:
+				gid = command.group
+				if isinstance(gid, str):
+					gid = grp.getgrnam(gid)[2]
+			else:
+				gid = -1
+			os.chown(filename, uid, gid)
+		command.finish(f"Saved {len(command.content):,} bytes to {context.strfilename(filename)!r}")
+
+	def comment(self, context, command):
+		"""
+		Execute the :class:`comment` command ``command``.
+		"""
+		pass
+
+	def loadbytes(self, context, command):
+		"""
+		Execute the :class:`loadbytes` command ``command``.
+		"""
+		if command.cond:
+			filename = pathlib.Path(command.filename)
+			return filename.read_bytes()
+
+	def loadstr(self, context, command):
+		"""
+		Execute the :class:`loadstr` command ``command``.
+		"""
+		if command.cond:
+			filename = pathlib.Path(command.filename)
+			return filename.read_text(encoding=command.encoding, errors=command.errors)
+
+	def var(self, context, command):
+		"""
+		Execute the :class:`var` command ``command``.
+		"""
+		if command.key in context._locals:
+			value = context._locals[command.key]
+			if value is not None and not isinstance(value, command.type):
+				raise TypeError(f"{value!r} is not of type {format_class(command.type)}")
+			return value
+		else:
+			return command
+
+	def env(self, context, command):
+		"""
+		Execute the :class:`env` command ``command``.
+		"""
+		return os.environ.get(command.name, command.default)
+
+	def log(self, context, command):
+		"""
+		Execute the :class:`log` command ``command``.
+		"""
+		command.log(*command.objects)
 
 
 class RealHandler(Handler):
+	"""
+	Subclass of :class:`Handler` that has a real database connection.
+	"""
+
 	def __init__(self, connection):
 		self.connection = connection
 
-	def commit(self):
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connection={self.connection!r} at {id(self):#x}>"
+
+	def commit(self, context, command):
+		cs = self.connectstring()
+		if not self.cond:
+			self.finish(f"Skipped committing transaction in {cs!r}")
+			return None
+
+		command.log(f"Committing transaction in {cs!r}")
 		self.connection.commit()
+		command.finish(f"Committed transaction in {cs!r}")
+		command.count(cs)
 
-	def rollback(self):
+	def rollback(self, context, command):
+		cs = self.connectstring()
+		if not self.cond:
+			self.finish(f"Skipped rolling back transaction in {cs!r}")
+			return None
+
+		command.log(f"Rolling back transaction in {cs!r}")
 		self.connection.rollback()
+		command.finish(f"Rolled back transaction in {cs!r}")
+		command.count(cs)
 
-	def disconnect(self, commit):
+	def disconnect(self, context, command):
+		# Get the connectstring now, as Postgres will forget the info after a disconnect
+		cs = self.connectstring()
+
+		if not command.cond:
+			command.finish(f"Skipped disconnecting from {cs!r}")
+			return None
+
+		commit = command.commit if command.commit is not None else context.commit
+
 		if commit:
 			self.connection.commit()
 		else:
 			self.connection.rollback()
 		self.connection.close()
 
+		context.handlers.pop() # Pop ourselves off of the handler stack
+
+		if commit:
+			command.finish(f"Disconnected from {cs!r} (transaction committed)")
+		else:
+			command.finish(f"Disconnected from {cs!r} (transaction rolled back)")
+
+		return self.connection
+
+	def _touchup_sql(self, sql):
+		return sql
+
+	def literalsql(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			self.finish(f"Skipped literal SQL in {cs!r}")
+			return None
+
+		sql = command._sql_for_execute()
+		sql = self._touchup_sql(sql)
+		self.connection.cursor().execute(sql)
+		command.finish(f"Executed literal SQL in {cs!r}")
+		command.count(cs)
+
+	def procedure(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			command.finish(f"Skipped procedure {command.name!r} in {cs!r}")
+			return None
+
+		query = self._create_query(command)
+		result = self._executesql(context, query, command.args)
+		if result:
+			command.log(f"New vars {result!r}")
+		command.finish(f"Called procedure {command.name!r} in {cs!r}")
+		command.count(cs, command.name)
+		return result or None
+
+	def sql(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			command.finish(f"Skipped SQL in {cs!r}")
+			return None
+
+		result = self._executesql(context, command.sql, command.args)
+		if result:
+			command.log(f"New vars {result!r}")
+		command.finish(f"Executed SQL in {cs!r}")
+		command.count(cs)
+		return result or None
+
+	def reset_sequence(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			command.finish(f"Skipped resetting sequence {command.sequence!r} in {cs!r}")
+			return None
+
+		command.log(f"Resetting sequence {command.sequence} in {cs!r}")
+
+		seqvalue = self._reset_sequence(context, command)
+		if seqvalue is not None:
+			command.finish(f"Reset sequence {command.sequence} to {seqvalue!r} in {cs!r}")
+		else:
+			command.finish(f"Can't reset sequence {command.sequence} in {cs!r}")
+		command.count(cs)
+		return seqvalue
+
 
 class OracleHandler(RealHandler):
 	def connectstring(self):
 		return f"oracle:{self.connection.username}@{self.connection.tnsentry}"
 
-	def user_exists(self, name):
+	def _touchup_sql(self, sql):
+		if sql.endswith((";", "/")):
+			sql = sql[:-1]
+		return sql
+
+	def user_exists(self, context, command):
 		cursor = self.connection.cursor()
-		cursor.execute("select count(*) from all_users where username = :name", name=name)
+		cursor.execute("select count(*) from all_users where username = :name", name=command.name)
+		self.count(self.connectstring())
 		return cursor.fetchone()[0] > 0
 
 	schema_exists = user_exists
 
-	def object_exists(self, name, owner):
+	def object_exists(self, context, command):
 		cursor = self.connection.cursor()
-		if owner is None:
-			cursor.execute("select count(*) from user_objects where object_name = :name", name=name)
+		if command.owner is None:
+			cursor.execute("select count(*) from user_objects where object_name = :name", name=command.name)
 		else:
-			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=owner, name=name)
+			cursor.execute("select count(*) from all_objects where owner = :owner and object_name = :name", owner=command.owner, name=command.name)
+		command.count(self.connectstring())
 		return cursor.fetchone()[0] > 0
 
-	def check_errors(self):
+	def constraint_exists(self, context, command):
+		cursor = self.connection.cursor()
+		if command.owner is None:
+			cursor.execute("select count(*) from user_constraints where constraint_name = :name", name=command.name)
+		else:
+			cursor.execute("select count(*) from all_constraints where owner = :owner and constraint_name = :name", owner=command.owner, name=command.name)
+		command.count(self.connectstring())
+		return cursor.fetchone()[0] > 0
+
+	def check_errors(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			self.finish(f"Skipped error checking in {cs!r}")
+			return None
+
+		command.log(f"Checking errors in {cs!r}")
 		cursor = self.connection.cursor()
 		cursor.execute("select lower(type), name from user_errors group by lower(type), name")
 		invalid_objects = [tuple(r) for r in cursor]
 
 		if invalid_objects:
 			raise CompilationError(invalid_objects)
+		command.finish(f"No errors in {cs!r}")
+		command.count(cs)
 		return 0
 
-	def literalsql(self, sql):
-		if sql.endswith((";", "/")):
-			sql = sql[:-1]
-		cursor = self.connection.cursor()
-		cursor.execute(sql)
-
-	def procedure(self, context, name, args):
-		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in args.items())
-		query = f"begin {name}({argsql}); end;"
-		return self._executesql(context, query, args)
-
-	def sql(self, context, sql, args):
-		return self._executesql(context, sql, args)
-
-	def reset_sequence(self, sequence, table, field):
+	def _reset_sequence(self, context, command):
 		cursor = self.connection.cursor()
 
 		# Fetch information about the sequence
-		cursor.execute("select min_value, increment_by from user_sequences where lower(sequence_name)=lower(:name)", name=self.sequence)
+		cursor.execute("select min_value, increment_by from user_sequences where lower(sequence_name)=lower(:name)", name=command.sequence)
 		oldvalues = cursor.fetchone()
 		if oldvalues is None:
-			raise ValueError(f"Sequence {sequence!r} unknown")
+			raise ValueError(f"Sequence {command.sequence!r} unknown")
 		(minvalue, increment) = oldvalues
-		cursor.execute(f"select {sequence}.nextval from dual")
+		cursor.execute(f"select {command.sequence}.nextval from dual")
 		seqvalue = cursor.fetchone()[0]
 
 		# Fetch information about the table values
-		cursor.execute(f"select nvl(max({field}), 0) from {table}")
+		cursor.execute(f"select nvl(max({command.field}), 0) from {command.table}")
 		tabvalue = cursor.fetchone()[0]
 
 		step = max(tabvalue, minvalue) - seqvalue
 		if step:
-			cursor.execute(f"alter sequence {sequence} increment by {step}")
-			cursor.execute(f"select {sequence}.nextval from dual")
+			cursor.execute(f"alter sequence {command.sequence} increment by {step}")
+			cursor.execute(f"select {command.sequence}.nextval from dual")
 			seqvalue = cursor.fetchone()[0]
-			cursor.execute(f"alter sequence {sequence} increment by {increment}")
+			cursor.execute(f"alter sequence {command.sequence} increment by {increment}")
+			return seqvalue
 		else:
-			seqvalue = None
-		return seqvalue
+			return None
 
-	def drop_types(self, drop, keep):
+	def drop_types(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			command.finish(f"Skipped dropping types in {cs!r}")
+			return None
+
+		if command.drop is not None:
+			dropstr = " ".join(command.drop)
+			command.log(f"Dropping {dropstr} in {cs!r}")
+		elif command.keep is not None:
+			keepstr = " ".join(command.keep)
+			command.log(f"Dropping everything except {keepstr} in {cs!r}")
+		else:
+			command.log(f"Dropping everything in {cs!r}")
+
+		cursor = self.connection.cursor()
 		count = 0
 		for (i, obj) in enumerate(self.connection.objects(owner=None, mode="drop")):
 			if obj.owner is None:
-				if (drop is None or obj.type in drop) and (keep is None or obj.type in keep):
-					ddl = obj.dropsql(connection, False)
+				drop = False
+				if command.drop is not None and obj.type in command.drop:
+					drop = True
+				if command.keep is not None and obj.type not in command.keep:
+					drop = True
+				if drop:
+					ddl = obj.dropsql(self.connection, False)
 					if ddl:
 						cursor.execute(ddl)
 						count += 1
+		command.finish(f"Dropped {count:,} objects from {cs!r}")
+		command.count(cs)
 		return count
 
 	@staticmethod
@@ -752,6 +1180,11 @@ class OracleHandler(RealHandler):
 					context._locals[argvalue.key] = value
 		return newkeys
 
+	def _create_query(self, command):
+		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in command.args.items())
+		query = f"begin {command.name}({argsql}); end;"
+		return query
+
 
 class OraSQLHandler(OracleHandler):
 	pass
@@ -768,70 +1201,82 @@ class PostgresHandler(RealHandler):
 			result += f"/{info.dbname}"
 		return result
 
-	def user_exists(self, name):
+	def user_exists(self, context, command):
+		cs = self.connectstring()
 		cursor = self.connection.cursor()
-		cursor.execute("select count(*) from pg_user where usename = %s", (name,))
-		return cursor.fetchone()[0] > 0
+		cursor.execute("select count(*) from pg_user where usename = %s", (command.name,))
+		count = cursor.fetchone()[0]
+		command.count(cs)
+		return count > 0
 
-	def schema_exists(self, name):
+	def schema_exists(self, context, command):
+		cs = self.connectstring()
 		cursor = self.connection.cursor()
-		cursor.execute("select count(*) from pg_namspace where nspname = %s", (name,))
-		return cursor.fetchone()[0] > 0
+		cursor.execute("select count(*) from pg_namespace where nspname = %s", (command.name,))
+		count = cursor.fetchone()[0]
+		command.count(cs)
+		return count > 0
 
-	def object_exists(self, name, owner):
+	def object_exists(self, context, command):
+		cs = self.connectstring()
 		cursor = self.connection.cursor()
-
 		candidates = [
 			("pg_class", "relname"),
-			("pg_constraint", "conname"),
 			("pg_proc", "proname"),
 		]
 		for (table, column) in candidates:
-			cursor.execute(f"select count(*) from pg_catalog.{table} where {column} = %s", (name,))
+			cursor.execute(f"select count(*) from pg_catalog.{table} where {column} = %s", (command.name,))
 			count = cursor.fetchone()[0]
 			if count:
+				command.count(cs)
 				return True
+		command.count(cs)
 		return False
 
-	def check_errors(self):
+	def constraint_exists(self, context, command):
+		cs = self.connectstring()
+
+		cursor = self.connection.cursor()
+
+		cursor.execute(f"select count(*) from pg_catalog.pg_constraint where conname = %s", (command.name,))
+		count = cursor.fetchone()[0]
+		command.count(cs)
+		return count > 0
+
+	def check_errors(self, context, command):
 		# We can't check for any errors in Postgres
+		cs = self.connectstring()
+
+		if not command.cond:
+			self.finish(f"Skipped error checking in {cs!r}")
+			return None
+
+		command.log(f"No error checking in {cs!r}")
 		return None
 
-	def literalsql(self, sql):
-		cursor = self.connection.cursor()
-		cursor.execute(sql)
-
-	def procedure(self, context, name, args):
-		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>%s" for (an, av) in args.items())
-		sql = f"call {name}({argsql})"
-		return self._executesql(context, sql, args)
-
-	def sql(self, context, sql, args):
-		return self._executesql(context, sql, args)
-
-	def reset_sequence(self, sequence, table, field):
+	def _reset_sequence(self, context, command):
 		cursor = self.connection.cursor()
 
 		# Fetch information about the table values
-		cursor.execute(f"select coalesce(max({field}), 0) from {table}")
+		cursor.execute(f"select coalesce(max({command.field}), 0) from {command.table}")
 		tabvalue = cursor.fetchone()[0]
 
 		# Find min value
-		cursor.execute("select seqmin from pg_catalog.pg_sequence where seqrelid = %s::regclass", (sequence,))
+		cursor.execute("select seqmin from pg_catalog.pg_sequence where seqrelid = %s::regclass", (command.sequence,))
 		minvalue = cursor.fetchone()[0]
 
 		if tabvalue > minvalue:
 			# Reset sequence
-			cursor.execute(f"alter sequence {sequence} restart with {tabvalue}")
+			cursor.execute(f"alter sequence {command.sequence} restart with {tabvalue}")
 			# Increment sequence once so the next time we get a value hight that that
-			cursor.execute(f"select nextval('{sequence}')")
+			cursor.execute(f"select nextval('{command.sequence}')")
 			curvalue = cursor.fetchone()[0]
 			return curvalue
 		else:
 			# We can't set the current value lower than the minimum value, so skip it
 			return None
 
-	def drop_types(self, drop, keep):
+	def drop_types(self, context, command):
 		raise NotImplementedError()
 
 	def _executesql(self, context, sql, args):
@@ -866,6 +1311,12 @@ class PostgresHandler(RealHandler):
 					context._locals[key] = value
 		return newkeys
 
+	def _create_query(self, command):
+		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>%s" for (an, av) in command.args.items())
+		query = f"call {command.name}({argsql})"
+		return query
+
+
 ###
 ### Command classes
 ###
@@ -876,19 +1327,25 @@ class Command:
 	function call in a PySQL file and then immediatetel the method
 	:meth:`execute` will be called to execute the command.
 
-	The only parameter in the call that is supported by all commands is the
+	The only parameters in the call that is supported by all commands are the
 	following:
 
 	``raiseexceptions`` : bool (optional)
 		Specifies whether exceptions that happen during the execution of the
 		command should be reported and terminate the script (:const:`True`), or
-		should be ignored (:const:`False`). :const:`None` uses the global
-		configuration.
+		should be ignored (:const:`False`). :const:`None` (the default)
+		uses the global configuration.
+
+	``cond`` : bool (optional)
+		Specifies whether this command should be executed or not.
+		If ``cond`` is true (the default), the command will be executed,
+		else it won't.
 	"""
 
-	def __init__(self, *, raiseexceptions=None):
+	def __init__(self, *, raiseexceptions=None, cond=True):
 		self.location = None
 		self.raiseexceptions = raiseexceptions
+		self.cond = cond
 		self._context = None
 		self._startime = None
 		self._stoptime = None
@@ -918,6 +1375,10 @@ class Command:
 
 	def log(self, *objects):
 		self._context.log(self, *objects)
+
+	def execute(self, context):
+		# Forward the call to the handler method with the same name as our class
+		return getattr(context.handlers[-1], self.__class__.__name__)(context, self)
 
 	def _source_format(self, *args, **kwargs):
 		yield f"{self.__class__.__name__}("
@@ -970,32 +1431,16 @@ class include(Command):
 	being relative to the directory with the file containing the
 	:class:`!include` command.
 
-	The parameter ``cond`` specifies whether this :class:`!include` command
-	should be executed or not. If ``cond`` is :const:`None` or true, the
-	:class:`!include` command will be executed, else it won't.
-
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, cond=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, filename, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.filename = filename
-		self.cond = cond
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		filename = self.filename
-
-		if self.cond is None or self.cond:
-			self.log(f"Including file {context.strfilename(filename)!r}")
-			with context.changed_filename(filename) as fn:
-				with fn.open("r", encoding="utf-8") as f:
-					context._load(f)
-			self.finish(f"Included file {context.strfilename(filename)!r}")
-		else:
-			self.finish(f"Skipped file {context.strfilename(filename)!r}")
 
 	def source_format(self):
 		yield from self._source_format(self.filename, raiseexceptions=self.raiseexceptions)
@@ -1020,11 +1465,12 @@ class connect(Command):
 	``retrydelay`` : int (optional)
 		The number of seconds to wait between connection tries.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.connectstring = connectstring
 		self.mode = mode
 		self.retry = retry
@@ -1032,39 +1478,6 @@ class connect(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} connectstring={self.connectstring!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		retry = self.retry if self.retry is not None else 1
-		retrydelay = self.retrydelay if self.retrydelay is not None else 10
-
-		for i in range(retry):
-			if i == retry-1:
-				connection = context.connect(self.connectstring, mode=self.mode)
-			else:
-				try:
-					connection = context.connect(self.connectstring, mode=self.mode)
-				except Exception as exc:
-					if self.mode is not None:
-						self.log(f"Connection #{i+1:,} to {self.connectstring!r} as {self.mode} failed:")
-					else:
-						self.log(f"Connection #{i+1:,} to {self.connectstring!r} failed:")
-					exctext = str(exc).replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
-					self.log(f"{format_class(exc.__class__)}: {exctext}")
-					if retrydelay > 0:
-						self.log(f"Retrying after {retrydelay!r} seconds")
-						time.sleep(retrydelay)
-					else:
-						self.log(f"Retrying immediately")
-				else:
-					break
-
-		handler = Handler.get(connection)
-		if self.mode is not None:
-			self.finish(f"Connected to {handler.connectstring()!r} as {self.mode}")
-		else:
-			self.finish(f"Connected to {handler.connectstring()!r}")
-
-		return handler.connection
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1086,31 +1499,16 @@ class disconnect(Command):
 	``commit`` is :const:`None`, the default commit mode is used (which can be
 	changed on the command line via the ``-r``/``--rollback`` option).
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, *, commit=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, *, commit=None, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.commit = commit
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} commit={self.commit!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		if not context.connections:
-			raise ValueError(f"no connection available")
-
-		commit = self.commit if self.commit is not None else context.commit
-		handler = Handler.get(context.connections[-1])
-		# Get connectstring now, as Postgres forgets the info after a disconnect
-		cs = handler.connectstring()
-		context.disconnect(commit)
-		if commit:
-			self.finish(f"Disconnected from {cs!r} (transaction committed)")
-		else:
-			self.finish(f"Disconnected from {cs!r} (transaction rolled back)")
-
-		return handler.connection
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1122,19 +1520,7 @@ class disconnect(Command):
 class _DatabaseCommand(Command):
 	"""
 	Base class of all commands that use a database connection.
-
-	All database commands support the following parameter:
-
-	``connection`` : database connection (optional)
-		The database connection the use for the database command. If :const:`None`
-		the currently active database connection will be used.
-
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
 	"""
-
-	def __init__(self, *, connection=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
-		self.connection = connection
 
 
 class _SQLCommand(_DatabaseCommand):
@@ -1185,22 +1571,13 @@ class procedure(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, connection=None, raiseexceptions=None, args=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, raiseexceptions=None, cond=True, args=None):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.args = args or {}
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-		result = handler.procedure(context, self.name, self.args)
-		self.finish(f"Called procedure {self.name!r} in {handler.connectstring()!r}")
-		self.count(handler.connectstring(), self.name)
-		if result:
-			self.log(f"New vars {result!r}")
-		return result or None
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1231,23 +1608,13 @@ class sql(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None, raiseexceptions=None, args=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, sql, *, raiseexceptions=None, cond=True, args=None):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.sql = sql
 		self.args = args or {}
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-
-		result = handler.sql(context, self.sql, self.args)
-		self.finish(f"Executed SQL")
-		self.count(handler.connectstring())
-		if result:
-			self.log(f"New vars {result!r}")
-		return result or None
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1258,12 +1625,11 @@ class sql(_SQLCommand):
 		)
 
 
-@register
 class literalsql(_SQLCommand):
 	"""
-	A :class:`!sql` is used for SQL that appears literally in the
-	PySQL file. So apart from the ``sql`` attribute is has no further usable
-	attributes (i.e. ``raiseexceptions`` and ``connectionname``).
+	A :class:`!literalsql` is used for SQL that appears literally in the
+	PySQL file. Apart from the ``sql`` attribute it supports no further
+	parameters.
 	"""
 
 	def __init__(self, sql):
@@ -1273,16 +1639,13 @@ class literalsql(_SQLCommand):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sql={self.sql!r} location={self.location} at {id(self):#x}>"
 
-	def execute(self, context):
+	def _sql_for_execute(self):
 		sql = self.sql
 		if self.location is not None:
 			# Prepend empty lines, so in case of an exception the
 			# linenumbers from any database stacktrace match
 			sql = (self.location.startline-1) * "\n" + self.sql
-		handler = context.gethandler(None)
-		handler.literalsql(sql)
-		self.finish(f"Executed literal SQL")
-		self.count(handler.connectstring())
+		return sql
 
 	def source(self, tabsize=None):
 		sql = (self.sql or "").strip()
@@ -1300,19 +1663,11 @@ class commit(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, sql, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-
-		self.log(f"Committing transaction in {handler.connectstring()!r}")
-		handler.commit()
-		self.finish(f"Committed transaction in {handler.connectstring()!r}")
-		self.count(handler.connectstring())
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1331,19 +1686,11 @@ class rollback(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, sql, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-
-		context.log(f"Rolling back transaction in {handler.connectstring()!r}")
-		handler.rollback()
-		self.finish(f"Rolled back transaction in {handler.connectstring()!r}")
-		self.count(handler.connectstring())
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1355,9 +1702,8 @@ class rollback(_SQLCommand):
 class literalpy(_DatabaseCommand):
 	"""
 	A :class:`!literalpy` is used for Python code that appears literally in the
-	PySQL file. So apart from the ``code`` attribute is has no further usable
-	attributes (i.e. ``connection`` and ``raiseexceptions`` from the base class
-	are all :const:`None`).
+	PySQL file. Apart from the ``code`` attribute it supports the no further
+	parameters.
 	"""
 
 	def __init__(self, code):
@@ -1370,28 +1716,6 @@ class literalpy(_DatabaseCommand):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} code={self.code!r} location={self.location} at {id(self):#x}>"
-
-	def globals(self, context, connection):
-		vars = {command.__name__: CommandExecutor(command, context) for command in Command.commands.values()}
-		vars["sqlexpr"] = sqlexpr
-		vars["datetime"] = datetime
-		vars["connection"] = connection
-		return vars
-
-	def execute(self, context):
-		if context.connections:
-			handler = Handler.get(context.connections[-1])
-		else:
-			handler = Handler()
-		vars = self.globals(context, handler.connection)
-
-		code = self.location.source(True) if self.location is not None else self.code
-		code += "\n"
-		code = compile(code, context.filename, "exec")
-		exec(code, vars, context._locals)
-
-		self.finish(f"Executed Python block")
-		self.count(handler.connectstring())
 
 	def source(self, tabsize=None):
 		code = self.code
@@ -1412,19 +1736,17 @@ class setvar(Command):
 	``value`` : object (required)
 		The value of the variable.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, name, value, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, value, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.value = value
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} value={self.value!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		context._locals[self.name] = self.value
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1440,18 +1762,16 @@ class unsetvar(Command):
 	The :class:`!unsetvar` command deletes a variable. The parameter ``name``
 	must be given and must contain the name of the variable.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		context._locals.pop(self.name, None)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1479,19 +1799,16 @@ class raiseexceptions(Command):
 	Note that the global configuration will only be relevant for commands that
 	don't specify the ``raiseexceptions`` parameter themselves.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, *, value, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, *, value, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.value = value
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		self.log(f"Setting raiseexceptions to {self.value}")
-		context.raiseexceptions[-1] = self.value
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1518,19 +1835,16 @@ class pushraiseexceptions(Command):
 	Note that this global configuration will only be relevant for commands that
 	don't specify the ``raiseexceptions`` parameter themselves.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, value, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, value, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.value = value
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} value={self.value!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		self.log(f"Pushing raiseexceptions value {self.value}")
-		context.raiseexceptions.append(self.value)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1546,21 +1860,15 @@ class popraiseexceptions(Command):
 	exception handling mode (i.e. the one active before the last
 	:class:`pushraiseexceptions` command).
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		if len(context.raiseexceptions) <= 1:
-			raise ValueError("raiseexception stack empty")
-		oldvalue = context.raiseexceptions.pop()
-		self.finish(f"Popped raiseexceptions value {oldvalue}: returning to {context.raiseexceptions[-1]}")
-		return oldvalue
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1569,9 +1877,9 @@ class popraiseexceptions(Command):
 
 
 @register
-class checkerrors(_DatabaseCommand):
+class check_errors(_DatabaseCommand):
 	"""
-	The :class:`!checkerrors` command checks that there are no compilation errors
+	The :class:`!check_errors` command checks that there are no compilation errors
 	in the active database schema. If there are, an exception will be raised.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`
@@ -1580,16 +1888,6 @@ class checkerrors(_DatabaseCommand):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-		self.log(f"Checking errors in {handler.connectstring()!r}")
-		result = handler.check_errors()
-		if result is None:
-			self.finish(f"Skipped error checking in {handler.connectstring()!r}")
-		else:
-			self.finish(f"No errors in {handler.connectstring()!r}")
-		self.count(handler.connectstring())
 
 	def source_format(self):
 		yield from self._source_format()
@@ -1612,31 +1910,17 @@ class scp(Command):
 		The content of the file to be created. This can also be a
 		:class:`loadbytes` command to load the content from an external file.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, *, name, content, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, *, name, content, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.content = content
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		filename = context.scpdirectory + self.name.format(**context._locals)
-		self.log("Copying file to {filename!r}")
-
-		with tempfile.NamedTemporaryFile(delete=False) as f:
-			f.write(self.content)
-			tempname = f.name
-		try:
-			result = subprocess.run(["scp", "-q", tempname, filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-			if result.returncode:
-				raise SCPError(result.returncode, (result.stdout or result.stderr).decode(errors="replace"))
-		finally:
-			os.remove(tempname)
-		self.finish(f"Copied to {filename!r}")
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1674,11 +1958,12 @@ class file(Command):
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
 		the file.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, name, content, *, mode=None, owner=None, group=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, content, *, mode=None, owner=None, group=None, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.name = name
 		self.content = content
 		self.mode = mode
@@ -1687,38 +1972,6 @@ class file(Command):
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} content={shortrepr(self.content)} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		filename = context.filedirectory / self.name.format(**context._locals)
-
-		self.log(f"Saving file {context.strfilename(filename)!r}")
-		try:
-			filename.write_bytes(self.content)
-		except FileNotFoundError: # probably the directory doesn't exist
-			parent = filename.parent
-			if parent != filename:
-				parent.mkdir(parents=True)
-				filename.write_bytes(self.content)
-			else:
-				raise # we don't have a directory to make so pass the error on
-
-		if self.mode:
-			os.chmod(filename, self.mode)
-		if self.owner or self.group:
-			if self.owner:
-				uid = self.owner
-				if isinstance(uid, str):
-					uid = pwd.getpwnam(uid)[2]
-			else:
-				uid = -1
-			if self.group:
-				gid = self.group
-				if isinstance(gid, str):
-					gid = grp.getgrnam(gid)[2]
-			else:
-				gid = -1
-			os.chown(filename, uid, gid)
-		self.finish(f"Saved {len(self.content):,} bytes to {context.strfilename(filename)!r}")
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1732,9 +1985,9 @@ class file(Command):
 
 
 @register
-class resetsequence(_DatabaseCommand):
+class reset_sequence(_DatabaseCommand):
 	"""
-	The :class:`!resetsequence` command resets a sequence in the database to
+	The :class:`!reset_sequence` command resets a sequence in the database to
 	the maximum value of a field in a table. The following parameters are
 	supported:
 
@@ -1753,25 +2006,14 @@ class resetsequence(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sequence, table, field, *, connection=None, raiseexceptions=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} sequence={self.sequence!r} location={self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-		self.log(f"Resetting sequence {self.sequence}")
-		seqvalue = handler.reset_sequence(self.sequence, self.table, self.field)
-		if seqvalue is not None:
-			self.finish(f"Reset sequence {self.sequence} to {seqvalue}")
-		else:
-			self.finish(f"Resetting sequence {self.sequence} skipped")
-		self.count(handler.connectstring())
-		return seqvalue
 
 	def source_format(self):
 		yield from self._source_format(
@@ -1804,17 +2046,9 @@ class user_exists(_DatabaseCommand):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-		result = handler.user_exists(self.name)
-		self.count(handler.connectstring())
-
-		return result
-
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -1831,24 +2065,16 @@ class schema_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, connection=None, raiseexceptions=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, raiseexceptions=None):
+		super().__init__(raiseexceptions=raiseexceptions)
 		self.name = name
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-		result = handler.schema_exists(self.name)
-		self.count(handler.connectstring())
-
-		return result
-
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -1856,7 +2082,7 @@ class schema_exists(_DatabaseCommand):
 @register
 class object_exists(_DatabaseCommand):
 	"""
-	The :class:`!object_exists` command return whether an object with a
+	The :class:`!object_exists` command returns whether an object with a
 	specified name exists in the database. It supports the following parameters:
 
 	``name``: string (required)
@@ -1867,27 +2093,56 @@ class object_exists(_DatabaseCommand):
 		or :const:`None`).
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+
+	Note that :class:`!object_exists` won't test for constraints. For this use
+	:class:`constraint_exists`.
 	"""
 
-	def __init__(self, name, *, owner=None, connection=None, raiseexceptions=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, owner=None, raiseexceptions=None):
+		super().__init__(raiseexceptions=raiseexceptions)
 		self.name = name
 		self.owner = owner
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-		result = handler.object_exists(self.name, self.owner)
-		self.count(handler.connectstring())
-		return result
+	def source_format(self):
+		yield from self._source_format(
+			self.name,
+			owner=self.owner,
+			raiseexceptions=self.raiseexceptions,
+		)
+
+
+@register
+class constraint_exists(_DatabaseCommand):
+	"""
+	The :class:`!constraint_exists` command returns whether a constraint (i.e.
+	a primary key, foreign key, unique or check constraint) with a specified name
+	exists in the database. It supports the following parameters:
+
+	``name``: string (required)
+		The name of the object to be checked for existence.
+
+	``owner``: string (optional)
+		The owner of the constraint (defaults to the current user if not specified
+		or :const:`None`).
+
+	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
+	"""
+
+	def __init__(self, name, *, owner=None, raiseexceptions=None):
+		super().__init__(raiseexceptions=raiseexceptions)
+		self.name = name
+		self.owner = owner
+
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} name={self.name!r} location={self.location} at {id(self):#x}>"
 
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
 			owner=self.owner,
-			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -1915,57 +2170,18 @@ class drop_types(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, *, drop=None, keep=None, connection=None, raiseexceptions=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, *, drop=None, keep=None, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.drop = drop
 		self.keep = keep
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
-	def execute(self, context):
-		handler = context.gethandler(self.connection)
-
-		if self.drop is not None and self.keep is not None:
-			raise ValueError("The parameters 'drop' and 'keep' are mutually exclusive")
-
-		if self.drop is not None:
-			dropstr = " ".join(self.drop)
-			self.log(f"Dropping {dropstr} from {handler.connectstring()!r}")
-		elif self.keep is not None:
-			keepstr = " ".join(self.keep)
-			self.log(f"Dropping everything except {keepstr} from {handler.connectstring()!r}")
-		else:
-			self.log(f"Dropping everything from {handler.connectstring()!r}")
-
-		cursor = connection.cursor()
-
-		def drop_obj(obj):
-			if self.drop is not None:
-				return obj.type in self.drop
-			elif self.keep is not None:
-				return obj.type not in self.keep
-			else:
-				return True
-
-		count = 0
-		for (i, obj) in enumerate(connection.objects(owner=None, mode="drop")):
-			if obj.owner is None:
-				if drop_obj(obj):
-					ddl = obj.dropsql(connection, False)
-					if ddl:
-						cursor.execute(ddl)
-						count += 1
-
-		self.finish(f"Dropped {count:,} objects from {connectstring(connection)!r}")
-		self.count(connectstring(connection))
-		return count
-
 	def source_format(self):
 		yield from self._source_format(
 			drop=self.drop,
 			keep=self.keep,
-			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -1985,9 +2201,6 @@ class comment(Command):
 	def __str__(self):
 		return f"comment {self.location}"
 
-	def execute(self, context):
-		pass
-
 	def source(self, tabsize=None):
 		comment = self.comment
 		if tabsize is not None:
@@ -2006,22 +2219,16 @@ class loadbytes(Command):
 		relative to the directory containing the PySQL file that contains
 		:class:`loadbytes` command.
 
-	For the parameter ``raiseexceptions`` see the base class :class:`Command`.
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, filename, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.filename = filename
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r} {self.location} at {id(self):#x}>"
-
-	def execute(self, context):
-		"""
-		Read the file and return the file content as a :class:`bytes` object.
-		"""
-		filename = pathlib.Path(self.filename)
-		return filename.read_bytes()
 
 	def source_format(self):
 		yield from self._source_format(
@@ -2046,13 +2253,16 @@ class loadstr(Command):
 
 	``errors`` : string (optional)
 		The error handling mode for decoding.
+
+	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None):
+	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None, cond=True):
 		"""
 		Create a new :class:`loadbytes` object. 
 		"""
-		super().__init__(raiseexceptions=raiseexceptions)
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.filename = filename
 		self.encoding = encoding
 		self.errors = errors
@@ -2065,13 +2275,6 @@ class loadstr(Command):
 			result += f", errors={self.errors!r}"
 		result += f"{self.location} at {id(self):#x}>"
 		return result
-
-	def execute(self, context):
-		"""
-		Read the file and return the file content as a :class:`str` object.
-		"""
-		filename = pathlib.Path(self.filename)
-		return filename.read_text(encoding=self.encoding, errors=self.errors)
 
 	def source_format(self):
 		yield from self._source_format(
@@ -2118,15 +2321,6 @@ class var(Command):
 	def __bool__(self):
 		return False
 
-	def execute(self, context):
-		if self.key in context._locals:
-			value = context._locals[self.key]
-			if value is not None and not isinstance(value, self.type):
-				raise TypeError(f"{value!r} is not of type {format_class(self.type)}")
-			return value
-		else:
-			return self
-
 	def source_format(self):
 		yield repr(self)
 
@@ -2147,15 +2341,12 @@ class env(Command):
 	"""
 
 	def __init__(self, name, default=None):
-		super().__init__(raiseexceptions=None)
+		super().__init__()
 		self.name = name
 		self.default = default
 
 	def __repr__(self):
 		return f"env({self.name!r})"
-
-	def execute(self, context):
-		return os.environ.get(self.name, self.default)
 
 	def source_format(self):
 		yield repr(self)
@@ -2174,11 +2365,8 @@ class log(Command):
 	"""
 
 	def __init__(self, *objects):
-		super().__init__(raiseexceptions=None)
+		super().__init__()
 		self.objects = objects
-
-	def execute(self, context):
-		self.log(*self.objects)
 
 	def source_format(self):
 		yield from self._source_format(*self.objects)
@@ -2301,7 +2489,7 @@ class Context:
 	command_end = ")"
 
 	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit=True, tabsize=None, context=None, ascii=False, raiseexceptions=True, verbose=0, summary=False, vars=None):
-		self.connections = []
+		self.handlers = [Handler.from_connectstring(None)]
 		self.commit = commit
 		self.scpdirectory = scpdirectory
 		self.filedirectory = pathlib.Path(filedirectory).resolve()
@@ -2346,45 +2534,7 @@ class Context:
 		else:
 			self._width = 80
 		if connectstring is not None:
-			self.connect(connectstring, None)
-
-	def connect(self, connectstring, mode=None):
-		if connectstring.startswith("postgres:"):
-			from psycopg2 import extras
-			connection = psycopg2.connect(connectstring[9:], cursor_factory=extras.DictCursor)
-		elif connectstring.startswith("oracle:"):
-			connectstring = connectstring[7:]
-			mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
-			if orasql is not None:
-				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
-			else:
-				connection = cx_Oracle.connect(connectstring, mode=mode)
-		else:
-			mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
-			if orasql is not None:
-				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
-			else:
-				connection = cx_Oracle.connect(connectstring, mode=mode)
-		self.connections.append(connection)
-		return connection
-
-	def disconnect(self, commit=None):
-		if commit is None:
-			commit = self.commit
-		connection = self.connections.pop() if self.connections else None
-		handler = Handler.get(connection)
-		handler.disconnect(commit)
-		return connection
-
-	def getconnection(self, connection):
-		if connection is not None:
-			return connection
-		if not self.connections:
-			raise NoDatabaseError()
-		return self.connections[-1]
-
-	def gethandler(self, connection):
-		return Handler.get(self.getconnection(connection))
+			self.handlers.append(Handler.from_connectstring(connectstring))
 
 	def log(self, command, *objects):
 		if self.verbose in {"log", "full"}:
@@ -2420,7 +2570,7 @@ class Context:
 		vars = {command.__name__: CommandExecutor(command, self) for command in Command.commands.values()}
 		vars["sqlexpr"] = sqlexpr
 		vars["datetime"] = datetime
-		vars["connection"] = self.connections[-1] if self.connections else None
+		vars["connection"] = self.handlers[-1].connection
 		return vars
 
 	def _load(self, stream):
@@ -2538,11 +2688,12 @@ class Context:
 							self._load(f)
 			else:
 				self._load(sys.stdin)
-			for connection in self.connections:
-				if self.commit:
-					connection.commit()
-				else:
-					connection.rollback()
+			for handler in self.handlers:
+				if handler.connection is not None:
+					if self.commit:
+						handler.connection.commit()
+					else:
+						handler.connection.rollback()
 		finally:
 			if self.verbose in {"dot", "type", "file"}:
 				print(flush=True)
@@ -2589,7 +2740,7 @@ class Context:
 			if anyoutput:
 				print(flush=True)
 				print(f"Total: {self.totalcount:,} command{'s' if self.totalcount != 1 else ''} executed", flush=True)
-			if not anyoutput:
+			else:
 				print("    no commands executed", flush=True)
 
 	def count(self, *args):
@@ -2609,10 +2760,10 @@ class Context:
 		else:
 			return str(filename)
 
+
 ###
 ### Classes to be used by the PySQL commands
 ###
-
 
 class sqlexpr:
 	"""
@@ -2674,7 +2825,7 @@ class CommandError(Exception):
 
 class CompilationError(Exception):
 	"""
-	Exception raised by :class:`checkerrors` when invalid database
+	Exception raised by :class:`check_errors` when invalid database
 	objects are encountered.
 	"""
 	def __init__(self, objects):
@@ -2886,16 +3037,16 @@ def source(object, tabsize=None):
 ###
 
 def main(args=None):
-	p = argparse.ArgumentParser(description="Import a PySQL file into an Oracle database", epilog="For more info see http://python.livinglogic.de/pysql.html")
+	p = argparse.ArgumentParser(description="Import a PySQL file into an Oracle and/or Postgres database", epilog="For more info see http://python.livinglogic.de/pysql.html")
 	p.add_argument("files", nargs="*", help="PySQL files (none: read from stdin)")
-	p.add_argument("-d", "--database", dest="connectstring", metavar="CONNECTSTRING", help="Oracle connect string specifying the default database connection (default %(default)s)", default=None)
+	p.add_argument("-d", "--database", dest="connectstring", metavar="CONNECTSTRING", help="Oracle or Postgres connect string specifying the default database connection (default %(default)s)", default=None)
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", choices=("dot", "type", "file", "log", "full"))
 	p.add_argument("-r", "--rollback", dest="rollback", help="Should database transactions be rolled back? (default: commit on disconnect/after run)", default=False, action="store_true")
 	p.add_argument("-s", "--scpdirectory", dest="scpdirectory", metavar="DIR", help="File name prefix for files to be copied via the 'scp' command (default: current directory)", default="")
 	p.add_argument("-f", "--filedirectory", dest="filedirectory", metavar="DIR", help="File name prefix for files to be copied via the 'file' command (default: current directory)", default="")
 	p.add_argument(      "--tabsize", dest="tabsize", metavar="INTEGER", help="Number of spaces a tab expands to when printing source (default %(default)r)", type=int, default=8)
 	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of context lines when printing source code (default %(default)r)", type=int, default=None)
-	p.add_argument("-a", "--ascii", dest="ascii", help="Don't use fancy unicode characters (default %(default)r)", default=False, action="store_true")
+	p.add_argument("-a", "--ascii", dest="ascii", help="Don't use fancy unicode characters?", default=False, action="store_true")
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
 	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
 
