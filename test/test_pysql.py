@@ -19,26 +19,56 @@ import pytest
 from ll import orasql, pysql
 
 
-dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
+connectstring_oracle = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
 
 
 commands = """
+
+# Connect to the Oracle database
+
+connect(connectstring_oracle)
+
+# Create our test table which we will fill with test data.
+
 create table pysql_test_table(
-	odtt_id integer
+	tt_id integer,
+	tt_cdate timestamp
 );
+
+-- @@@@
+
+# Disconnect again
+
+disconnect()
 
 -- @@@
 
+# Connect again (this time using the ``oracle:`` "schema" prefix
+
+connect("oracle:" + connectstring_oracle)
+
+# Create test procedure which we'll use to populate the table
+# (and test procedure calling)
+
 create or replace procedure pysql_test_procedure(
-	p_odtt_id in out integer
+	p_tt_id in out integer
 )
 as
 begin
-	if p_odtt_id is null then
-		p_odtt_id := 1;
+	if p_tt_id is null then
+		p_tt_id := 1;
 	end if;
-	insert into pysql_test_table (odtt_id) values (p_odtt_id);
-	p_odtt_id := p_odtt_id + 100;
+	insert into pysql_test_table
+	(
+		tt_id,
+		tt_cdate
+	)
+	values
+	(
+		p_tt_id,
+		systimestamp
+	);
+	p_tt_id := p_tt_id + 100;
 end;
 /
 
@@ -58,21 +88,21 @@ end;
 procedure(
 	"pysql_test_procedure",
 	args=dict(
-		p_odtt_id=var("odtt_1"),
+		p_tt_id=var("tt_1"),
 	),
 )
 
 procedure(
 	"pysql_test_procedure",
 	args=dict(
-		p_odtt_id=var("odtt_1"),
+		p_tt_id=var("tt_1"),
 	)
 )
 
 reset_sequence(
 	"pysql_test_sequence",
 	table="pysql_test_table",
-	field="odtt_id",
+	field="tt_id",
 )
 
 sql(
@@ -139,6 +169,8 @@ scp(
 	content=b"nothing",
 	cond=False,
 )
+
+disconnect()
 """
 
 
@@ -148,22 +180,34 @@ def execute_commands(commands, tmpdir):
 		f.write(commands.encode("utf-8"))
 
 	try:
-		pysql.main([tempname, "-d", dbname, "-vfull", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
+		pysql.main([
+			tempname,
+			"-d", connectstring_oracle,
+			"-D", f"connectstring_oracle={connectstring_oracle}",
+			"-vfull",
+			"-z",
+			"--tabsize=3",
+			"--context=10",
+			"--scpdirectory", tmpdir,
+			"--filedirectory", tmpdir
+		])
 	finally:
 		os.remove(tempname)
 
 
 def cleanup():
-	with orasql.connect(dbname) as db:
+	commands = [
+		"drop table pysql_test_table",
+		"drop sequence pysql_test_sequence",
+		"drop procedure pysql_test_procedure",
+	]
+	with orasql.connect(connectstring_oracle) as db:
 		c = db.cursor()
-		try:
-			c.execute("drop table pysql_test_table")
-		except cx_Oracle.DatabaseError:
-			pass
-		try:
-			c.execute("drop sequence pysql_test_sequence")
-		except cx_Oracle.DatabaseError:
-			pass
+		for command in commands:
+			try:
+				c.execute(command)
+			except cx_Oracle.DatabaseError:
+				pass
 
 
 @pytest.mark.db
@@ -172,10 +216,10 @@ def test_pysql(tmpdir):
 
 	execute_commands(commands, f"{tmpdir}/")
 
-	with orasql.connect(dbname) as db:
+	with orasql.connect(connectstring_oracle) as db:
 		c = db.cursor()
-		c.execute("select odtt_id from pysql_test_table order by odtt_id")
-		data = [int(r.odtt_id) for r in c]
+		c.execute("select tt_id from pysql_test_table order by tt_cdate")
+		data = [int(r.tt_id) for r in c]
 		assert data == [1, 101]
 		c.execute("select pysql_test_sequence.nextval as nv from dual")
 		data = c.fetchone().nv
