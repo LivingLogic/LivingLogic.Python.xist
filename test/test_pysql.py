@@ -32,6 +32,11 @@ connect(connectstring_oracle)
 
 create table pysql_test_table(
 	tt_id integer,
+	tt_int integer,
+	tt_number number,
+	tt_str varchar2(4000),
+	tt_clob clob,
+	tt_datetime date,
 	tt_cdate timestamp
 );
 
@@ -51,7 +56,12 @@ connect("oracle:" + connectstring_oracle)
 # (and test procedure calling)
 
 create or replace procedure pysql_test_procedure(
-	p_tt_id in out integer
+	p_tt_id in out integer,
+	p_tt_int integer := null,
+	p_tt_number number := null,
+	p_tt_str varchar2 := null,
+	p_tt_clob clob := null,
+	p_tt_datetime date := null
 )
 as
 begin
@@ -61,11 +71,21 @@ begin
 	insert into pysql_test_table
 	(
 		tt_id,
+		tt_int,
+		tt_number,
+		tt_str,
+		tt_clob,
+		tt_datetime,
 		tt_cdate
 	)
 	values
 	(
 		p_tt_id,
+		p_tt_int,
+		p_tt_number,
+		p_tt_str,
+		p_tt_clob,
+		p_tt_datetime,
 		systimestamp
 	);
 	p_tt_id := p_tt_id + 100;
@@ -73,6 +93,9 @@ end;
 /
 
 -- @@@
+
+# Create sequence (but this time via the ``sql`` command
+# specified via dictionary).
 
 {
 	"type": "sql",
@@ -85,12 +108,18 @@ end;
 		"	cache 20",
 }
 
+# Call ``pysql_test_procedure`` the first time (and remember the value of the
+# OUT parameter).
+
 procedure(
 	"pysql_test_procedure",
 	args=dict(
 		p_tt_id=var("tt_1"),
 	),
 )
+
+# Call ``pysql_test_procedure`` the second time (and pass the resulting value
+# for ``p_tt_id`` from the last call).
 
 procedure(
 	"pysql_test_procedure",
