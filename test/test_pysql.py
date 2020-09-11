@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import os, tempfile
+import os, tempfile, datetime
 
 import cx_Oracle
 
@@ -36,6 +36,7 @@ create table pysql_test_table(
 	tt_number number,
 	tt_str varchar2(4000),
 	tt_clob clob,
+	tt_blob blob,
 	tt_datetime date,
 	tt_cdate timestamp
 );
@@ -61,6 +62,7 @@ create or replace procedure pysql_test_procedure(
 	p_tt_number number := null,
 	p_tt_str varchar2 := null,
 	p_tt_clob clob := null,
+	p_tt_blob blob := null,
 	p_tt_datetime date := null
 )
 as
@@ -75,6 +77,7 @@ begin
 		tt_number,
 		tt_str,
 		tt_clob,
+		tt_blob,
 		tt_datetime,
 		tt_cdate
 	)
@@ -85,6 +88,7 @@ begin
 		p_tt_number,
 		p_tt_str,
 		p_tt_clob,
+		p_tt_blob,
 		p_tt_datetime,
 		systimestamp
 	);
@@ -115,6 +119,12 @@ procedure(
 	"pysql_test_procedure",
 	args=dict(
 		p_tt_id=var("tt_1"),
+		p_tt_int=42,
+		p_tt_number=42.5,
+		p_tt_str="ä"*2000, # 4000 would lead to 8000 UTF-8 bytes, which doesn't work
+		p_tt_clob="ä"*100000,
+		p_tt_blob=b"\\xff"*100000,
+		p_tt_datetime=datetime.datetime(2000, 2, 29, 12, 34, 56),
 	),
 )
 
@@ -125,6 +135,12 @@ procedure(
 	"pysql_test_procedure",
 	args=dict(
 		p_tt_id=var("tt_1"),
+		p_tt_int=None,
+		p_tt_number=None,
+		p_tt_str=None,
+		p_tt_clob=var(None, DB_TYPE_CLOB),
+		p_tt_blob=var(None, DB_TYPE_BLOB),
+		p_tt_datetime=None,
 	)
 )
 
@@ -245,11 +261,23 @@ def test_pysql(tmpdir):
 
 	execute_commands(commands, f"{tmpdir}/")
 
-	with orasql.connect(connectstring_oracle) as db:
+	with orasql.connect(connectstring_oracle, readlobs=True) as db:
 		c = db.cursor()
-		c.execute("select tt_id from pysql_test_table order by tt_cdate")
-		data = [int(r.tt_id) for r in c]
-		assert data == [1, 101]
+		c.execute("select * from pysql_test_table order by tt_cdate")
+		data = c.fetchall()
+
+		# Test first record
+		assert data[0].tt_id == 1
+		assert data[0].tt_int == 42
+		assert data[0].tt_number == 42.5
+		assert data[0].tt_str == "ä"*2000
+		assert data[0].tt_clob == "ä"*100000
+		assert data[0].tt_blob == b"\xff"*100000
+		assert data[0].tt_datetime == datetime.datetime(2000, 2, 29, 12, 34, 56)
+
+		# Test second record
+		assert data[1].tt_id == 101
+
 		c.execute("select pysql_test_sequence.nextval as nv from dual")
 		data = c.fetchone().nv
 		assert data == 111

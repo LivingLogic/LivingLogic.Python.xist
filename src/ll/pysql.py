@@ -54,6 +54,18 @@ within the block as global variables:
 	The active database connection (or :const:`None` if there is no active
 	database connection).
 
+``DB_TYPE_CLOB``
+	:data:`cx_Oracle.DB_TYPE_CLOB`, i.e. :mod:`cx_Oracle`\\s type
+	for ``CLOB`` parameters;
+
+``DB_TYPE_NCLOB``
+	:data:`cx_Oracle.DB_TYPE_NCLOB`, i.e. :mod:`cx_Oracle`\\s type
+	for ``NCLOB`` parameters;
+
+``DB_TYPE_BLOB``
+	:data:`cx_Oracle.DB_TYPE_BLOB`, i.e. :mod:`cx_Oracle`\\s type
+	for ``BLOB`` parameters;
+
 Furthermore all PySQL commands (see below) are available.
 
 Variables that get set within a literal Python block will be available (and
@@ -1164,9 +1176,9 @@ class OracleHandler(RealHandler):
 				else:
 					argvalue = cursor.var(argvalue.type)
 			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, cx_Oracle.CLOB, argvalue)
+				argvalue = self._createvar(cursor, cx_Oracle.DB_TYPE_CLOB, argvalue)
 			elif isinstance(argvalue, bytes) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, cx_Oracle.BLOB, argvalue)
+				argvalue = self._createvar(cursor, cx_Oracle.DB_TYPE_BLOB, argvalue)
 			queryargvars[argname] = argvalue
 
 		cursor.execute(query, queryargvars)
@@ -2571,6 +2583,9 @@ class Context:
 		vars["sqlexpr"] = sqlexpr
 		vars["datetime"] = datetime
 		vars["connection"] = self.handlers[-1].connection
+		vars["DB_TYPE_CLOB"] = cx_Oracle.DB_TYPE_CLOB if cx_Oracle is not None else None
+		vars["DB_TYPE_NCLOB"] = cx_Oracle.DB_TYPE_NCLOB if cx_Oracle is not None else None
+		vars["DB_TYPE_BLOB"] = cx_Oracle.DB_TYPE_BLOB if cx_Oracle is not None else None
 		return vars
 
 	def _load(self, stream):
