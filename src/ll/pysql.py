@@ -2523,7 +2523,7 @@ class Context:
 		self.filename = None
 		self._lastlocation = None
 		self._lastcommand = None
-		self._locals = {v.key: v for v in vars} if vars else {}
+		self._locals = vars or {}
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
@@ -2931,28 +2931,30 @@ def define(arg):
 
 	if type == "int":
 		if not value:
-			return 0
+			return (name, None)
 		try:
-			return int(value)
+			return (name, int(value))
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal integer value")
 	elif type == "float":
 		if not value:
-			return 0.
+			return (name, None)
 		try:
-			return float(value)
+			return (name, float(value))
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal float value")
 	elif type == "bool":
-		if value in ("", "0", "no", "false", "False"):
-			return False
+		if not value:
+			return (name, None)
+		elif value in ("0", "no", "false", "False"):
+			return (name, False)
 		elif value in ("1", "yes", "true", "True"):
-			return True
+			return (name, True)
 		else:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal bool value")
 	elif type and type != "str":
 		raise argparse.ArgumentTypeError(f"{type!r} is not a legal type")
-	return value
+	return (name, value or None)
 
 
 def source_format(object):
@@ -3036,6 +3038,11 @@ def source(object, tabsize=None):
 ### Main script function
 ###
 
+class SetDictEntryAction(argparse.Action):
+	def __call__(self, parser, namespace, values, option_string=None):
+		getattr(namespace, self.dest)[values[0]] = values[1]
+
+
 def main(args=None):
 	p = argparse.ArgumentParser(description="Import a PySQL file into an Oracle and/or Postgres database", epilog="For more info see http://python.livinglogic.de/pysql.html")
 	p.add_argument("files", nargs="*", help="PySQL files (none: read from stdin)")
@@ -3048,7 +3055,7 @@ def main(args=None):
 	p.add_argument(      "--context", dest="context", metavar="INTEGER", help="Maximum number of context lines when printing source code (default %(default)r)", type=int, default=None)
 	p.add_argument("-a", "--ascii", dest="ascii", help="Don't use fancy unicode characters?", default=False, action="store_true")
 	p.add_argument("-z", "--summary", dest="summary", help="Output a summary after executing all commands", default=False, action="store_true")
-	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default=[], action="append", type=define)
+	p.add_argument("-D", "--define", dest="defines", metavar="VARSPEC", help="Set variables before executing the script (can be specified multiple times). The format for VARSPEC is: 'name' or 'name=value' or 'name:type' or 'name:type=value'. Type may be 'str', 'bool', 'int' or 'float'.", default={}, action=SetDictEntryAction, type=define)
 
 	args = p.parse_args(args)
 
