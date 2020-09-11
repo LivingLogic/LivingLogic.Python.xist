@@ -2991,7 +2991,7 @@ def source_format(object):
 		yield "["
 		yield 1
 		yield None
-		for value in object:
+		for (i, value) in enumerate(object):
 			yield from source_format(value)
 			if i == len(object)-1:
 				yield (",", "")
