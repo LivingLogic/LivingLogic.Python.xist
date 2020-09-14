@@ -560,6 +560,15 @@ reprthreshold = 100
 
 
 def shortrepr(value):
+	"""
+	Return a short "repr" output for a :class:`str` or :class:`bytes` value.
+
+	If the value ``value`` is sort enough, the normal :func:`repr` output will
+	be returned, otherwise an abbreviated value will be returned, i.e. something
+	like this::
+
+		<'foobarbaz' ... (1234 characters)>
+	"""
 	if isinstance(value, bytes) and len(value) > reprthreshold:
 		return f"<{bytes.__repr__(value[:reprthreshold])} ... ({len(value):,} bytes)>"
 	elif isinstance(value, str) and len(value) > reprthreshold:
