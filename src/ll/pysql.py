@@ -930,7 +930,7 @@ class Handler:
 		command.log(*command.objects)
 
 
-class RealHandler(Handler):
+class DBHandler(Handler):
 	"""
 	Subclass of :class:`Handler` that has a real database connection.
 	"""
@@ -1051,7 +1051,7 @@ class RealHandler(Handler):
 		return seqvalue
 
 
-class OracleHandler(RealHandler):
+class OracleHandler(DBHandler):
 	def connectstring(self):
 		return f"oracle:{self.connection.username}@{self.connection.tnsentry}"
 
@@ -1211,7 +1211,7 @@ class OraSQLHandler(OracleHandler):
 	pass
 
 
-class PostgresHandler(RealHandler):
+class PostgresHandler(DBHandler):
 	def connectstring(self):
 		info = self.connection.info
 		host = "localhost" if info.host.startswith("/") else info.host
