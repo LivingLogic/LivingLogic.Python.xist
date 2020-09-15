@@ -2088,8 +2088,8 @@ class user_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, connection=None, raiseexceptions=None):
-		super().__init__(connection=connection, raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, raiseexceptions=None):
+		super().__init__(raiseexceptions=raiseexceptions)
 		self.name = name
 
 	def __repr__(self):
