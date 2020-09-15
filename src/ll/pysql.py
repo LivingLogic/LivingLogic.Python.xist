@@ -1130,40 +1130,6 @@ class OracleHandler(DBHandler):
 		else:
 			return None
 
-	def drop_types(self, context, command):
-		cs = self.connectstring()
-
-		if not command.cond:
-			command.finish(f"Skipped dropping types in {cs!r}")
-			return None
-
-		if command.drop is not None:
-			dropstr = " ".join(command.drop)
-			command.log(f"Dropping {dropstr} in {cs!r}")
-		elif command.keep is not None:
-			keepstr = " ".join(command.keep)
-			command.log(f"Dropping everything except {keepstr} in {cs!r}")
-		else:
-			command.log(f"Dropping everything in {cs!r}")
-
-		cursor = self.connection.cursor()
-		count = 0
-		for (i, obj) in enumerate(self.connection.objects(owner=None, mode="drop")):
-			if obj.owner is None:
-				drop = False
-				if command.drop is not None and obj.type in command.drop:
-					drop = True
-				if command.keep is not None and obj.type not in command.keep:
-					drop = True
-				if drop:
-					ddl = obj.dropsql(self.connection, False)
-					if ddl:
-						cursor.execute(ddl)
-						count += 1
-		command.finish(f"Dropped {count:,} objects from {cs!r}")
-		command.count(cs)
-		return count
-
 	@staticmethod
 	def _createvar(cursor, type, value):
 		var = cursor.var(type)
@@ -1208,7 +1174,43 @@ class OracleHandler(DBHandler):
 
 
 class OraSQLHandler(OracleHandler):
-	pass
+	"""
+	Subclass of :class:`DBHandler` that executes database commands via :mod:`ll.orasql`.
+	"""
+
+	def drop_types(self, context, command):
+		cs = self.connectstring()
+
+		if not command.cond:
+			command.finish(f"Skipped dropping types in {cs!r}")
+			return None
+
+		if command.drop is not None:
+			dropstr = " ".join(command.drop)
+			command.log(f"Dropping {dropstr} in {cs!r}")
+		elif command.keep is not None:
+			keepstr = " ".join(command.keep)
+			command.log(f"Dropping everything except {keepstr} in {cs!r}")
+		else:
+			command.log(f"Dropping everything in {cs!r}")
+
+		cursor = self.connection.cursor()
+		count = 0
+		for (i, obj) in enumerate(self.connection.objects(owner=None, mode="drop")):
+			if obj.owner is None:
+				drop = False
+				if command.drop is not None and obj.type in command.drop:
+					drop = True
+				if command.keep is not None and obj.type not in command.keep:
+					drop = True
+				if drop:
+					ddl = obj.dropsql(self.connection, False)
+					if ddl:
+						cursor.execute(ddl)
+						count += 1
+		command.finish(f"Dropped {count:,} objects from {cs!r}")
+		command.count(cs)
+		return count
 
 
 class PostgresHandler(DBHandler):
