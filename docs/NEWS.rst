@@ -203,7 +203,7 @@ Changes in 5.54 (released 10/24/2019)
 	long words will no longer be broken across multiple lines. This should
 	prevent long URLs from being broken.
 
-*	``ll.misc.sysinfo`` now exposes its attributes to UL4.
+*	:attr:`ll.misc.sysinfo` now exposes its attributes to UL4.
 
 *	:mod:`ll.sisyphus` log entries can now be logged to a Mattermost chat
 	channel.

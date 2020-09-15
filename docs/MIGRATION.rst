@@ -179,8 +179,8 @@ Migrating to version 5.36
 Changes to ``ll.orasql``
 ------------------------
 
-As :mod:`cx_Oracle` provides its own :class:`Object` :class:`orasql.Object`
-has been renamed to :class:`orasql.SchemaObject`.
+As :mod:`cx_Oracle` provides its own class :class:`~cx_Oracle.Object`
+:class:`ll.orasql.Object` has been renamed to :class:`ll.orasql.SchemaObject`.
 
 
 Migrating to version 5.34
@@ -312,10 +312,10 @@ has to be replaced with::
 Migrating to version 5.16
 =========================
 
-Changes to :mod:`orasql`
+Changes to :mod:`ll.orasql`
 ------------------------
 
-Some methods in :mod:`orasql` have been renamed: Iterating methods no longer
+Some methods in :mod:`ll.orasql` have been renamed: Iterating methods no longer
 have ``iter`` in their name (e.g. :meth:`itertables` is now simply called
 :meth:`tables`). The ``ddl`` part of some method names has been changed to
 ``sql`` (e.g. :meth:`createddl` is now called :meth:`createsql`).
@@ -1057,9 +1057,10 @@ Changes to parsing
 	namespaces prefixes *and* instantiating XIST classes (i.e. a combination
 	of what :class:`ll.xist.parse.NS` and :class:`ll.xist.parse.Node` do).
 
-*	The module :mod:`ll.xist.parsers` has been renamed to :mod:`parse`.
+*	The module :mod:`ll.xist.parsers` has been renamed to :mod:`~ll.xist.parse`.
 
-*	The module :mod:`ll.xist.presenters` has been renamed to :mod:`present`.
+*	The module :mod:`ll.xist.presenters` has been renamed to
+	:mod:`~ll.xist.present`.
 
 *	The classes :class:`ll.xist.converters.Converter` and
 	:class:`ll.xist.publishers.Publisher` have been moved to :mod:`ll.xist.xsc`.

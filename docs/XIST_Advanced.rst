@@ -72,9 +72,9 @@ pool):
 	spool = xsc.Pool(svg, hpool)
 	print(spool.img)
 
-Here the :obj:`hpool` (containing the :mod:`html` namespace) will be used when
-the attribute can't be found in :obj:`spool`. So this will again give the output
-``<element class ll.xist.ns.html:img at 0x3eed00>``.
+Here the :obj:`hpool` (containing the :mod:`~ll.xist.ns.html` namespace) will
+be used when the attribute can't be found in :obj:`spool`. So this will again
+give the output ``<element class ll.xist.ns.html:img at 0x3eed00>``.
 
 It's possible to get automatic pool chaining. If a module has an attribute
 :attr:`__bases__` (which must be a sequence of modules), they will be wrapped

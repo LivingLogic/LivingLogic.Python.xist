@@ -11,7 +11,7 @@
 """
 Overview
 ========
-The module/script :mod:`pysql` can be used to import data into one or more
+The module/script :mod:`!pysql` can be used to import data into one or more
 Oracle or Postgres databases. It reads ``pysql`` files which are an extension
 of normal Oracle or Postgres SQL files.
 
@@ -23,11 +23,11 @@ SQL commands
 
 A PySQL file may contain normal SQL commands. For the :mod:`!pysql` script
 to be able to execute these commands they must be terminated with a comment
-line ``-- @@@``. :mod:`pysql` will prepare the command for execution and
+line ``-- @@@``. :mod:`!pysql` will prepare the command for execution and
 execute it. Any exception that is raised as a result of executing the command
 will stop the script and be reported. This is in contrast to how Oracle's
 ``sqlplus`` executes SQL commands. ``sqlplus`` would continue after an error
-and exit with status code 0 even if there were errors. (For Oracle :mod:`pysql`
+and exit with status code 0 even if there were errors. (For Oracle :mod:`!pysql`
 can also explicitely ignore any exception raised by commands by specifying
 a different exception handling mode.)
 
