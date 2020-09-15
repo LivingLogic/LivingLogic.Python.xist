@@ -1603,7 +1603,6 @@ class procedure(_SQLCommand):
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 			args=self.args,
 		)
@@ -1640,7 +1639,6 @@ class sql(_SQLCommand):
 	def source_format(self):
 		yield from self._source_format(
 			self.sql,
-			connection=self.connection,
 			raiseexceptions=self.raiseexceptions,
 			args=self.args if self.args else None,
 		)
@@ -1692,7 +1690,6 @@ class commit(_SQLCommand):
 
 	def source_format(self):
 		yield from self._source_format(
-			self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
@@ -1715,7 +1712,6 @@ class rollback(_SQLCommand):
 
 	def source_format(self):
 		yield from self._source_format(
-			self.connection,
 			raiseexceptions=self.raiseexceptions,
 		)
 
