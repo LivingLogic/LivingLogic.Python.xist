@@ -1089,7 +1089,7 @@ class OracleHandler(DBHandler):
 	def user_exists(self, context, command):
 		cursor = self.connection.cursor()
 		cursor.execute("select count(*) from all_users where username = :name", name=command.name)
-		self.count(self.connectstring())
+		command.count(self.connectstring())
 		return cursor.fetchone()[0] > 0
 
 	schema_exists = user_exists
