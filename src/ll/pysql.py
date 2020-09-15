@@ -367,11 +367,11 @@ Multiple database connections
 =============================
 
 PySQL can handle multiple database connections. New database connections can be
-opened with the ``connect`` command. This command opens a new database
+opened with the :class:`connect` command. This command opens a new database
 connection. Subsequent commands that talk to the database will use this
-connection until a ``disconnect`` command disconnects from the database and
-reverts to the previous connection (or the ``None`` if this was the outermost
-open database connection). An example looks like this::
+connection until a :class:`disconnect` command disconnects from the database
+and reverts to the previous connection (or ``None`` if this was the
+outermost open database connection). An example looks like this::
 
 	connect("oracle:user/pwd@db")
 	procedure("test")
@@ -390,7 +390,7 @@ Variables
 =========
 
 Variable objects can be used to receive OUT parameters of procedure calls or
-SQL statements. A variable object can be specified like this ``var("foo")``.
+SQL statements. A variable object can be specified like this: ``var("foo")``.
 ``"foo"`` is the "name" of the variable. When a variable object is passed
 to a procedure the first time (i.e. the variable object is uninitialized),
 the resulting value after the call will be stored under the name of the
@@ -550,6 +550,9 @@ __docformat__ = "reStructuredText"
 
 
 def format_class(obj):
+	"""
+	Return the name for the class ``obj``.
+	"""
 	if obj.__module__ not in ("builtins", "exceptions"):
 		return f"{obj.__module__}.{obj.__qualname__}"
 	else:
@@ -583,10 +586,26 @@ def shortrepr(value):
 
 
 class Handler:
+	"""
+	A :class:`!Handler` object is responsible for executing PySQL commands.
+
+	:class:`!Handler` can not execute commands that require a database connection.
+	That if the job ob the subclasses :class:`OracleHandler`,
+	:class:`OraSQLHandler` and :class:`PostgresHandler`.
+	"""
+
 	@staticmethod
 	def from_connectstring(connectstring, mode=None):
 		"""
 		Create an appropriate :class:`!Handler` from a connectstring.
+
+		If ``connectstring`` is ``None``, a :class:`Handler` object will be
+		returned.
+
+		If ``connectstring`` starts with ``postgres:``, a :class:`PostgresHandler`
+		will be returned.
+
+		Otherwise on :class:`OracleHandler` will be returned.
 		"""
 		if connectstring is None:
 			return Handler()
@@ -1052,6 +1071,13 @@ class DBHandler(Handler):
 
 
 class OracleHandler(DBHandler):
+	"""
+	Subclass of :class:`DBHandler` that executes database commands via :mod:`cx_Oracle`.
+
+	However :class:`drop_types` is not supported, for this :class:`OraSQLHandler`
+	is required, which requires that :mod:`ll.orasql` is available).
+	"""
+
 	def connectstring(self):
 		return f"oracle:{self.connection.username}@{self.connection.tnsentry}"
 
@@ -1214,6 +1240,10 @@ class OraSQLHandler(OracleHandler):
 
 
 class PostgresHandler(DBHandler):
+	"""
+	Subclass of :class:`DBHandler` that executes database commands for Postgres.
+	"""
+
 	def connectstring(self):
 		info = self.connection.info
 		host = "localhost" if info.host.startswith("/") else info.host
