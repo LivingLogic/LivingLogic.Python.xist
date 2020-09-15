@@ -932,9 +932,7 @@ class Handler:
 			value = context._locals[command.key]
 			if value is not None and not isinstance(value, command.type):
 				raise TypeError(f"{value!r} is not of type {format_class(command.type)}")
-			return value
-		else:
-			return command
+		return command
 
 	def env(self, context, command):
 		"""
@@ -1033,7 +1031,7 @@ class DBHandler(Handler):
 		query = self._create_query(command)
 		result = self._executesql(context, query, command.args)
 		if result:
-			command.log(f"New vars {result!r}")
+			command.log(f"Vars {result!r}")
 		command.finish(f"Called procedure {command.name!r} in {cs!r}")
 		command.count(cs, command.name)
 		return result or None
@@ -1047,7 +1045,7 @@ class DBHandler(Handler):
 
 		result = self._executesql(context, command.sql, command.args)
 		if result:
-			command.log(f"New vars {result!r}")
+			command.log(f"Vars {result!r}")
 		command.finish(f"Executed SQL in {cs!r}")
 		command.count(cs)
 		return result or None
@@ -1173,7 +1171,7 @@ class OracleHandler(DBHandler):
 			if isinstance(argvalue, var):
 				varargs[argname] = argvalue
 				if argvalue.key is not None and argvalue.key in context._locals:
-					argvalue = context._locals[argvalue.key]
+					argvalue = self._createvar(cursor, argvalue.type, context._locals[argvalue.key])
 				else:
 					argvalue = cursor.var(argvalue.type)
 			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
@@ -1184,14 +1182,13 @@ class OracleHandler(DBHandler):
 
 		cursor.execute(query, queryargvars)
 
-		newkeys = {}
+		keys = {}
 		for (argname, argvalue) in varargs.items():
-			if argvalue.key not in context._locals:
-				value = queryargvars[argname].getvalue(0)
-				newkeys[argname] = value
-				if argvalue.key is not None:
-					context._locals[argvalue.key] = value
-		return newkeys
+			value = queryargvars[argname].getvalue(0)
+			if argvalue.key is not None and (argvalue.key not in context._locals or context._locals[argvalue.key] != value):
+				keys[argname] = value
+				context._locals[argvalue.key] = value
+		return keys
 
 	def _create_query(self, command):
 		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>:{an}" for (an, av) in command.args.items())
@@ -2339,10 +2336,10 @@ class var(Command):
 	"""
 	:class:`var` commands are used to mark procedure values that are ``OUT``
 	parameters. On first use the parameter is used as an ``OUT`` parameter and
-	PySQL will remembers the OUT value under the unique key specified in the
-	constructor. When a :class:`var` object is used a second time its value
-	will be passed to the procedure as a normal ``IN`` parameter instead.
-	The following parameters are supported:
+	PySQL will remembers the OUT value as a local variable under the unique name
+	specified in the constructor. When a :class:`var` object is used a second
+	time a variable object will be passed to the procedure with it's value set
+	to the value of the local variable. The following parameters are supported:
 
 	``key`` : string (required)
 		A unique name for the value.

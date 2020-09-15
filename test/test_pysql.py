@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import os, tempfile, datetime
+import os, tempfile, datetime, json
 
 import cx_Oracle
 
@@ -43,6 +43,10 @@ create table pysql_test_table(
 
 -- @@@@
 
+alter table pysql_test_table add constraint pysql_test_table_pk primary key(tt_id);
+
+-- @@@@
+
 # Disconnect again
 
 disconnect()
@@ -70,6 +74,7 @@ begin
 	if p_tt_id is null then
 		p_tt_id := 1;
 	end if;
+
 	insert into pysql_test_table
 	(
 		tt_id,
@@ -92,6 +97,7 @@ begin
 		p_tt_datetime,
 		systimestamp
 	);
+
 	p_tt_id := p_tt_id + 100;
 end;
 /
@@ -118,7 +124,7 @@ end;
 procedure(
 	"pysql_test_procedure",
 	args=dict(
-		p_tt_id=var("tt_1"),
+		p_tt_id=var("tt_id_1"),
 		p_tt_int=42,
 		p_tt_number=42.5,
 		p_tt_str="ä"*2000, # 4000 would lead to 8000 UTF-8 bytes, which doesn't work
@@ -134,7 +140,7 @@ procedure(
 procedure(
 	"pysql_test_procedure",
 	args=dict(
-		p_tt_id=var("tt_1"),
+		p_tt_id=var("tt_id_1"),
 		p_tt_int=None,
 		p_tt_number=None,
 		p_tt_str=None,
@@ -144,10 +150,35 @@ procedure(
 	)
 )
 
+# Reset sequence ``pysql_test_sequence`` to maximum ``tt_id``.
+
 reset_sequence(
 	"pysql_test_sequence",
 	table="pysql_test_table",
 	field="tt_id",
+)
+
+# Fetch next sequence value
+
+sql(
+	'''
+		begin
+			select pysql_test_sequence.nextval into :tt_id_seq from dual;
+		end;
+	''',
+	args=dict(
+		tt_id_seq=var("tt_id_seq"),
+	),
+)
+
+# Call ``pysql_test_procedure`` a third time to record the result of the
+# ``reset_sequence`` call.
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_seq"),
+	)
 )
 
 sql(
@@ -157,12 +188,37 @@ sql(
 	),
 )
 
-object_exists(
-	"pysql_test_procedure"
+sql(
+	"begin :user_name := user; end;",
+	args=dict(
+		user_name=var("user_name", str),
+	),
 )
 
-constraint_exists(
-	"doesnt_exist"
+#>>>
+import json
+#<<<
+
+# Call ``pysql_test_procedure`` again to record the results of various
+# ``..._exists`` calls.
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_seq"),
+		p_tt_str=json.dumps(
+			{
+				"PROCEDURE": object_exists("PYSQL_TEST_PROCEDURE"),
+				"NOPROCEDURE": object_exists("DOESNT_EXIST"),
+				"USER": user_exists(user_name),
+				"NOUSER": user_exists("DOESNT_EXIST"),
+				"SCHEMA": schema_exists(user_name),
+				"NOSCHEMA": schema_exists("DOESNT_EXIST"),
+				"PK": constraint_exists("PYSQL_TEST_TABLE_PK"),
+				"NOPK": constraint_exists("DOESNT_EXIST"),
+			}
+		)
+	)
 )
 
 {
@@ -277,10 +333,37 @@ def test_pysql(tmpdir):
 
 		# Test second record
 		assert data[1].tt_id == 101
+		assert data[1].tt_int is None
+		assert data[1].tt_number is None
+		assert data[1].tt_str is None
+		assert data[1].tt_clob is None
+		assert data[1].tt_blob is None
+		assert data[1].tt_datetime is None
 
-		c.execute("select pysql_test_sequence.nextval as nv from dual")
-		data = c.fetchone().nv
-		assert data == 111
+		# Test third record
+		assert data[2].tt_id == 111
+		assert data[2].tt_int is None
+		assert data[2].tt_number is None
+		assert data[2].tt_str is None
+		assert data[2].tt_clob is None
+		assert data[2].tt_blob is None
+		assert data[2].tt_datetime is None
+
+		# Test fourth record
+		assert data[3].tt_id == 211
+		got = data[3].tt_str
+		got = json.loads(got)
+		expect = dict(
+			PROCEDURE=True,
+			NOPROCEDURE=False,
+			USER=True,
+			NOUSER=False,
+			SCHEMA=True,
+			NOSCHEMA=False,
+			PK=True,
+			NOPK=False,
+		)
+		assert got == expect
 
 	f = tmpdir.join("gurk_file.txt")
 	assert f.read() == "gurk_file"

@@ -8,6 +8,42 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released ??/??/2020)
+-------------------------------------
+
+*	:mod:`ll.pysql` now supports Postgres. To connect to a Postgres database
+	pass a connectstring to :class:`connect` starting with ``postgres:``, for
+	example::
+
+		connect("postgres:host=localhost dbname=test user=me password=secret")
+
+	This will create a Postgres database connection via::
+
+		psycopg2.connect(
+			"host=localhost dbname=test user=me password=secret",
+			cursor_factory=extras.DictCursor
+		)
+
+	All other connectstrings will be interpreted as Oracle connectstrings.
+	An Oracle connectstring may start with the prefix ``oracle:`` which will
+	be stripped off, before passing it to :func:`cx_Oracle.connect` or
+	:func:`ll.orasql.connect`.
+
+	Note the Postgres currently doesn't support the :class:`drop_types`
+	command.
+
+*	Some PySQL command have been renamed: :class:`resetsequence` to
+	:class:`reset_sequence` and :class:`checkerrors` to :class:`check_errors`.
+
+*	When a :class:`var` object is passed a second time in PySQL, now instead of
+	the variable's value a proper variable object will be passed to the
+	:class:`procedure` or :class:`sql` call. This means if the variable gets
+	changed by the call, the new value will be picked up by the local variable.
+
+	If you want to pass the variable's value instead as a simple IN parameter,
+	simply pass the local variable instead.
+
+
 Changes in 5.63 (released 09/08/2020)
 -------------------------------------
 
