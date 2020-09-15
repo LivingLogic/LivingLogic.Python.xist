@@ -369,6 +369,7 @@ intersphinx_mapping = {
 	'requests': ('https://requests.kennethreitz.org/en/master/', None),
 	'cx_Oracle': ('https://cx-oracle.readthedocs.io/en/latest/', None),
 	'psycopg2': ('https://www.psycopg.org/docs/', None),
+	'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
 }
 
 autodoc_default_options = {
