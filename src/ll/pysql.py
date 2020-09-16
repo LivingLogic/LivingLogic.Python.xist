@@ -1345,7 +1345,7 @@ class PostgresHandler(DBHandler):
 
 		cursor = self.connection.cursor()
 		cursor.execute(sql, queryargvars)
-		newkeys = {}
+		keys = {}
 		try:
 			result = cursor.fetchone()
 		except psycopg2.ProgrammingError as exc:
@@ -1356,10 +1356,10 @@ class PostgresHandler(DBHandler):
 		else:
 			for (value, column) in zip(result, cursor.description):
 				key = varargs[column.name].key
-				if key not in context._locals:
-					newkeys[column.name] = value
+				if argvalue.key is not None and (key not in context._locals or context._locals[key] != value):
+					keys[column.name] = value
 					context._locals[key] = value
-		return newkeys
+		return keys
 
 	def _create_query(self, command):
 		argsql = ", ".join(f"{an}=>{av.expression}" if isinstance(av, sqlexpr) else f"{an}=>%s" for (an, av) in command.args.items())
