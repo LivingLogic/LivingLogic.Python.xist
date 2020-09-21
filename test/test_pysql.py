@@ -26,7 +26,7 @@ connectstring_oracle = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connect
 
 def execute_commands(tmpdir):
 	pysql.main([
-		str(basedir/"test_pysql.pysql"),
+		str(basedir/"pysql/main.pysql"),
 		"-d", connectstring_oracle,
 		"-D", f"connectstring_oracle={connectstring_oracle}",
 		"-vfull",
