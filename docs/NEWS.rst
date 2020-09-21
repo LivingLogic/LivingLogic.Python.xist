@@ -32,8 +32,11 @@ Changes in HEAD (released ??/??/2020)
 	Note the Postgres currently doesn't support the :class:`drop_types`
 	command.
 
-*	Some PySQL command have been renamed: :class:`resetsequence` to
-	:class:`reset_sequence` and :class:`checkerrors` to :class:`check_errors`.
+*	Some PySQL commands have been renamed: :class:`resetsequence` to
+	:class:`reset_sequence`, :class:`checkerrors` to :class:`check_errors`,
+	:class:`raiseexceptions` to :class:`raise_exceptions`,
+	:class:`pushraiseexceptions` to :class:`push_raise_exceptions` and
+	:class:`popraiseexceptions` to :class:`pop_raise_exceptions`.
 
 *	When a :class:`var` object is passed a second time in PySQL, now instead of
 	the variable's value a proper variable object will be passed to the

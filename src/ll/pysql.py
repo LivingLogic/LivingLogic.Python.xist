@@ -112,13 +112,13 @@ The following commands are available:
 :class:`unsetvar`
 	Deletes a variable;
 
-:class:`raiseexceptions`
+:class:`raise_exceptions`
 	Set the exception handling mode;
 
-:class:`pushraiseexceptions`
+:class:`push_raise_exceptions`
 	Temporarily modifies the exception handling mode;
 
-:class:`popraiseexceptions`
+:class:`pop_raise_exceptions`
 	Reverts to the previously active exception handling mode;
 
 :class:`check_errors`
@@ -485,6 +485,9 @@ command line options:
 		copied via :program:`scp` this can be a remote filename (like
 		``root@www.example.org:~/uploads/``) and must include a trailing ``/``.
 
+		If it is a local directory it should be absolute (otherwise PySQL
+		scripts included from other directories won't work).
+
 	``-f``, ``--filedirectory``
 		The base directory for :class:`file` file save commands. It must include
 		a trailing ``/``.
@@ -805,40 +808,40 @@ class Handler:
 		if self.cond:
 			context._locals.pop(command.name, None)
 
-	def raiseexceptions(self, context, command):
+	def raise_exceptions(self, context, command):
 		"""
-		Execute the :class:`raiseexceptions` command ``command``.
-		"""
-		if not command.cond:
-			command.finish(f"Skipped setting raiseexceptions")
-			return None
-
-		self.log(f"Setting raiseexceptions to {command.value}")
-		context.raiseexceptions[-1] = command.value
-
-	def pushraiseexceptions(self, context, command):
-		"""
-		Execute the :class:`pushraiseexceptions` command ``command``.
+		Execute the :class:`raise_exceptions` command ``command``.
 		"""
 		if not command.cond:
-			command.finish(f"Skipped pushing raiseexceptions")
+			command.finish(f"Skipped setting raise_exceptions")
 			return None
 
-		command.log(f"Pushing raiseexceptions value {command.value}")
-		context.raiseexceptions.append(command.value)
+		self.log(f"Setting raise_exceptions to {command.value}")
+		context.raise_exceptions[-1] = command.value
 
-	def popraisexceptions(self, context, command):
+	def push_raise_exceptions(self, context, command):
 		"""
-		Execute the :class:`popraisexceptions` command ``command``.
+		Execute the :class:`push_raise_exceptions` command ``command``.
 		"""
 		if not command.cond:
-			command.finish(f"Skipped popping raiseexceptions")
+			command.finish(f"Skipped pushing raise_exceptions")
 			return None
 
-		if len(context.raiseexceptions) <= 1:
+		command.log(f"Pushing raise_exceptions value {command.value}")
+		context.raise_exceptions.append(command.value)
+
+	def pop_raise_exceptions(self, context, command):
+		"""
+		Execute the :class:`pop_raise_exceptions` command ``command``.
+		"""
+		if not command.cond:
+			command.finish(f"Skipped popping raise_exceptions")
+			return None
+
+		if len(context.raise_exceptions) <= 1:
 			raise ValueError("raiseexception stack empty")
-		oldvalue = context.raiseexceptions.pop()
-		command.finish(f"Popped raiseexceptions value {oldvalue}: returning to {context.raiseexceptions[-1]}")
+		oldvalue = context.raise_exceptions.pop()
+		command.finish(f"Popped raise_exceptions value {oldvalue}: returning to {context.raise_exceptions[-1]}")
 		return oldvalue
 
 	def scp(self, context, command):
@@ -1380,7 +1383,7 @@ class Command:
 	The only parameters in the call that is supported by all commands are the
 	following:
 
-	``raiseexceptions`` : bool (optional)
+	``raise_exceptions`` : bool (optional)
 		Specifies whether exceptions that happen during the execution of the
 		command should be reported and terminate the script (:const:`True`), or
 		should be ignored (:const:`False`). :const:`None` (the default)
@@ -1392,9 +1395,9 @@ class Command:
 		else it won't.
 	"""
 
-	def __init__(self, *, raiseexceptions=None, cond=True):
+	def __init__(self, *, raise_exceptions=None, cond=True):
 		self.location = None
-		self.raiseexceptions = raiseexceptions
+		self.raise_exceptions = raise_exceptions
 		self.cond = cond
 		self._context = None
 		self._startime = None
@@ -1481,19 +1484,19 @@ class include(Command):
 	being relative to the directory with the file containing the
 	:class:`!include` command.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, filename, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.filename = filename
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} filename={self.filename!r} location={self.location} at {id(self):#x}>"
 
 	def source_format(self):
-		yield from self._source_format(self.filename, raiseexceptions=self.raiseexceptions)
+		yield from self._source_format(self.filename, raise_exceptions=self.raise_exceptions)
 
 
 @register
@@ -1515,12 +1518,12 @@ class connect(Command):
 	``retrydelay`` : int (optional)
 		The number of seconds to wait between connection tries.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.connectstring = connectstring
 		self.mode = mode
 		self.retry = retry
@@ -1535,7 +1538,7 @@ class connect(Command):
 			mode=self.mode,
 			retry=self.retry,
 			retrydelay=self.retrydelay,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -1549,12 +1552,12 @@ class disconnect(Command):
 	``commit`` is :const:`None`, the default commit mode is used (which can be
 	changed on the command line via the ``-r``/``--rollback`` option).
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, commit=None, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, *, commit=None, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.commit = commit
 
 	def __repr__(self):
@@ -1563,7 +1566,7 @@ class disconnect(Command):
 	def source_format(self):
 		yield from self._source_format(
 			commit=self.commit,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -1621,8 +1624,8 @@ class procedure(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None, cond=True, args=None):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, name, *, raise_exceptions=None, cond=True, args=None):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.name = name
 		self.args = args or {}
 
@@ -1632,7 +1635,7 @@ class procedure(_SQLCommand):
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 			args=self.args,
 		)
 
@@ -1657,8 +1660,8 @@ class sql(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, raiseexceptions=None, cond=True, args=None):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, sql, *, raise_exceptions=None, cond=True, args=None):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.sql = sql
 		self.args = args or {}
 
@@ -1668,7 +1671,7 @@ class sql(_SQLCommand):
 	def source_format(self):
 		yield from self._source_format(
 			self.sql,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 			args=self.args if self.args else None,
 		)
 
@@ -1711,15 +1714,15 @@ class commit(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, sql, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def source_format(self):
 		yield from self._source_format(
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -1733,15 +1736,15 @@ class rollback(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, sql, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def source_format(self):
 		yield from self._source_format(
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -1782,12 +1785,12 @@ class setvar(Command):
 	``value`` : object (required)
 		The value of the variable.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, name, value, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, name, value, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.name = name
 		self.value = value
 
@@ -1798,7 +1801,7 @@ class setvar(Command):
 		yield from self._source_format(
 			self.name,
 			self.value,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -1808,12 +1811,12 @@ class unsetvar(Command):
 	The :class:`!unsetvar` command deletes a variable. The parameter ``name``
 	must be given and must contain the name of the variable.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, name, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.name = name
 
 	def __repr__(self):
@@ -1822,35 +1825,35 @@ class unsetvar(Command):
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
 @register
-class raiseexceptions(Command):
+class raise_exceptions(Command):
 	"""
-	The :class:`!raiseexceptions` command changes the global error reporting mode
+	The :class:`!raise_exceptions` command changes the global error reporting mode
 	for all subsequent commands. After::
 
-		raiseexceptions(False)
+		raise_exceptions(False)
 
 	for all subsequent commands any exception will be ignored and reported and
 	command execution will continue with the next command. ::
 
-		raiseexceptions(True)
+		raise_exceptions(True)
 
 	will switch back to aborting the execution of the PySQL script once an
 	exception is encountered.
 
 	Note that the global configuration will only be relevant for commands that
-	don't specify the ``raiseexceptions`` parameter themselves.
+	don't specify the ``raise_exceptions`` parameter themselves.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, value, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, *, value, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.value = value
 
 	def __repr__(self):
@@ -1859,34 +1862,34 @@ class raiseexceptions(Command):
 	def source_format(self):
 		yield from self._source_format(
 			self.value,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
 @register
-class pushraiseexceptions(Command):
+class push_raise_exceptions(Command):
 	"""
-	The :class:`!pushraiseexceptions` command changes the global error reporting
-	mode for all subsequent commands, but remembers the previous exception
-	handling mode. After::
+	The :class:`!push_raise_exceptions` command changes the global error
+	reporting mode for all subsequent commands, but remembers the previous
+	exception handling mode. After::
 
-		pushraiseexceptions(False)
+		push_raise_exceptions(False)
 
 	for all subsequent commands any exception will be ignored and reported and
 	command execution will continue with the next command. It is possible to
 	switch back to the previous exception handling mode via::
 
-		popraiseexceptions()
+		pop_raise_exceptions()
 
 	Note that this global configuration will only be relevant for commands that
-	don't specify the ``raiseexceptions`` parameter themselves.
+	don't specify the ``raise_exceptions`` parameter themselves.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, value, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, value, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.value = value
 
 	def __repr__(self):
@@ -1895,30 +1898,30 @@ class pushraiseexceptions(Command):
 	def source_format(self):
 		yield from self._source_format(
 			self.value,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
 @register
-class popraiseexceptions(Command):
+class pop_raise_exceptions(Command):
 	"""
-	The :class:`popraiseexceptions` command restores the previously active
-	exception handling mode (i.e. the one active before the last
-	:class:`pushraiseexceptions` command).
+	The :class:`pop_raise_exceptions` command restores the previously
+	active exception handling mode (i.e. the one active before the last
+	:class:`push_raise_exceptions` command).
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
 
 	def source_format(self):
 		yield from self._source_format(
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -1929,7 +1932,7 @@ class check_errors(_DatabaseCommand):
 	in the active database schema. If there are, an exception will be raised.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`
-	(but the value of the ``raiseexceptions`` key will be ignored).
+	(but the value of the ``raise_exceptions`` key will be ignored).
 	"""
 
 	def __repr__(self):
@@ -1956,12 +1959,12 @@ class scp(Command):
 		The content of the file to be created. This can also be a
 		:class:`loadbytes` command to load the content from an external file.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, name, content, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, *, name, content, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.name = name
 		self.content = content
 
@@ -1972,7 +1975,7 @@ class scp(Command):
 		yield from self._source_format(
 			self.name,
 			self.content,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2004,12 +2007,12 @@ class file(Command):
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
 		the file.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, name, content, *, mode=None, owner=None, group=None, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, name, content, *, mode=None, owner=None, group=None, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.name = name
 		self.content = content
 		self.mode = mode
@@ -2026,7 +2029,7 @@ class file(Command):
 			mode=self.mode,
 			owner=self.owner,
 			group=self.group,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2052,8 +2055,8 @@ class reset_sequence(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, sequence, table, field, *, minvalue=None, increment=None, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.sequence = sequence
 		self.table = table
 		self.field = field
@@ -2069,7 +2072,7 @@ class reset_sequence(_DatabaseCommand):
 			minvalue=self.minvalue,
 			increment=self.increment,
 			connection=self.connection,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2085,8 +2088,8 @@ class user_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, raise_exceptions=None):
+		super().__init__(raise_exceptions=raise_exceptions)
 		self.name = name
 
 	def __repr__(self):
@@ -2095,7 +2098,7 @@ class user_exists(_DatabaseCommand):
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2111,8 +2114,8 @@ class schema_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, raise_exceptions=None):
+		super().__init__(raise_exceptions=raise_exceptions)
 		self.name = name
 
 	def __repr__(self):
@@ -2121,7 +2124,7 @@ class schema_exists(_DatabaseCommand):
 	def source_format(self):
 		yield from self._source_format(
 			self.name,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2144,8 +2147,8 @@ class object_exists(_DatabaseCommand):
 	:class:`constraint_exists`.
 	"""
 
-	def __init__(self, name, *, owner=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, owner=None, raise_exceptions=None):
+		super().__init__(raise_exceptions=raise_exceptions)
 		self.name = name
 		self.owner = owner
 
@@ -2156,7 +2159,7 @@ class object_exists(_DatabaseCommand):
 		yield from self._source_format(
 			self.name,
 			owner=self.owner,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2177,8 +2180,8 @@ class constraint_exists(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, name, *, owner=None, raiseexceptions=None):
-		super().__init__(raiseexceptions=raiseexceptions)
+	def __init__(self, name, *, owner=None, raise_exceptions=None):
+		super().__init__(raise_exceptions=raise_exceptions)
 		self.name = name
 		self.owner = owner
 
@@ -2189,7 +2192,7 @@ class constraint_exists(_DatabaseCommand):
 		yield from self._source_format(
 			self.name,
 			owner=self.owner,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2216,8 +2219,8 @@ class drop_types(_DatabaseCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, *, drop=None, keep=None, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, *, drop=None, keep=None, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.drop = drop
 		self.keep = keep
 
@@ -2228,7 +2231,7 @@ class drop_types(_DatabaseCommand):
 		yield from self._source_format(
 			drop=self.drop,
 			keep=self.keep,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2265,12 +2268,12 @@ class loadbytes(Command):
 		relative to the directory containing the PySQL file that contains
 		:class:`loadbytes` command.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, raiseexceptions=None, cond=True):
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+	def __init__(self, filename, *, raise_exceptions=None, cond=True):
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.filename = filename
 
 	def __repr__(self):
@@ -2279,7 +2282,7 @@ class loadbytes(Command):
 	def source_format(self):
 		yield from self._source_format(
 			self.filename,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2300,15 +2303,15 @@ class loadstr(Command):
 	``errors`` : string (optional)
 		The error handling mode for decoding.
 
-	For the parameters ``raiseexceptions`` and ``cond`` see the base class
+	For the parameters ``raise_exceptions`` and ``cond`` see the base class
 	:class:`Command`.
 	"""
 
-	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None, cond=True):
+	def __init__(self, filename, *, encoding=None, errors="strict", raise_exceptions=None, cond=True):
 		"""
 		Create a new :class:`loadbytes` object. 
 		"""
-		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
+		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.filename = filename
 		self.encoding = encoding
 		self.errors = errors
@@ -2327,7 +2330,7 @@ class loadstr(Command):
 			self.filename,
 			encoding=self.encoding,
 			errors=self.errors if self.errors != "strict" else None,
-			raiseexceptions=self.raiseexceptions,
+			raise_exceptions=self.raise_exceptions,
 		)
 
 
@@ -2354,7 +2357,7 @@ class var(Command):
 	"""
 
 	def __init__(self, key=None, type=int):
-		super().__init__(raiseexceptions=None)
+		super().__init__(raise_exceptions=None)
 		self.key = key
 		self.type = type
 
@@ -2450,8 +2453,8 @@ class CommandExecutor:
 			first = False
 		context.totalcount += 1
 		command._nr = context.totalcount
-		if command.raiseexceptions is not None:
-			context.raiseexceptions.append(command.raiseexceptions)
+		if command.raise_exceptions is not None:
+			context.raise_exceptions.append(command.raise_exceptions)
 
 		if context.verbose == "type":
 			if isinstance(command, procedure):
@@ -2482,7 +2485,7 @@ class CommandExecutor:
 			result = command.execute(context)
 		except Exception as exc:
 			command._stoptime = datetime.datetime.now()
-			if context.raiseexceptions[-1]:
+			if context.raise_exceptions[-1]:
 				if context.verbose:
 					print(flush=True)
 				raise
@@ -2511,8 +2514,8 @@ class CommandExecutor:
 					command.log(command._message, f"(in {command._stoptime-command._starttime})")
 		finally:
 			command._stoptime = datetime.datetime.now()
-			if command.raiseexceptions is not None:
-				context.raiseexceptions.pop()
+			if command.raise_exceptions is not None:
+				context.raise_exceptions.pop()
 		context.count(command.__class__.__qualname__, *command._counter)
 
 		return result
@@ -2534,7 +2537,7 @@ class Context:
 	command_begin = tuple(f"{cname}(" for cname in Command.commands)
 	command_end = ")"
 
-	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit=True, tabsize=None, context=None, ascii=False, raiseexceptions=True, verbose=0, summary=False, vars=None):
+	def __init__(self, connectstring=None, scpdirectory="", filedirectory="", commit=True, tabsize=None, context=None, ascii=False, raise_exceptions=True, verbose=0, summary=False, vars=None):
 		self.handlers = [Handler.from_connectstring(None)]
 		self.commit = commit
 		self.scpdirectory = scpdirectory
@@ -2558,7 +2561,7 @@ class Context:
 			self.char_hruledown = "\u252c"
 			self.char_hruleup = "\u2534"
 			self.char_vellipsis = "\u22ee"
-		self.raiseexceptions = [raiseexceptions]
+		self.raise_exceptions = [raise_exceptions]
 		self.verbose = verbose
 		self.summary = summary
 		self.commandcounts = collections.Counter()

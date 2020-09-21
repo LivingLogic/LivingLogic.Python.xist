@@ -21,7 +21,8 @@ from ll import orasql, pysql
 
 basedir = pathlib.Path(__file__).parent
 
-connectstring_oracle = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
+connectstring_oracle = os.environ["LL_ORASQL_TEST_CONNECT"] # Need a connectstring as environment var
+connectstring_postgres = os.environ["LL_POSTSQL_TEST_CONNECT"] # Need a connectstring as environment var
 
 
 def execute_commands(tmpdir):
@@ -29,6 +30,7 @@ def execute_commands(tmpdir):
 		str(basedir/"pysql/main.pysql"),
 		"-d", connectstring_oracle,
 		"-D", f"connectstring_oracle={connectstring_oracle}",
+		"-D", f"connectstring_postgres={connectstring_postgres}",
 		"-vfull",
 		"-z",
 		"--tabsize=3",
@@ -38,25 +40,8 @@ def execute_commands(tmpdir):
 	])
 
 
-def cleanup():
-	commands = [
-		"drop table pysql_test_table",
-		"drop sequence pysql_test_sequence",
-		"drop procedure pysql_test_procedure",
-	]
-	with orasql.connect(connectstring_oracle) as db:
-		c = db.cursor()
-		for command in commands:
-			try:
-				c.execute(command)
-			except cx_Oracle.DatabaseError:
-				pass
-
-
 @pytest.mark.db
 def test_pysql(tmpdir):
-	cleanup()
-
 	execute_commands(tmpdir)
 	tmpdir = pathlib.Path(tmpdir)
 
@@ -113,5 +98,3 @@ def test_pysql(tmpdir):
 
 	f2 = tmpdir/"gurk_scp.txt"
 	assert f2.read_text() == "gurk_scp"
-
-	cleanup()

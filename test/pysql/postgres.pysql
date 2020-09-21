@@ -1,0 +1,6 @@
+# Connect to the Postgres database
+
+connect("postgres:" + connectstring_postgres)
+
+
+disconnect()

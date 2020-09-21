@@ -2,6 +2,27 @@
 
 connect(connectstring_oracle)
 
+# Remove old stuff
+# but don't fail if the old stuff doesn't exist, which incidentally tests
+# ``push_raise_exceptions`` and ``pop_raise_exceptions``
+
+push_raise_exceptions(False)
+
+drop procedure pysql_test_procedure;
+
+-- @@@
+
+drop table pysql_test_table;
+
+-- @@@
+
+drop sequence pysql_test_sequence;
+
+-- @@@
+
+pop_raise_exceptions()
+
+
 # Create our test table which we will fill with test data.
 
 create table pysql_test_table(
