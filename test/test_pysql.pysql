@@ -1,0 +1,268 @@
+# Connect to the Oracle database
+
+connect(connectstring_oracle)
+
+# Create our test table which we will fill with test data.
+
+create table pysql_test_table(
+	tt_id integer,
+	tt_identifier varchar2(200),
+	tt_int integer,
+	tt_number number,
+	tt_str varchar2(4000),
+	tt_clob clob,
+	tt_blob blob,
+	tt_datetime date,
+	tt_cdate timestamp
+);
+
+-- @@@@
+
+alter table pysql_test_table add constraint pysql_test_table_pk primary key(tt_id);
+
+-- @@@@
+
+# Disconnect again
+
+disconnect()
+
+-- @@@
+
+# Connect again (this time using the ``oracle:`` "schema" prefix
+
+connect("oracle:" + connectstring_oracle)
+
+# Create test procedure which we'll use to populate the table
+# (and test procedure calling)
+
+create or replace procedure pysql_test_procedure(
+	p_tt_id in out integer,
+	p_tt_identifier varchar2 := null,
+	p_tt_int integer := null,
+	p_tt_number number := null,
+	p_tt_str varchar2 := null,
+	p_tt_clob clob := null,
+	p_tt_blob blob := null,
+	p_tt_datetime date := null
+)
+as
+begin
+	if p_tt_id is null then
+		p_tt_id := 1;
+	end if;
+
+	insert into pysql_test_table
+	(
+		tt_id,
+		tt_identifier,
+		tt_int,
+		tt_number,
+		tt_str,
+		tt_clob,
+		tt_blob,
+		tt_datetime,
+		tt_cdate
+	)
+	values
+	(
+		p_tt_id,
+		p_tt_identifier,
+		p_tt_int,
+		p_tt_number,
+		p_tt_str,
+		p_tt_clob,
+		p_tt_blob,
+		p_tt_datetime,
+		systimestamp
+	);
+
+	p_tt_id := p_tt_id + 100;
+end;
+/
+
+-- @@@
+
+# Create sequence (but this time via the ``sql`` command
+# specified via a dictionary).
+
+{
+	"type": "sql",
+	"sql":
+		"create sequence pysql_test_sequence"
+		"	minvalue 10"
+		"	maxvalue 9999999999999999999999999999"
+		"	start with 30"
+		"	increment by 10"
+		"	cache 20",
+}
+
+# Call ``pysql_test_procedure`` with real values for each parameter (except
+# ``p_tt_id``) and remember the value for the ``p_tt_id`` parameter.
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_1"),
+		p_tt_identifier="full",
+		p_tt_int=42,
+		p_tt_number=42.5,
+		p_tt_str="ä"*2000, # 4000 would lead to 8000 UTF-8 bytes, which doesn't work
+		p_tt_clob="ä"*100000,
+		p_tt_blob=b"\xff"*100000,
+		p_tt_datetime=datetime.datetime(2000, 2, 29, 12, 34, 56),
+	),
+)
+
+# Call ``pysql_test_procedure`` the second time and pass the resulting value
+# for ``p_tt_id`` from the last call to p_tt_int, so we can check whether OUT
+# parameters work
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_1"),
+		p_tt_identifier="outcheck",
+		p_tt_int=tt_id_1,
+	),
+)
+
+# Call ``pysql_test_procedure`` and pass ``NULL``\s for all parameters.
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_1"),
+		p_tt_identifier="empty",
+		p_tt_int=None,
+		p_tt_number=None,
+		p_tt_str=None,
+		p_tt_clob=var(None, DB_TYPE_CLOB),
+		p_tt_blob=var(None, DB_TYPE_BLOB),
+		p_tt_datetime=None,
+	)
+)
+
+# Reset sequence ``pysql_test_sequence`` to maximum ``tt_id``.
+
+reset_sequence(
+	"pysql_test_sequence",
+	table="pysql_test_table",
+	field="tt_id",
+)
+
+# Fetch next sequence value
+
+sql(
+	'''
+		begin
+			select pysql_test_sequence.nextval into :tt_id_seq from dual;
+		end;
+	''',
+	args=dict(
+		tt_id_seq=var("tt_id_seq"),
+	),
+)
+
+# Call ``pysql_test_procedure`` a third time to record the result of the
+# ``reset_sequence`` call.
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_seq"),
+		p_tt_identifier="noparams",
+	)
+)
+
+sql(
+	"begin :filename_file := 'gurk_file.txt'; end;",
+	args=dict(
+		filename_file=var("filename_file", str),
+	),
+)
+
+sql(
+	"begin :user_name := user; end;",
+	args=dict(
+		user_name=var("user_name", str),
+	),
+)
+
+#>>>
+import json
+#<<<
+
+# Call ``pysql_test_procedure`` again to record the results of various
+# ``..._exists`` calls.
+
+procedure(
+	"pysql_test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_seq"),
+		p_tt_identifier="schemacheck",
+		p_tt_str=json.dumps(
+			{
+				"PROCEDURE": object_exists("PYSQL_TEST_PROCEDURE"),
+				"NOPROCEDURE": object_exists("DOESNT_EXIST"),
+				"USER": user_exists(user_name),
+				"NOUSER": user_exists("DOESNT_EXIST"),
+				"SCHEMA": schema_exists(user_name),
+				"NOSCHEMA": schema_exists("DOESNT_EXIST"),
+				"PK": constraint_exists("PYSQL_TEST_TABLE_PK"),
+				"NOPK": constraint_exists("DOESNT_EXIST"),
+			}
+		)
+	)
+)
+
+{
+	"type": "sql",
+	"sql": "begin :filename_scp := 'gurk_scp.txt'; end;",
+	"args": {
+		"filename_scp": var("filename_scp", str),
+	}
+}
+
+{
+	"type": "file",
+	"name": "{filename_file}",
+	"content": b"gurk_file",
+	"mode": 0o644,
+}
+
+{
+	"type": "scp",
+	"name": "{filename_scp}",
+	"content": b"gurk_scp",
+}
+
+procedure(
+	"doesnt_exist",
+	cond=False,
+)
+
+reset_sequence(
+	"doesnt_exist",
+	table="doesnt_exist",
+	field="de_id",
+	cond=False,
+)
+
+sql(
+	"begin doesnt_exist; end;",
+	cond=False,
+)
+
+file(
+	name="doesnt_exist",
+	content=b"nothing",
+	cond=False,
+)
+
+scp(
+	name="doesnt_exist",
+	content=b"nothing",
+	cond=False,
+)
+
+disconnect()
