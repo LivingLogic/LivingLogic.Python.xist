@@ -2,5 +2,41 @@
 
 connect("postgres:" + connectstring_postgres)
 
+# In Postgres we can put all of our testing stuff into one schema,
+# which makes cleanup very easy, we just have to
+drop schema if exists pysql cascade;
+
+-- @@@
+
+create schema pysql;
+
+-- @@@
+
+# Create our test table which we will fill with test data.
+
+create table pysql.test_table(
+	tt_id integer,
+	tt_identifier varchar(200),
+	tt_int integer,
+	tt_number decimal,
+	tt_str text,
+	tt_datetime date,
+	tt_cdate timestamp with time zone
+);
+
+-- @@@
+
+alter table pysql.test_table add constraint test_table_pk primary key(tt_id);
+
+-- @@@
+
+create sequence pysql.test_sequence
+	minvalue 10
+	start with 10
+	increment by 10
+	cache 20
+;
+
+-- @@@
 
 disconnect()
