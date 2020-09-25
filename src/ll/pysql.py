@@ -2714,7 +2714,7 @@ class Context:
 				elif state == "literalpy":
 					CommandExecutor(literalpy, self)(source)
 				elif state == "dict":
-					code = compile(source, self._location.filename, "eval")
+					code = compile(source, str(self._location.filename), "eval")
 					args = eval(code, vars, self._locals)
 					type = args.pop("type", "procedure")
 					if type not in Command.commands:
