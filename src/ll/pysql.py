@@ -2449,9 +2449,6 @@ class CommandExecutor:
 		command._starttime = datetime.datetime.now()
 		if context._runstarttime is None:
 			context._runstarttime = command._starttime
-			first = True
-		else:
-			first = False
 		context.totalcount += 1
 		command._nr = context.totalcount
 		if command.raise_exceptions is not None:
@@ -2474,11 +2471,6 @@ class CommandExecutor:
 				pass # still the same location
 		elif context.verbose == "log":
 			pass
-		elif context.verbose == "full":
-			if command.location is not context._lastlocation:
-				if not first:
-					print(flush=True)
-				command.location.print_source(context)
 		# Update ``_lastlocation`` *now*, so that other commands called during :meth:`execute` don't print the location/source twice
 		context._lastlocation = command.location
 
@@ -2708,6 +2700,11 @@ class Context:
 				del lines[-1]
 			if lines:
 				self._location = Location(stream.name, lines)
+				if self.verbose == "full":
+					# Print the source code here, before the command gets instantiated,
+					# so that we'll see the source even when an exception happens
+					# on instantiation
+					self._location.print_source(self)
 				source = self._location.source()
 				if state == "literalsql":
 					CommandExecutor(literalsql, self)(source)
