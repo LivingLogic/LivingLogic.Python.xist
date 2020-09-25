@@ -1359,7 +1359,7 @@ class PostgresHandler(DBHandler):
 		else:
 			for (value, column) in zip(result, cursor.description):
 				key = varargs[column.name].key
-				if argvalue.key is not None and (key not in context._locals or context._locals[key] != value):
+				if key is not None and (key not in context._locals or context._locals[key] != value):
 					keys[column.name] = value
 					context._locals[key] = value
 		return keys
