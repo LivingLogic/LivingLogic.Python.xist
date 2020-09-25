@@ -2424,9 +2424,9 @@ class log(Command):
 
 class CommandExecutor:
 	"""
-	A :class:`!CommandExecutor` object wraps a :class:`Command` object in a
-	callable. Calling the :class:`!CommandExecutor` object executes the command
-	using the specified context and returns the command result.
+	A :class:`!CommandExecutor` object wraps executing a :class:`Command` object
+	in a callable. Calling the :class:`!CommandExecutor` object executes the
+	command using the specified context and returns the command result.
 
 	This class exists because :class:`Command` objects serve two purposes:
 
@@ -2442,7 +2442,7 @@ class CommandExecutor:
 		self.context = context
 
 	def __call__(self, *args, **kwargs):
-		command = self.command(*args, **kwargs)
+		command = self.command(*args, **kwargs) # Create the :class:`Command` object
 		context = self.context
 		command._context = context
 		command.location = context._location
