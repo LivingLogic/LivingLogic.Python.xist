@@ -744,7 +744,7 @@ class Handler:
 
 		vars = context.globals()
 
-		code = command.location.source(True) if command.location is not None else command.code
+		code = command.location.source() if command.location is not None else command.code
 		code += "\n"
 		code = compile(code, context.filename, "exec")
 		exec(code, vars, context._locals)
@@ -1759,7 +1759,8 @@ class literalpy(_DatabaseCommand):
 		super().__init__()
 		prefix = f"{Context.literalpy_begin}\n"
 		suffix = f"\n{Context.literalpy_end}"
-		if not code.startswith(prefix) or not code.endswith(suffix):
+		testcode = code.strip()
+		if not testcode.startswith(prefix) or not testcode.endswith(suffix):
 			raise ValueError(f"{self.__class__.__qualname__} code must start with {prefix!r} and end with {suffix!r}")
 		self.code = code
 
@@ -2707,7 +2708,7 @@ class Context:
 				del lines[-1]
 			if lines:
 				self._location = Location(stream.name, lines)
-				source = self._location.source(False)
+				source = self._location.source()
 				if state == "literalsql":
 					CommandExecutor(literalsql, self)(source)
 				elif state == "literalpy":
@@ -2933,9 +2934,9 @@ class Location:
 		else:
 			return f"{self.startline:,}-{self.endline:,}"
 
-	def source(self, offset):
+	def source(self):
 		source = "\n".join(line for (linenumber, line) in self.lines)
-		if offset and self.startline is not None:
+		if self.startline is not None:
 			# Prepend empty lines, so in case of an exception the
 			# linenumbers in the stacktrace match
 			source = (self.startline-1) * "\n" + source
