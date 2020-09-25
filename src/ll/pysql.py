@@ -2721,7 +2721,7 @@ class Context:
 						raise ValueError(f"command type {type!r} unknown")
 					CommandExecutor(Command.commands[type], self)(**args)
 				else:
-					code = compile(source, self._location.filename, "exec")
+					code = compile(source, str(self._location.filename), "exec")
 					exec(code, vars, self._locals)
 
 	def executeall(self, *filenames):
@@ -2912,7 +2912,7 @@ class Location:
 	"""
 
 	def __init__(self, filename, lines):
-		self.filename = filename
+		self.filename = pathlib.Path(filename).resolve()
 		self.startline = lines[0][0]
 		self.endline = lines[-1][0]
 		self.lines = lines[:]
