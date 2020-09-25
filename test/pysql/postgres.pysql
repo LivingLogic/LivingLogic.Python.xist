@@ -12,6 +12,23 @@ create schema pysql;
 
 -- @@@
 
+# We can't really use ``raise_exceptions()`` like we can in Oracle, because
+# after an exception from the Postgres database the transaction is broken.
+# But we can do a test where we close the connection immediately after
+# the exception.
+
+push_raise_exceptions(False)
+
+connect("postgres:" + connectstring_postgres)
+
+do_something_that_wont_work;
+
+-- @@@
+
+disconnect()
+
+pop_raise_exceptions()
+
 # Create our test table which we will fill with test data.
 
 create table pysql.test_table(

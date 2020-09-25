@@ -22,6 +22,15 @@ drop sequence pysql_test_sequence;
 
 pop_raise_exceptions()
 
+# Check ``raise_exceptions()``.
+raise_exceptions(False)
+
+do_something_that_wont_work;
+
+-- @@@
+
+# Back to raising exceptions.
+raise_exceptions(True)
 
 # Create our test table which we will fill with test data.
 
