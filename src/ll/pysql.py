@@ -1852,7 +1852,7 @@ class raise_exceptions(Command):
 	:class:`Command`.
 	"""
 
-	def __init__(self, *, value, raise_exceptions=None, cond=True):
+	def __init__(self, value, *, raise_exceptions=None, cond=True):
 		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.value = value
 
