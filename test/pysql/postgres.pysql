@@ -37,7 +37,8 @@ create table pysql.test_table(
 	tt_int integer,
 	tt_number decimal,
 	tt_str text,
-	tt_datetime date,
+	tt_date date,
+	tt_datetime timestamp,
 	tt_cdate timestamp with time zone
 );
 
@@ -55,5 +56,61 @@ create sequence pysql.test_sequence
 ;
 
 -- @@@
+
+create or replace procedure pysql.test_procedure(
+	p_tt_id in out integer,
+	p_tt_identifier varchar default null,
+	p_tt_int integer default null,
+	p_tt_number decimal default null,
+	p_tt_str text default null,
+	p_tt_date date default null,
+	p_tt_datetime timestamp default null
+)
+as $$
+begin
+	if p_tt_id is null then
+		p_tt_id := 1;
+	end if;
+
+	insert into pysql.test_table
+	(
+		tt_id,
+		tt_identifier,
+		tt_int,
+		tt_number,
+		tt_str,
+		tt_date,
+		tt_datetime,
+		tt_cdate
+	)
+	values
+	(
+		p_tt_id,
+		p_tt_identifier,
+		p_tt_int,
+		p_tt_number,
+		p_tt_str,
+		p_tt_date,
+		p_tt_datetime,
+		clock_timestamp()
+	);
+
+	p_tt_id := p_tt_id + 100;
+end; $$ language plpgsql;
+
+-- @@@
+
+procedure(
+	"pysql.test_procedure",
+	args=dict(
+		p_tt_id=var("tt_id_1"),
+		p_tt_identifier="full",
+		p_tt_int=42,
+		p_tt_number=42.5,
+		p_tt_str="ä"*100000,
+		p_tt_date=datetime.date(2000, 2, 29),
+		p_tt_datetime=datetime.datetime(2000, 2, 29, 12, 34, 56),
+	),
+)
 
 disconnect()
