@@ -816,7 +816,7 @@ class Handler:
 			command.finish(f"Skipped setting raise_exceptions")
 			return None
 
-		self.log(f"Setting raise_exceptions to {command.value}")
+		command.log(f"Setting raise_exceptions to {command.value}")
 		context.raise_exceptions[-1] = command.value
 
 	def push_raise_exceptions(self, context, command):
