@@ -1524,6 +1524,8 @@ class connect(Command):
 
 	def __init__(self, connectstring, *, mode=None, retry=None, retrydelay=None, raise_exceptions=None, cond=True):
 		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
+		if not connectstring.startswith(("oracle:", "postgres:")):
+			connectstring = "oracle:" + connectstring
 		self.connectstring = connectstring
 		self.mode = mode
 		self.retry = retry
