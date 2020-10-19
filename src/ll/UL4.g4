@@ -336,7 +336,7 @@ argument
 		ess=exprarg
 	;
 
-expr_subscript returns [CodeAST node]
+expr_subscript
 	:
 		e1=atom
 		(
