@@ -1074,7 +1074,7 @@ class rollback(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, connection=None, raiseexceptions=None, cond=True):
+	def __init__(self, *, connection=None, raiseexceptions=None, cond=True):
 		super().__init__(connection=connection, raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
