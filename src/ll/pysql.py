@@ -1087,7 +1087,7 @@ class rollback(_SQLCommand):
 			self.finish(f"Skipped rolling back transaction in {connectstring(connection)!r}")
 			return None
 
-		context.log(f"Rolling back transaction in {connectstring(connection)!r}")
+		self.log(f"Rolling back transaction in {connectstring(connection)!r}")
 		connection.rollback()
 		self.finish(f"Rolled back transaction in {connectstring(connection)!r}")
 		self.count(connectstring(connection))
