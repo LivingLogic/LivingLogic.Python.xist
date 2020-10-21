@@ -153,10 +153,10 @@ literal
 /* List literals */
 seqitem
 	:
-		item=expr_if # SeqItem
+		item=expr # SeqItem
 	|
 		star='*'
-		unpackitem=expr_if # UnpackSeqItem
+		unpackitem=expr # UnpackSeqItem
 	;
 
 list_
@@ -177,14 +177,14 @@ list_
 listcomprehension
 	:
 		open_='['
-		item=expr_if
+		item=expr
 		'for'
 		varname=nestedlvalue
 		'in'
-		container=expr_if
+		container=expr
 		(
 			'if'
-			condition=expr_if
+			condition=expr
 		)?
 		close=']' # ListComprehension
 	;
@@ -209,14 +209,14 @@ set_
 setcomprehension
 	:
 		open_='{'
-		item=expr_if
+		item=expr
 		'for'
 		varname=nestedlvalue
 		'in'
-		container=expr_if
+		container=expr
 		(
 			'if'
-			condition=expr_if
+			condition=expr
 		)?
 		close='}' # SetComprehension
 	;
@@ -224,12 +224,12 @@ setcomprehension
 /* Dict literal */
 dictitem
 	:
-		key=expr_if
+		key=expr
 		':'
-		value=expr_if # DictItem
+		value=expr # DictItem
 	|
 		star='**'
-		unpackitem=expr_if # UnpackDictItem
+		unpackitem=expr # UnpackDictItem
 	;
 
 dict_
@@ -250,30 +250,30 @@ dict_
 dictcomprehension
 	:
 		open_='{'
-		key=expr_if
+		key=expr
 		':'
-		value=expr_if
+		value=expr
 		'for'
 		varname=nestedlvalue
 		'in'
-		container=expr_if
+		container=expr
 		(
 			'if'
-			condition=expr_if
+			condition=expr
 		)?
 		close='}' # DictComprehension
 	;
 
 generatorexpression
 	:
-		item=expr_if
+		item=expr
 		'for'
 		varname=nestedlvalue
 		'in'
-		container=expr_if
+		container=expr
 		(
 			'if'
-			condition=expr_if
+			condition=expr
 		)? # GeneratorExpresssion
 	;
 
@@ -286,13 +286,13 @@ atom
 	| e_dict=dict_ # AtomDict
 	| e_dictcomp=dictcomprehension  # AtomDictComprehension
 	| open_='(' e_genexpr=generatorexpression close=')' # AtomGeneratorComprehension
-	| open_='(' e_bracket=expr_if close=')' # AtomIf
+	| open_='(' e_bracket=expr close=')' # AtomIf
 	;
 
 /* For variable unpacking in assignments and for loops */
 nestedlvalue
 	:
-		n=expr_subscript
+		n=expr
 	|
 		'(' n0=nestedlvalue ',' ')'
 	|
@@ -313,11 +313,11 @@ nestedlvalue
 slice_
 	:
 		(
-			e1=expr_if
+			e1=expr
 		)?
 		colon=':'
 		(
-			e2=expr_if
+			e2=expr
 		)?
 	;
 
@@ -329,193 +329,117 @@ argument
 	|
 		en=name '=' ev=exprarg
 	|
-		star='*'
-		es=exprarg
+		star='*' es=exprarg
 	|
-		star='**'
-		ess=exprarg
+		star='**' ess=exprarg
 	;
 
-expr_subscript
+expr
 	:
-		e1=atom
-		(
-			/* Attribute access */
-			'.'
-			n=name
-		|
-			/* Function/method call */
-			'('
-			(
-				a1=argument
-				(
-					','
-					a2=argument
-				)*
-				','?
-			)*
-			close=')'
-		|
-			/* Item access */
-			'['
-			e2_if=expr_if
-			close=']'
-		|
-			/* Slice access */
-			'['
-			e2_slice=slice_
-			close=']'
-		)*
-	;
-
-/* Negation/bitwise not */
-expr_unary
-	:
-		e1=expr_subscript
+		e=atom # ExprAtom
 	|
-		minus='-' e2=expr_unary
+		/* Attribute access */
+		e1=expr '.' n=name # Attr
 	|
-		bitnot='~' e2=expr_unary
-	;
-
-/* Multiplication, division, modulo */
-expr_mul
-	:
-		e1=expr_unary
-		(
-			op=('*'|'/'|'//'|'%')
-			e2=expr_unary
-		)*
-	;
-
-/* Addition, substraction */
-expr_add
-	:
-		e1=expr_mul
-		(
-			op=('+'|'-')
-			e2=expr_mul
-		)*
-	;
-
-/* Binary shift */
-expr_bitshift
-	:
-		e1=expr_add
-		(
-			op=('<<'|'>>')
-			e2=expr_add
-		)*
-	;
-
-/* Bitwise and */
-expr_bitand
-	:
-		e1=expr_bitshift
-		(
-			'&'
-			e2=expr_bitshift
-		)*
-	;
-
-/* Bitwise exclusive or */
-expr_bitxor
-	:
-		e1=expr_bitand
-		(
-			'^'
-			e2=expr_bitand
-		)*
-	;
-
-/* Bitwise or */
-expr_bitor
-	:
-		e1=expr_bitxor
-		(
-			'|'
-			e2=expr_bitxor
-		)*
-	;
-
-/* Comparisons */
-expr_cmp
-	:
-		e1=expr_bitor
-		(
-			(
-				ops+='=='
-			|
-				ops+='!='
-			|
-				ops+='<'
-			|
-				ops+='<='
-			|
-				ops+='>'
-			|
-				ops+='>='
-			|
-				ops+='in'
-			|
-				ops+='not' ops+='in'
-			|
-				ops+='is'
-			|
-				ops+='is' ops+='not'
-			)
-			e2=expr_bitor
-		)*
-	;
-
-/* Boolean not operator */
-expr_not
-	:
-		e1=expr_cmp
+		/* Function/method call */
+		e1=expr '(' ( args+=argument ( ',' args+=argument )* ','? )* close=')' # Call
 	|
-		n='not' e2=expr_not
-	;
-
-/* And operator */
-expr_and
-	:
-		e1=expr_not
-		(
-			'and'
-			e2=expr_not
-		)*
-	;
-
-/* Or operator */
-expr_or
-	:
-		e1=expr_and
-		(
-			'or'
-			e2=expr_and
-		)*
-	;
-
-/* If expression operator */
-expr_if
-	:
-		e1=expr_or
-		(
-			'if'
-			e2=expr_or
-			'else'
-			e3=expr_or
-		)?
+		/* Item access */
+		e1=expr '[' e2_if=expr close=']' # Item
+	|
+		/* Slice access */
+		e1=expr '['e2_slice=slice_ close=']' # ItemSlice
+	|
+		/* Negation */
+		'-' arg=expr # Neg
+	|
+		/* Bitwise not */
+		'~' arg=expr # BitNot
+	|
+		/* Multiplication */
+		left=expr '*' right=expr # Mul
+	|
+		/* True division */
+		left=expr '/' right=expr # TrueDiv
+	|
+		/* Floor division */
+		left=expr '//' right=expr # FloorDiv
+	|
+		/* Modulo */
+		left=expr '%' right=expr # Mod
+	|
+		/* Addition */
+		left=expr '+' right=expr # Add
+	|
+		/* Subtraction */
+		left=expr '-' right=expr # Sub
+	|
+		/* Binary shift left */
+		left=expr '<<' right=expr # ShiftLeft
+	|
+		/* Binary shift right */
+		left=expr '>>' right=expr # ShiftRight
+	|
+		/* Bitwise and */
+		left=expr '&' right=expr # BitAnd
+	|
+		/* Bitwise exclusive or */
+		left=expr '^' right=expr # BitXOr
+	|
+		/* Bitwise or */
+		left=expr '|' right=expr # BitOr
+	|
+		/* Comparison: equal */
+		left=expr '==' right=expr # EQ
+	|
+		/* Comparison: not equal */
+		left=expr '!=' right=expr # NE
+	|
+		/* Comparison: less than */
+		left=expr '<' right=expr # LT
+	|
+		/* Comparison: less than or equal */
+		left=expr '<=' right=expr # LE
+	|
+		/* Comparison: greater than */
+		left=expr '>' right=expr # GT
+	|
+		/* Comparison: greater than or equal */
+		left=expr '>=' right=expr # GE
+	|
+		/* Containment test */
+		left=expr 'in' right=expr # Contains
+	|
+		/* Inverted Containment test */
+		left=expr 'not' 'in' right=expr # NotContains
+	|
+		/* Identify comparison */
+		left=expr 'is' right=expr # Is
+	|
+		/* Inverted identify comparison */
+		left=expr 'is' 'not' right=expr # IsNot
+	|
+		/* Boolean not operator */
+		'not'e=expr # Not
+	|
+		/* Boolean and operator */
+		left=expr 'and' right=expr # And
+	|
+		/* Boolean or operator */
+		left=expr 'or' right=expr # Or
+	|	
+		/* If expression operator */
+		argif=expr 'if' argcond=expr 'else' argelse=expr # If
 	;
 
 exprarg
 	: ege=generatorexpression
-	| e1=expr_if
+	| e1=expr
 	;
 
 expression
-	: ege=generatorexpression EOF
-	| e=expr_if EOF
+	: ege=generatorexpression EOF # ExpressionGeneratorExpression
+	| e=expr EOF # ExpressionExpression
 	;
 
 
@@ -525,7 +449,7 @@ for_
 	:
 		n=nestedlvalue
 		'in'
-		e=expr_if
+		e=expr
 		EOF
 	;
 
@@ -533,18 +457,19 @@ for_
 /* Additional rules for "code" tag */
 
 stmt
-	: nn=nestedlvalue '=' e=expr_if EOF
-	| n=expr_subscript '+=' e=expr_if EOF
-	| n=expr_subscript '-=' e=expr_if EOF
-	| n=expr_subscript '*=' e=expr_if EOF
-	| n=expr_subscript '//=' e=expr_if EOF
-	| n=expr_subscript '/=' e=expr_if EOF
-	| n=expr_subscript '%=' e=expr_if EOF
-	| n=expr_subscript '<<=' e=expr_if EOF
-	| n=expr_subscript '>>=' e=expr_if EOF
-	| n=expr_subscript '&=' e=expr_if EOF
-	| n=expr_subscript '^=' e=expr_if EOF
-	| n=expr_subscript '|=' e=expr_if EOF
+	: nn=nestedlvalue '=' e=expr EOF
+	/* Actually the assignment target in the following rules must be "lvalue" (i.e. Attribute, item or slices assigments) */
+	| n=expr '+=' e=expr EOF
+	| n=expr '-=' e=expr EOF
+	| n=expr '*=' e=expr EOF
+	| n=expr '//=' e=expr EOF
+	| n=expr '/=' e=expr EOF
+	| n=expr '%=' e=expr EOF
+	| n=expr '<<=' e=expr EOF
+	| n=expr '>>=' e=expr EOF
+	| n=expr '&=' e=expr EOF
+	| n=expr '^=' e=expr EOF
+	| n=expr '|=' e=expr EOF
 	| ex=expression EOF
 	;
 
@@ -552,31 +477,36 @@ stmt
 /* Used for parsing signatures */
 signature
 	:
-	open_='('
-	(
-		/* No paramteers */
+		/* No parameters */
+		open_='('
+		close=')' # SignatureNoParams
 	|
 		/* "**" parameter only */
+		open_='('
 		'**' rkwargsname=name
 		','?
+		close=')' # SignatureUnpackDictParams
 	|
 		/* "*" parameter only (and maybe **) */
+		open_='('
 		'*' rargsname=name
 		(
 			','
 			'**' rkwargsname=name
 		)?
 		','?
+		close=')' # SignatureUnpackParams
 	|
 		/* All parameters have a default */
-		aname1=name
+		open_='('
+		names+=name
 		'='
-		adefault1=exprarg
+		defaults+=exprarg
 		(
 			','
-			aname2=name
+			names+=name
 			'='
-			adefault2=exprarg
+			defaults+=exprarg
 		)*
 		(
 			','
@@ -587,18 +517,20 @@ signature
 			'**' rkwargsname=name
 		)?
 		','?
+		close=')' # SignatureDefaultParams
 	|
 		/* At least one parameter without a default */
-		aname1=name
+		open_='('
+		names_without_defaults+=name
 		(
 			','
-			aname2=name
+			names_without_defaults+=name
 		)*
 		(
 			','
-			aname3=name
+			names_with_defaults+=name
 			'='
-			adefault3=exprarg
+			defaults+=exprarg
 		)*
 		(
 			','
@@ -609,8 +541,7 @@ signature
 			'**' rkwargsname=name
 		)?
 		','?
-	)
-	close=')'
+		close=')' # SignatureAnyParams
 ;
 
 

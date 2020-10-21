@@ -199,68 +199,163 @@ class UL4Visitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_subscript.
-    def visitExpr_subscript(self, ctx:UL4Parser.Expr_subscriptContext):
+    # Visit a parse tree produced by UL4Parser#Add.
+    def visitAdd(self, ctx:UL4Parser.AddContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_unary.
-    def visitExpr_unary(self, ctx:UL4Parser.Expr_unaryContext):
+    # Visit a parse tree produced by UL4Parser#ShiftRight.
+    def visitShiftRight(self, ctx:UL4Parser.ShiftRightContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_mul.
-    def visitExpr_mul(self, ctx:UL4Parser.Expr_mulContext):
+    # Visit a parse tree produced by UL4Parser#Or.
+    def visitOr(self, ctx:UL4Parser.OrContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_add.
-    def visitExpr_add(self, ctx:UL4Parser.Expr_addContext):
+    # Visit a parse tree produced by UL4Parser#LT.
+    def visitLT(self, ctx:UL4Parser.LTContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_bitshift.
-    def visitExpr_bitshift(self, ctx:UL4Parser.Expr_bitshiftContext):
+    # Visit a parse tree produced by UL4Parser#Is.
+    def visitIs(self, ctx:UL4Parser.IsContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_bitand.
-    def visitExpr_bitand(self, ctx:UL4Parser.Expr_bitandContext):
+    # Visit a parse tree produced by UL4Parser#Attr.
+    def visitAttr(self, ctx:UL4Parser.AttrContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_bitxor.
-    def visitExpr_bitxor(self, ctx:UL4Parser.Expr_bitxorContext):
+    # Visit a parse tree produced by UL4Parser#Item.
+    def visitItem(self, ctx:UL4Parser.ItemContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_bitor.
-    def visitExpr_bitor(self, ctx:UL4Parser.Expr_bitorContext):
+    # Visit a parse tree produced by UL4Parser#BitXOr.
+    def visitBitXOr(self, ctx:UL4Parser.BitXOrContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_cmp.
-    def visitExpr_cmp(self, ctx:UL4Parser.Expr_cmpContext):
+    # Visit a parse tree produced by UL4Parser#IsNot.
+    def visitIsNot(self, ctx:UL4Parser.IsNotContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_not.
-    def visitExpr_not(self, ctx:UL4Parser.Expr_notContext):
+    # Visit a parse tree produced by UL4Parser#GE.
+    def visitGE(self, ctx:UL4Parser.GEContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_and.
-    def visitExpr_and(self, ctx:UL4Parser.Expr_andContext):
+    # Visit a parse tree produced by UL4Parser#Sub.
+    def visitSub(self, ctx:UL4Parser.SubContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_or.
-    def visitExpr_or(self, ctx:UL4Parser.Expr_orContext):
+    # Visit a parse tree produced by UL4Parser#Call.
+    def visitCall(self, ctx:UL4Parser.CallContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expr_if.
-    def visitExpr_if(self, ctx:UL4Parser.Expr_ifContext):
+    # Visit a parse tree produced by UL4Parser#NotContains.
+    def visitNotContains(self, ctx:UL4Parser.NotContainsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Mod.
+    def visitMod(self, ctx:UL4Parser.ModContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#BitOr.
+    def visitBitOr(self, ctx:UL4Parser.BitOrContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#ShiftLeft.
+    def visitShiftLeft(self, ctx:UL4Parser.ShiftLeftContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Mul.
+    def visitMul(self, ctx:UL4Parser.MulContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#ExprAtom.
+    def visitExprAtom(self, ctx:UL4Parser.ExprAtomContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#FloorDiv.
+    def visitFloorDiv(self, ctx:UL4Parser.FloorDivContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#EQ.
+    def visitEQ(self, ctx:UL4Parser.EQContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#GT.
+    def visitGT(self, ctx:UL4Parser.GTContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#TrueDiv.
+    def visitTrueDiv(self, ctx:UL4Parser.TrueDivContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Neg.
+    def visitNeg(self, ctx:UL4Parser.NegContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Not.
+    def visitNot(self, ctx:UL4Parser.NotContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#And.
+    def visitAnd(self, ctx:UL4Parser.AndContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#BitAnd.
+    def visitBitAnd(self, ctx:UL4Parser.BitAndContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#NE.
+    def visitNE(self, ctx:UL4Parser.NEContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Contains.
+    def visitContains(self, ctx:UL4Parser.ContainsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#LE.
+    def visitLE(self, ctx:UL4Parser.LEContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#ItemSlice.
+    def visitItemSlice(self, ctx:UL4Parser.ItemSliceContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#BitNot.
+    def visitBitNot(self, ctx:UL4Parser.BitNotContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#If.
+    def visitIf(self, ctx:UL4Parser.IfContext):
         return self.visitChildren(ctx)
 
 
@@ -269,8 +364,13 @@ class UL4Visitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#expression.
-    def visitExpression(self, ctx:UL4Parser.ExpressionContext):
+    # Visit a parse tree produced by UL4Parser#ExpressionGeneratorExpression.
+    def visitExpressionGeneratorExpression(self, ctx:UL4Parser.ExpressionGeneratorExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#ExpressionExpression.
+    def visitExpressionExpression(self, ctx:UL4Parser.ExpressionExpressionContext):
         return self.visitChildren(ctx)
 
 
@@ -284,8 +384,28 @@ class UL4Visitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#signature.
-    def visitSignature(self, ctx:UL4Parser.SignatureContext):
+    # Visit a parse tree produced by UL4Parser#SignatureNoParams.
+    def visitSignatureNoParams(self, ctx:UL4Parser.SignatureNoParamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#SignatureUnpackDictParams.
+    def visitSignatureUnpackDictParams(self, ctx:UL4Parser.SignatureUnpackDictParamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#SignatureUnpackParams.
+    def visitSignatureUnpackParams(self, ctx:UL4Parser.SignatureUnpackParamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#SignatureDefaultParams.
+    def visitSignatureDefaultParams(self, ctx:UL4Parser.SignatureDefaultParamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#SignatureAnyParams.
+    def visitSignatureAnyParams(self, ctx:UL4Parser.SignatureAnyParamsContext):
         return self.visitChildren(ctx)
 
 
