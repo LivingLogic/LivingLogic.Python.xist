@@ -688,11 +688,6 @@ input[type="radio"][disabled],input[type="checkbox"][disabled]{cursor:not-allowe
 .wy-table-responsive table{
 	margin-bottom:0 !important;
 }
-.wy-table-responsive table td,
-.wy-table-responsive table th
-{
-	white-space:nowrap;
-}
 .wy-text-left{text-align:left}
 .wy-text-center{text-align:center}
 .wy-text-right{text-align:right}
