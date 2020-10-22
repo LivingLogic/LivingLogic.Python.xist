@@ -9,11 +9,6 @@ else:
 
 class UL4Visitor(ParseTreeVisitor):
 
-    # Visit a parse tree produced by UL4Parser#float_.
-    def visitFloat_(self, ctx:UL4Parser.Float_Context):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by UL4Parser#name.
     def visitName(self, ctx:UL4Parser.NameContext):
         return self.visitChildren(ctx)
@@ -174,28 +169,53 @@ class UL4Visitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#AtomGeneratorComprehension.
-    def visitAtomGeneratorComprehension(self, ctx:UL4Parser.AtomGeneratorComprehensionContext):
+    # Visit a parse tree produced by UL4Parser#AtomGeneratorExpression.
+    def visitAtomGeneratorExpression(self, ctx:UL4Parser.AtomGeneratorExpressionContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#AtomIf.
-    def visitAtomIf(self, ctx:UL4Parser.AtomIfContext):
+    # Visit a parse tree produced by UL4Parser#AtomBracket.
+    def visitAtomBracket(self, ctx:UL4Parser.AtomBracketContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#nestedlvalue.
-    def visitNestedlvalue(self, ctx:UL4Parser.NestedlvalueContext):
+    # Visit a parse tree produced by UL4Parser#LValueSimple.
+    def visitLValueSimple(self, ctx:UL4Parser.LValueSimpleContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#slice_.
-    def visitSlice_(self, ctx:UL4Parser.Slice_Context):
+    # Visit a parse tree produced by UL4Parser#LValueOne.
+    def visitLValueOne(self, ctx:UL4Parser.LValueOneContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#argument.
-    def visitArgument(self, ctx:UL4Parser.ArgumentContext):
+    # Visit a parse tree produced by UL4Parser#LValueMulti.
+    def visitLValueMulti(self, ctx:UL4Parser.LValueMultiContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Slice.
+    def visitSlice(self, ctx:UL4Parser.SliceContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#PosArg.
+    def visitPosArg(self, ctx:UL4Parser.PosArgContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#KeywordArg.
+    def visitKeywordArg(self, ctx:UL4Parser.KeywordArgContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#UnpackListArg.
+    def visitUnpackListArg(self, ctx:UL4Parser.UnpackListArgContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#UnpackDictArg.
+    def visitUnpackDictArg(self, ctx:UL4Parser.UnpackDictArgContext):
         return self.visitChildren(ctx)
 
 
@@ -374,8 +394,8 @@ class UL4Visitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#for_.
-    def visitFor_(self, ctx:UL4Parser.For_Context):
+    # Visit a parse tree produced by UL4Parser#For.
+    def visitFor(self, ctx:UL4Parser.ForContext):
         return self.visitChildren(ctx)
 
 

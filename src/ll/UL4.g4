@@ -128,10 +128,6 @@ UNICODE4_ESC
 
 /* Rules common to all tags */
 
-float_
-	: FLOAT
-	;
-
 name
 	: NAME
 	;
@@ -278,34 +274,34 @@ generatorexpression
 	;
 
 atom
-	: e_literal=literal # AtomLiteral
-	| e_list=list_ # AtomList
-	| e_listcomp=listcomprehension # AtomListComprehension
-	| e_set=set_ # AtomSet
-	| e_setcomp=setcomprehension # AtomSetComprehension
-	| e_dict=dict_ # AtomDict
-	| e_dictcomp=dictcomprehension  # AtomDictComprehension
-	| open_='(' e_genexpr=generatorexpression close=')' # AtomGeneratorComprehension
-	| open_='(' e_bracket=expr close=')' # AtomIf
+	: arg=literal # AtomLiteral
+	| arg=list_ # AtomList
+	| arg=listcomprehension # AtomListComprehension
+	| arg=set_ # AtomSet
+	| arg=setcomprehension # AtomSetComprehension
+	| arg=dict_ # AtomDict
+	| arg=dictcomprehension  # AtomDictComprehension
+	| open_='(' arg=generatorexpression close=')' # AtomGeneratorExpression
+	| open_='(' arg=expr close=')' # AtomBracket
 	;
 
 /* For variable unpacking in assignments and for loops */
 nestedlvalue
 	:
-		n=expr
+		lvalue=expr # LValueSimple
 	|
-		'(' n0=nestedlvalue ',' ')'
+		'(' lvalue=nestedlvalue ',' ')' # LValueOne
 	|
 		'('
-		n1=nestedlvalue
+		lvalue+=nestedlvalue
 		','
-		n2=nestedlvalue
+		lvalue+=nestedlvalue
 		(
 			','
-			n3=nestedlvalue
+			lvalue+=nestedlvalue
 		)*
 		','?
-		')'
+		')' # LValueMulti
 	;
 
 
@@ -313,25 +309,25 @@ nestedlvalue
 slice_
 	:
 		(
-			e1=expr
+			index1=expr
 		)?
 		colon=':'
 		(
-			e2=expr
-		)?
+			index2=expr
+		)? # Slice
 	;
 
 
-/* Function/method call, attribute access, item access, slice access */
+/* Argument for a function/emthod call */
 argument
 	:
-		e=exprarg
+		argvalue=exprarg # PosArg
 	|
-		en=name '=' ev=exprarg
+		argname=name '=' argvalue=exprarg # KeywordArg
 	|
-		star='*' es=exprarg
+		star='*' argvalue=exprarg # UnpackListArg
 	|
-		star='**' ess=exprarg
+		star='**' argvalue=exprarg # UnpackDictArg
 	;
 
 expr
@@ -345,10 +341,10 @@ expr
 		e1=expr '(' ( args+=argument ( ',' args+=argument )* ','? )* close=')' # Call
 	|
 		/* Item access */
-		e1=expr '[' e2_if=expr close=']' # Item
+		e1=expr '[' index=expr close=']' # Item
 	|
 		/* Slice access */
-		e1=expr '['e2_slice=slice_ close=']' # ItemSlice
+		e1=expr '[' index=slice_ close=']' # ItemSlice
 	|
 		/* Negation */
 		'-' arg=expr # Neg
@@ -447,10 +443,10 @@ expression
 
 for_
 	:
-		n=nestedlvalue
+		var=nestedlvalue
 		'in'
-		e=expr
-		EOF
+		container=expr
+		EOF # For
 	;
 
 
