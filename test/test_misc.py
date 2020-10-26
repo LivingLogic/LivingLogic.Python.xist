@@ -351,9 +351,16 @@ def test_timeout():
 
 
 def test_enums():
-	class TestEnum(misc.Enum):
+	class TestEnum1(misc.Enum):
 		FOO = "foo"
 		BAR = "bar"
 
-	assert repr(TestEnum) == "<enum test_misc.test_enums.<locals>.TestEnum>"
-	assert repr(TestEnum('foo')) == "<test_misc.test_enums.<locals>.TestEnum.FOO: 'foo'>"
+	assert repr(TestEnum1) == "<enum test_misc.test_enums.<locals>.TestEnum1>"
+	assert repr(TestEnum1('foo')) == "<test_misc.test_enums.<locals>.TestEnum1.FOO: 'foo'>"
+
+	class TestEnum2(misc.IntEnum):
+		FOO = 1
+		BAR = 2
+
+	assert repr(TestEnum2) == "<enum test_misc.test_enums.<locals>.TestEnum2>"
+	assert repr(TestEnum2(1)) == "<test_misc.test_enums.<locals>.TestEnum2.FOO: 1>"

@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.63.1 (released 10/26/2020)
+---------------------------------------
+
+*	Add a workaround for Python issue #41889 (https://bugs.python.org/issue41889)
+	to :class:`~ll.misc.Enum` and :class:`~ll.misc.IntEnum`.
+
+
 Changes in 5.63 (released 09/08/2020)
 -------------------------------------
 

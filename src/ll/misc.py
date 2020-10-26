@@ -262,23 +262,22 @@ class EnumMeta(enum.Enum.__class__):
 		return f"<enum {self.__module__}.{self.__qualname__}>"
 
 
-class _EnumRepr:
-	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}.{self.name}: {self.value!r}>"
-
-
-class Enum(_EnumRepr, enum.Enum, metaclass=EnumMeta):
+class Enum(enum.Enum, metaclass=EnumMeta):
 	"""
 	Subclass of :class:`enum.Enum` where class and instance :func:`repr` output
 	include the module and fully qualified class name.
 	"""
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}.{self.name}: {self.value!r}>"
 
 
-class IntEnum(_EnumRepr, enum.IntEnum, metaclass=EnumMeta):
+class IntEnum(enum.IntEnum, metaclass=EnumMeta):
 	"""
 	Subclass of :class:`enum.IntEnum` where class and instance :func:`repr`
 	output includes the module and fully qualified class name.
 	"""
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}.{self.name}: {self.value!r}>"
 
 
 class _propclass_Meta(type):
