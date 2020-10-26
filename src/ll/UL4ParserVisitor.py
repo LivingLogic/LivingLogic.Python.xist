@@ -1,4 +1,4 @@
-# Generated from src/ll/UL4.g4 by ANTLR 4.8
+# Generated from src/ll/UL4Parser.g4 by ANTLR 4.8
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .UL4Parser import UL4Parser
@@ -7,7 +7,32 @@ else:
 
 # This class defines a complete generic visitor for a parse tree produced by UL4Parser.
 
-class UL4Visitor(ParseTreeVisitor):
+class UL4ParserVisitor(ParseTreeVisitor):
+
+    # Visit a parse tree produced by UL4Parser#TopLevel.
+    def visitTopLevel(self, ctx:UL4Parser.TopLevelContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#TagUL4.
+    def visitTagUL4(self, ctx:UL4Parser.TagUL4Context):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#TagWhitespace.
+    def visitTagWhitespace(self, ctx:UL4Parser.TagWhitespaceContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#doctag.
+    def visitDoctag(self, ctx:UL4Parser.DoctagContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#notetag.
+    def visitNotetag(self, ctx:UL4Parser.NotetagContext):
+        return self.visitChildren(ctx)
+
 
     # Visit a parse tree produced by UL4Parser#name.
     def visitName(self, ctx:UL4Parser.NameContext):
@@ -431,6 +456,46 @@ class UL4Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by UL4Parser#definition.
     def visitDefinition(self, ctx:UL4Parser.DefinitionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#defblock.
+    def visitDefblock(self, ctx:UL4Parser.DefblockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#forblock.
+    def visitForblock(self, ctx:UL4Parser.ForblockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#whileblock.
+    def visitWhileblock(self, ctx:UL4Parser.WhileblockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#ifblock.
+    def visitIfblock(self, ctx:UL4Parser.IfblockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#renderblockblock.
+    def visitRenderblockblock(self, ctx:UL4Parser.RenderblockblockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#renderblocksblock.
+    def visitRenderblocksblock(self, ctx:UL4Parser.RenderblocksblockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#blockitem.
+    def visitBlockitem(self, ctx:UL4Parser.BlockitemContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#TemplateBodyItem.
+    def visitTemplateBodyItem(self, ctx:UL4Parser.TemplateBodyItemContext):
         return self.visitChildren(ctx)
 
 

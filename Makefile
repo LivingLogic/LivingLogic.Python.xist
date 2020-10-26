@@ -10,7 +10,7 @@ develop:
 
 
 parser:
-	java org.antlr.v4.Tool src/ll/UL4.g4 -Dlanguage=Python3 -visitor -no-listener
+	java org.antlr.v4.Tool src/ll/UL4Lexer.g4 src/ll/UL4Parser.g4 -Dlanguage=Python3 -visitor -no-listener
 
 
 test: install
