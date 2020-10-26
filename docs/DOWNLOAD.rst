@@ -10,6 +10,12 @@ You can download XIST from the Cheeseshop_, go directly to the
 .. autogenerate start
 
 
+5.63.1 (released 10/26/2020)
+----------------------------
+
+(no files for this version)
+
+
 5.63 (released 09/08/2020)
 --------------------------
 
