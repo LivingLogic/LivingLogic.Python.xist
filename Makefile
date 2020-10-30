@@ -12,6 +12,14 @@ develop:
 parser:
 	java org.antlr.v4.Tool src/ll/UL4Lexer.g4 src/ll/UL4Parser.g4 -Dlanguage=Python3 -visitor -no-listener
 
+javaparser:
+	java org.antlr.v4.Tool src/ll/UL4Lexer.g4 src/ll/UL4Parser.g4 -Dlanguage=Java -visitor -no-listener
+	echo >no.java
+	echo >no.class
+	rm *.java *.class
+	mv src/ll/UL*.java .
+	javac *.java
+
 
 test: install
 	python$(PYVERSION) -mpytest

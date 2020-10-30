@@ -15,23 +15,25 @@ lexer grammar UL4Lexer;
 		* TAG_MODE: Inside of a tag
 */
 
-DEFAULT_INDENT: [ \t]+ -> pushMode(TEXT_MODE);
+DEFAULT_INDENT: [ \t]+ -> mode(TEXT_MODE);
 DEFAULT_LINEEND: '\r'? '\n' -> mode(DEFAULT_MODE);
-DEFAULT_MAYBETAG: '<?' -> pushMode(MAYBETAG_MODE);
-DEFAULT_TEXT: .+?;
+DEFAULT_MAYBETAG: '<?' -> mode(TEXT_MODE), pushMode(MAYBETAG_MODE);
+DEFAULT_OTHER: . -> mode(TEXT_MODE);
+
 
 mode TEXT_MODE;
 
 TEXT_MAYBETAG: '<?' -> pushMode(MAYBETAG_MODE);
-TEXT_TEXT: .+?;
+TEXT_LINEEND: '\r'? '\n' -> mode(DEFAULT_MODE);
+TEXT_OTHER: .;
 
 
 mode MAYBETAG_MODE;
 
-MAYBETAG_WS: [ \t\r\n]+;
+MAYBETAG_WS: [ \t\r\n];
 MAYBETAG_WHITESPACE: 'whitespace' -> mode(WHITESPACE_MODE);
-MAYBETAG_DOC: 'doc';
-MAYBETAG_NOTE: 'note';
+MAYBETAG_DOC: 'doc' -> mode(TEXTTAG_MODE);
+MAYBETAG_NOTE: 'note' -> mode(TEXTTAG_MODE);
 MAYBETAG_UL4: 'ul4' -> mode(TAG_MODE);
 MAYBETAG_DEF: 'def' -> mode(TAG_MODE);
 MAYBETAG_FOR: 'for' -> mode(TAG_MODE);
@@ -48,8 +50,14 @@ MAYBETAG_OTHER: .+?;
 mode WHITESPACE_MODE;
 
 WHITESPACE_VALUE: ('keep'|'smart'|'strip');
-WHITESPACE_WS: [ \t\r\n]+;
+WHITESPACE_WS: [ \t\r\n];
 WHITESPACE_ENDDELIM: '?>' -> popMode;
+
+mode TEXTTAG_MODE;
+
+TEXTTAG_TEXT: .;
+TEXTTAG_WS: [ \t\r\n];
+TEXTTAG_ENDDELIM: '?>' -> popMode;
 
 mode TAG_MODE;
 

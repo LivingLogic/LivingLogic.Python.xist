@@ -12,15 +12,15 @@ options { tokenVocab = UL4Lexer; }
 template
 	:
 		head=ul4tag?
-		content+=templatebodyitem* # TopLevel
+		content+=template_content* # TopLevel
 	;
 
 ul4tag
 	:
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_WS?
+		MAYBETAG_WS*
 		MAYBETAG_UL4
-		MAYBETAG_WS?
+		MAYBETAG_WS*
 		(
 			templatename=name
 		)?
@@ -33,32 +33,63 @@ ul4tag
 whitespacetag
 	:
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_WS?
+		MAYBETAG_WS*
 		MAYBETAG_WHITESPACE
-		WHITESPACE_WS?
+		WHITESPACE_WS*
 		whitespace=WHITESPACE_VALUE
-		WHITESPACE_WS?
+		WHITESPACE_WS*
 		WHITESPACE_ENDDELIM # TagWhitespace
 	;
 
 doctag
 	:
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_WS?
+		MAYBETAG_WS*
 		MAYBETAG_DOC
-		MAYBETAG_WS?
-		ENDDELIM
+		MAYBETAG_WS*
+		texttag_content?
+		TEXTTAG_WS*
+		TEXTTAG_ENDDELIM
 	;
 
 notetag
 	:
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_WS?
+		MAYBETAG_WS*
 		MAYBETAG_NOTE
-		MAYBETAG_WS?
-		ENDDELIM
+		MAYBETAG_WS*
+		texttag_content?
+		TEXTTAG_WS?
+		TEXTTAG_ENDDELIM
 	;
 
+texttag_content
+	:
+		~TEXTTAG_WS
+	|
+		~TEXTTAG_WS
+		TEXTTAG_TEXT*
+		~TEXTTAG_WS
+	;
+
+indent
+	:
+		DEFAULT_INDENT+
+	;
+
+text
+	:
+		DEFAULT_OTHER+
+	|
+		TEXT_OTHER+
+	;
+
+lineend
+	:
+		DEFAULT_LINEEND
+	|
+		TEXT_LINEEND
+	;
 
 /* Rules common to all tags */
 
@@ -66,18 +97,59 @@ name
 	: NAME
 	;
 
+none_literal
+	:
+		value=NONE
+	;
+
+bool_literal
+	:
+		value=FALSE # BoolLiteralFalse
+	|
+		value=TRUE # BoolLiteralTrue
+	;
+
+integer_literal
+	:
+		value=INT # IntegerLiteral
+	;
+
+float_literal
+	:
+		value=FLOAT # FloatLiteral
+	;
+
+string_literal
+	:
+		value=STRING
+	|
+		value=STRING3
+	;
+
+date_literal
+	:
+		value=DATE
+	;
+
+datetime_literal
+	:
+		value=DATE
+	;
+
+color_literal
+	:
+		value=COLOR
+	;
+
 literal
-	: e_none=NONE # LiteralNone
-	| e_false=FALSE # LiteralFalse
-	| e_true=TRUE # LiteralTrue
-	| e_integer=INT # LiteralInteger
-	| e_float=FLOAT # LiteralFloat
-	| e_string=STRING # LiteralString
-	| e_string=STRING3 # LiteralString
-	| e_date=DATE # LiteralDate
-	| e_datetime=DATETIME # LiteralDatetime
-	| e_color=COLOR # LiteralColor
-	| e_name=name # LiteralName
+	: none_literal # LiteralNone
+	| bool_literal # LiteralBool
+	| integer_literal # LiteralInteger
+	| float_literal # LiteralFloat
+	| string_literal # LiteralString
+	| date_literal # LiteralDate
+	| datetime_literal # LiteralDatetime
+	| color_literal # LiteralColor
 	;
 
 /* List literals */
@@ -89,7 +161,7 @@ seqitem
 		unpackitem=expr # UnpackSeqItem
 	;
 
-list_
+list_display
 	:
 		open_=BRACKET_OPEN
 		close=BRACKET_CLOSE # ListEmpty
@@ -116,11 +188,11 @@ listcomprehension
 			IF
 			condition=expr
 		)?
-		close=BRACKET_CLOSE # ListComprehension
+		close=BRACKET_CLOSE # Listcomprehension2
 	;
 
 /* Set literals */
-set_
+set_display
 	:
 		open_=BRACE_OPEN
 		SLASH
@@ -148,7 +220,7 @@ setcomprehension
 			IF
 			condition=expr
 		)?
-		close=BRACE_CLOSE # SetComprehension
+		close=BRACE_CLOSE # Setcomprehension2
 	;
 
 /* Dict literal */
@@ -156,13 +228,13 @@ dictitem
 	:
 		key=expr
 		':'
-		value=expr # DictItem
+		value=expr # Dictitem2
 	|
 		star='**'
 		unpackitem=expr # UnpackDictItem
 	;
 
-dict_
+dict_display
 	:
 		open_=BRACE_OPEN
 		close=BRACE_CLOSE # DictEmpty
@@ -191,7 +263,7 @@ dictcomprehension
 			IF
 			condition=expr
 		)?
-		close=BRACE_CLOSE # DictComprehension
+		close=BRACE_CLOSE # Dictcomprehension2
 	;
 
 generatorexpression
@@ -208,15 +280,16 @@ generatorexpression
 	;
 
 atom
-	: arg=literal # AtomLiteral
-	| arg=list_ # AtomList
+	: arg=name # AtomName
+	| arg=literal # AtomLiteral
+	| arg=list_display # AtomList
 	| arg=listcomprehension # AtomListComprehension
-	| arg=set_ # AtomSet
+	| arg=set_display # AtomSet
 	| arg=setcomprehension # AtomSetComprehension
-	| arg=dict_ # AtomDict
+	| arg=dict_display # AtomDict
 	| arg=dictcomprehension  # AtomDictComprehension
-	| open_=PARENS_OPEN arg=generatorexpression close=PARENS_CLOSE # AtomGeneratorExpression
-	| open_=PARENS_OPEN arg=expr close=PARENS_CLOSE # AtomBracket
+	| PARENS_OPEN arg=generatorexpression PARENS_CLOSE # AtomGeneratorExpression
+	| PARENS_OPEN arg=expr PARENS_CLOSE # AtomBracket
 	;
 
 /* For variable unpacking in assignments and for loops */
@@ -496,7 +569,7 @@ defblock
 		MAYBETAG_DEF
 		definition
 		ENDDELIM
-		content=blockitem*
+		content=block_content*
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 		MAYBETAG_END
 		DEF?
@@ -511,7 +584,7 @@ forblock
 		IN
 		container=expr
 		ENDDELIM
-		content=blockitem*
+		content=block_content*
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 		MAYBETAG_END
 		FOR?
@@ -524,7 +597,7 @@ whileblock
 		MAYBETAG_WHILE
 		cond=expr
 		ENDDELIM
-		content=blockitem*
+		content=block_content*
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 		MAYBETAG_END
 		WHILE?
@@ -537,19 +610,19 @@ ifblock
 		MAYBETAG_IF
 		cond=expr
 		ENDDELIM
-		content=blockitem*
+		content=block_content*
 		(
 			(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 			MAYBETAG_ELIF
 			cond=expr
 			ENDDELIM
-			content=blockitem*
+			content=block_content*
 		)*
 		(
 			(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 			MAYBETAG_ELSE
 			ENDDELIM
-			content=blockitem*
+			content=block_content*
 		)
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 		MAYBETAG_END
@@ -563,7 +636,7 @@ renderblockblock
 		MAYBETAG_RENDERBLOCK
 		e1=expr PARENS_OPEN ( args+=argument ( COMMA args+=argument )* COMMA? )* close=PARENS_CLOSE
 		ENDDELIM
-		content=blockitem*
+		content=block_content*
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 		MAYBETAG_END
 		RENDERBLOCK?
@@ -576,14 +649,14 @@ renderblocksblock
 		MAYBETAG_RENDERBLOCKS
 		e1=expr PARENS_OPEN ( args+=argument ( COMMA args+=argument )* COMMA? )* close=PARENS_CLOSE
 		ENDDELIM
-		content=blockitem*
+		content=block_content*
 		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
 		MAYBETAG_END
 		RENDERBLOCKS?
 		ENDDELIM
 	;
 
-blockitem
+block_content
 	:
 		(
 			defblock
@@ -593,22 +666,24 @@ blockitem
 			whileblock
 		|
 			ifblock
+		|
+			indent
+		|
+			text
+		|
+			lineend
 		)
 	;
 
-templatebodyitem
+template_content
 	:
 		(
 			whitespacetag
 		|
+			doctag
+		|
 			notetag
 		|
-			defblock
-		|
-			forblock
-		|
-			whileblock
-		|
-			ifblock
-		) # TemplateBodyItem
+			block_content
+		) # Template_content2
 	;
