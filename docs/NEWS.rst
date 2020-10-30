@@ -8,6 +8,23 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.64 (released 10/30/2020)
+-------------------------------------
+
+*	It is now possible to specify a custom port for ``ssh`` URLs.
+
+*	A second URL scheme ``ssh-nocheck`` has been added for ``ssh`` URLs.
+	Using ``ssh-nocheck`` disables the host key check when establishing the
+	``ssh`` connection.
+
+*	With these changes it is now possible to do the following::
+
+		>>> from ll import url
+		>>> u = url.URL("ssh-nocheck://www.example.org:2222/~/foo.txt")
+		>>> with url.Context():
+		... 	data = u.open("rb").read()
+
+
 Changes in 5.63.1 (released 10/26/2020)
 ---------------------------------------
 
