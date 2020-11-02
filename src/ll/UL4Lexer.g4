@@ -17,7 +17,7 @@ lexer grammar UL4Lexer;
 
 DEFAULT_INDENT: [ \t]+ -> mode(TEXT_MODE);
 DEFAULT_LINEEND: '\r'? '\n' -> mode(DEFAULT_MODE);
-DEFAULT_MAYBETAG: '<?' -> mode(TEXT_MODE), pushMode(MAYBETAG_MODE);
+DEFAULT_MAYBETAG: '<?' -> mode(MAYBETAG_MODE);
 DEFAULT_OTHER: . -> mode(TEXT_MODE);
 
 
@@ -25,7 +25,7 @@ mode TEXT_MODE;
 
 TEXT_MAYBETAG: '<?' -> pushMode(MAYBETAG_MODE);
 TEXT_LINEEND: '\r'? '\n' -> mode(DEFAULT_MODE);
-TEXT_OTHER: .;
+TEXT_OTHER: ~('<?' | '\r\n'| '\n')+;
 
 
 mode MAYBETAG_MODE;
@@ -40,10 +40,13 @@ MAYBETAG_FOR: 'for' -> mode(TAG_MODE);
 MAYBETAG_WHILE: 'while' -> mode(TAG_MODE);
 MAYBETAG_IF: 'if' -> mode(TAG_MODE);
 MAYBETAG_ELIF: 'elif' -> mode(TAG_MODE);
-MAYBETAG_ELSE: 'else';
+MAYBETAG_ELSE: 'else' -> mode(TAG_MODE);
 MAYBETAG_RENDERBLOCK: 'renderblock' -> mode(TAG_MODE);
 MAYBETAG_RENDERBLOCKS: 'renderblocks' -> mode(TAG_MODE);
-MAYBETAG_END: 'end';
+MAYBETAG_PRINT: 'print' -> mode(TAG_MODE);
+MAYBETAG_PRINTX: 'printx' -> mode(TAG_MODE);
+MAYBETAG_CODE: 'code' -> mode(TAG_MODE);
+MAYBETAG_END: 'end' -> mode(TAG_MODE);
 
 MAYBETAG_OTHER: .+?;
 
@@ -51,17 +54,17 @@ mode WHITESPACE_MODE;
 
 WHITESPACE_VALUE: ('keep'|'smart'|'strip');
 WHITESPACE_WS: [ \t\r\n];
-WHITESPACE_ENDDELIM: '?>' -> popMode;
+WHITESPACE_ENDDELIM: '?>' -> mode(TEXT_MODE);
 
 mode TEXTTAG_MODE;
 
 TEXTTAG_TEXT: .;
 TEXTTAG_WS: [ \t\r\n];
-TEXTTAG_ENDDELIM: '?>' -> popMode;
+TEXTTAG_ENDDELIM: '?>' -> mode(TEXT_MODE);
 
 mode TAG_MODE;
 
-ENDDELIM: '?>' -> popMode;
+ENDDELIM: '?>' -> mode(TEXT_MODE);
 
 /* Keywords */
 FOR: 'for';

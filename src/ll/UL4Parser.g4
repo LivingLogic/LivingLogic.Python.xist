@@ -12,7 +12,8 @@ options { tokenVocab = UL4Lexer; }
 template
 	:
 		head=ul4tag?
-		content+=template_content* # TopLevel
+		content+=template_content*
+		EOF # TopLevel
 	;
 
 ul4tag
@@ -91,6 +92,296 @@ lineend
 		TEXT_LINEEND
 	;
 
+
+
+/* Additional rules for "for" tag */
+
+for_
+	:
+		var=nestedlvalue
+		IN
+		container=expr
+		EOF # For
+	;
+
+
+/* Additional rules for "code" tag */
+
+stmt
+	: nn=nestedlvalue ASSIGN e=expr
+	| n=lexpr AUGADD e=expr
+	| n=lexpr AUGSUB e=expr
+	| n=lexpr AUGMUL e=expr
+	| n=lexpr AUGFLOORDIV e=expr
+	| n=lexpr AUGTRUEDIV e=expr
+	| n=lexpr AUGMOD e=expr
+	| n=lexpr AUGSHIFTLEFT e=expr
+	| n=lexpr AUGSHIFTRIGHT e=expr
+	| n=lexpr AUGAND e=expr
+	| n=lexpr AUGXOR e=expr
+	| n=lexpr AUGOR e=expr
+	| ex=expression
+	;
+
+
+/* Used for parsing signatures */
+signature
+	:
+		/* No parameters */
+		open_=PARENS_OPEN
+		close=PARENS_CLOSE # SignatureNoParams
+	|
+		/* "**" parameter only */
+		open_=PARENS_OPEN
+		'**' rkwargsname=name
+		COMMA?
+		close=PARENS_CLOSE # SignatureUnpackDictParams
+	|
+		/* "*" parameter only (and maybe **) */
+		open_=PARENS_OPEN
+		'*' rargsname=name
+		(
+			COMMA
+			'**' rkwargsname=name
+		)?
+		COMMA?
+		close=PARENS_CLOSE # SignatureUnpackParams
+	|
+		/* All parameters have a default */
+		open_=PARENS_OPEN
+		names+=name
+		'='
+		defaults+=exprarg
+		(
+			COMMA
+			names+=name
+			'='
+			defaults+=exprarg
+		)*
+		(
+			COMMA
+			'*' rargsname=name
+		)?
+		(
+			COMMA
+			'**' rkwargsname=name
+		)?
+		COMMA?
+		close=PARENS_CLOSE # SignatureDefaultParams
+	|
+		/* At least one parameter without a default */
+		open_=PARENS_OPEN
+		names_without_defaults+=name
+		(
+			COMMA
+			names_without_defaults+=name
+		)*
+		(
+			COMMA
+			names_with_defaults+=name
+			'='
+			defaults+=exprarg
+		)*
+		(
+			COMMA
+			'*' rargsname=name
+		)?
+		(
+			COMMA
+			'**' rkwargsname=name
+		)?
+		COMMA?
+		close=PARENS_CLOSE # SignatureAnyParams
+;
+
+
+/* Additional rules for "def" tag */
+
+definition
+	:
+		(
+			n=name
+		)?
+		(
+			sig=signature
+		)?
+	;
+
+
+/* Complete tags */
+defblock
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_DEF
+		definition
+		ENDDELIM
+		content=block_content*
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_END
+		DEF?
+		ENDDELIM
+	;
+
+forblock
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WS*
+		MAYBETAG_FOR
+		MAYBETAG_WS*
+		var=nestedlvalue
+		IN
+		container=expr
+		ENDDELIM
+		content=block_content*
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WS*
+		MAYBETAG_END
+		MAYBETAG_WS*
+		FOR?
+		MAYBETAG_WS*
+		ENDDELIM
+	;
+
+whileblock
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WHILE
+		cond=expr
+		ENDDELIM
+		content=block_content*
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WS*
+		MAYBETAG_END
+		MAYBETAG_WS*
+		WHILE?
+		MAYBETAG_WS*
+		ENDDELIM
+	;
+
+ifblock
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_IF
+		cond=expr
+		ENDDELIM
+		content=block_content*
+		(
+			(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+			MAYBETAG_ELIF
+			cond=expr
+			ENDDELIM
+			content=block_content*
+		)*
+		(
+			(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+			MAYBETAG_ELSE
+			ENDDELIM
+			content=block_content*
+		)
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_END
+		IF?
+		ENDDELIM
+	;
+
+renderblockblock
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_RENDERBLOCK
+		e1=expr PARENS_OPEN ( args+=argument ( COMMA args+=argument )* COMMA? )* close=PARENS_CLOSE
+		ENDDELIM
+		content=block_content*
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_END
+		RENDERBLOCK?
+		ENDDELIM
+	;
+
+renderblocksblock
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_RENDERBLOCKS
+		e1=expr PARENS_OPEN ( args+=argument ( COMMA args+=argument )* COMMA? )* close=PARENS_CLOSE
+		ENDDELIM
+		content=block_content*
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_END
+		RENDERBLOCKS?
+		ENDDELIM
+	;
+
+printtag
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WS*
+		MAYBETAG_PRINT
+		TEXTTAG_WS*
+		expr
+		TEXTTAG_WS*
+		ENDDELIM
+	;
+
+printxtag
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WS*
+		MAYBETAG_PRINTX
+		TEXTTAG_WS*
+		expr
+		TEXTTAG_WS*
+		ENDDELIM
+	;
+
+codetag
+	:
+		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
+		MAYBETAG_WS*
+		MAYBETAG_CODE
+		TEXTTAG_WS*
+		stmt
+		TEXTTAG_WS*
+		ENDDELIM
+	;
+
+
+block_content
+	:
+		(
+			defblock
+		|
+			forblock
+		|
+			whileblock
+		|
+			ifblock
+		|
+			printtag
+		|
+			printxtag
+		|
+			codetag
+		|
+			indent
+		|
+			text
+		|
+			lineend
+		)
+	;
+
+template_content
+	:
+		(
+			whitespacetag
+		|
+			doctag
+		|
+			notetag
+		|
+			block_content
+		) # Template_content2
+	;
+
 /* Rules common to all tags */
 
 name
@@ -155,7 +446,7 @@ literal
 /* List literals */
 seqitem
 	:
-		item=expr # SeqItem
+		item=expr # SeqItem2
 	|
 		star=STAR
 		unpackitem=expr # UnpackSeqItem
@@ -295,7 +586,7 @@ atom
 /* For variable unpacking in assignments and for loops */
 nestedlvalue
 	:
-		lvalue=expr # LValueSimple
+		lvalue=lexpr # LValueSimple
 	|
 		PARENS_OPEN lvalue=nestedlvalue COMMA PARENS_CLOSE # LValueOne
 	|
@@ -335,6 +626,20 @@ argument
 		star=STAR argvalue=exprarg # UnpackListArg
 	|
 		star=STAR_STAR argvalue=exprarg # UnpackDictArg
+	;
+
+lexpr
+	:
+		e=name # LValueVar
+	|
+		/* Attribute access */
+		e1=expr DOT n=name # LValueAttr
+	|
+		/* Item access */
+		e1=expr BRACKET_OPEN index=expr close=BRACKET_CLOSE # LValueItem
+	|
+		/* Slice access */
+		e1=expr BRACKET_OPEN index=slice_ close=BRACKET_CLOSE # LValueItemSlice
 	;
 
 expr
@@ -443,247 +748,4 @@ exprarg
 expression
 	: ege=generatorexpression EOF # ExpressionGeneratorExpression
 	| e=expr EOF # ExpressionExpression
-	;
-
-
-/* Additional rules for "for" tag */
-
-for_
-	:
-		var=nestedlvalue
-		IN
-		container=expr
-		EOF # For
-	;
-
-
-/* Additional rules for "code" tag */
-
-stmt
-	: nn=nestedlvalue ASSIGN e=expr EOF
-	/* Actually the assignment target in the following rules must be "lvalue" (i.e. Attribute, item or slices assigments) */
-	| n=expr AUGADD e=expr EOF
-	| n=expr AUGSUB e=expr EOF
-	| n=expr AUGMUL e=expr EOF
-	| n=expr AUGFLOORDIV e=expr EOF
-	| n=expr AUGTRUEDIV e=expr EOF
-	| n=expr AUGMOD e=expr EOF
-	| n=expr AUGSHIFTLEFT e=expr EOF
-	| n=expr AUGSHIFTRIGHT e=expr EOF
-	| n=expr AUGAND e=expr EOF
-	| n=expr AUGXOR e=expr EOF
-	| n=expr AUGOR e=expr EOF
-	| ex=expression EOF
-	;
-
-
-/* Used for parsing signatures */
-signature
-	:
-		/* No parameters */
-		open_=PARENS_OPEN
-		close=PARENS_CLOSE # SignatureNoParams
-	|
-		/* "**" parameter only */
-		open_=PARENS_OPEN
-		'**' rkwargsname=name
-		COMMA?
-		close=PARENS_CLOSE # SignatureUnpackDictParams
-	|
-		/* "*" parameter only (and maybe **) */
-		open_=PARENS_OPEN
-		'*' rargsname=name
-		(
-			COMMA
-			'**' rkwargsname=name
-		)?
-		COMMA?
-		close=PARENS_CLOSE # SignatureUnpackParams
-	|
-		/* All parameters have a default */
-		open_=PARENS_OPEN
-		names+=name
-		'='
-		defaults+=exprarg
-		(
-			COMMA
-			names+=name
-			'='
-			defaults+=exprarg
-		)*
-		(
-			COMMA
-			'*' rargsname=name
-		)?
-		(
-			COMMA
-			'**' rkwargsname=name
-		)?
-		COMMA?
-		close=PARENS_CLOSE # SignatureDefaultParams
-	|
-		/* At least one parameter without a default */
-		open_=PARENS_OPEN
-		names_without_defaults+=name
-		(
-			COMMA
-			names_without_defaults+=name
-		)*
-		(
-			COMMA
-			names_with_defaults+=name
-			'='
-			defaults+=exprarg
-		)*
-		(
-			COMMA
-			'*' rargsname=name
-		)?
-		(
-			COMMA
-			'**' rkwargsname=name
-		)?
-		COMMA?
-		close=PARENS_CLOSE # SignatureAnyParams
-;
-
-
-/* Additional rules for "def" tag */
-
-definition
-	:
-		(
-			n=name
-		)?
-		(
-			sig=signature
-		)?
-		EOF
-	;
-
-
-/* Complete tags */
-defblock
-	:
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_DEF
-		definition
-		ENDDELIM
-		content=block_content*
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_END
-		DEF?
-		ENDDELIM
-	;
-
-forblock
-	:
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_FOR
-		var=nestedlvalue
-		IN
-		container=expr
-		ENDDELIM
-		content=block_content*
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_END
-		FOR?
-		ENDDELIM
-	;
-
-whileblock
-	:
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_WHILE
-		cond=expr
-		ENDDELIM
-		content=block_content*
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_END
-		WHILE?
-		ENDDELIM
-	;
-
-ifblock
-	:
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_IF
-		cond=expr
-		ENDDELIM
-		content=block_content*
-		(
-			(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-			MAYBETAG_ELIF
-			cond=expr
-			ENDDELIM
-			content=block_content*
-		)*
-		(
-			(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-			MAYBETAG_ELSE
-			ENDDELIM
-			content=block_content*
-		)
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_END
-		IF?
-		ENDDELIM
-	;
-
-renderblockblock
-	:
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_RENDERBLOCK
-		e1=expr PARENS_OPEN ( args+=argument ( COMMA args+=argument )* COMMA? )* close=PARENS_CLOSE
-		ENDDELIM
-		content=block_content*
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_END
-		RENDERBLOCK?
-		ENDDELIM
-	;
-
-renderblocksblock
-	:
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_RENDERBLOCKS
-		e1=expr PARENS_OPEN ( args+=argument ( COMMA args+=argument )* COMMA? )* close=PARENS_CLOSE
-		ENDDELIM
-		content=block_content*
-		(DEFAULT_MAYBETAG|TEXT_MAYBETAG)
-		MAYBETAG_END
-		RENDERBLOCKS?
-		ENDDELIM
-	;
-
-block_content
-	:
-		(
-			defblock
-		|
-			forblock
-		|
-			whileblock
-		|
-			ifblock
-		|
-			indent
-		|
-			text
-		|
-			lineend
-		)
-	;
-
-template_content
-	:
-		(
-			whitespacetag
-		|
-			doctag
-		|
-			notetag
-		|
-			block_content
-		) # Template_content2
 	;

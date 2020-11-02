@@ -34,8 +34,73 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by UL4Parser#texttag_content.
+    def visitTexttag_content(self, ctx:UL4Parser.Texttag_contentContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#indent.
+    def visitIndent(self, ctx:UL4Parser.IndentContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#text.
+    def visitText(self, ctx:UL4Parser.TextContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#lineend.
+    def visitLineend(self, ctx:UL4Parser.LineendContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by UL4Parser#name.
     def visitName(self, ctx:UL4Parser.NameContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#none_literal.
+    def visitNone_literal(self, ctx:UL4Parser.None_literalContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#BoolLiteralFalse.
+    def visitBoolLiteralFalse(self, ctx:UL4Parser.BoolLiteralFalseContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#BoolLiteralTrue.
+    def visitBoolLiteralTrue(self, ctx:UL4Parser.BoolLiteralTrueContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#IntegerLiteral.
+    def visitIntegerLiteral(self, ctx:UL4Parser.IntegerLiteralContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#FloatLiteral.
+    def visitFloatLiteral(self, ctx:UL4Parser.FloatLiteralContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#string_literal.
+    def visitString_literal(self, ctx:UL4Parser.String_literalContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#date_literal.
+    def visitDate_literal(self, ctx:UL4Parser.Date_literalContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#datetime_literal.
+    def visitDatetime_literal(self, ctx:UL4Parser.Datetime_literalContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#color_literal.
+    def visitColor_literal(self, ctx:UL4Parser.Color_literalContext):
         return self.visitChildren(ctx)
 
 
@@ -44,13 +109,8 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#LiteralFalse.
-    def visitLiteralFalse(self, ctx:UL4Parser.LiteralFalseContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by UL4Parser#LiteralTrue.
-    def visitLiteralTrue(self, ctx:UL4Parser.LiteralTrueContext):
+    # Visit a parse tree produced by UL4Parser#LiteralBool.
+    def visitLiteralBool(self, ctx:UL4Parser.LiteralBoolContext):
         return self.visitChildren(ctx)
 
 
@@ -84,11 +144,6 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#LiteralName.
-    def visitLiteralName(self, ctx:UL4Parser.LiteralNameContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by UL4Parser#SeqItem.
     def visitSeqItem(self, ctx:UL4Parser.SeqItemContext):
         return self.visitChildren(ctx)
@@ -109,8 +164,8 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#ListComprehension.
-    def visitListComprehension(self, ctx:UL4Parser.ListComprehensionContext):
+    # Visit a parse tree produced by UL4Parser#Listcomprehension2.
+    def visitListcomprehension2(self, ctx:UL4Parser.Listcomprehension2Context):
         return self.visitChildren(ctx)
 
 
@@ -124,13 +179,13 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#SetComprehension.
-    def visitSetComprehension(self, ctx:UL4Parser.SetComprehensionContext):
+    # Visit a parse tree produced by UL4Parser#Setcomprehension2.
+    def visitSetcomprehension2(self, ctx:UL4Parser.Setcomprehension2Context):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#DictItem.
-    def visitDictItem(self, ctx:UL4Parser.DictItemContext):
+    # Visit a parse tree produced by UL4Parser#Dictitem2.
+    def visitDictitem2(self, ctx:UL4Parser.Dictitem2Context):
         return self.visitChildren(ctx)
 
 
@@ -149,13 +204,18 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#DictComprehension.
-    def visitDictComprehension(self, ctx:UL4Parser.DictComprehensionContext):
+    # Visit a parse tree produced by UL4Parser#Dictcomprehension2.
+    def visitDictcomprehension2(self, ctx:UL4Parser.Dictcomprehension2Context):
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by UL4Parser#GeneratorExpresssion.
     def visitGeneratorExpresssion(self, ctx:UL4Parser.GeneratorExpresssionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#AtomName.
+    def visitAtomName(self, ctx:UL4Parser.AtomNameContext):
         return self.visitChildren(ctx)
 
 
@@ -489,13 +549,23 @@ class UL4ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#blockitem.
-    def visitBlockitem(self, ctx:UL4Parser.BlockitemContext):
+    # Visit a parse tree produced by UL4Parser#printtag.
+    def visitPrinttag(self, ctx:UL4Parser.PrinttagContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by UL4Parser#TemplateBodyItem.
-    def visitTemplateBodyItem(self, ctx:UL4Parser.TemplateBodyItemContext):
+    # Visit a parse tree produced by UL4Parser#printxtag.
+    def visitPrintxtag(self, ctx:UL4Parser.PrintxtagContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#block_content.
+    def visitBlock_content(self, ctx:UL4Parser.Block_contentContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by UL4Parser#Template_content2.
+    def visitTemplate_content2(self, ctx:UL4Parser.Template_content2Context):
         return self.visitChildren(ctx)
 
 
