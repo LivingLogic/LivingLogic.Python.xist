@@ -666,23 +666,28 @@ class Connection(object):
 		Which additional parameters are supported depends on the actual
 		resource created. Some common parameters are:
 
-			``mode`` : string
+			``mode`` : :class:`str`
 				A string indicating how the file is to be opened (just like the
 				mode argument for the builtin :func:`open` (e.g. ``"rb"`` or
 				``"wb"``).
 
-			``headers`` : mapping
+			``headers`` : :class:`dict`
 				Additional headers to use for an HTTP request.
 
-			``data`` : byte string
+			``data`` : :class:`bytes`
 				Request body to use for an HTTP POST request.
 
-			``python`` : string or :const:`None`
+			``python`` : :class:`str` or :const:`None`
 				Name of the Python interpreter to use on the remote side (used by
 				``ssh`` URLs)
 
-			``nice`` : int or :const:`None`
+			``nice`` : :class:`int` or :const:`None`
 				Nice level for the remote python (used by ``ssh`` URLs)
+
+			``check`` : :class:`bool` or :const:`None`
+				Whether ``ssh`` host keys should be checked (used by ``ssh`` URLs
+				where it defaults to ``True`` and ``ssh-nocheck`` URLs where it
+				defaults to ``False``).
 		"""
 
 
@@ -856,8 +861,12 @@ class SshConnection(Connection):
 	A :class:`!SshConnection` object is used for accessing and modifying the
 	metadata associated with a file on a remote filesystem. Remote files will
 	be accessed via code executed remotely on the target host via :mod:`execnet`.
+
 	:class:`!SshConnection` objects are created by calling the :meth:`connect`
-	method on a :class:`URL` object with the ``ssh`` scheme.
+	method on a :class:`URL` object with the ``ssh`` or ``ssh-nocheck`` scheme.
+
+	(Using the scheme ``ssh-nocheck`` disables checks of the host key, i.e. it
+	passes ``-o "StrictHostKeyChecking=no"`` to the underlying ``ssh`` command.)
 	"""
 
 	remote_code = """
@@ -1038,11 +1047,14 @@ class SshConnection(Connection):
 				channel.send((False, data))
 	"""
 
-	def __init__(self, context, server, python=None, nice=None):
+	def __init__(self, context, host, port, user, python=None, nice=None, check=None):
 		# We don't have to store the context (this avoids cycles)
-		self.server = server
+		self.host = host
+		self.port = port
+		self.user = user
 		self.python = python
 		self.nice = nice
+		self.check = check
 		self._channel = None
 
 	def close(self):
@@ -1052,7 +1064,7 @@ class SshConnection(Connection):
 			self._channel.gateway.join()
 
 	def _url2filename(self, url):
-		if url.scheme != "ssh":
+		if url.scheme not in {"ssh", "ssh-nocheck"}:
 			raise ValueError(f"URL {url!r} is not an ssh URL")
 		filename = str(url.path)
 		if filename.startswith("/~"):
@@ -1061,7 +1073,12 @@ class SshConnection(Connection):
 
 	def _send(self, filename, cmd, *args, **kwargs):
 		if self._channel is None:
-			server = f"ssh={self.server}"
+			server = "ssh="
+			if self.port is not None:
+				server += f"-p{self.port} "
+			if self.check is not None and not self.check:
+				server += ' -oStrictHostKeyChecking=no '
+			server += f"{self.user}@{self.host}"
 			python = self.python
 			if python is None:
 				python = default_ssh_python
@@ -1209,7 +1226,10 @@ class SshConnection(Connection):
 		return RemoteFileResource(self, url, *args, **kwargs)
 
 	def __repr__(self):
-		return f"<{self.__class__.__module__}.{self.__class__.__name__} to {self.server!r} at {id(self):#x}>"
+		if self.port is None:
+			return f"<{self.__class__.__module__}.{self.__class__.__name__} to {self.user}@{self.host} at {id(self):#x}>"
+		else:
+			return f"<{self.__class__.__module__}.{self.__class__.__name__} to {self.user}@{self.host}:{self.port} at {id(self):#x}>"
 
 
 class URLConnection(Connection):
@@ -1742,27 +1762,34 @@ class LocalSchemeDefinition(SchemeDefinition):
 
 class SshSchemeDefinition(SchemeDefinition):
 	def _connect(self, url, context=None, **kwargs):
-		if "python" in kwargs or "nice" in kwargs:
+		if "python" in kwargs or "nice" in kwargs or "check" in kwargs:
 			kwargs = kwargs.copy()
 			python = kwargs.pop("python", None)
 			nice = kwargs.pop("nice", None)
+			check = kwargs.pop("check", None)
 		else:
 			python = None
 			nice = None
+			check = None
 
 		context = getcontext(context)
 		if context is threadlocalcontext.__class__.context:
 			raise ValueError("ssh URLs need a custom context")
-		# Use one :class:`SshConnection` for each user/host/python combination
-		server = url.server
+		# Use one :class:`SshConnection` for each host/port/user/python combination
+		host = url.host
+		port = url.port
+		user = url.userinfo
+		if check is None:
+			check = self.scheme == "ssh"
+
 		try:
 			connections = context.schemes["ssh"]
 		except KeyError:
 			connections = context.schemes["ssh"] = {}
 		try:
-			connection = connections[(server, python, nice)]
+			connection = connections[(host, port, user, python, nice, check)]
 		except KeyError:
-			connection = connections[(server, python, nice)] = SshConnection(context, server, python, nice)
+			connection = connections[(host, port, user, python, nice, check)] = SshConnection(context, host, port, user, python, nice, check)
 		return (connection, kwargs)
 
 	def open(self, url, mode="rb", context=None, python=None, nice=None):
@@ -1785,6 +1812,7 @@ schemereg = {
 	"tel": SchemeDefinition("tel", usehierarchy=False, useserver=False, usefrag=False),
 	"fax": SchemeDefinition("fax", usehierarchy=False, useserver=False, usefrag=False),
 	"ssh": SshSchemeDefinition("ssh", usehierarchy=True, useserver=True, usefrag=True, islocal=False, isremote=True),
+	"ssh-nocheck": SshSchemeDefinition("ssh-nocheck", usehierarchy=True, useserver=True, usefrag=True, islocal=False, isremote=True),
 }
 defaultreg = LocalSchemeDefinition("", usehierarchy=True, useserver=True, islocal=True, usefrag=True)
 

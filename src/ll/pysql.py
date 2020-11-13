@@ -1738,8 +1738,8 @@ class rollback(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, raise_exceptions=None, cond=True):
-		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
+	def __init__(self, *, raiseexceptions=None, cond=True):
+		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} location={self.location} at {id(self):#x}>"
