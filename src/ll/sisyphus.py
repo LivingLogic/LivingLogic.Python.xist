@@ -1748,7 +1748,7 @@ class Job:
 		if isinstance(nextrun, (int, float)):
 			nextrun = datetime.timedelta(seconds=nextrun)
 		if isinstance(nextrun, datetime.timedelta):
-			return self.starttime + nextrun
+			return datetime.datetime.now() + nextrun
 		else:
 			return nextrun
 

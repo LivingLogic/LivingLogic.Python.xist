@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+HEAD (released 11/??/2020)
+--------------------------
+
+*	In sisyphus jobs, when the value of the ``nextrun`` parameter was a
+	:class:`datetime.timedelta` object, it was interpreted relative to the
+	start of the run, not relative to now. This has been fixed.
+
+
 Changes in 5.64 (released 10/30/2020)
 -------------------------------------
 
