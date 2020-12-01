@@ -865,8 +865,26 @@ class SshConnection(Connection):
 	:class:`!SshConnection` objects are created by calling the :meth:`connect`
 	method on a :class:`URL` object with the ``ssh`` or ``ssh-nocheck`` scheme.
 
-	(Using the scheme ``ssh-nocheck`` disables checks of the host key, i.e. it
-	passes ``-o "StrictHostKeyChecking=no"`` to the underlying ``ssh`` command.)
+	.. note::
+		Using the scheme ``ssh-nocheck`` disables checks of the host key, i.e. it
+		passes ``-o "StrictHostKeyChecking=no"`` to the underlying ``ssh``
+		command.
+
+		If you need to use further options (e.g. when your ``known_hosts`` file
+		isn't writable), you should configure that in your ``~/.ssh/config`` file,
+		for example::
+
+			Host foo
+				Hostname foo.example.org
+				StrictHostKeyChecking no
+				UserKnownHostsfile /dev/null
+
+		or for Windows::
+
+			Host foo
+				Hostname foo.example.org
+				StrictHostKeyChecking no
+				UserKnownHostsfile nul:
 	"""
 
 	remote_code = """
