@@ -313,7 +313,7 @@ Migrating to version 5.16
 =========================
 
 Changes to :mod:`ll.orasql`
-------------------------
+---------------------------
 
 Some methods in :mod:`ll.orasql` have been renamed: Iterating methods no longer
 have ``iter`` in their name (e.g. :meth:`itertables` is now simply called
