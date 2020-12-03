@@ -484,6 +484,13 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("}")
+			elif hasattr(obj , "ul4onid"):
+				self._record(obj)
+				self._line("P", obj.ul4onname, obj.ul4onid)
+				self._level += 1
+				obj.ul4ondump(self)
+				self._level -= 1
+				self._line(")")
 			else:
 				self._record(obj)
 				self._line("O", obj.ul4onname)
@@ -499,10 +506,10 @@ class Decoder:
 	"""
 	A :class:`Decoder` is used for deserializing an UL4ON dump.
 
-	It manages the internal state required for handling backreferences and other
-	stuff.
+	It manages the internal state required for handling backreferences,
+	persistent objects and other stuff.
 	"""
-	ul4attrs = {"loads"}
+	ul4attrs = {"loads", "reset"}
 
 	def __init__(self, registry=None):
 		"""
@@ -516,6 +523,7 @@ class Decoder:
 		self.stream = None
 		self._bufferedchar = None # Next character to be read by :meth:`_nextchar`
 		self._objects = []
+		self._persistent_objects = {}
 		self._keycache = {} # Used for "interning" dictionary keys
 		self.registry = registry
 		self._stack = None # A stack of types that are currently in the process of being decoded (used in exception messages)
@@ -566,6 +574,14 @@ class Decoder:
 	def _endfakeloading(self, oldpos, value):
 		# Fix backreference in object list
 		self._objects[oldpos] = value
+
+	def reset(self):
+		"""
+		Clear the internal cache for backreferences.
+
+		However the cache for persistent objects will not be cleared.
+		"""
+		self._objects.clear()
 
 	def loads(self, dump):
 		"""
@@ -763,6 +779,31 @@ class Decoder:
 				raise TypeError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): can't decode object of type {name!r}")
 			value = cls()
 			if typecode == "O":
+				self._endfakeloading(oldpos, value)
+			value.ul4onload(self)
+			typecode = self._nextchar()
+			if typecode != ")":
+				raise ValueError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): object terminator ')' expected, got {typecode!r}")
+			self._stack.pop()
+		elif typecode in "pP":
+			if typecode == "P":
+				oldpos = self._beginfakeloading()
+			name = self.load()
+			id = self.load()
+			self._stack.append(name)
+			try:
+				value = self._persistent_objects[(name, id)]
+			except KeyError:
+				cls = None
+				if self.registry is not None:
+					cls = self.registry.get(name)
+				if cls is None:
+					cls = _registry.get(name)
+				if cls is None:
+					raise TypeError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): can't decode object of type {name!r} with id {id!r}")
+				value = cls(id)
+				self._persistent_objects[(name, id)] = value
+			if typecode == "P":
 				self._endfakeloading(oldpos, value)
 			value.ul4onload(self)
 			typecode = self._nextchar()
