@@ -183,10 +183,25 @@ global registry.
 
 	For deserialization the class **must** be registered.
 
+
+Object content mismatch
+-----------------------
+
 In situations where an UL4ON API is updated frequently it makes sense to be able
 to update the writing side and the reading side independently. To support this
 :class:`Decoder` has a method :meth:`~Decoder.loadcontent` that is an generator
 that reads the content of an object from the input and yields those items.
+
+This allows to handle both situations:
+
+*	When the writing side outputs more items that the reading side expects,
+	exhausting the iterator returned by :meth:`~loadcontent` will read and
+	ignore the unrecognized items and leave the input stream in a consistent
+	state.
+
+*	When the writing side outputs less items then the reading side expects,
+	the remaining items can by initialized with default values.
+
 For our example class it could be used like this::
 
 	from ll import ul4on
