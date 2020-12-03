@@ -181,6 +181,8 @@ global registry.
 	If a class isn't registered with the UL4ON serialization machinery, you have
 	to set the class attribute ``ul4onname`` yourself for serialization to work.
 
+	For deserialization the class **must** be registered.
+
 In situations where an UL4ON API is updated frequently it makes sense to be able
 to update the writing side and the reading side independently. To support this
 :class:`Decoder` has a method :meth:`~Decoder.loadcontent` that is an generator
