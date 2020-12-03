@@ -237,6 +237,10 @@ For our example class it could be used like this::
 	j = ul4on.loads(output, {"com.example.person": Person})
 	print("Loaded:", j)
 
+
+Chunked UL4ON
+-------------
+
 :mod:`!ll.ul4on` also provides access to the classes that implement UL4ON
 encoding and decoding. This can be used to create multiple UL4ON dumps using the
 same context, or recreate multiple objects from multiple UL4ON dumps that use
@@ -267,8 +271,42 @@ This prints::
 	spam
 	spam
 
-since the decoder remembers which object has been decodes as the first object
+since the decoder remembers which object has been decoded as the first object
 from the dump.
+
+One application of this is embedding multiple related UL4ON dumps as data
+attributes in HTML and then deserialize those UL4ON chuncks back into the
+appropriate Javascript objects. For example::
+
+	from ll import ul4on, misc
+
+	encoder = ul4on.Encoder()
+
+	counter = 0
+
+	def dump(obj):
+		global counter
+		counter += 1
+		return f"{counter} {encoder.dumps(obj)}"
+
+	data = ["gurk", "hurz", "hinz", "kunz"]
+
+	items = '\n'.join(f"<li data-ul4on='{misc.xmlescape(dump(s))}'>{misc.xmlescape(s.upper())}</li>" for s in data)
+	html = f"<ul data-ul4on='{misc.xmlescape(dump(data))}'>\n{items}\n</ul>"
+	print(html)
+
+This outputs::
+
+	<ul data-ul4on='5 L ^0 ^1 ^2 ^3 ]'>
+	<li data-ul4on='1 S&#39;gurk&#39;'>GURK</li>
+	<li data-ul4on='2 S&#39;hurz&#39;'>HURZ</li>
+	<li data-ul4on='3 S&#39;hinz&#39;'>HINZ</li>
+	<li data-ul4on='4 S&#39;kunz&#39;'>KUNZ</li>
+	</ul>
+
+By iterating through the ``data-ul4on`` attributes in the correct order and
+feeding each UL4ON chunk to a decoder, all objects can be recreated and attached
+their appriopriate HTML elements.
 '''
 
 import datetime, collections, io
