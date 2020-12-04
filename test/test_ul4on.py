@@ -599,7 +599,7 @@ def test_custom_class(t):
 		assert isinstance(p, PointContent)
 
 
-def test_multiple_encoder_calls():
+def test_chunked_encoder():
 	encoder = ul4on.Encoder()
 	s1 = "gurk"
 	s2 = "hurz"
@@ -609,7 +609,7 @@ def test_multiple_encoder_calls():
 	assert "^1" == encoder.dumps(s2)
 
 
-def test_multiple_decoder_calls():
+def test_chunked_decoder():
 	decoder = ul4on.Decoder()
 	assert "gurk" == decoder.loads("S'gurk'")
 	assert "hurz" == decoder.loads("S'hurz'")
