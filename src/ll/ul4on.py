@@ -112,6 +112,10 @@ Lists, dictionaries and sets are also supported::
 	>>> r2['recursive'] is r2
 	True
 
+
+Extensibility
+-------------
+
 UL4ON is extensible. It supports serializing arbitrary instances by registering
 the class with the UL4ON serialization machinery::
 
@@ -181,7 +185,8 @@ global registry.
 	If a class isn't registered with the UL4ON serialization machinery, you have
 	to set the class attribute ``ul4onname`` yourself for serialization to work.
 
-	For deserialization the class **must** be registered.
+	For deserialization the class **must** be registered either in the local
+	registry passed to the :class:`Decoder` or globally via :func:`register`.
 
 
 Object content mismatch
@@ -243,8 +248,8 @@ Chunked UL4ON
 
 :mod:`!ll.ul4on` also provides access to the classes that implement UL4ON
 encoding and decoding. This can be used to create multiple UL4ON dumps using the
-same context, or recreate multiple objects from multiple UL4ON dumps that use
-the same context.
+same encoding context, or recreate multiple objects from multiple UL4ON dumps
+that use the same decoding context.
 
 An example for encoding::
 
@@ -258,7 +263,7 @@ This prints::
 	S'spam'
 	^0
 
-since the encoder remembers that the string "spam" has already been output.
+since the encoder remembers that the string ``"spam"`` has already been output.
 
 An example for decoding::
 
@@ -275,7 +280,7 @@ since the decoder remembers which object has been decoded as the first object
 from the dump.
 
 One application of this is embedding multiple related UL4ON dumps as data
-attributes in HTML and then deserialize those UL4ON chuncks back into the
+attributes in HTML and then deserializing those UL4ON chuncks back into the
 appropriate Javascript objects. For example::
 
 	from ll import ul4on, misc
@@ -291,7 +296,7 @@ appropriate Javascript objects. For example::
 
 	data = ["gurk", "hurz", "hinz", "kunz"]
 
-	items = '\n'.join(f"<li data-ul4on='{misc.xmlescape(dump(s))}'>{misc.xmlescape(s.upper())}</li>" for s in data)
+	items = "\n".join(f"<li data-ul4on='{misc.xmlescape(dump(s))}'>{misc.xmlescape(s.upper())}</li>" for s in data)
 	html = f"<ul data-ul4on='{misc.xmlescape(dump(data))}'>\n{items}\n</ul>"
 	print(html)
 
@@ -306,7 +311,7 @@ This outputs::
 
 By iterating through the ``data-ul4on`` attributes in the correct order and
 feeding each UL4ON chunk to a decoder, all objects can be recreated and attached
-their appriopriate HTML elements.
+to their appriopriate HTML elements.
 '''
 
 import datetime, collections, io
