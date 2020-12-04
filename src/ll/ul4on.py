@@ -91,6 +91,10 @@ Lists, dictionaries and sets are also supported::
 	>>> ul4on.loads('Y i1 i2 i3 }')
 	{1, 2, 3}
 
+
+Recursive data structures
+-------------------------
+
 :mod:`!ll.ul4on` can also handle recursive data structures::
 
 	>>> r = []
@@ -111,6 +115,11 @@ Lists, dictionaries and sets are also supported::
 	{'recursive': {...}}
 	>>> r2['recursive'] is r2
 	True
+
+.. note::
+	The ``^0`` part in the dump is a so called "back reference", it tells the
+	decoder that in this spot an object is referenced that has already been part
+	of the dump (The ``0`` indicates where in the dump the object can be found).
 
 
 Extensibility
