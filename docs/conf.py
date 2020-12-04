@@ -369,6 +369,8 @@ intersphinx_mapping = {
 	'requests': ('https://requests.kennethreitz.org/en/master/', None),
 }
 
+autoclass_content = "both"
+
 autodoc_default_options = {
 	"members": True,
 	"special-members": True,
