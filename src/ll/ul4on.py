@@ -598,7 +598,8 @@ class Decoder:
 
 	def reset(self) -> None:
 		"""
-		Clear the internal cache for backreferences.
+		Clear the internal cache for backreferences so that a new independant
+		UL4ON dump can be loaded.
 
 		However the cache for persistent objects will not be cleared.
 		"""
