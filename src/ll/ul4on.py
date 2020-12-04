@@ -273,7 +273,8 @@ This prints::
 	S'spam'
 	^0
 
-since the encoder remembers that the string ``"spam"`` has already been output.
+The second call outputs a back reference, since the encoder remembers that the
+string ``"spam"`` has already been output.
 
 An example for decoding::
 
