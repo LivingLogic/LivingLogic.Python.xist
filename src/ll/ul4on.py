@@ -315,7 +315,9 @@ appropriate Javascript objects. For example::
 	html = f"<ul data-ul4on='{xe(dump(data))}'>\n{items}\n</ul>"
 	print(html)
 
-This outputs::
+This outputs:
+
+.. sourcecode:: html
 
 	<ul data-ul4on='5 L ^0 ^1 ^2 ^3 ]'>
 	<li data-ul4on='1 S&#39;gurk&#39;'>GURK</li>
