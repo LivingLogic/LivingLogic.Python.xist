@@ -9,7 +9,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-'''
+r'''
 This module provides functions for encoding and decoding a lightweight
 text-based format for serializing the object types supported by UL4.
 
