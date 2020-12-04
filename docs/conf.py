@@ -377,6 +377,7 @@ autodoc_default_options = {
 	"show-inheritance-diagram": True,
 	"inherit-docstrings": False,
 	"member-order": "bysource",
+	"ignore-module-all": True,
 }
 
 
