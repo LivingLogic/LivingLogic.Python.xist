@@ -202,9 +202,10 @@ Object content mismatch
 -----------------------
 
 In situations where an UL4ON API is updated frequently it makes sense to be able
-to update the writing side and the reading side independently. To support this
-:class:`Decoder` has a method :meth:`~Decoder.loadcontent` that is an generator
-that reads the content of an object from the input and yields those items.
+to update the writing side and the reading side independently. To support this,
+:class:`Decoder` has a method :meth:`~Decoder.loadcontent` that is a generator
+that reads the content of an object from the input stream and yields those
+items.
 
 This allows to handle both situations:
 
