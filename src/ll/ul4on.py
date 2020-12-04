@@ -327,9 +327,46 @@ This outputs:
 	</ul>
 
 By iterating through the ``data-ul4on`` attributes in the correct order and
-feeding each UL4ON chunk to a decoder, all objects can be recreated and attached
-to their appriopriate HTML elements.
+feeding each UL4ON chunk to the same decoder, all objects can be recreated and
+attached to their appriopriate HTML elements.
+
+
+Incremental UL4ON and persistent objects
+----------------------------------------
+
+Objects that have an attribute ``ul4onid`` are considered "persistent" objects.
+
+An :class:`Encoder` will dump those objects differently than other objects
+without an ``ul4onid`` attribute. :meth:`ul4ondump` doesn't have to dump the
+``ul4onid`` attribute in this case, as this is done by the :class:`Encoder`.
+
+A :class:`Decoder` will remember all persistent objects it has loaded
+(under their ``ul4onname`` and ``ul4onid``). If the decoder encounters the
+``ul4onname`` and ``ul4onid`` of an object it has remembered, it won't create
+a new object, instead :meth:`ul4onload` will be called for the existing object.
+Note that :meth:`ul4onload` doesn't have to load the ``ul4onid`` from the dump,
+as the :class:`Decoder` has already done that. If the decoder encounters a
+persistent objects it hasn't remembered, it will create a new object (passing
+the ``ul4onid`` as the only argument to the constructor) and then call
+:meth:`ul4onload` on the new object.
+
+This means that with this approach it's possible to use one :class:`Decoder`
+object to load multiple independently created UL4ON dumps "incrementally"
+one after the other, but still merge the objects in the subsequent dumps into
+the objects created by previous dumps.
+
+.. note::
+	For this approach, the method :meth:`~Decoder.reset` must be called between
+	calls to :meth:`~Decoder.load` or :meth:`~Decoder.loads` to reset the
+	information about back references.
+
+
+Module content
+--------------
 '''
+
+from typing import *
+from typing import TextIO
 
 import datetime, collections, io
 from collections import abc
@@ -341,7 +378,7 @@ __docformat__ = "reStructuredText"
 _registry = {}
 
 
-def register(name):
+def register(name : str):
 	"""
 	This decorator can be used to register the decorated class with the
 	:mod:`!ll.ul4on` serialization machinery.
@@ -368,24 +405,30 @@ class Encoder:
 	"""
 	ul4attrs = {"dumps"}
 
-	def __init__(self, indent=None):
+	def __init__(self, indent:str=None):
 		"""
 		Create an encoder for serializing objects.
+
+		When ``indent`` is not :const:`None`, it is used as in indentation string
+		from pretty printing the output.
 		"""
-		self.stream = None
+		self.stream = None # type: Optional[TextIO]
 		self._level = 0
 		self.indent = indent
 		self._lastwaslf = False
-		self._first = True # Remember whether we have dumped something into the stream (so we have to write separator whitespace/indentation) or not
-		self._objects = []
-		self._id2index = {}
+		# Remember whether we have dumped something into the stream (so we have to write separator whitespace/indentation) or not
+		self._first = True
+		# Objects that are available for back references (using the position in the list)
+		self._objects = [] # type: List[Any]
+		# Maps object ids to their position in ``_objects``
+		self._id2index = {} # type: Dict[int, int]
 
-	def _record(self, obj):
+	def _record(self, obj:Any) -> None:
 		# Record that we've written this object and in which position
 		self._id2index[id(obj)] = len(self._objects)
 		self._objects.append(obj)
 
-	def _line(self, line, *items):
+	def _line(self, line:str, *items:Any):
 		if self.indent:
 			self.stream.write(self.indent*self._level)
 		else:
@@ -404,7 +447,7 @@ class Encoder:
 		if self.indent:
 			self.stream.write("\n")
 
-	def dumps(self, obj):
+	def dumps(self, obj:Any) -> str:
 		"""
 		Serialize ``obj`` and return the resulting dump as a string.
 		"""
@@ -418,7 +461,7 @@ class Encoder:
 		self.stream = None
 		return result
 
-	def dump(self, obj, stream=None):
+	def dump(self, obj:Any, stream:Optional[TextIO]=None) -> None:
 		"""
 		Serialize ``obj`` into the stream ``stream`` as an UL4ON formatted dump.
 
@@ -533,7 +576,7 @@ class Decoder:
 	"""
 	ul4attrs = {"loads", "reset"}
 
-	def __init__(self, registry=None):
+	def __init__(self, registry:Optional[Dict[str, Callable[..., Any]]]=None):
 		"""
 		Create a decoder for deserializing objects from an UL4ON dump.
 
@@ -542,62 +585,18 @@ class Decoder:
 		Any type not found in ``registry`` will be looked up in the global
 		registry (see :func:`register`).
 		"""
-		self.stream = None
-		self._bufferedchar = None # Next character to be read by :meth:`_nextchar`
-		self._objects = []
-		self._persistent_objects = {}
-		self._keycache = {} # Used for "interning" dictionary keys
+		self.stream = None # type: Optional[TextIO]
+		# Next character to be read by :meth:`_nextchar`
+		self._bufferedchar = None # type: Optional[str]
+		self._objects = [] # type: List[Any]
+		self._persistent_objects = {} # type: Dict[Tuple[str, str], Any]
+		# Used for "interning" dictionary keys
+		self._keycache = {} # type: Dict[str, str]
 		self.registry = registry
-		self._stack = None # A stack of types that are currently in the process of being decoded (used in exception messages)
+		# A stack of types that are currently in the process of being decoded (used in exception messages)
+		self._stack = None # type: Optional[List[Any]]
 
-	def _readint(self):
-		buffer = io.StringIO()
-		while True:
-			c = self.stream.read(1)
-			if c and not c.isspace():
-				buffer.write(c)
-			else:
-				return int(buffer.getvalue())
-
-	def _loading(self, obj):
-		self._objects.append(obj)
-
-	def _nextchar(self):
-		if self._bufferedchar is not None:
-			result = self._bufferedchar
-			self._bufferedchar = None
-			return result
-		else:
-			while True:
-				nextchar = self.stream.read(1)
-				if nextchar:
-					if not nextchar.isspace():
-						return nextchar
-				else:
-					raise EOFError()
-
-	def _path(self):
-		return "/".join(self._stack)
-
-	def _beginfakeloading(self):
-		# For loading custom object or immutable objects that have attributes we have a problem:
-		# We have to record the object we're loading *now*, so that it is available for backreferences.
-		# However until we've read the UL4ON name of the class (for custom object) or the attributes
-		# of the object (for immutable objects with attributes), we can't create the object.
-		# So we push :const:`None` to the backreference list for now and put the right object in this spot,
-		# once we've created it (via :meth:`_endfakeloading`). This shouldn't lead to problems,
-		# because during the time the backreference is wrong, only the class name is read,
-		# so our object won't be referenced. For immutable objects the attributes normally
-		# don't reference the object itself.
-		oldpos = len(self._objects)
-		self._loading(None)
-		return oldpos
-
-	def _endfakeloading(self, oldpos, value):
-		# Fix backreference in object list
-		self._objects[oldpos] = value
-
-	def reset(self):
+	def reset(self) -> None:
 		"""
 		Clear the internal cache for backreferences.
 
@@ -605,14 +604,14 @@ class Decoder:
 		"""
 		self._objects.clear()
 
-	def loads(self, dump):
+	def loads(self, dump:str) -> Any:
 		"""
 		Deserialize the object in the string ``dump`` and return it.
 		"""
 
 		return self.load(io.StringIO(dump))
 
-	def load(self, stream=None):
+	def load(self, stream:Optional[TextIO]=None) -> Any:
 		"""
 		Deserialize the next object from the stream ``stream`` and return it.
 
@@ -626,7 +625,6 @@ class Decoder:
 			self._stack = []
 			self._bufferedchar = None
 
-		from ll import misc
 		typecode = self._nextchar()
 		if typecode == "^":
 			position = self._readint()
@@ -840,7 +838,7 @@ class Decoder:
 			self._stack = None
 		return value
 
-	def loadcontent(self):
+	def loadcontent(self) -> Generator[Any, None, None]:
 		"""
 		Load the content of an object until the "object terminator" is encountered.
 
@@ -862,7 +860,7 @@ class Decoder:
 				break
 			yield self.load()
 
-	def loadcontentitems(self):
+	def loadcontentitems(self) -> Generator[Tuple[str, Any], None, None]:
 		"""
 		Similar to :meth:`loadcontent`, but will load the content of an object as
 		(key, value) pairs.
@@ -882,29 +880,55 @@ class Decoder:
 			value = self.load()
 			yield (key, value)
 
+	def _readint(self) -> int:
+		buffer = io.StringIO()
+		while True:
+			c = self.stream.read(1)
+			if c and not c.isspace():
+				buffer.write(c)
+			else:
+				return int(buffer.getvalue())
 
-class StreamBuffer:
-	# Internal helper class that wraps a file-like object and provides buffering
-	def __init__(self, stream, bufsize=1024*1024):
-		self.stream = stream
-		self.bufsize = bufsize
-		self.buffer = ""
+	def _loading(self, obj) -> None:
+		self._objects.append(obj)
 
-	def read(self, size):
-		havesize = len(self.buffer)
-		if havesize >= size:
-			result = self.buffer[:size]
-			self.buffer = self.buffer[size:]
+	def _nextchar(self) -> str:
+		if self._bufferedchar is not None:
+			result = self._bufferedchar
+			self._bufferedchar = None
 			return result
 		else:
-			needsize = size-havesize
-			newdata = self.stream.read(max(self.bufsize, needsize))
-			result = self.buffer + newdata[:needsize]
-			self.buffer = newdata[needsize:]
-			return result
+			while True:
+				nextchar = self.stream.read(1)
+				if nextchar:
+					if not nextchar.isspace():
+						return nextchar
+				else:
+					raise EOFError()
+
+	def _path(self) -> str:
+		return "/".join(self._stack)
+
+	def _beginfakeloading(self) -> int:
+		# For loading custom object or immutable objects that have attributes we have a problem:
+		# We have to record the object we're loading *now*, so that it is available for backreferences.
+		# However until we've read the UL4ON name of the class (for custom object) or the attributes
+		# of the object (for immutable objects with attributes), we can't create the object.
+		# So we push :const:`None` to the backreference list for now and put the right object in this spot,
+		# once we've created it (via :meth:`_endfakeloading`). This shouldn't lead to problems,
+		# because during the time the backreference is wrong, only the class name is read,
+		# so our object won't be referenced. For immutable objects the attributes normally
+		# don't reference the object itself.
+		oldpos = len(self._objects)
+		self._loading(None)
+		return oldpos
+
+	def _endfakeloading(self, oldpos, value) -> None:
+		# Fix backreference in object list
+		self._objects[oldpos] = value
 
 
-def dumps(obj, indent=None):
+def dumps(obj:Any, indent:Optional[str]=None) -> str:
 	"""
 	Serialize ``obj`` as an UL4ON formatted string.
 	"""
@@ -913,7 +937,7 @@ def dumps(obj, indent=None):
 	return stream.getvalue()
 
 
-def dump(obj, stream, indent=None):
+def dump(obj:Any, stream:TextIO, indent:Optional[str]=None) -> None:
 	"""
 	Serialize ``obj`` as an UL4ON formatted stream to ``stream``.
 
@@ -922,7 +946,27 @@ def dump(obj, stream, indent=None):
 	Encoder(indent=indent).dump(obj, stream)
 
 
-def loadclob(clob, bufsize=1024*1024, registry=None):
+def load(stream:TextIO, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+	"""
+	Deserialize ``stream`` (which must be file-like object with a :meth:`read`
+	method containing an UL4ON formatted object) to a Python object.
+
+	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
+	"""
+	return Decoder(registry).load(stream)
+
+
+def loads(dump:str, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+	"""
+	Deserialize ``dump`` (which must be a string containing an UL4ON
+	formatted object) to a Python object.
+
+	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
+	"""
+	return Decoder(registry).loads(dump)
+
+
+def loadclob(clob, bufsize:int=1024*1024, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``clob`` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.
@@ -935,24 +979,25 @@ def loadclob(clob, bufsize=1024*1024, registry=None):
 	return Decoder(registry).load(StreamBuffer(clob, bufsize))
 
 
-def loads(dump, registry=None):
-	"""
-	Deserialize ``dump`` (which must be a string containing an UL4ON
-	formatted object) to a Python object.
+class StreamBuffer:
+	# Internal helper class that wraps a file-like object and provides buffering
+	def __init__(self, stream, bufsize:int=1024*1024):
+		self.stream = stream
+		self.bufsize = bufsize
+		self.buffer = ""
 
-	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
-	"""
-	return Decoder(registry).loads(dump)
-
-
-def load(stream, registry=None):
-	"""
-	Deserialize ``stream`` (which must be file-like object with a :meth:`read`
-	method containing an UL4ON formatted object) to a Python object.
-
-	For the meaning of ``registry`` see :meth:`Decoder.__init__`.
-	"""
-	return Decoder(registry).load(stream)
+	def read(self, size:int) -> AnyStr:
+		havesize = len(self.buffer)
+		if havesize >= size:
+			result = self.buffer[:size]
+			self.buffer = self.buffer[size:]
+			return result
+		else:
+			needsize = size-havesize
+			newdata = self.stream.read(max(self.bufsize, needsize))
+			result = self.buffer + newdata[:needsize]
+			self.buffer = newdata[needsize:]
+			return result
 
 
 ul4attrs = {"loads", "dumps", "Encoder", "Decoder"}
