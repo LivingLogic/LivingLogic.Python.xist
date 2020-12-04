@@ -294,7 +294,8 @@ One application of this is embedding multiple related UL4ON dumps as data
 attributes in HTML and then deserializing those UL4ON chuncks back into the
 appropriate Javascript objects. For example::
 
-	from ll import ul4on, misc
+	from ll import ul4on
+	from ll.misc import xmlencode as xe
 
 	encoder = ul4on.Encoder()
 
@@ -307,8 +308,11 @@ appropriate Javascript objects. For example::
 
 	data = ["gurk", "hurz", "hinz", "kunz"]
 
-	items = "\n".join(f"<li data-ul4on='{misc.xmlescape(dump(s))}'>{misc.xmlescape(s.upper())}</li>" for s in data)
-	html = f"<ul data-ul4on='{misc.xmlescape(dump(data))}'>\n{items}\n</ul>"
+	def f(s):
+		return f"<li data-ul4on='{xe(dump(s))}'>{xe(s.upper())}</li>"
+
+	items = "\n".join(f(s) for s in data)
+	html = f"<ul data-ul4on='{xe(dump(data))}'>\n{items}\n</ul>"
 	print(html)
 
 This outputs::
