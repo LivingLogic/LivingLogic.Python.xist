@@ -880,6 +880,12 @@ class Decoder:
 		"""
 		self._objects.clear()
 
+	def add_persistent_object(self, object) -> None:
+		"""
+		Add a persistent object to the cache of persistent objects.
+		"""
+		self._persistent_objects[(object.ul4onname, object.ul4onid)] = object
+
 	def persistent_object(self, name:str, id:str) -> Any:
 		"""
 		Return the persistent object with the type ``name`` and the id ``id``,
