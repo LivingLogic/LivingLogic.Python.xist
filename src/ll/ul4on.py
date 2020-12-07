@@ -811,7 +811,7 @@ class Decoder:
 				if cls is None:
 					cls = _registry.get(name)
 				if cls is None:
-					raise TypeError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): can't decode object of type {name!r} with id {id!r}")
+					raise TypeError(f"broken UL4ON stream at position {self.stream.tell():,} (path {self._path()}): can't decode object of type {name!r} with id {id!r}") from None
 				value = cls(id)
 				self._persistent_objects[(name, id)] = value
 			if typecode == "P":
