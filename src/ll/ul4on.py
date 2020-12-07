@@ -720,7 +720,6 @@ class Decoder:
 			value = slice(start, stop)
 			if typecode == "R":
 				self._endfakeloading(oldpos, value)
-			return value
 		elif typecode in "tT":
 			if typecode == "T":
 				oldpos = self._beginfakeloading()
