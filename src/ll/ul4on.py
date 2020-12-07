@@ -596,15 +596,6 @@ class Decoder:
 		# A stack of types that are currently in the process of being decoded (used in exception messages)
 		self._stack = None # type: Optional[List[Any]]
 
-	def reset(self) -> None:
-		"""
-		Clear the internal cache for backreferences so that a new independant
-		UL4ON dump can be loaded.
-
-		However the cache for persistent objects will not be cleared.
-		"""
-		self._objects.clear()
-
 	def loads(self, dump:str) -> Any:
 		"""
 		Deserialize the object in the string ``dump`` and return it.
@@ -879,6 +870,15 @@ class Decoder:
 			key = self.load()
 			value = self.load()
 			yield (key, value)
+
+	def reset(self) -> None:
+		"""
+		Clear the internal cache for backreferences so that a new independant
+		UL4ON dump can be loaded.
+
+		However the cache for persistent objects will not be cleared.
+		"""
+		self._objects.clear()
 
 	def _readint(self) -> int:
 		buffer = io.StringIO()
