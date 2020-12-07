@@ -810,7 +810,7 @@ class Decoder:
 				oldpos = self._beginfakeloading()
 			name = self.load()
 			id = self.load()
-			self._stack.append(name)
+			self._stack.append(f"{name}={id}")
 			try:
 				value = self._persistent_objects[(name, id)]
 			except KeyError:
