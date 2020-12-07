@@ -6002,17 +6002,3 @@ def test_module_ul4on_chunked_decoder_calls(T):
 	""")
 
 	assert "gurkhurzgurkhurz" == t.renders()
-
-
-@pytest.mark.ul4
-def test_module_ul4on_incremental(T):
-	t = T("""
-		<?whitespace strip?>
-		<?code x = {"ul4onid": "foo", "x": 17, "y": 23}?>
-		<?code dump = ul4on.dumps(x)?>
-		<?print dump?>
-		<?code d = ul4on.Decoder()?>
-		<?print d.loads(dump)?>
-	""")
-
-	assert "gurkhurzgurkhurz" == t.renders()
