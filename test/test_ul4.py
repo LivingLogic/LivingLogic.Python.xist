@@ -5975,7 +5975,7 @@ def test_module_ul4on(T):
 
 
 @pytest.mark.ul4
-def test_module_ul4on_multiple_encoder_calls(T):
+def test_module_ul4on_chunked_encoder_calls(T):
 	t = T("""
 		<?whitespace strip?>
 		<?code s1 = 'gurk'?>
@@ -5991,7 +5991,7 @@ def test_module_ul4on_multiple_encoder_calls(T):
 
 
 @pytest.mark.ul4
-def test_module_ul4on_multiple_decoder_calls(T):
+def test_module_ul4on_chunked_decoder_calls(T):
 	t = T("""
 		<?whitespace strip?>
 		<?code d = ul4on.Decoder()?>
@@ -5999,6 +5999,20 @@ def test_module_ul4on_multiple_decoder_calls(T):
 		<?print d.loads("S'hurz'")?>
 		<?print d.loads(dump="^0")?>
 		<?print d.loads(dump="^1")?>
+	""")
+
+	assert "gurkhurzgurkhurz" == t.renders()
+
+
+@pytest.mark.ul4
+def test_module_ul4on_incremental(T):
+	t = T("""
+		<?whitespace strip?>
+		<?code x = {"ul4onid": "foo", "x": 17, "y": 23}?>
+		<?code dump = ul4on.dumps(x)?>
+		<?print dump?>
+		<?code d = ul4on.Decoder()?>
+		<?print d.loads(dump)?>
 	""")
 
 	assert "gurkhurzgurkhurz" == t.renders()
