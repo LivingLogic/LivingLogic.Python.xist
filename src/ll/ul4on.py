@@ -880,6 +880,20 @@ class Decoder:
 		"""
 		self._objects.clear()
 
+	def persistent_object(self, name:str, id:str) -> Any:
+		"""
+		Return the persistent object with the type ``name`` and the id ``id``,
+		or :const:`None`, when the decoder hasn't encountered that object yet.
+		"""
+		return self._persistent_objects.get((name, id), None)
+
+	def persistent_objects(self) -> ValuesView[Any]:
+		"""
+		Return an iterator over all persistent objects the decoder has encountered
+		so far.
+		"""
+		return self._persistent_objects.values()
+
 	def _readint(self) -> int:
 		buffer = io.StringIO()
 		while True:
