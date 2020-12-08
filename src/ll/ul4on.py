@@ -411,8 +411,8 @@ class Encoder:
 		"""
 		Create an encoder for serializing objects.
 
-		When ``indent`` is not :const:`None`, it is used as in indentation string
-		from pretty printing the output.
+		When ``indent`` is not :const:`None`, it is used as an indentation string
+		for pretty printing the output.
 		"""
 		self.stream = None # type: Optional[TextIO]
 		self._level = 0
