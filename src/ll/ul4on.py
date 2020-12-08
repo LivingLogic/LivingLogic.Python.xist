@@ -52,7 +52,8 @@ supports most builtin Python types::
 	>>> ul4on.loads("S'foo'")
 	'foo'
 
-:class:`date`, :class:`datetime` and :class:`timedelta` objects are supported too::
+:class:`~datetime.date`, :class:`~datetime.datetime` and
+:class:`~datetime.timedelta` objects are supported too::
 
 	>>> import datetime
 	>>> ul4on.dumps(datetime.date.today())
