@@ -290,7 +290,7 @@ This prints::
 	spam
 
 since the decoder remembers which object has been decoded as the first object
-from the dump.
+from the first dump.
 
 One application of this is embedding multiple related UL4ON dumps as data
 attributes in HTML and then deserializing those UL4ON chuncks back into the
