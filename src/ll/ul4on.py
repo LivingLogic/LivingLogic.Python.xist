@@ -358,9 +358,14 @@ one after the other, but still merge the objects in the subsequent dumps into
 the objects created by previous dumps.
 
 .. note::
+	If the value of the attribute ``ul4onid`` is :const:`None` the object will
+	not be treated as a persitent object.
+
+.. note::
 	For this approach, the method :meth:`~Decoder.reset` must be called between
 	calls to :meth:`~Decoder.load` or :meth:`~Decoder.loads` to reset the
 	information about back references.
+
 
 
 Module content
@@ -551,16 +556,13 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("}")
-			elif hasattr(obj , "ul4onid"):
-				self._record(obj)
-				self._line("P", obj.ul4onname, obj.ul4onid)
-				self._level += 1
-				obj.ul4ondump(self)
-				self._level -= 1
-				self._line(")")
 			else:
+				ul4onid = getattr(obj , "ul4onid", None)
 				self._record(obj)
-				self._line("O", obj.ul4onname)
+				if ul4onid is not None:
+					self._line("P", obj.ul4onname, obj.ul4onid)
+				else:
+					self._line("O", obj.ul4onname)
 				self._level += 1
 				obj.ul4ondump(self)
 				self._level -= 1

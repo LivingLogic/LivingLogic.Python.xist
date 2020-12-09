@@ -617,9 +617,70 @@ def test_chunked_decoder():
 	assert "hurz" == decoder.loads("^1")
 
 
-def test_incremental():
+def test_incremental_without_id():
 	class Point:
 		ul4onname = "de.livinglogic.ul4.test.point"
+
+		def __init__(self, id=None, x=None, y=None):
+			self.ul4onid = id
+			self.x = x
+			self.y = y
+
+		def ul4ondump(self, encoder):
+			encoder.dump(self.x)
+			encoder.dump(self.y)
+
+		def ul4onload(self, decoder):
+			self.x = decoder.load()
+			self.y = decoder.load()
+
+	registry = {Point.ul4onname: Point}
+
+	p1 = Point(None, 17, 23)
+
+	encoder = ul4on.Encoder()
+	# Since ``ul4onid`` is ``None`` ``p1`` will not be treated as a persistent object
+	dump = encoder.dumps(p1)
+
+	decoder = ul4on.Decoder(registry)
+
+	dump = dump.replace(" i23 ", " i24 ")
+	p2 = decoder.loads(dump)
+
+	assert p1 is not p2
+
+	assert p1.ul4onid is None
+	assert p1.x == 17
+	assert p1.y == 23
+
+	assert p2.ul4onid is None
+	assert p2.x == 17
+	assert p2.y == 24
+
+	# Reset backreferences
+	decoder.reset()
+
+	# Decode a modified dump a second time
+	dump = dump.replace(" i24 ", " i25 ")
+	p3 = decoder.loads(dump)
+
+	# Since ``p1`` wasn't treated as persistent, the decoder didn't remember ``p2``
+	# So ``p3`` is different
+	assert p2 is not p3
+
+	assert p2.ul4onid is None
+	assert p2.x == 17
+	assert p2.y == 24
+
+	assert p3.ul4onid is None
+	assert p3.x == 17
+	assert p3.y == 25
+
+
+def test_incremental_with_id():
+	class Point:
+		ul4onname = "de.livinglogic.ul4.test.point"
+
 		def __init__(self, id, x=None, y=None):
 			self.ul4onid = id
 			self.x = x
@@ -634,6 +695,7 @@ def test_incremental():
 			self.y = decoder.load()
 
 	registry = {Point.ul4onname: Point}
+
 	p1 = Point("foo", 17, 23)
 
 	encoder = ul4on.Encoder()
