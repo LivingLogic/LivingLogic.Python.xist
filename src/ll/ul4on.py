@@ -882,7 +882,7 @@ class Decoder:
 		"""
 		self._objects.clear()
 
-	def add_persistent_object(self, object) -> None:
+	def store_persistent_object(self, object) -> None:
 		"""
 		Add a persistent object to the cache of persistent objects.
 		"""
