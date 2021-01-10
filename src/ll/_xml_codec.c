@@ -12,92 +12,252 @@
 #include "Python.h"
 
 
-static int cmpu2s(const Py_UNICODE *u, const char *s, Py_ssize_t len)
-{
-	while (len)
-	{
-		if (*u != *s)
-			return *u - *s;
-		++u;
-		++s;
-		--len;
-	}
-	return 0;
-}
-
-
-/* define unicode version of parsepseudoattr/parseencoding */
-#define STRINGLIB_PARSEPSEUDOATTR   parsepseudoattr_unicode
-#define STRINGLIB_PARSEENCODING     parseencoding_unicode
-#define STRINGLIB_CHAR              Py_UNICODE
+/* define 4 byte version of parsepseudoattr/parseencoding */
+#define STRINGLIB_PARSEPSEUDOATTR   parsepseudoattr_ucs4
+#define STRINGLIB_PARSEENCODING     parseencoding_ucs4
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs4
+#define STRINGLIB_DETECTENCODING    detectencoding_ucs4
+#define STRINGLIB_CHAR              Py_UCS4
+#define STRINGLIB_KIND              PyUnicode_4BYTE_KIND
 #define STRINGLIB_ISALPHA(c)        Py_UNICODE_ISALPHA(c)
-#define STRINGLIB_CMP2CHAR(u, s, l) cmpu2s(u, s, l)
+#define STRINGLIB_CMP2CHAR_DEFINED  1
+#define STRINGLIB_CMP2CHAR(u, s, l) compare_ucs4_2_char(u, s, l)
 
-#include "_xml_codec_include.c"
+#include "_xml_codec_include1.c"
 
 #undef STRINGLIB_PARSEPSEUDOATTR
 #undef STRINGLIB_PARSEENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_DETECTENCODING
 #undef STRINGLIB_CHAR
+#undef STRINGLIB_KIND
 #undef STRINGLIB_ISALPHA
+#undef STRINGLIB_CMP2CHAR_DEFINED
+#undef STRINGLIB_CMP2CHAR
+
+/* define 2 byte version of parsepseudoattr/parseencoding */
+#define STRINGLIB_PARSEPSEUDOATTR   parsepseudoattr_ucs2
+#define STRINGLIB_PARSEENCODING     parseencoding_ucs2
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs2
+#define STRINGLIB_DETECTENCODING    detectencoding_ucs2
+#define STRINGLIB_CHAR              Py_UCS2
+#define STRINGLIB_KIND              PyUnicode_2BYTE_KIND
+#define STRINGLIB_ISALPHA(c)        Py_UNICODE_ISALPHA(c)
+#define STRINGLIB_CMP2CHAR_DEFINED  1
+#define STRINGLIB_CMP2CHAR(u, s, l) compare_ucs2_2_char(u, s, l)
+
+#include "_xml_codec_include1.c"
+
+#undef STRINGLIB_PARSEPSEUDOATTR
+#undef STRINGLIB_PARSEENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_DETECTENCODING
+#undef STRINGLIB_CHAR
+#undef STRINGLIB_KIND
+#undef STRINGLIB_ISALPHA
+#undef STRINGLIB_CMP2CHAR_DEFINED
 #undef STRINGLIB_CMP2CHAR
 
 
-/* define str version of parsepseudoattr/parseencoding */
-#define STRINGLIB_PARSEPSEUDOATTR   parsepseudoattr_str
-#define STRINGLIB_PARSEENCODING     parseencoding_str
+/* define 2 byte version of parsepseudoattr/parseencoding */
+#define STRINGLIB_PARSEPSEUDOATTR   parsepseudoattr_ucs1
+#define STRINGLIB_PARSEENCODING     parseencoding_ucs1
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs1
+#define STRINGLIB_DETECTENCODING    detectencoding_ucs1
 #define STRINGLIB_CHAR              char
+#define STRINGLIB_KIND              PyUnicode_1BYTE_KIND
 #define STRINGLIB_ISALPHA(c)        (((c)>='a' && (c)<='z') || ((c)>='A' && (c)<='Z'))
 #define STRINGLIB_CMP2CHAR(u, s, l) strncmp(u, s, l)
 
-#include "_xml_codec_include.c"
+#include "_xml_codec_include1.c"
 
 #undef STRINGLIB_PARSEPSEUDOATTR
 #undef STRINGLIB_PARSEENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_DETECTENCODING
 #undef STRINGLIB_CHAR
+#undef STRINGLIB_KIND
 #undef STRINGLIB_ISALPHA
 #undef STRINGLIB_CMP2CHAR
 
+/* define various versions of fixencoding (with 1/2/4 bytes for the XML string and 1/2/4 bytes for the new encoding name) */
+#define STRINGLIB_FIXENCODING       fixencoding_ucs4_ucs4
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs4
+#define STRINGLIB_CHAR_XML          Py_UCS4
+#define STRINGLIB_KIND_XML          PyUnicode_4BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS4
+#define STRINGLIB_KIND_ENC          PyUnicode_4BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS4
+#define STRINGLIB_KIND_RES          PyUnicode_4BYTE_KIND
 
-/* Parses a unicode XML declaration and returns the position of the encoding in
-   encodingstart/encodingend. Return values are the same as for parseencoding(). */
-int parsedeclaration_unicode(const Py_UNICODE *str, const Py_UNICODE *strend, const Py_UNICODE **encodingstart, const Py_UNICODE **encodingend)
-{
-	Py_ssize_t strlen = strend - str;
+#include "_xml_codec_include2.c"
 
-	if (strlen>0)
-	{
-		if (*str++ != '<')
-			return 1;
-		if (strlen>1)
-		{
-			if (*str++ != '?')
-				return 1;
-			if (strlen>2)
-			{
-				if (*str++ != 'x')
-					return 1;
-				if (strlen>3)
-				{
-					if (*str++ != 'm')
-						return 1;
-					if (strlen>4)
-					{
-						if (*str++ != 'l')
-							return 1;
-						if (strlen>5)
-						{
-							if (*str != ' ' && *str != '\t' && *str != '\r' && *str != '\n')
-								return 1;
-							return parseencoding_unicode(++str, strend, encodingstart, encodingend);
-						}
-					}
-				}
-			}
-		}
-	}
-	return 0;
-}
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
 
+#define STRINGLIB_FIXENCODING       fixencoding_ucs4_ucs2
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs4
+#define STRINGLIB_CHAR_XML          Py_UCS4
+#define STRINGLIB_KIND_XML          PyUnicode_4BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS2
+#define STRINGLIB_KIND_ENC          PyUnicode_2BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS4
+#define STRINGLIB_KIND_RES          PyUnicode_4BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs4_ucs1
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs4
+#define STRINGLIB_CHAR_XML          Py_UCS4
+#define STRINGLIB_KIND_XML          PyUnicode_4BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS1
+#define STRINGLIB_KIND_ENC          PyUnicode_1BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS4
+#define STRINGLIB_KIND_RES          PyUnicode_4BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs2_ucs4
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs2
+#define STRINGLIB_CHAR_XML          Py_UCS2
+#define STRINGLIB_KIND_XML          PyUnicode_2BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS4
+#define STRINGLIB_KIND_ENC          PyUnicode_4BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS4
+#define STRINGLIB_KIND_RES          PyUnicode_4BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs2_ucs2
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs2
+#define STRINGLIB_CHAR_XML          Py_UCS2
+#define STRINGLIB_KIND_XML          PyUnicode_2BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS2
+#define STRINGLIB_KIND_ENC          PyUnicode_2BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS2
+#define STRINGLIB_KIND_RES          PyUnicode_2BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs2_ucs1
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs2
+#define STRINGLIB_CHAR_XML          Py_UCS2
+#define STRINGLIB_KIND_XML          PyUnicode_2BYTE_KIND
+#define STRINGLIB_CHAR_ENC          char
+#define STRINGLIB_KIND_ENC          PyUnicode_1BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS2
+#define STRINGLIB_KIND_RES          PyUnicode_2BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs1_ucs4
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs1
+#define STRINGLIB_CHAR_XML          char
+#define STRINGLIB_KIND_XML          PyUnicode_1BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS4
+#define STRINGLIB_KIND_ENC          PyUnicode_4BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS4
+#define STRINGLIB_KIND_RES          PyUnicode_4BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs1_ucs2
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs1
+#define STRINGLIB_CHAR_XML          char
+#define STRINGLIB_KIND_XML          PyUnicode_1BYTE_KIND
+#define STRINGLIB_CHAR_ENC          Py_UCS2
+#define STRINGLIB_KIND_ENC          PyUnicode_2BYTE_KIND
+#define STRINGLIB_CHAR_RES          Py_UCS2
+#define STRINGLIB_KIND_RES          PyUnicode_2BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
+
+#define STRINGLIB_FIXENCODING       fixencoding_ucs1_ucs1
+#define STRINGLIB_PARSEDECLARATION  parsedeclaration_ucs1
+#define STRINGLIB_CHAR_XML          char
+#define STRINGLIB_KIND_XML          PyUnicode_1BYTE_KIND
+#define STRINGLIB_CHAR_ENC          char
+#define STRINGLIB_KIND_ENC          PyUnicode_1BYTE_KIND
+#define STRINGLIB_CHAR_RES          char
+#define STRINGLIB_KIND_RES          PyUnicode_1BYTE_KIND
+
+#include "_xml_codec_include2.c"
+
+#undef STRINGLIB_FIXENCODING
+#undef STRINGLIB_PARSEDECLARATION
+#undef STRINGLIB_CHAR_XML
+#undef STRINGLIB_KIND_XML
+#undef STRINGLIB_CHAR_ENC
+#undef STRINGLIB_KIND_ENC
+#undef STRINGLIB_CHAR_RES
+#undef STRINGLIB_KIND_RES
 
 /* We're using bits to store all possible candidate encodings (or variants, i.e.
  * we have two bits for the variants of UTF-16 and two for the
@@ -192,7 +352,7 @@ void DUMPBYTE(char c)
 #endif
 
 
-static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
+static PyObject *detectencoding_bytes(const char *str, Py_ssize_t len, int final)
 {
 	const char *origstr;
 	Py_ssize_t origlen;
@@ -346,7 +506,7 @@ static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
 			const char *encodingstart;
 			const char *encodingend;
 
-			switch (parseencoding_str(str, strend, &encodingstart, &encodingend))
+			switch (parseencoding_ucs1(str, strend, &encodingstart, &encodingend))
 			{
 				case -1:
 					return NULL;
@@ -366,42 +526,33 @@ static PyObject *detectencoding_str(const char *str, Py_ssize_t len, int final)
 }
 
 
-static PyObject *detectencoding_unicode(const Py_UNICODE *str, Py_ssize_t len, int final)
-{
-	const Py_UNICODE *encodingstart;
-	const Py_UNICODE *encodingend;
-
-	switch (parsedeclaration_unicode(str, str+len, &encodingstart, &encodingend))
-	{
-		case -1:
-			return NULL;
-		case 0: /* don't know yet */
-			if (final) /* we won't get better data, so default to utf-8 */
-				goto utf8;
-			Py_RETURN_NONE;
-		case 1: /* not found => default to UTF-8 */
-			goto utf8;
-		case 2: /* found it => put the encoding name into this spot and return the new string */
-			return PyUnicode_FromUnicode(encodingstart, encodingend-encodingstart);
-	}
-	utf8:
-	return PyUnicode_DecodeASCII("utf-8", 5, NULL);
-}
-
-
 static PyObject *detectencoding(PyObject *self, PyObject *args)
 {
 	PyObject *obj;
 	Py_buffer buf;
 	int final = 0;
 
-	if (!PyArg_ParseTuple(args, "O|i:detectxmlencoding", &obj, &final))
+	if (!PyArg_ParseTuple(args, "O|i:detectencoding", &obj, &final))
 		return NULL;
 
 	if (PyUnicode_Check(obj))
-		return detectencoding_unicode(PyUnicode_AS_UNICODE(obj), PyUnicode_GET_SIZE(obj), final);
+	{
+		int kind = PyUnicode_KIND(obj);
+		switch (kind)
+		{
+			case PyUnicode_1BYTE_KIND:
+				return detectencoding_ucs1(PyUnicode_DATA(obj), PyUnicode_GET_LENGTH(obj), final);
+			case PyUnicode_2BYTE_KIND:
+				return detectencoding_ucs2(PyUnicode_DATA(obj), PyUnicode_GET_LENGTH(obj), final);
+			case PyUnicode_4BYTE_KIND:
+				return detectencoding_ucs4(PyUnicode_DATA(obj), PyUnicode_GET_LENGTH(obj), final);
+			default:
+				PyErr_SetString(PyExc_ValueError, "Unknown unicode format");
+				return NULL;
+		}
+	}
 	else if (!PyObject_GetBuffer(obj, &buf, PyBUF_CONTIG_RO))
-		return detectencoding_str(buf.buf, buf.len, final);
+		return detectencoding_bytes(buf.buf, buf.len, final);
 	return NULL;
 }
 
@@ -418,49 +569,59 @@ static char detectencoding__doc__[] = PyDoc_STR(
 PyObject *fixencoding(PyObject *self, PyObject *args)
 {
 	PyObject *strobj;
-	const Py_UNICODE *strstart;
-	const Py_UNICODE *strend;
+	PyObject *newencodingobj;
 	int final = 0;
-	const Py_UNICODE *enc;
-	Py_ssize_t enclen;
-	const Py_UNICODE *encodingstart;
-	const Py_UNICODE *encodingend;
 
-	if (!PyArg_ParseTuple(args, "O!u#|i:fixencoding", &PyUnicode_Type, &strobj, &enc, &enclen, &final))
+	if (!PyArg_ParseTuple(args, "O!O!|i:fixencoding", &PyUnicode_Type, &strobj, &PyUnicode_Type, &newencodingobj, &final))
 		return NULL;
 
-	strstart = PyUnicode_AS_UNICODE(strobj);
-	strend = strstart + PyUnicode_GET_SIZE(strobj);
-	switch (parsedeclaration_unicode(strstart, strend, &encodingstart, &encodingend))
+	int kind_xml = PyUnicode_KIND(strobj);
+	int kind_enc = PyUnicode_KIND(newencodingobj);
+
+	switch (kind_xml)
 	{
-		case -1:
-			return NULL;
-		case 0: /* don't know yet */
-			if (final) /* we won't get better data, so use what we have */
-				goto original;
-			Py_RETURN_NONE;
-		case 1: /* not found => return original string */
-			goto original;
-		case 2: /* found it */
-		{
-			/* yes => put the encoding name into this spot and return the new string */
-			PyObject *newobj = PyUnicode_FromUnicode(NULL, (encodingstart-strstart) + enclen + (strend - encodingend));
-			Py_UNICODE *new;
-			if (!newobj)
-				return NULL;
-			new = PyUnicode_AS_UNICODE(newobj);
-			Py_UNICODE_COPY(new, strstart, encodingstart-strstart);
-			new += encodingstart-strstart;
-			Py_UNICODE_COPY(new, enc, enclen);
-			new += enclen;
-			Py_UNICODE_COPY(new, encodingend, strend-encodingend);
-			return newobj;
-		}
+		case PyUnicode_4BYTE_KIND:
+			switch (kind_enc)
+			{
+				case PyUnicode_4BYTE_KIND:
+					return fixencoding_ucs4_ucs4(strobj, newencodingobj, final);
+				case PyUnicode_2BYTE_KIND:
+					return fixencoding_ucs4_ucs2(strobj, newencodingobj, final);
+				case PyUnicode_1BYTE_KIND:
+					return fixencoding_ucs4_ucs1(strobj, newencodingobj, final);
+				default:
+					goto error;
+			}
+		case PyUnicode_2BYTE_KIND:
+			switch (kind_enc)
+			{
+				case PyUnicode_4BYTE_KIND:
+					return fixencoding_ucs2_ucs4(strobj, newencodingobj, final);
+				case PyUnicode_2BYTE_KIND:
+					return fixencoding_ucs2_ucs2(strobj, newencodingobj, final);
+				case PyUnicode_1BYTE_KIND:
+					return fixencoding_ucs2_ucs1(strobj, newencodingobj, final);
+				default:
+					goto error;
+			}
+		case PyUnicode_1BYTE_KIND:
+			switch (kind_enc)
+			{
+				case PyUnicode_4BYTE_KIND:
+					return fixencoding_ucs1_ucs4(strobj, newencodingobj, final);
+				case PyUnicode_2BYTE_KIND:
+					return fixencoding_ucs1_ucs2(strobj, newencodingobj, final);
+				case PyUnicode_1BYTE_KIND:
+					return fixencoding_ucs1_ucs1(strobj, newencodingobj, final);
+				default:
+					goto error;
+			}
+		default:
+			goto error;
 	}
-	Py_RETURN_NONE;
-	original:
-	Py_INCREF(strobj);
-	return strobj;
+	error:
+	PyErr_SetString(PyExc_ValueError, "Unknown unicode format");
+	return NULL;
 }
 
 

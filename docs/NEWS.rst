@@ -15,6 +15,9 @@ HEAD (released 11/??/2020)
 	:class:`datetime.timedelta` object, it was interpreted relative to the
 	start of the run, not relative to now. This has been fixed.
 
+*	The module :mod:`ll._xml_codec` has been updated to directly support and
+	produce PEP393 style unicode strings.
+
 
 Changes in 5.64 (released 10/30/2020)
 -------------------------------------
