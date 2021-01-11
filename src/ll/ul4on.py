@@ -203,10 +203,10 @@ global registry.
 Object content mismatch
 -----------------------
 
-In situations where an UL4ON API is updated frequently it makes sense to be able
+In situations where an UL4ON API is updated frequently it is useful to be able
 to update the writing side and the reading side independently. To support this,
 :class:`Decoder` has a method :meth:`~Decoder.loadcontent` that is a generator
-that reads the content of an object from the input stream and yields those
+that reads the content items of an object from the input stream and yields those
 items.
 
 This allows to handle both situations:
@@ -254,14 +254,18 @@ For our example class it could be used like this::
 	j = ul4on.loads(output, {"com.example.person": Person})
 	print("Loaded:", j)
 
+This outputs::
+
+	Loaded: <Person firstname='John' lastname=None>
+
 
 Chunked UL4ON
 -------------
 
 :mod:`!ll.ul4on` also provides access to the classes that implement UL4ON
 encoding and decoding. This can be used to create multiple UL4ON dumps using the
-same encoding context, or recreate multiple objects from multiple UL4ON dumps
-that use the same decoding context.
+same encoding context, or recreate multiple objects from those multiple UL4ON
+dumps (using the same decoding context).
 
 An example for encoding::
 
@@ -337,29 +341,34 @@ Incremental UL4ON and persistent objects
 ----------------------------------------
 
 Objects that have an attribute ``ul4onid`` are considered "persistent" objects.
+The combination of ``ul4onname`` and ``ul4onid`` uniquely identifies each
+persistent object (even across multiple unrelated UL4ON dumps).
 
 An :class:`Encoder` will dump those objects differently than other objects
-without an ``ul4onid`` attribute. :meth:`ul4ondump` doesn't have to dump the
-``ul4onid`` attribute in this case, as this is done by the :class:`Encoder`.
+without an ``ul4onid`` attribute.
+
 
 A :class:`Decoder` will remember all persistent objects it has loaded
 (under their ``ul4onname`` and ``ul4onid``). If the decoder encounters the
-``ul4onname`` and ``ul4onid`` of an object it has remembered, it won't create
+``ul4onname`` and ``ul4onid`` of an object it has remembered, it will not create
 a new object, instead :meth:`ul4onload` will be called for the existing object.
-Note that :meth:`ul4onload` doesn't have to load the ``ul4onid`` from the dump,
-as the :class:`Decoder` has already done that. If the decoder encounters a
-persistent objects it hasn't remembered, it will create a new object (passing
-the ``ul4onid`` as the only argument to the constructor) and then call
-:meth:`ul4onload` on the new object.
+If the decoder encounters a persistent objects it hasn't remembered, it will
+create a new object (passing the ``ul4onid`` as the only argument to the
+constructor) and then call :meth:`ul4onload` on the new object.
 
 This means that with this approach it's possible to use one :class:`Decoder`
-object to load multiple independently created UL4ON dumps "incrementally"
-one after the other, but still merge the objects in the subsequent dumps into
-the objects created by previous dumps.
+object to load multiple unrelated UL4ON dumps "incrementally" one after the
+other, but still merge the persistent objects in the subsequent dumps into the
+those created by previous dumps.
+
+.. note::
+	For persistent objects :meth:`ul4onload` and :meth:`ul4ondump` don't have
+	the dump/load the ``ul4onid`` attribute, as this is done by the
+	:class:`Encoder`/:class:`Decoder`.
 
 .. note::
 	If the value of the attribute ``ul4onid`` is :const:`None` the object will
-	not be treated as a persitent object.
+	be treated as an "ordinary" (i.e. non-persistent) object.
 
 .. note::
 	For this approach, the method :meth:`~Decoder.reset` must be called between
