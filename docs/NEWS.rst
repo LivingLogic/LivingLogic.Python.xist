@@ -11,6 +11,11 @@ see :ref:`MIGRATION`.
 HEAD (released 11/??/2020)
 --------------------------
 
+*	:mod:`ll.ul4on` now supports "persistent" objects, i.e. objects that can be
+	uniquely identified across several unrelated decoding calls. Loading a
+	persistent object that has been loaded before will reinitialize the existing
+	object instead of creating a new one.
+
 *	In sisyphus jobs, when the value of the ``nextrun`` parameter was a
 	:class:`datetime.timedelta` object, it was interpreted relative to the
 	start of the run, not relative to now. This has been fixed.
