@@ -357,7 +357,7 @@ class Converter:
 	class root(misc.propclass):
 		"""
 		The root URL for the conversion. Resolving URLs during the conversion
-		process should be done relative to :property:`root`.
+		process should be done relative to :attr:`root`.
 		"""
 		def __get__(self):
 			return self.states[-1].root
