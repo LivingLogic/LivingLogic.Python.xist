@@ -758,6 +758,11 @@ class Publisher:
 		"""
 		Output the node ``node``. This method is a generator that will yield
 		the resulting XML byte sequence in fragments.
+
+		URLs in ``node`` will be published relative to the base URL ``base``.
+
+		Setting ``allowschemerelurls`` to true allow schema-relative URLs
+		(e.g. ``//www.example.org/about.html``).
 		"""
 		if self.validate:
 			for warning in node.validate(True, [node]):
@@ -939,7 +944,7 @@ class Cursor:
 		Create a new :class:`Cursor` object for a tree traversal rooted at the node
 		``node``.
 
-		The other arguments ``entercontent``, ``enterattrs``, ``enterattr``,
+		The arguments ``entercontent``, ``enterattrs``, ``enterattr``,
 		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
 		``leaveattrnode`` are used as the initial values for the attributes of
 		the same name. (see the class docstring for info about their use).
@@ -1284,7 +1289,8 @@ class Node(object, metaclass=_Node_Meta):
 		A generator that will produce this node as a serialized byte string. (i.e.
 		it will output what the method :meth:`bytes` outputs, but incremetally).
 
-		For the possible parameters see the :class:`Publisher` constructor.
+		For the possible parameters see the :class:`Publisher` constructor and
+		its :meth:`~Publisher.iterbytes` method.
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)

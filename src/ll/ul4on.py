@@ -484,7 +484,8 @@ class Encoder:
 		``stream`` must provide a :meth:`!write` method.
 
 		Passing :const:`None` for ``stream`` may only be done by objects that
-		implement UL4ON serialization in their :meth:`ul4ondump` method.
+		call :meth:`!dump` to implement UL4ON serialization in their
+		own :meth:`ul4ondump` method.
 		"""
 		if stream is not None:
 			self.stream = stream
@@ -623,7 +624,8 @@ class Decoder:
 		``stream`` must provide a :meth:`!read` method.
 
 		Passing :const:`None` for ``stream`` may only be done by objects that
-		implement UL4ON deserialization in their :meth:`ul4onload` method.
+		call :meth:`!load` to implement UL4ON deserialization in their
+		own :meth:`ul4onload` method.
 		"""
 		if stream is not None:
 			self.stream = stream
@@ -886,7 +888,7 @@ class Decoder:
 
 	def reset(self) -> None:
 		"""
-		Clear the internal cache for backreferences so that a new independant
+		Clear the internal cache for backreferences so that a new unrelated
 		UL4ON dump can be loaded.
 
 		However the cache for persistent objects will not be cleared.
