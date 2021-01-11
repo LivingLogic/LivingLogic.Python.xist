@@ -23,6 +23,9 @@ HEAD (released 11/??/2020)
 *	The module :mod:`ll._xml_codec` has been updated to directly support and
 	produce :pep:`393` style unicode strings.
 
+*	A method ``date`` has been added to ``date`` and ``datetime`` objects in
+	UL4 templates.
+
 
 Changes in 5.64 (released 10/30/2020)
 -------------------------------------

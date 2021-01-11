@@ -1914,6 +1914,16 @@ above (except for the linefeeds of course)::
 	<?print format(t.second(), '02')?>.
 	<?print format(t.microsecond(), '06')?> GMT
 
+``date``
+""""""""
+
+``date`` is a date method. For date objects the object is returned unmodified,
+for datetime objects a date object containing the date portion of the object
+is returned, so::
+
+	<?print @(2000-02-29T12:34:56.987654)?>
+
+prints ``2000-02-29``.
 
 ``yearweek``
 """"""""""""
