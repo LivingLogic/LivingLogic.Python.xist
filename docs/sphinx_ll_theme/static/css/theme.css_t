@@ -1631,7 +1631,6 @@ main .admonition-todo
 	color:#fff;
 	font-weight: bold;
 	display: block;
-	color: #fff;
 	background: #6ab0de;
 	margin: -0.3em -{{theme_horizontal_indent}} 0.3em -{{theme_horizontal_indent}};
 	padding: 0.3em {{theme_horizontal_indent}};
