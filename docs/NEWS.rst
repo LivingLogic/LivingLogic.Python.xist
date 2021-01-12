@@ -20,8 +20,8 @@ HEAD (released 01/??/2021)
 	:class:`datetime.timedelta` object, it was interpreted relative to the
 	start of the run, not relative to now. This has been fixed.
 
-*	The module :mod:`ll._xml_codec` has been updated to directly support and
-	produce :pep:`393` style unicode strings.
+*	The modules :mod:`ll._xml_codec` and :mod:`ll.xist.sgmlop` have been updated
+	to directly support and produce :pep:`393` style unicode strings.
 
 *	A method ``date`` has been added to ``date`` and ``datetime`` objects in
 	UL4 templates.

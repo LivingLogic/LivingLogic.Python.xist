@@ -260,7 +260,7 @@ args = dict(
 		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
 		tools.Extension("ll._misc", ["src/ll/_misc.c"]),
 		tools.Extension("ll._xml_codec", ["src/ll/_xml_codec.c", "src/ll/_xml_codec_include1.c", "src/ll/_xml_codec_include2.c"]),
-		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"], define_macros=[("SGMLOP_UNICODE_SUPPORT", None)]),
+		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"]),
 	],
 	entry_points=dict(
 		console_scripts=[
