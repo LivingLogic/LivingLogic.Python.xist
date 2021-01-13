@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-HEAD (released 01/??/2021)
+HEAD (released 01/13/2021)
 --------------------------
 
 *	:mod:`ll.ul4on` now supports "persistent" objects, i.e. objects that can be
