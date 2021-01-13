@@ -846,7 +846,7 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-side-nav-search > a.home
 {
 	font-size: 140%;
-	border-radius: 0.5em;
+	border-radius: 0.5rem;
 }
 
 .wy-side-nav-search > a img.logo,
@@ -1073,7 +1073,7 @@ aside .rst-buttons
 	flex-flow: row nowrap;
 	padding: 0.5rem 1.2rem;
 	border: 1px solid transparent;
-	border-radius: 8px;
+	border-radius: 0.5rem;
 	margin-bottom: {{theme_vertical_spacing}};
 }
 
@@ -1277,7 +1277,7 @@ aside .breadcrumbs
 	border: 1px solid #ccc;
 	overflow-x: auto;
 	margin: 0.7em 0;
-	border-radius: 0.3em;
+	border-radius: 0.5rem;
 	background-color: rgba(255, 255, 255, 0.66);
 }
 .rst-content pre.literal-block div[class^='highlight'],
@@ -1545,6 +1545,24 @@ table.download td:last-child
 	text-align: right;
 }
 
+main dl.class,
+main dl.function,
+main dl.method,
+main dl.classmethod,
+main dl.exception,
+main dl.attribute,
+main dl:not(.docutils) dl.class,
+main dl:not(.docutils) dl.function,
+main dl:not(.docutils) dl.method,
+main dl:not(.docutils) dl.classmethod,
+main dl:not(.docutils) dl.exception,
+main dl:not(.docutils) dl.attribute
+{
+	border: 1px solid #ddd;
+	border-radius: 0.5rem;
+	padding: 0 {{theme_horizontal_indent}};
+}
+
 main dl.class > dt,
 main dl.function > dt,
 main dl.method > dt,
@@ -1558,13 +1576,9 @@ main dl:not(.docutils) dl.classmethod > dt,
 main dl:not(.docutils) dl.exception > dt,
 main dl:not(.docutils) dl.attribute > dt
 {
-	margin: 0.6em 0 0 0;
-	border: 1px solid #ddd;
-	border-top-left-radius: 0.3em;
-	border-top-right-radius: 0.3em;
-	padding: 0.3em {{theme_horizontal_indent}};
+	margin: {{theme_vertical_spacing}} 0;
 	font-family: "Source Code Pro", monospace;
-	background-color: rgba(1, 1, 1, 0.02);
+	line-height: 1.2;
 }
 
 main dl.class > dd,
@@ -1579,29 +1593,7 @@ main dl:not(.docutils) dl.method > dd,
 main dl:not(.docutils) dl.exception > dd,
 main dl:not(.docutils) dl.attribute > dd
 {
-	margin: 0 0 0.6em 0;
-	border-style: solid;
-	border-color: #ddd;
-	border-width: 0 1px 1px 1px;
-	border-bottom-left-radius: 0.3em;
-	border-bottom-right-radius: 0.3em;
-	padding: 0.3em {{theme_horizontal_indent}};
-}
-
-main dl.class > dd:last-child > p:last-child,
-main dl.function > dd:last-child > p:last-child,
-main dl.method > dd:last-child > p:last-child,
-main dl.classmethod > dd:last-child > p:last-child,
-main dl.exception > dd:last-child > p:last-child,
-main dl.attribute > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.class > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.function > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.method > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.classmethod > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.exception > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.attribute > dd:last-child > p:last-child
-{
-	margin: 0;
+	margin: {{theme_vertical_spacing}} 0;
 }
 
 .wy-alert,
@@ -1620,13 +1612,14 @@ main .admonition-todo
 	line-height: {{theme_line_height}};
 	padding: 0.3em {{theme_horizontal_indent}};
 	margin: 0.6em 0;
-	border-radius: 0.3em;
+	border-radius: 0.5rem;
 	border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .wy-alert-title, .rst-content .admonition-title
 {
 	font-size: 120%;
+	line-height: 1.2;
 	display: block;
 	margin: 0;
 }
