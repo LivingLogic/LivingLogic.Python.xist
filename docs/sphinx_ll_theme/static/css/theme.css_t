@@ -1297,7 +1297,7 @@ aside .breadcrumbs
 	font-size: 0.9em;
 	line-height: 1.4;
 	margin: 0;
-	padding: 0.3em {{theme_horizontal_indent}};
+	padding: {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 	overflow: auto;
 	tab-size: 3;
 	-moz-tab-size: 3;
@@ -1610,7 +1610,7 @@ main .seealso,
 main .admonition-todo
 {
 	line-height: {{theme_line_height}};
-	padding: 0.3em {{theme_horizontal_indent}};
+	padding: {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 	margin: 0.6em 0;
 	border-radius: 0.5rem;
 	border: 1px solid rgba(0, 0, 0, 0.2);
