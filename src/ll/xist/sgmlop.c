@@ -40,6 +40,7 @@
  * 2003-09-07 fl  Fixed garbage collection support for Python 2.2 and later
  * 2004-04-04 fl  Fixed parsing of non-ascii attribute values (@XMLTOOLKIT38)
  * 2007-09-12 wd  Python 2.5 updates: use Py_ssize_t
+ * 2021-01-12 wd  Switch to PEP 393 strings
  *
  * Copyright (c) 1998-2007 by Secret Labs AB
  * Copyright (c) 1998-2007 by Fredrik Lundh
@@ -82,13 +83,6 @@ static char copyright[] = " SGMLOP 1.1.2 Copyright (c) 1998-2003 by Secret Labs 
 
 #include <ctype.h>
 
-/* use wide character set (experimental) */
-/* FIXME: under Python 1.6, the current version converts Unicode
-   strings to UTF-8, and parses the result as if it was an ASCII
-   string. */
-
-#define CHAR_T            Py_UCS4
-
 #define MAKESTRING(start, len) PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, start, len)
 
 #define NAMECHAR(ch)\
@@ -104,12 +98,12 @@ static char copyright[] = " SGMLOP 1.1.2 Copyright (c) 1998-2003 by Secret Labs 
 
 typedef struct {
 	/* well-formedness checker */
-	int (*starttag)(void* self, CHAR_T* b, CHAR_T* e);
-	int (*endtag)(void* self, CHAR_T* b, CHAR_T* e);
-	int (*attribute)(void* self, CHAR_T* b, CHAR_T* e);
-	int (*entityref)(void* self, CHAR_T* b, CHAR_T* e);
-	int (*charref)(void* self, CHAR_T* b, CHAR_T* e);
-	int (*comment)(void* self, CHAR_T* b, CHAR_T* e);
+	int (*starttag)(void *self, Py_UCS4 *b, Py_UCS4 *e);
+	int (*endtag)(void *self, Py_UCS4 *b, Py_UCS4 *e);
+	int (*attribute)(void *self, Py_UCS4 *b, Py_UCS4 *e);
+	int (*entityref)(void *self, Py_UCS4 *b, Py_UCS4 *e);
+	int (*charref)(void *self, Py_UCS4 *b, Py_UCS4 *e);
+	int (*comment)(void *self, Py_UCS4 *b, Py_UCS4 *e);
 } Checker;
 
 /* parser type definition */
@@ -131,7 +125,7 @@ typedef struct {
 	Checker* check;
 
 	/* buffer (holds incomplete tags) */
-	CHAR_T* buffer;
+	Py_UCS4 *buffer;
 	Py_ssize_t bufferlen; /* current amount of data */
 	Py_ssize_t buffertotal; /* actually allocated */
 
@@ -155,11 +149,11 @@ PyTypeObject FastParser_Type;
 
 /* forward declarations */
 static Py_ssize_t fastfeed(FastParserObject *self);
-static int attrparse(FastParserObject *self, const CHAR_T *p, const CHAR_T *e);
-static int entity(const CHAR_T* b, const CHAR_T *e);
-static int wf_starttag(Checker* self, CHAR_T* b, CHAR_T* e);
-static int wf_endtag(Checker* self, CHAR_T* b, CHAR_T* e);
-static int wf_ok(Checker* self, CHAR_T* b, CHAR_T* e);
+static int attrparse(FastParserObject *self, const Py_UCS4 *p, const Py_UCS4 *e);
+static int entity(const Py_UCS4 *b, const Py_UCS4 *e);
+static int wf_starttag(Checker* self, Py_UCS4 *b, Py_UCS4 *e);
+static int wf_endtag(Checker* self, Py_UCS4 *b, Py_UCS4 *e);
+static int wf_ok(Checker* self, Py_UCS4 *b, Py_UCS4 *e);
 
 static Checker wf_checker = {
 	(void*) wf_starttag,
@@ -339,7 +333,7 @@ static PyObject *feed(FastParserObject* self, PyObject *string, int last)
 		   let's just bail out before the parser messes things up */
 		PyErr_SetString(PyExc_AssertionError, "recursive feed");
 		return NULL;
-    }
+	}
 
 	/* append new text block to local buffer */
 	if (!self->buffer) {
@@ -381,7 +375,7 @@ static PyObject *feed(FastParserObject* self, PyObject *string, int last)
 
 	if (length > 0 && length < self->bufferlen)
 		/* adjust buffer */
-		memmove(self->buffer, self->buffer + length, (self->bufferlen - length)*sizeof(CHAR_T));
+		memmove(self->buffer, self->buffer + length, (self->bufferlen - length)*sizeof(Py_UCS4));
 
 	self->bufferlen -= length;
 
@@ -512,7 +506,7 @@ PyMODINIT_FUNC PyInit_sgmlop(void)
 /* -------------------------------------------------------------------- */
 /* well-formedness checker */
 
-static int wf_tag(Checker *self, CHAR_T *b, CHAR_T *e)
+static int wf_tag(Checker *self, Py_UCS4 *b, Py_UCS4 *e)
 {
 	/* check that the start tag contains a valid name */
 	if (b >= e)
@@ -531,21 +525,21 @@ static int wf_tag(Checker *self, CHAR_T *b, CHAR_T *e)
 	return 0;
 }
 
-static int wf_starttag(Checker *self, CHAR_T *b, CHAR_T *e)
+static int wf_starttag(Checker *self, Py_UCS4 *b, Py_UCS4 *e)
 {
 	if (!wf_tag(self, b, e))
 		return 0;
 	return 1;
 }
 
-static int wf_endtag(Checker *self, CHAR_T *b, CHAR_T *e)
+static int wf_endtag(Checker *self, Py_UCS4 *b, Py_UCS4 *e)
 {
 	if (!wf_tag(self, b, e))
 		return 0;
 	return 1;
 }
 
-static int wf_ok(Checker *self, CHAR_T *b, CHAR_T *e)
+static int wf_ok(Checker *self, Py_UCS4 *b, Py_UCS4 *e)
 {
 	return 1;
 }
@@ -570,7 +564,7 @@ static int wf_ok(Checker *self, CHAR_T *b, CHAR_T *e)
 #define CHARREF 0x401
 #define COMMENT 0x800
 
-static int entity(const CHAR_T *b, const CHAR_T *e)
+static int entity(const Py_UCS4 *b, const Py_UCS4 *e)
 {
 	/* resolve standard entity (return <0 if non-standard/malformed) */
 	if (b < e) {
@@ -587,7 +581,7 @@ static int entity(const CHAR_T *b, const CHAR_T *e)
 			return '"'; /* &quot; */
 		else if (b[0] == '#') {
 			/* character entity */
-			const CHAR_T *p;
+			const Py_UCS4 *p;
 			int ch = 0;
 			b++;
 			if (b >= e || *b != 'x')
@@ -621,9 +615,9 @@ static int entity(const CHAR_T *b, const CHAR_T *e)
 
 static Py_ssize_t fastfeed(FastParserObject *self)
 {
-	CHAR_T *end; /* tail */
-	CHAR_T *p, *q, *s; /* scanning pointers */
-	CHAR_T *b, *t, *e; /* token start/end */
+	Py_UCS4 *end; /* tail */
+	Py_UCS4 *p, *q, *s; /* scanning pointers */
+	Py_UCS4 *b, *t, *e; /* token start/end */
 
 	int token;
 
@@ -712,8 +706,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 			/* process tag name */
 			b = p;
 			if (!self->xml)
-				while (Py_UNICODE_ISALNUM(*p) || *p == '-' || *p == '.' ||
-					   *p == ':' || *p == '?') {
+				while (Py_UNICODE_ISALNUM(*p) || *p == '-' || *p == '.' || *p == ':' || *p == '?') {
 					*p = Py_UNICODE_TOLOWER(*p);
 					if (++p >= end)
 						goto eol;
@@ -883,8 +876,8 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					Py_DECREF(res);
 				}
 			} else if (token == DIRECTIVE || token == DOCTYPE ||
-					   token == DTD_START || token == DTD_ENTITY ||
-					   token == DTD_END) {
+			           token == DTD_START || token == DTD_ENTITY ||
+			           token == DTD_END) {
 				if (self->handle_special) {
 					PyObject* res;
 					res = PyObject_CallFunction(
@@ -957,15 +950,15 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 				return -1;
 			}
 		} else if (token == ENTITYREF) {
-			CHAR_T ch;
+			Py_UCS4 ch;
 			int charref;
 			/* check for standard entity */
 			charref = entity(b, e);
 			if (charref > 0) {
 				if (self->handle_text) {
 					PyObject *res;
-					/* all builtin entities fit in a CHAR_T */
-					ch = (CHAR_T) charref;
+					/* all builtin entities fit in a Py_UCS4 */
+					ch = (Py_UCS4) charref;
 					res = PyObject_CallFunction(
 						self->handle_text, "O", MAKESTRING(&ch, 1)
 					);
@@ -1014,7 +1007,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 				}
 				{
 					PyObject *res;
-					CHAR_T ch = charref;
+					Py_UCS4 ch = charref;
 					res = PyObject_CallFunction(
 						self->handle_text, "O", MAKESTRING(&ch, 1)
 					);
@@ -1049,12 +1042,12 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 				return -1;
 			Py_DECREF(res);
 		}
-  next:
+		next:
 		q = p; /* start of token */
 		s = p; /* start of span */
 	}
 
-  eol: /* end of line */
+	eol: /* end of line */
 	if (q != s && self->handle_text) {
 		PyObject *res;
 		res = PyObject_CallFunction(self->handle_text, "O", MAKESTRING(s, q-s));
@@ -1067,7 +1060,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 	return q - self->buffer;
 }
 
-int handle_text(FastParserObject *self, const CHAR_T *b, const CHAR_T *e)
+static int handle_text(FastParserObject *self, const Py_UCS4 *b, const Py_UCS4 *e)
 {
 	if (self->handle_text && b != e) {
 		PyObject *res = PyObject_CallFunction(
@@ -1080,7 +1073,7 @@ int handle_text(FastParserObject *self, const CHAR_T *b, const CHAR_T *e)
 	return 0;
 }
 
-int handle_entityref(FastParserObject *self, const CHAR_T *b, const CHAR_T *e)
+static int handle_entityref(FastParserObject *self, const Py_UCS4 *b, const Py_UCS4 *e)
 {
 	int code = entity(b, e);
 	if (code == -1) {
@@ -1093,16 +1086,16 @@ int handle_entityref(FastParserObject *self, const CHAR_T *b, const CHAR_T *e)
 			Py_DECREF(res);
 		}
 	} else {
-		CHAR_T c = code;
+		Py_UCS4 c = code;
 		return handle_text(self, &c, &c+1);
 	}
 	return 0;
 }
 
-static int attrparse(FastParserObject *self, const CHAR_T *p, const CHAR_T *end)
+static int attrparse(FastParserObject *self, const Py_UCS4 *p, const Py_UCS4 *end)
 {
 	PyObject* key = NULL;
-	const CHAR_T* q;
+	const Py_UCS4 *q;
 
 	while (p < end) {
 
@@ -1134,7 +1127,7 @@ static int attrparse(FastParserObject *self, const CHAR_T *p, const CHAR_T *end)
 			p++;
 
 		if (p < end && *p == '=') {
-			CHAR_T quote;
+			Py_UCS4 quote;
 			int is_entity = 0;
 			/* attribute value found */
 
