@@ -1627,12 +1627,9 @@ main .admonition-todo
 
 .wy-alert-title, .rst-content .admonition-title
 {
-	font-weight: bold;
+	font-size: 120%;
 	display: block;
-	margin: -0.3em -{{theme_horizontal_indent}} 0 -{{theme_horizontal_indent}};
-	padding: 0.3em {{theme_horizontal_indent}};
-	border-top-left-radius: 0.3em;
-	border-top-right-radius: 0.3em;
+	margin: 0;
 }
 
 dt em
