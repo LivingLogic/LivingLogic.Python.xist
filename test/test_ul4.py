@@ -488,7 +488,11 @@ def pytest_generate_tests(metafunc):
 		metafunc.parametrize("reprfunc", values, ids=values)
 
 
-argumentmismatchmessage = [
+def _make_exception_re(*args):
+	return "({})".format("|".join(args))
+
+
+argumentmismatchmessage = _make_exception_re(
 	# Python argument mismatch exception messages
 	"takes exactly \\d+ (positional )?arguments?", # < 3.3
 	"got an unexpected keyword argument",
@@ -518,65 +522,68 @@ argumentmismatchmessage = [
 	"com.livinglogic.ul4.ArgumentCountMismatchException",
 	"com.livinglogic.ul4.UnsupportedArgumentNameException",
 	"com.livinglogic.ul4.KeywordArgumentsNotSupportedException",
-]
-argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
+)
 
-unorderabletypesmessage = [
+unorderabletypesmessage = _make_exception_re(
 	# Python 3.6
 	"not supported between instances of",
 	# Python < 3.6 and Javascript
 	"unorderable types",
 	# Java
 	"com.livinglogic.ul4.UnorderableTypesException",
-]
-unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
+)
 
-duplicatekeywordargument = [
+duplicatekeywordargument = _make_exception_re(
 	# Python
 	"multiple values for keyword argument",
 	"duplicate keyword argument",
 	"keyword argument repeated",
 	# Java
 	"com.livinglogic.ul4.DuplicateArgumentException",
-]
-duplicatekeywordargument = "({})".format("|".join(duplicatekeywordargument))
+)
 
-unknownkeywordargument = [
+unknownkeywordargument = _make_exception_re(
 	# Python
 	"got an unexpected keyword argument",
 	"doesn't support an argument named",
 	"an argument named [a-zA-Z_][a-zA-Z0-9_]* isn't supported",
 	"too many keyword arguments",
-]
-unknownkeywordargument = "({})".format("|".join(unknownkeywordargument))
+)
 
-missingkeywordargument = [
+missingkeywordargument = _make_exception_re(
 	# Python
 	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
 	"missing a required argument",
 	# Java
 	"com.livinglogic.ul4.MissingArgumentException",
-]
-missingkeywordargument = "({})".format("|".join(missingkeywordargument))
+)
 
-subscriptablemessage = [
+subscriptablemessage = _make_exception_re(
 	# Python
 	"object is not subscriptable",
 	"object does not support item assignment",
 	# Java
 	"com.livinglogic.ul4.ArgumentTypeMismatchException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
-]
-subscriptablemessage = "({})".format("|".join(subscriptablemessage))
+)
 
-indexmessage = [
+indexmessage = _make_exception_re(
 	# Python
 	"index out of range",
 	# Javascript
 	"index -?\\d+ out of range",
 	# Java
 	"IndexOutOfBoundsException"
-]
-indexmessage = "({})".format("|".join(indexmessage))
+)
+
+
+zerodivisionmessage = _make_exception_re(
+	# Python
+	"division or modulo by zero",
+	# Python/Java/Javascript
+	"division by zero",
+	# Java
+	"/ by zero",
+)
 
 
 class raises:
@@ -1308,12 +1315,29 @@ def test_truediv(T):
 	assert 2.0 == eval(t.renders(x=datetime.timedelta(4), y=datetime.timedelta(2)))
 	assert 2.0 == eval(t.renders(x=misc.monthdelta(4), y=misc.monthdelta(2)))
 
+	for x in (True, 42, 42.5, datetime.timedelta(7)):
+		for y in (False, 0, 0.0):
+			with raises(zerodivisionmessage):
+				t.renders(x=x, y=y)
+
 
 @pytest.mark.ul4
 def test_floordiv(T):
+	t = T("<?print x // y?>")
+
 	assert "0" == T('<?print 1//2?>').renders()
 	assert "0" == T('<?code x=1?><?code y=2?><?print x//y?>').renders()
-	assert "1 month" == T('<?print x//y?>').renders(x=misc.monthdelta(3), y=2)
+	assert "1 month" == t.renders(x=misc.monthdelta(3), y=2)
+
+	for x in (True, 42, 42.5):
+		for y in (False, 0, 0.0):
+			with raises(zerodivisionmessage):
+				t.renders(x=x, y=y)
+
+	for x in (datetime.timedelta(7), misc.monthdelta(3)):
+		for y in (False, 0):
+			with raises(zerodivisionmessage):
+				t.renders(x=x, y=y)
 
 
 @pytest.mark.ul4
