@@ -163,10 +163,6 @@ class TemplateJava:
 		dump = ul4on.dumps(data).encode("utf-8")
 		result = subprocess.run("java com.livinglogic.ul4.Tester", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		# Check if we have an exception
-		print("##########################")
-		print(repr(result.stdout))
-		print(repr(result.stderr))
-		print("##########################")
 		self.findexception(result.stderr.decode("utf-8", "passbytes"))
 		return result.stdout.decode("utf-8", "passbytes")
 
