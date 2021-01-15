@@ -1327,7 +1327,13 @@ def test_floordiv(T):
 
 	assert "0" == T('<?print 1//2?>').renders()
 	assert "0" == T('<?code x=1?><?code y=2?><?print x//y?>').renders()
+
+	for x in (True, 2, 3.5):
+		for y in (True, 2, 3.5):
+			assert x//y == float(t.renders(x=x, y=y))
+
 	assert "1 month" == t.renders(x=misc.monthdelta(3), y=2)
+	assert "1" == t.renders(x=misc.monthdelta(3), y=misc.monthdelta(2))
 
 	for x in (True, 42, 42.5):
 		for y in (False, 0, 0.0):
@@ -1338,6 +1344,12 @@ def test_floordiv(T):
 		for y in (False, 0):
 			with raises(zerodivisionmessage):
 				t.renders(x=x, y=y)
+
+	with raises(zerodivisionmessage):
+		t.renders(x=datetime.timedelta(5), y=datetime.timedelta(0))
+
+	with raises(zerodivisionmessage):
+		t.renders(x=misc.monthdelta(5), y=misc.monthdelta(0))
 
 
 @pytest.mark.ul4
