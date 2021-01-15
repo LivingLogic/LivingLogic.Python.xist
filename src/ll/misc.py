@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, os.path, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess, enum
+import sys, os, os.path, platform, types, datetime, collections, argparse, functools, signal, contextlib, subprocess, enum
 from collections import abc
 
 from ll import color
