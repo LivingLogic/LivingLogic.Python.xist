@@ -653,7 +653,20 @@ input[type="radio"][disabled],input[type="checkbox"][disabled]{cursor:not-allowe
 .float-left{float:left}
 .float-right{float:right}
 .full-width{width:100%}
-.wy-table,.rst-content table.docutils,.rst-content table.field-list{border-collapse:collapse;border-spacing:0;empty-cells:show;margin-bottom:24px}
+.wy-table,
+.rst-content table.docutils,
+.rst-content table.field-list
+{
+	border-collapse: collapse;
+	border-spacing: 0;
+	empty-cells: show;
+	margin-bottom: 24px;
+	width: 100%;
+}
+colgroup
+{
+	display: none;
+}
 .wy-table caption,.rst-content table.docutils caption,.rst-content table.field-list caption{color:#000;font:italic 85%/1 arial,sans-serif;padding:1em 0;text-align:center}
 .wy-table td,.rst-content table.docutils td,.rst-content table.field-list td,.wy-table th,.rst-content table.docutils th,.rst-content table.field-list th{font-size:90%;margin:0;overflow:visible;padding:8px 16px}
 .wy-table td:first-child,.rst-content table.docutils td:first-child,.rst-content table.field-list td:first-child,.wy-table th:first-child,.rst-content table.docutils th:first-child,.rst-content table.field-list th:first-child{border-left-width:0}
