@@ -175,7 +175,7 @@ def switchstyle(s1, s2):
 			args.append("4%d" % s2.bg)
 
 		if args:
-			return "\033[{}m".format(";".join(args)
+			return "\033[{}m".format(";".join(args))
 	return ""
 
 
