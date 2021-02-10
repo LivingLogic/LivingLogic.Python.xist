@@ -147,7 +147,7 @@ class Text(list):
 		list.__setitem__(self, slice(index, index), list(others))
 
 	def __repr__(self):
-		return "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__qualname__, list.__repr__(self)[1:-1])
+		return f"{self.__class__.__module__}.{self.__class__.__qualname__}({list.__repr__(self)[1:-1]})"
 
 	def parts(self, colored=True):
 		"""
