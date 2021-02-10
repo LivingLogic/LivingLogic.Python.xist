@@ -19,7 +19,7 @@ class File:
 			pos = name.rfind("py")
 			if pos >= 0:
 				version = name[pos+2:pos+5]
-				self.type += " (Python %s)" % version
+				self.type += f" (Python {version})"
 		elif name.endswith(".whl"):
 			if "win32" in name or "win_amd64" in name:
 				self.type = "Windows wheel"
@@ -33,13 +33,13 @@ class File:
 			if pos >= 0:
 				version = name[pos+3:].split("-")[0]
 				version = ".".join(version)
-				self.type += " (Python %s)" % version
+				self.type += f" (Python {version})"
 		elif name.endswith(".exe"):
 			self.type = "Windows installer"
 			pos = name.rfind("py")
 			if pos >= 0:
 				version = name[pos+2:-4]
-				self.type += " (Python %s)" % version
+				self.type += f" (Python {version})"
 		elif name.endswith(".src.rpm"):
 			self.type = "Source RPM"
 		elif name.endswith(".rpm"):
