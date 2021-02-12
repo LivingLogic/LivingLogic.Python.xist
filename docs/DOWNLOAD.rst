@@ -10,6 +10,29 @@ You can download XIST from the Cheeseshop_, go directly to the
 .. autogenerate start
 
 
+5.65 (released 01/13/2021)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+============================================================================================================================================= ========================== ====
+File                                                                                                                                          Type                       Size
+============================================================================================================================================= ========================== ====
+`ll-xist-5.65.tar.gz <http://python.livinglogic.de/download/xist/ll-xist-5.65.tar.gz>`_                                                       Source                     713K
+`ll_xist-5.65-cp36-cp36m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp36-cp36m-win32.whl>`_                           Windows wheel (Python 3.6) 555K
+`ll_xist-5.65-cp36-cp36m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp36-cp36m-win_amd64.whl>`_                   Windows wheel (Python 3.6) 558K
+`ll_xist-5.65-cp37-cp37m-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp37-cp37m-win32.whl>`_                           Windows wheel (Python 3.7) 552K
+`ll_xist-5.65-cp37-cp37m-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp37-cp37m-win_amd64.whl>`_                   Windows wheel (Python 3.7) 555K
+`ll_xist-5.65-cp38-cp38-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp38-cp38-win32.whl>`_                             Windows wheel (Python 3.8) 552K
+`ll_xist-5.65-cp38-cp38-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp38-cp38-win_amd64.whl>`_                     Windows wheel (Python 3.8) 554K
+`ll_xist-5.65-cp39-cp39-macosx_10_15_x86_64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp39-cp39-macosx_10_15_x86_64.whl>`_ Mac wheel (Python 3.9)     556K
+`ll_xist-5.65-cp39-cp39-win32.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp39-cp39-win32.whl>`_                             Windows wheel (Python 3.9) 551K
+`ll_xist-5.65-cp39-cp39-win_amd64.whl <http://python.livinglogic.de/download/xist/ll_xist-5.65-cp39-cp39-win_amd64.whl>`_                     Windows wheel (Python 3.9) 554K
+============================================================================================================================================= ========================== ====
+
+
 5.64 (released 10/30/2020)
 --------------------------
 

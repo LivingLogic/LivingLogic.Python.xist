@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2007-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2007-2020 by Walter Dörwald
+## Copyright 2007-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2007-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -90,6 +90,16 @@ def test_fixencoding():
 
 	s = '<?xml \r\n\t \r\n\t \r\n\tversion \r\n\t \r\n\t= \r\n\t \r\n\t"1.0" \r\n\t \r\n\t \r\n\tencoding \r\n\t \r\n\t= \r\n\t \r\n\t"x"?>'
 	assert xml_codec._fixencoding(s, "utf-8") == s.replace('"x"', '"utf-8"')
+
+	# Test all combinations of unicode width for the XML and encoding strings and the result.
+	cps = (0x7f, 0xff, 0xffff, 0x10ffff)
+	for cp1 in cps:
+		for cp2 in cps:
+			for cp3 in cps:
+				s = f'<?xml version="1.0" encoding="{chr(cp1)}"{chr(cp2)}?>'
+				result = xml_codec._fixencoding(s, chr(cp3))
+				expected = s.replace(f'"{chr(cp1)}"', f'"{chr(cp3)}"')
+				assert result == expected
 
 
 def check_partial(decoder, input, *parts):

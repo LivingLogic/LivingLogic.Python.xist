@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2020 by Walter Dörwald
+## Copyright 1999-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -357,7 +357,7 @@ class Converter:
 	class root(misc.propclass):
 		"""
 		The root URL for the conversion. Resolving URLs during the conversion
-		process should be done relative to :property:`root`.
+		process should be done relative to :attr:`root`.
 		"""
 		def __get__(self):
 			return self.states[-1].root
@@ -758,6 +758,11 @@ class Publisher:
 		"""
 		Output the node ``node``. This method is a generator that will yield
 		the resulting XML byte sequence in fragments.
+
+		URLs in ``node`` will be published relative to the base URL ``base``.
+
+		Setting ``allowschemerelurls`` to true allow schema-relative URLs
+		(e.g. ``//www.example.org/about.html``).
 		"""
 		if self.validate:
 			for warning in node.validate(True, [node]):
@@ -939,7 +944,7 @@ class Cursor:
 		Create a new :class:`Cursor` object for a tree traversal rooted at the node
 		``node``.
 
-		The other arguments ``entercontent``, ``enterattrs``, ``enterattr``,
+		The arguments ``entercontent``, ``enterattrs``, ``enterattr``,
 		``enterelementnode``, ``leaveelementnode``, ``enterattrnode`` and
 		``leaveattrnode`` are used as the initial values for the attributes of
 		the same name. (see the class docstring for info about their use).
@@ -1284,7 +1289,8 @@ class Node(object, metaclass=_Node_Meta):
 		A generator that will produce this node as a serialized byte string. (i.e.
 		it will output what the method :meth:`bytes` outputs, but incremetally).
 
-		For the possible parameters see the :class:`Publisher` constructor.
+		For the possible parameters see the :class:`Publisher` constructor and
+		its :meth:`~Publisher.iterbytes` method.
 		"""
 		if publisher is None:
 			publisher = Publisher(**publishargs)

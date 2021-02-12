@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2020 by Walter Dörwald
+## Copyright 1999-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -904,20 +904,19 @@ class SGMLOP(Parser):
 		"""
 		Return an iterator over the events produced by ``input``.
 		"""
-		self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-		self._parser = sgmlop.XMLParser()
-		self._parser.register(self)
+		decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
+		parser = sgmlop.XMLParser()
+		parser.register(self)
 		self._buffer = []
-		self._hadtext = False
 
 		try:
 			for (evtype, data) in input:
 				if evtype == "bytes":
-					data = self._decoder.decode(data, False)
+					data = decoder.decode(data, False)
 					evtype = "str"
 				if evtype == "str":
 					try:
-						self._parser.feed(data)
+						parser.feed(data)
 					except Exception as exc:
 						# In case of an exception we want to output the events we have gathered so far, before reraising the exception
 						yield from self._flush(True)
@@ -929,14 +928,11 @@ class SGMLOP(Parser):
 					yield (self.evurl, data)
 				else:
 					raise UnknownEventError(self, (evtype, data))
-			self._parser.close()
+			parser.close()
 			yield from self._flush(True)
 		finally:
-			del self._hadtext
 			del self._buffer
-			self._parser.register(None)
-			del self._parser
-			del self._decoder
+			parser.register(None)
 
 	def _event(self, evtype, evdata):
 		if self._buffer and evtype == self._buffer[-1][0] == self.evtext:
@@ -957,7 +953,7 @@ class SGMLOP(Parser):
 	def handle_comment(self, data):
 		self._event(self.evcomment, data)
 
-	def handle_data(self, data):
+	def handle_text(self, data):
 		self._event(self.evtext, data)
 
 	def handle_cdata(self, data):

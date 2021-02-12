@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2011-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2011-2020 by Walter Dörwald
+## Copyright 2011-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2011-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -599,7 +599,7 @@ def test_custom_class(t):
 		assert isinstance(p, PointContent)
 
 
-def test_multiple_encoder_calls():
+def test_chunked_encoder():
 	encoder = ul4on.Encoder()
 	s1 = "gurk"
 	s2 = "hurz"
@@ -609,12 +609,131 @@ def test_multiple_encoder_calls():
 	assert "^1" == encoder.dumps(s2)
 
 
-def test_multiple_decoder_calls():
+def test_chunked_decoder():
 	decoder = ul4on.Decoder()
 	assert "gurk" == decoder.loads("S'gurk'")
 	assert "hurz" == decoder.loads("S'hurz'")
 	assert "gurk" == decoder.loads("^0")
 	assert "hurz" == decoder.loads("^1")
+
+
+def test_incremental_without_id():
+	class Point:
+		ul4onname = "de.livinglogic.ul4.test.point"
+
+		def __init__(self, id=None, x=None, y=None):
+			self.ul4onid = id
+			self.x = x
+			self.y = y
+
+		def ul4ondump(self, encoder):
+			encoder.dump(self.x)
+			encoder.dump(self.y)
+
+		def ul4onload(self, decoder):
+			self.x = decoder.load()
+			self.y = decoder.load()
+
+	registry = {Point.ul4onname: Point}
+
+	p1 = Point(None, 17, 23)
+
+	encoder = ul4on.Encoder()
+	# Since ``ul4onid`` is ``None`` ``p1`` will not be treated as a persistent object
+	dump = encoder.dumps(p1)
+
+	decoder = ul4on.Decoder(registry)
+
+	dump = dump.replace(" i23 ", " i24 ")
+	p2 = decoder.loads(dump)
+
+	assert p1 is not p2
+
+	assert p1.ul4onid is None
+	assert p1.x == 17
+	assert p1.y == 23
+
+	assert p2.ul4onid is None
+	assert p2.x == 17
+	assert p2.y == 24
+
+	# Reset backreferences
+	decoder.reset()
+
+	# Decode a modified dump a second time
+	dump = dump.replace(" i24 ", " i25 ")
+	p3 = decoder.loads(dump)
+
+	# Since ``p1`` wasn't treated as persistent, the decoder didn't remember ``p2``
+	# So ``p3`` is different
+	assert p2 is not p3
+
+	assert p2.ul4onid is None
+	assert p2.x == 17
+	assert p2.y == 24
+
+	assert p3.ul4onid is None
+	assert p3.x == 17
+	assert p3.y == 25
+
+
+def test_incremental_with_id():
+	class Point:
+		ul4onname = "de.livinglogic.ul4.test.point"
+
+		def __init__(self, id, x=None, y=None):
+			self.ul4onid = id
+			self.x = x
+			self.y = y
+
+		def ul4ondump(self, encoder):
+			encoder.dump(self.x)
+			encoder.dump(self.y)
+
+		def ul4onload(self, decoder):
+			self.x = decoder.load()
+			self.y = decoder.load()
+
+	registry = {Point.ul4onname: Point}
+
+	p1 = Point("foo", 17, 23)
+
+	encoder = ul4on.Encoder()
+	dump = encoder.dumps(p1)
+
+	decoder = ul4on.Decoder(registry)
+
+	dump = dump.replace(" i23 ", " i24 ")
+	p2 = decoder.loads(dump)
+
+	# The decoder hasn't seen this object yet,
+	# so the deserialized objects is not the original one,
+	# but it has the correct attributes.
+	# The attributes of the original object are unchanged.
+	assert p1 is not p2
+
+	assert p1.ul4onid == "foo"
+	assert p1.x == 17
+	assert p1.y == 23
+
+	assert p2.ul4onid == "foo"
+	assert p2.x == 17
+	assert p2.y == 24
+
+	# Reset backreferences
+	decoder.reset()
+
+	# Decode a modified dump a second time
+	dump = dump.replace(" i24 ", " i25 ")
+	p3 = decoder.loads(dump)
+
+	# Now the :meth:`loads` call has updated the object ``p2`` that already exists
+	# The attributes have been updated according to the info in the dump.
+	assert p2 is p3
+
+	assert p3.ul4onid == "foo"
+	assert p3.x == 17
+	assert p3.y == 25
 
 
 @pytest.mark.db

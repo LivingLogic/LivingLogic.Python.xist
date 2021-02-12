@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released ??/??/2020)
+Changes in HEAD (released ??/??/2021)
 -------------------------------------
 
 *	:mod:`ll.pysql` now supports Postgres. To connect to a Postgres database
@@ -46,9 +46,25 @@ Changes in HEAD (released ??/??/2020)
 	If you want to pass the variable's value instead as a simple IN parameter,
 	simply pass the local variable instead.
 
+
+Changes in 5.65 (released 01/13/2021)
+-------------------------------------
+
+*	:mod:`ll.ul4on` now supports "persistent" objects, i.e. objects that can be
+	uniquely identified across several unrelated decoding calls. Loading a
+	persistent object that has been loaded before will reinitialize the existing
+	object instead of creating a new one.
+
 *	In sisyphus jobs, when the value of the ``nextrun`` parameter was a
 	:class:`datetime.timedelta` object, it was interpreted relative to the
 	start of the run, not relative to now. This has been fixed.
+
+*	The modules :mod:`ll._xml_codec` and :mod:`ll.xist.sgmlop` have been updated
+	to directly support and produce :pep:`393` style unicode strings.
+	(:mod:`ll._misc` already supported them).
+
+*	A method ``date`` has been added to ``date`` and ``datetime`` objects in
+	UL4 templates.
 
 
 Changes in 5.64 (released 10/30/2020)

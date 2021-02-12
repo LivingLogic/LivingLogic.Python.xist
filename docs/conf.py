@@ -15,6 +15,7 @@
 
 import sys
 import os
+import types
 
 from sphinx.writers import latex
 
@@ -372,6 +373,8 @@ intersphinx_mapping = {
 	'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
 }
 
+autoclass_content = "class"
+
 autodoc_default_options = {
 	"members": True,
 	"special-members": True,
@@ -380,6 +383,8 @@ autodoc_default_options = {
 	"show-inheritance-diagram": True,
 	"inherit-docstrings": False,
 	"member-order": "bysource",
+	"ignore-module-all": True,
+	"undoc-members": False,
 }
 
 
@@ -388,11 +393,14 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 		'__weakref__', '__slots__', # special-members
 		'__doc__', '__module__', '__dict__',  # undoc-members
 	}
+	doc = getattr(obj, "__doc__", None)
 	if skip:
 		return True
 	elif name in exclusions:
 		return True
-	elif name in dir(object) and getattr(obj, name).__doc__ == getattr(object, name).__doc__:
+	elif name in dir(object) and doc == getattr(object, name).__doc__:
+		return True
+	elif not doc or doc == getattr(type(obj), "__doc__", None):
 		return True
 	return False
 

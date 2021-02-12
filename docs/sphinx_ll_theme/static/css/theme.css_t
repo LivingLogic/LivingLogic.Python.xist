@@ -477,11 +477,8 @@ a .fa,a .wy-menu-vertical li span.toctree-expand,.wy-menu-vertical li a span.toc
 .btn-mini .fa:before,.btn-mini .wy-menu-vertical li span.toctree-expand:before,.wy-menu-vertical li .btn-mini span.toctree-expand:before,.btn-mini .rst-content .admonition-title:before,.rst-content .btn-mini .admonition-title:before,.btn-mini .rst-content h1 .headerlink:before,.rst-content h1 .btn-mini .headerlink:before,.btn-mini .rst-content h2 .headerlink:before,.rst-content h2 .btn-mini .headerlink:before,.btn-mini .rst-content h3 .headerlink:before,.rst-content h3 .btn-mini .headerlink:before,.btn-mini .rst-content h4 .headerlink:before,.rst-content h4 .btn-mini .headerlink:before,.btn-mini .rst-content h5 .headerlink:before,.rst-content h5 .btn-mini .headerlink:before,.btn-mini .rst-content h6 .headerlink:before,.rst-content h6 .btn-mini .headerlink:before,.btn-mini .rst-content dl dt .headerlink:before,.rst-content dl dt .btn-mini .headerlink:before,.btn-mini .rst-content p.caption .headerlink:before,.rst-content p.caption .btn-mini .headerlink:before,.btn-mini .rst-content table>caption .headerlink:before,.rst-content table>caption .btn-mini .headerlink:before,.btn-mini .rst-content .code-block-caption .headerlink:before,.rst-content .code-block-caption .btn-mini .headerlink:before,.btn-mini .rst-content tt.download span:first-child:before,.rst-content tt.download .btn-mini span:first-child:before,.btn-mini .rst-content code.download span:first-child:before,.rst-content code.download .btn-mini span:first-child:before,.btn-mini .icon:before{font-size:14px;vertical-align:-15%}
 
 .wy-alert.wy-alert-danger,.rst-content .wy-alert-danger.note,.rst-content .wy-alert-danger.attention,.rst-content .wy-alert-danger.caution,.rst-content .danger,.rst-content .error,.rst-content .wy-alert-danger.hint,.rst-content .wy-alert-danger.important,.rst-content .wy-alert-danger.tip,.rst-content .wy-alert-danger.warning,.rst-content .wy-alert-danger.seealso,.rst-content .wy-alert-danger.admonition-todo,.rst-content .wy-alert-danger.admonition{background:#fdf3f2}
-.wy-alert.wy-alert-danger .wy-alert-title,.rst-content .wy-alert-danger.note .wy-alert-title,.rst-content .wy-alert-danger.attention .wy-alert-title,.rst-content .wy-alert-danger.caution .wy-alert-title,.rst-content .danger .wy-alert-title,.rst-content .error .wy-alert-title,.rst-content .wy-alert-danger.hint .wy-alert-title,.rst-content .wy-alert-danger.important .wy-alert-title,.rst-content .wy-alert-danger.tip .wy-alert-title,.rst-content .wy-alert-danger.warning .wy-alert-title,.rst-content .wy-alert-danger.seealso .wy-alert-title,.rst-content .wy-alert-danger.admonition-todo .wy-alert-title,.rst-content .wy-alert-danger.admonition .wy-alert-title,.wy-alert.wy-alert-danger .rst-content .admonition-title,.rst-content .wy-alert.wy-alert-danger .admonition-title,.rst-content .wy-alert-danger.note .admonition-title,.rst-content .wy-alert-danger.attention .admonition-title,.rst-content .wy-alert-danger.caution .admonition-title,.rst-content .danger .admonition-title,.rst-content .error .admonition-title,.rst-content .wy-alert-danger.hint .admonition-title,.rst-content .wy-alert-danger.important .admonition-title,.rst-content .wy-alert-danger.tip .admonition-title,.rst-content .wy-alert-danger.warning .admonition-title,.rst-content .wy-alert-danger.seealso .admonition-title,.rst-content .wy-alert-danger.admonition-todo .admonition-title,.rst-content .wy-alert-danger.admonition .admonition-title{background:#f29f97}
 .wy-alert.wy-alert-warning,.rst-content .wy-alert-warning.note,.rst-content .attention,.rst-content .caution,.rst-content .wy-alert-warning.danger,.rst-content .wy-alert-warning.error,.rst-content .wy-alert-warning.hint,.rst-content .wy-alert-warning.important,.rst-content .wy-alert-warning.tip,.rst-content .warning,.rst-content .wy-alert-warning.seealso,.rst-content .admonition-todo,.rst-content .wy-alert-warning.admonition{background:#ffedcc}
-.wy-alert.wy-alert-warning .wy-alert-title,.rst-content .wy-alert-warning.note .wy-alert-title,.rst-content .attention .wy-alert-title,.rst-content .caution .wy-alert-title,.rst-content .wy-alert-warning.danger .wy-alert-title,.rst-content .wy-alert-warning.error .wy-alert-title,.rst-content .wy-alert-warning.hint .wy-alert-title,.rst-content .wy-alert-warning.important .wy-alert-title,.rst-content .wy-alert-warning.tip .wy-alert-title,.rst-content .warning .wy-alert-title,.rst-content .wy-alert-warning.seealso .wy-alert-title,.rst-content .admonition-todo .wy-alert-title,.rst-content .wy-alert-warning.admonition .wy-alert-title,.wy-alert.wy-alert-warning .rst-content .admonition-title,.rst-content .wy-alert.wy-alert-warning .admonition-title,.rst-content .wy-alert-warning.note .admonition-title,.rst-content .attention .admonition-title,.rst-content .caution .admonition-title,.rst-content .wy-alert-warning.danger .admonition-title,.rst-content .wy-alert-warning.error .admonition-title,.rst-content .wy-alert-warning.hint .admonition-title,.rst-content .wy-alert-warning.important .admonition-title,.rst-content .wy-alert-warning.tip .admonition-title,.rst-content .warning .admonition-title,.rst-content .wy-alert-warning.seealso .admonition-title,.rst-content .admonition-todo .admonition-title,.rst-content .wy-alert-warning.admonition .admonition-title{background:#f0b37e}
 .wy-alert.wy-alert-info,.rst-content .note,.rst-content .wy-alert-info.attention,.rst-content .wy-alert-info.caution,.rst-content .wy-alert-info.danger,.rst-content .wy-alert-info.error,.rst-content .wy-alert-info.hint,.rst-content .wy-alert-info.important,.rst-content .wy-alert-info.tip,.rst-content .wy-alert-info.warning,.rst-content .seealso,.rst-content .wy-alert-info.admonition-todo,.rst-content .wy-alert-info.admonition{background:#e7f2fa}
-.wy-alert.wy-alert-info .wy-alert-title,.rst-content .note .wy-alert-title,.rst-content .wy-alert-info.attention .wy-alert-title,.rst-content .wy-alert-info.caution .wy-alert-title,.rst-content .wy-alert-info.danger .wy-alert-title,.rst-content .wy-alert-info.error .wy-alert-title,.rst-content .wy-alert-info.hint .wy-alert-title,.rst-content .wy-alert-info.important .wy-alert-title,.rst-content .wy-alert-info.tip .wy-alert-title,.rst-content .wy-alert-info.warning .wy-alert-title,.rst-content .seealso .wy-alert-title,.rst-content .wy-alert-info.admonition-todo .wy-alert-title,.rst-content .wy-alert-info.admonition .wy-alert-title,.wy-alert.wy-alert-info .rst-content .admonition-title,.rst-content .wy-alert.wy-alert-info .admonition-title,.rst-content .note .admonition-title,.rst-content .wy-alert-info.attention .admonition-title,.rst-content .wy-alert-info.caution .admonition-title,.rst-content .wy-alert-info.danger .admonition-title,.rst-content .wy-alert-info.error .admonition-title,.rst-content .wy-alert-info.hint .admonition-title,.rst-content .wy-alert-info.important .admonition-title,.rst-content .wy-alert-info.tip .admonition-title,.rst-content .wy-alert-info.warning .admonition-title,.rst-content .seealso .admonition-title,.rst-content .wy-alert-info.admonition-todo .admonition-title,.rst-content .wy-alert-info.admonition .admonition-title{background:#6ab0de}
 .wy-alert.wy-alert-success,.rst-content .wy-alert-success.note,.rst-content .wy-alert-success.attention,.rst-content .wy-alert-success.caution,.rst-content .wy-alert-success.danger,.rst-content .wy-alert-success.error,.rst-content .hint,.rst-content .important,.rst-content .tip,.rst-content .wy-alert-success.warning,.rst-content .wy-alert-success.seealso,.rst-content .wy-alert-success.admonition-todo,.rst-content .wy-alert-success.admonition{background:#dbfaf4}
 .wy-alert.wy-alert-success .wy-alert-title,.rst-content .wy-alert-success.note .wy-alert-title,.rst-content .wy-alert-success.attention .wy-alert-title,.rst-content .wy-alert-success.caution .wy-alert-title,.rst-content .wy-alert-success.danger .wy-alert-title,.rst-content .wy-alert-success.error .wy-alert-title,.rst-content .hint .wy-alert-title,.rst-content .important .wy-alert-title,.rst-content .tip .wy-alert-title,.rst-content .wy-alert-success.warning .wy-alert-title,.rst-content .wy-alert-success.seealso .wy-alert-title,.rst-content .wy-alert-success.admonition-todo .wy-alert-title,.rst-content .wy-alert-success.admonition .wy-alert-title,.wy-alert.wy-alert-success .rst-content .admonition-title,.rst-content .wy-alert.wy-alert-success .admonition-title,.rst-content .wy-alert-success.note .admonition-title,.rst-content .wy-alert-success.attention .admonition-title,.rst-content .wy-alert-success.caution .admonition-title,.rst-content .wy-alert-success.danger .admonition-title,.rst-content .wy-alert-success.error .admonition-title,.rst-content .hint .admonition-title,.rst-content .important .admonition-title,.rst-content .tip .admonition-title,.rst-content .wy-alert-success.warning .admonition-title,.rst-content .wy-alert-success.seealso .admonition-title,.rst-content .wy-alert-success.admonition-todo .admonition-title,.rst-content .wy-alert-success.admonition .admonition-title{background:#1abc9c}
 .wy-alert.wy-alert-neutral,.rst-content .wy-alert-neutral.note,.rst-content .wy-alert-neutral.attention,.rst-content .wy-alert-neutral.caution,.rst-content .wy-alert-neutral.danger,.rst-content .wy-alert-neutral.error,.rst-content .wy-alert-neutral.hint,.rst-content .wy-alert-neutral.important,.rst-content .wy-alert-neutral.tip,.rst-content .wy-alert-neutral.warning,.rst-content .wy-alert-neutral.seealso,.rst-content .wy-alert-neutral.admonition-todo,.rst-content .wy-alert-neutral.admonition{background:#f3f6f6}
@@ -655,7 +652,20 @@ input[type="radio"][disabled],input[type="checkbox"][disabled]{cursor:not-allowe
 .float-left{float:left}
 .float-right{float:right}
 .full-width{width:100%}
-.wy-table,.rst-content table.docutils,.rst-content table.field-list{border-collapse:collapse;border-spacing:0;empty-cells:show;margin-bottom:24px}
+.wy-table,
+.rst-content table.docutils,
+.rst-content table.field-list
+{
+	border-collapse: collapse;
+	border-spacing: 0;
+	empty-cells: show;
+	margin-bottom: 24px;
+	width: 100%;
+}
+colgroup
+{
+	display: none;
+}
 .wy-table caption,.rst-content table.docutils caption,.rst-content table.field-list caption{color:#000;font:italic 85%/1 arial,sans-serif;padding:1em 0;text-align:center}
 .wy-table td,.rst-content table.docutils td,.rst-content table.field-list td,.wy-table th,.rst-content table.docutils th,.rst-content table.field-list th{font-size:90%;margin:0;overflow:visible;padding:8px 16px}
 .wy-table td:first-child,.rst-content table.docutils td:first-child,.rst-content table.field-list td:first-child,.wy-table th:first-child,.rst-content table.docutils th:first-child,.rst-content table.field-list th:first-child{border-left-width:0}
@@ -848,7 +858,7 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-side-nav-search > a.home
 {
 	font-size: 140%;
-	border-radius: 0.5em;
+	border-radius: 0.5rem;
 }
 
 .wy-side-nav-search > a img.logo,
@@ -1075,7 +1085,7 @@ aside .rst-buttons
 	flex-flow: row nowrap;
 	padding: 0.5rem 1.2rem;
 	border: 1px solid transparent;
-	border-radius: 8px;
+	border-radius: 0.5rem;
 	margin-bottom: {{theme_vertical_spacing}};
 }
 
@@ -1279,7 +1289,7 @@ aside .breadcrumbs
 	border: 1px solid #ccc;
 	overflow-x: auto;
 	margin: 0.7em 0;
-	border-radius: 0.3em;
+	border-radius: 0.5rem;
 	background-color: rgba(255, 255, 255, 0.66);
 }
 .rst-content pre.literal-block div[class^='highlight'],
@@ -1299,7 +1309,7 @@ aside .breadcrumbs
 	font-size: 0.9em;
 	line-height: 1.4;
 	margin: 0;
-	padding: 0.3em {{theme_horizontal_indent}};
+	padding: {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 	overflow: auto;
 	tab-size: 3;
 	-moz-tab-size: 3;
@@ -1547,6 +1557,24 @@ table.download td:last-child
 	text-align: right;
 }
 
+main dl.class,
+main dl.function,
+main dl.method,
+main dl.classmethod,
+main dl.exception,
+main dl.attribute,
+main dl:not(.docutils) dl.class,
+main dl:not(.docutils) dl.function,
+main dl:not(.docutils) dl.method,
+main dl:not(.docutils) dl.classmethod,
+main dl:not(.docutils) dl.exception,
+main dl:not(.docutils) dl.attribute
+{
+	border: 1px solid #ddd;
+	border-radius: 0.5rem;
+	padding: 0 {{theme_horizontal_indent}};
+}
+
 main dl.class > dt,
 main dl.function > dt,
 main dl.method > dt,
@@ -1560,13 +1588,9 @@ main dl:not(.docutils) dl.classmethod > dt,
 main dl:not(.docutils) dl.exception > dt,
 main dl:not(.docutils) dl.attribute > dt
 {
-	margin: 0.6em 0 0 0;
-	border: 1px solid #ddd;
-	border-top-left-radius: 0.3em;
-	border-top-right-radius: 0.3em;
-	padding: 0.3em {{theme_horizontal_indent}};
+	margin: {{theme_vertical_spacing}} 0;
 	font-family: "Source Code Pro", monospace;
-	background-color: rgba(1, 1, 1, 0.02);
+	line-height: 1.2;
 }
 
 main dl.class > dd,
@@ -1581,29 +1605,7 @@ main dl:not(.docutils) dl.method > dd,
 main dl:not(.docutils) dl.exception > dd,
 main dl:not(.docutils) dl.attribute > dd
 {
-	margin: 0 0 0.6em 0;
-	border-style: solid;
-	border-color: #ddd;
-	border-width: 0 1px 1px 1px;
-	border-bottom-left-radius: 0.3em;
-	border-bottom-right-radius: 0.3em;
-	padding: 0.3em {{theme_horizontal_indent}};
-}
-
-main dl.class > dd:last-child > p:last-child,
-main dl.function > dd:last-child > p:last-child,
-main dl.method > dd:last-child > p:last-child,
-main dl.classmethod > dd:last-child > p:last-child,
-main dl.exception > dd:last-child > p:last-child,
-main dl.attribute > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.class > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.function > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.method > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.classmethod > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.exception > dd:last-child > p:last-child,
-main dl:not(.docutils) dl.attribute > dd:last-child > p:last-child
-{
-	margin: 0;
+	margin: {{theme_vertical_spacing}} 0;
 }
 
 .wy-alert,
@@ -1620,23 +1622,18 @@ main .seealso,
 main .admonition-todo
 {
 	line-height: {{theme_line_height}};
-	padding: 0.3em {{theme_horizontal_indent}};
+	padding: {{theme_vertical_spacing}} {{theme_horizontal_indent}};
 	margin: 0.6em 0;
-	border-radius: 0.3em;
+	border-radius: 0.5rem;
 	border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .wy-alert-title, .rst-content .admonition-title
 {
-	color:#fff;
-	font-weight: bold;
+	font-size: 120%;
+	line-height: 1.2;
 	display: block;
-	color: #fff;
-	background: #6ab0de;
-	margin: -0.3em -{{theme_horizontal_indent}} 0.3em -{{theme_horizontal_indent}};
-	padding: 0.3em {{theme_horizontal_indent}};
-	border-top-left-radius: 0.3em;
-	border-top-right-radius: 0.3em;
+	margin: 0;
 }
 
 dt em

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2004-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2004-2020 by Walter Dörwald
+## Copyright 2004-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2004-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -15,7 +15,7 @@ LivingLogic modules and packages.
 """
 
 
-import sys, os, os.path, platform, types, datetime, collections, io, gzip as gzip_, argparse, functools, signal, contextlib, subprocess, enum
+import sys, os, os.path, platform, types, datetime, collections, argparse, functools, signal, contextlib, subprocess, enum
 from collections import abc
 
 from ll import color

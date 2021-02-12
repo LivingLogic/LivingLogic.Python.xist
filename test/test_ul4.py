@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2009-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2020 by Walter Dörwald
+## Copyright 2009-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -163,10 +163,6 @@ class TemplateJava:
 		dump = ul4on.dumps(data).encode("utf-8")
 		result = subprocess.run("java com.livinglogic.ul4.Tester", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		# Check if we have an exception
-		print("##########################")
-		print(repr(result.stdout))
-		print(repr(result.stderr))
-		print("##########################")
 		self.findexception(result.stderr.decode("utf-8", "passbytes"))
 		return result.stdout.decode("utf-8", "passbytes")
 
@@ -492,7 +488,11 @@ def pytest_generate_tests(metafunc):
 		metafunc.parametrize("reprfunc", values, ids=values)
 
 
-argumentmismatchmessage = [
+def _make_exception_re(*args):
+	return "({})".format("|".join(args))
+
+
+argumentmismatchmessage = _make_exception_re(
 	# Python argument mismatch exception messages
 	"takes exactly \\d+ (positional )?arguments?", # < 3.3
 	"got an unexpected keyword argument",
@@ -522,65 +522,68 @@ argumentmismatchmessage = [
 	"com.livinglogic.ul4.ArgumentCountMismatchException",
 	"com.livinglogic.ul4.UnsupportedArgumentNameException",
 	"com.livinglogic.ul4.KeywordArgumentsNotSupportedException",
-]
-argumentmismatchmessage = "({})".format("|".join(argumentmismatchmessage))
+)
 
-unorderabletypesmessage = [
+unorderabletypesmessage = _make_exception_re(
 	# Python 3.6
 	"not supported between instances of",
 	# Python < 3.6 and Javascript
 	"unorderable types",
 	# Java
 	"com.livinglogic.ul4.UnorderableTypesException",
-]
-unorderabletypesmessage = "({})".format("|".join(unorderabletypesmessage))
+)
 
-duplicatekeywordargument = [
+duplicatekeywordargument = _make_exception_re(
 	# Python
 	"multiple values for keyword argument",
 	"duplicate keyword argument",
 	"keyword argument repeated",
 	# Java
 	"com.livinglogic.ul4.DuplicateArgumentException",
-]
-duplicatekeywordargument = "({})".format("|".join(duplicatekeywordargument))
+)
 
-unknownkeywordargument = [
+unknownkeywordargument = _make_exception_re(
 	# Python
 	"got an unexpected keyword argument",
 	"doesn't support an argument named",
 	"an argument named [a-zA-Z_][a-zA-Z0-9_]* isn't supported",
 	"too many keyword arguments",
-]
-unknownkeywordargument = "({})".format("|".join(unknownkeywordargument))
+)
 
-missingkeywordargument = [
+missingkeywordargument = _make_exception_re(
 	# Python
 	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
 	"missing a required argument",
 	# Java
 	"com.livinglogic.ul4.MissingArgumentException",
-]
-missingkeywordargument = "({})".format("|".join(missingkeywordargument))
+)
 
-subscriptablemessage = [
+subscriptablemessage = _make_exception_re(
 	# Python
 	"object is not subscriptable",
 	"object does not support item assignment",
 	# Java
 	"com.livinglogic.ul4.ArgumentTypeMismatchException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
-]
-subscriptablemessage = "({})".format("|".join(subscriptablemessage))
+)
 
-indexmessage = [
+indexmessage = _make_exception_re(
 	# Python
 	"index out of range",
 	# Javascript
 	"index -?\\d+ out of range",
 	# Java
 	"IndexOutOfBoundsException"
-]
-indexmessage = "({})".format("|".join(indexmessage))
+)
+
+
+zerodivisionmessage = _make_exception_re(
+	# Python
+	"division or modulo by zero",
+	# Python/Java/Javascript
+	"division by zero",
+	# Java
+	"/ by zero",
+)
 
 
 class raises:
@@ -1312,12 +1315,41 @@ def test_truediv(T):
 	assert 2.0 == eval(t.renders(x=datetime.timedelta(4), y=datetime.timedelta(2)))
 	assert 2.0 == eval(t.renders(x=misc.monthdelta(4), y=misc.monthdelta(2)))
 
+	for x in (True, 42, 42.5, datetime.timedelta(7)):
+		for y in (False, 0, 0.0):
+			with raises(zerodivisionmessage):
+				t.renders(x=x, y=y)
+
 
 @pytest.mark.ul4
 def test_floordiv(T):
+	t = T("<?print x // y?>")
+
 	assert "0" == T('<?print 1//2?>').renders()
 	assert "0" == T('<?code x=1?><?code y=2?><?print x//y?>').renders()
-	assert "1 month" == T('<?print x//y?>').renders(x=misc.monthdelta(3), y=2)
+
+	for x in (True, 2, 3.5):
+		for y in (True, 2, 3.5):
+			assert x//y == float(t.renders(x=x, y=y))
+
+	assert "1 month" == t.renders(x=misc.monthdelta(3), y=2)
+	assert "1" == t.renders(x=misc.monthdelta(3), y=misc.monthdelta(2))
+
+	for x in (True, 42, 42.5):
+		for y in (False, 0, 0.0):
+			with raises(zerodivisionmessage):
+				t.renders(x=x, y=y)
+
+	for x in (datetime.timedelta(7), misc.monthdelta(3)):
+		for y in (False, 0):
+			with raises(zerodivisionmessage):
+				t.renders(x=x, y=y)
+
+	with raises(zerodivisionmessage):
+		t.renders(x=datetime.timedelta(5), y=datetime.timedelta(0))
+
+	with raises(zerodivisionmessage):
+		t.renders(x=misc.monthdelta(5), y=misc.monthdelta(0))
 
 
 @pytest.mark.ul4
@@ -4088,6 +4120,16 @@ def test_method_mimeformat_datetime(T):
 
 
 @pytest.mark.ul4
+def test_method_date_date(T):
+	assert '2000-02-29' == T('<?print @(2000-02-29).date()?>').renders()
+
+
+@pytest.mark.ul4
+def test_method_date_datetime(T):
+	assert '2000-02-29' == T('<?print @(2000-02-29T12:34:56.987654).date()?>').renders()
+
+
+@pytest.mark.ul4
 def test_method_items(T):
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for (key, value) in data.items()?><?print key?>:<?print value?>;<?end for?>").renders()
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.items?><?for (key, value) in m()?><?print key?>:<?print value?>;<?end for?>").renders()
@@ -5975,7 +6017,7 @@ def test_module_ul4on(T):
 
 
 @pytest.mark.ul4
-def test_module_ul4on_multiple_encoder_calls(T):
+def test_module_ul4on_chunked_encoder_calls(T):
 	t = T("""
 		<?whitespace strip?>
 		<?code s1 = 'gurk'?>
@@ -5991,7 +6033,7 @@ def test_module_ul4on_multiple_encoder_calls(T):
 
 
 @pytest.mark.ul4
-def test_module_ul4on_multiple_decoder_calls(T):
+def test_module_ul4on_chunked_decoder_calls(T):
 	t = T("""
 		<?whitespace strip?>
 		<?code d = ul4on.Decoder()?>

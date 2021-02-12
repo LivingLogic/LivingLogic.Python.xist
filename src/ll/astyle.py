@@ -168,14 +168,15 @@ def switchstyle(s1, s2):
 
 		# Fix foreground color
 		if s1.fg != s2.fg:
-			args.append("3%d" % s2.fg)
+			args.append(f"3{s2.fg}")
 
 		# Finally fix the background color
 		if s1.bg != s2.bg:
-			args.append("4%d" % s2.bg)
+			args.append(f"4{s2.bg}")
 
 		if args:
-			return "\033[{}m".format(";".join(args))
+			args = ";".join(args)
+			return f"\033[{args}m"
 	return ""
 
 

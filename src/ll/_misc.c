@@ -1,6 +1,6 @@
 /*
-** Copyright 2007-2020 by LivingLogic AG, Bayreuth, Germany.
-** Copyright 2007-2020 by Walter Dörwald
+** Copyright 2007-2021 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 2007-2021 by Walter Dörwald
 **
 ** All Rights Reserved
 **
@@ -16,7 +16,7 @@ static PyObject *xmlescape_str(PyObject *str, int doquot, int doapos)
 {
 	Py_ssize_t oldsize;
 	void *olddata;
-	int maxchar = 127;
+	Py_UCS4 maxchar = 127;
 	Py_ssize_t i;
 	Py_ssize_t newsize = 0;
 	void *newdata;

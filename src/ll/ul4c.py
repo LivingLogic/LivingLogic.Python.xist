@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2009-2020 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2020 by Walter Dörwald
+## Copyright 2009-2021 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2021 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -622,7 +622,7 @@ class SliceProto(Proto):
 
 class DateProto(Proto):
 	name = "date"
-	wrappedmethattrs = {"weekday", "yearday", "week", "calendar", "day", "month", "year", "mimeformat", "isoformat"}
+	wrappedmethattrs = {"weekday", "yearday", "week", "calendar", "day", "month", "year", "date", "mimeformat", "isoformat"}
 
 	@staticmethod
 	def weekday(obj):
@@ -696,6 +696,10 @@ class DateProto(Proto):
 		return obj.year
 
 	@staticmethod
+	def date(obj):
+		return obj
+
+	@staticmethod
 	def mimeformat(obj):
 		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -729,6 +733,10 @@ class DatetimeProto(DateProto):
 	@staticmethod
 	def microsecond(obj):
 		return obj.microsecond
+
+	@staticmethod
+	def date(obj):
+		return obj.date()
 
 	@staticmethod
 	def mimeformat(obj):
