@@ -565,13 +565,6 @@ class Encoder:
 					self.dump(item)
 				self._level -= 1
 				self._line("}")
-			elif hasattr(obj , "ul4onid"):
-				self._record(obj)
-				self._line("P", obj.ul4onname, obj.ul4onid)
-				self._level += 1
-				obj.ul4ondump(self)
-				self._level -= 1
-				self._line(")")
 			else:
 				ul4onid = getattr(obj , "ul4onid", None)
 				self._record(obj)
