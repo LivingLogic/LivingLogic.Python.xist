@@ -39,7 +39,7 @@ latex.LaTeXTranslator.visit_definition = visit_definition
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '2.1.0' # This fixed bug #6165 (``tab_width`` was ignored)
+needs_sphinx = '3.5.0' # This fixed bug #6165 (``tab_width`` was ignored)
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -67,7 +67,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'XIST'
-copyright = '1999\N{EN DASH}2020, Walter Dörwald'
+copyright = '1999\N{EN DASH}2021, Walter Dörwald'
 author = 'Walter Dörwald'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -171,6 +171,8 @@ html_theme_path = ["."]
 # further.  For a list of options available for each theme, see the
 # documentation.
 
+html_permalinks = True
+
 if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
 	html_theme_options = {
 		"font_awesome_url": "../fontawesome-pro-5.13.0-web/css/all.min.css",
@@ -178,6 +180,7 @@ if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
 		"font_awesome_name": "Font Awesome 5 Pro",
 		"font_awesome_weight": "400",
 	}
+	html_permalinks_icon = "<i class='fal fa-link'></i>"
 else:
 	html_theme_options = {
 		"font_awesome_url": "../fontawesome-free-5.13.0-web/css/all.min.css",
@@ -185,6 +188,7 @@ else:
 		"font_awesome_name": "Font Awesome 5 Free",
 		"font_awesome_weight": "900",
 	}
+	html_permalinks_icon = "<i class='fas fa-link'></i>"
 
 html_theme_options.update(
 	pdf="XIST.pdf",

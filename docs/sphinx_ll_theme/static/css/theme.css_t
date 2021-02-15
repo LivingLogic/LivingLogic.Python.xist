@@ -1396,7 +1396,7 @@ main .toctree-wrapper p.caption .headerlink
 {
 	padding-left: 0.4rem;
 	visibility: hidden;
-	font-size: 1px;
+	font-size: 1rem;
 	text-align: right;
 }
 
@@ -1405,40 +1405,25 @@ main .reference.internal .viewcode-link
 	display: none;
 }
 
-main dl:not(.docutils) > dt > .headerlink:after,
-main h1 .headerlink:after,
-main h2 .headerlink:after,
-main h3 .headerlink:after,
-main h4 .headerlink:after,
-main h5 .headerlink:after,
-main h6 .headerlink:after,
-main .toctree-wrapper p.caption .headerlink:after
-{
-	content: "\f0c1";
-	font-family: "{{theme_font_awesome_name}}";
-	font-weight: {{theme_font_awesome_weight}};
-	font-size: 1rem;
-}
-
-main dl:not(.docutils) > dt:hover > .headerlink:after,
+main dl:not(.docutils) > dt:hover > .headerlink,
 main h1:hover .reference.internal:after,
-main h1:hover .headerlink:after,
+main h1:hover .headerlink,
 main h2:hover .reference.internal:after,
-main h2:hover .headerlink:after,
+main h2:hover .headerlink,
 main h3:hover .reference.internal:after,
-main h3:hover .headerlink:after,
+main h3:hover .headerlink,
 main h4:hover .reference.internal:after,
-main h4:hover .headerlink:after,
+main h4:hover .headerlink,
 main h5:hover .reference.internal:after,
-main h5:hover .headerlink:after,
+main h5:hover .headerlink,
 main h6:hover .reference.internal:after,
-main h6:hover .headerlink:after,
+main h6:hover .headerlink,
 main .toctree-wrapper p.caption:hover .headerlink
 {
 	visibility: visible;
 }
 
-main table>caption .headerlink:after
+main table>caption .headerlink
 {
 	font-size: 12px;
 }
