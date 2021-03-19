@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.?? (released 01/13/2021)
+-------------------------------------
+
+*	Now the ``ul4attr`` attribute of objects gets honored in the implementation
+	of the ``dir()`` function in UL4.
+
+
 Changes in 5.65 (released 01/13/2021)
 -------------------------------------
 

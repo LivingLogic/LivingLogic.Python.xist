@@ -457,6 +457,9 @@ class Proto:
 
 	@classmethod
 	def dir(cls, obj):
+		ul4attrs = getattr(obj, "ul4attrs", None)
+		if ul4attrs is not None:
+			return ul4attrs
 		return frozenset({*cls.plainattrs, *cls.wrappeddataattrs, *cls.wrappedmethattrs})
 
 
