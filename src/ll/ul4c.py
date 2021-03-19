@@ -23,7 +23,10 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, os.path, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect, contextlib
+import re, os.path, datetime, urllib.parse as urlparse, json, collections
+import locale, itertools, random, functools, math, inspect, contextlib
+import types, operator
+
 from collections import abc
 
 import antlr3
@@ -5332,8 +5335,38 @@ def function_dir(obj):
 	return proto(obj).dir(obj)
 
 
+def _create_module(name, **attrs):
+	module = types.ModuleType(name)
+	module.ul4attrs = set()
+	for (attrname, attrvalue) in attrs.items():
+		setattr(module, attrname, attrvalue)
+		module.ul4attrs.add(attrname)
+	Context.functions[name] = module
+	return module
+
+
+# Create "module" ``ul4on``
 from ll import ul4on
 Context.functions["ul4on"] = ul4on
+
+
+# Create "module" ``operator``
+ul4_operator = _create_module(
+	"operator",
+	attrgetter=operator.attrgetter,
+)
+
+# Create "module" ``math``
+ul4_math = _create_module(
+	"math",
+	cos=math.cos,
+	sin=math.sin,
+	tan=math.tan,
+	sqrt=math.sqrt,
+	pi=math.pi,
+	e=math.e,
+	tau=math.tau,
+)
 
 
 class TemplateClosure(Block):

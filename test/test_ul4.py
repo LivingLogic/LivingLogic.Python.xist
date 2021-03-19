@@ -3946,6 +3946,38 @@ def test_function_dir(T):
 
 
 @pytest.mark.ul4
+def test_function_math_cos(T):
+	t = T("<?code v = math.cos(x*math.pi)?><?print e-0.01 < v and v < e+0.01?>")
+
+	for x in (0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2):
+		assert "True" == t.renders(x=x, e=math.cos(x*math.pi))
+
+
+@pytest.mark.ul4
+def test_function_math_sin(T):
+	t = T("<?code v = math.sin(x*math.pi)?><?print e-0.01 < v and v < e+0.01?>")
+
+	for x in (0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2):
+		assert "True" == t.renders(x=x, e=math.sin(x*math.pi))
+
+
+@pytest.mark.ul4
+def test_function_math_tan(T):
+	t = T("<?code v = math.tan(x*math.pi)?><?print e-0.01 < v and v < e+0.01?>")
+
+	for x in (0, 0.25, 0.75, 1, 1.25, 1.75, 2):
+		assert "True" == t.renders(x=x, e=math.tan(x*math.pi))
+
+
+@pytest.mark.ul4
+def test_function_math_sqrt(T):
+	t = T("<?code v = math.sqrt(x)?><?print e-0.01 < v and v < e+0.01?>")
+
+	for x in range(10):
+		assert "True" == t.renders(x=x, e=math.sqrt(x))
+
+
+@pytest.mark.ul4
 def test_method_upper(T):
 	assert 'GURK' == T('<?print "gurk".upper()?>').renders()
 	assert 'GURK' == T('<?code m = "gurk".upper?><?print m()?>').renders()
