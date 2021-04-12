@@ -230,6 +230,7 @@ class TemplatePHP:
 		self.name = name
 		self.whitespace = whitespace
 		self.signature = signature
+		self.template = self.maketemplate()
 
 	def maketemplate(self):
 		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
@@ -302,7 +303,7 @@ class TemplatePHP:
 
 		source = f"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
+		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(self.template.dumps())});
 		$variables = {self.phpexpr(kwargs)};
 		print $template->renders($variables);
 		?>"""
@@ -317,7 +318,7 @@ class TemplatePHP:
 
 		source = f"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(template.dumps())});
+		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(self.template.dumps())});
 		$variables = {self.phpexpr(kwargs)};
 		print $template->call($variables);
 		?>"""
