@@ -4285,7 +4285,7 @@ class Template(Block):
 		"""
 		Return the template as Java source code.
 		"""
-		return f"com.livinglogic.ul4.InterpretedTemplate.loads({misc.javaexpr(self.dumps())})"
+		return f"com.livinglogic.ul4.Template.loads({misc.javaexpr(self.dumps())})"
 
 	def _tokenize(self, source, startdelim, enddelim):
 		"""

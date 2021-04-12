@@ -287,7 +287,7 @@ def java_runsource(source):
 		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException, org.antlr.runtime.RecognitionException, ClassNotFoundException
 		{{
 			// Force the JVM to register the UL4 classes for UL4ON
-			Class.forName("com.livinglogic.ul4.InterpretedTemplate");
+			Class.forName("com.livinglogic.ul4.Template");
 			{source}
 		}}
 	}}

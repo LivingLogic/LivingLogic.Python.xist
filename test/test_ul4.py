@@ -269,7 +269,7 @@ class TemplatePHP:
 		elif isinstance(obj, color.Color):
 			return rf"new \com\livinglogic\ul4\Color({obj.r()}, {obj.g()}, {obj.b()}, {obj.a()})"
 		elif isinstance(obj, ul4c.Template):
-			return rf"\com\livinglogic\ul4\InterpretedTemplate::loads({self.phpexpr(obj.dumps())})"
+			return rf"\com\livinglogic\ul4\Template::loads({self.phpexpr(obj.dumps())})"
 		elif isinstance(obj, abc.Mapping):
 			items = ", ".join(f"{self.phpexpr(key)} => {self.phpexpr(value)}" for (key, value) in obj.items())
 			return f"array({items})"
@@ -303,7 +303,7 @@ class TemplatePHP:
 
 		source = f"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(self.template.dumps())});
+		$template = \\com\\livinglogic\\ul4\\Template::loads({self.phpexpr(self.template.dumps())});
 		$variables = {self.phpexpr(kwargs)};
 		print $template->renders($variables);
 		?>"""
@@ -318,7 +318,7 @@ class TemplatePHP:
 
 		source = f"""<?php
 		include_once 'com/livinglogic/ul4/ul4.php';
-		$template = \\com\\livinglogic\\ul4\\InterpretedTemplate::loads({self.phpexpr(self.template.dumps())});
+		$template = \\com\\livinglogic\\ul4\\Template::loads({self.phpexpr(self.template.dumps())});
 		$variables = {self.phpexpr(kwargs)};
 		print $template->call($variables);
 		?>"""
