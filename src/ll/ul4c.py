@@ -279,7 +279,7 @@ def _handleexpressioneval(f):
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, context, *args, **kwargs):
+	def wrapped(self, context, /, *args, **kwargs):
 		context.asts.append(self)
 		try:
 			return f(self, context, *args, **kwargs)
@@ -304,7 +304,7 @@ def _handleoutputeval(f):
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, context, *args, **kwargs):
+	def wrapped(self, context, /, *args, **kwargs):
 		context.asts.append(self)
 		try:
 			yield from f(self, context, *args, **kwargs)
@@ -4141,26 +4141,21 @@ class Template(Block):
 			pass
 
 	@withcontext
-	def ul4render(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4render(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		with context.replacevars(vars):
 			yield from self._renderbound(context)
 
-	def render(*args, **kwargs):
+	def render(self, /, *args, **kwargs):
 		"""
 		Render the template iteratively (i.e. this is a generator).
 
-		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
-		arguments available to the template code. (``args`[0]` is the ``self``
-		parameter, but :meth:`render` is defined in this way, to allow a keyword
-		argument named ``self``). Positional arguments will only be supported if
-		the template has a signature.
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will
+		only be supported if the template has a signature.
 		"""
 		context = Context()
-		yield from args[0].ul4render(context, *args[1:], **kwargs)
+		yield from self.ul4render(context, *args, **kwargs)
 
 	def render_with_globals(self, args, kwargs, globals):
 		"""
@@ -4181,26 +4176,21 @@ class Template(Block):
 
 	# This will be exposed to UL4 as ``renders``
 	@withcontext
-	def ul4renders(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4renders(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		with context.replacevars(vars):
 			return self._rendersbound(context)
 
-	def renders(*args, **kwargs):
+	def renders(self, /, *args, **kwargs):
 		"""
 		Render the template as a string.
 
-		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
-		arguments available to the template code. (``args`[0]` is the ``self``
-		parameter, but :meth:`renders` is defined in this way, to allow a keyword
-		argument named ``self``). Positional arguments will only be supported if
-		the template has a signature.
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will only
+		be supported if the template has a signature.
 		"""
 		context = Context()
-		return args[0].ul4renders(context, *args[1:], **kwargs)
+		return self.ul4renders(context, *args, **kwargs)
 
 	def renders_with_globals(self, args, kwargs, globals):
 		"""
@@ -5369,10 +5359,7 @@ class TemplateClosure(Block):
 		self.signature = signature
 
 	@withcontext
-	def ul4render(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4render(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		vars = collections.ChainMap(vars, self.vars)
 		with context.replacevars(vars):
@@ -5382,10 +5369,7 @@ class TemplateClosure(Block):
 
 	# This will be exposed to UL4 as ``renders``
 	@withcontext
-	def ul4renders(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4renders(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		vars = collections.ChainMap(vars, self.vars)
 		with context.replacevars(vars):
@@ -5394,10 +5378,7 @@ class TemplateClosure(Block):
 			return self.template._rendersbound(context)
 
 	@withcontext
-	def ul4call(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4call(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		vars = collections.ChainMap(vars, self.vars)
 		with context.replacevars(vars):

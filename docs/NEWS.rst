@@ -8,11 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.?? (released 01/13/2021)
+Changes in 5.?? (released ??/??/2021)
 -------------------------------------
 
 *	Now the ``ul4attr`` attribute of objects gets honored in the implementation
 	of the ``dir()`` function in UL4.
+
+*	UL4 now use functions and methods with positional-only parameters, so
+	Python 3.8 is required now.
 
 
 Changes in 5.65 (released 01/13/2021)
