@@ -447,9 +447,9 @@ class TemplateJavascriptNode(TemplateJavascript):
 
 
 template_params = [
-	"python",
-	"python_dumps",
-	"python_dump",
+	pytest.param("python", marks=pytest.mark.python),
+	pytest.param("python_dumps", marks=pytest.mark.python),
+	pytest.param("python_dump", marks=pytest.mark.python),
 	pytest.param("java_compiled_by_python", marks=pytest.mark.java),
 	pytest.param("java_compiled_by_java", marks=pytest.mark.java),
 	pytest.param("js_v8", marks=pytest.mark.js),
