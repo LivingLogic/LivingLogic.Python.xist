@@ -227,7 +227,7 @@ is equivalent to ::
 
 	{"foo": 17, "bar": 23, "baz": 42}
 
-The ``**`` must be a dictonary or a list of key/value pairs.
+The ``**`` must be a dictionary or a list of key/value pairs.
 
 It is also possible to create a dictionary with a dictionary comprehension::
 
@@ -421,8 +421,18 @@ supported:
 *	``/=`` (divides the variable by a value)
 *	``//=`` (divides the variable by a value, rounding down to the next
 	smallest integer)
-*	``&=`` (Does a modulo operation and replaces the variable value with the
+*	``%=`` (Does a modulo operation and replaces the variable value with the
 	result)
+*	``<<=`` (Does bitwise "shift left" operation and replaces the variable value
+	with the result)
+*	``>>=`` (Does bitwise "shift right" operation and replaces the variable value
+	with the result)
+*	``&=`` (Does bitwise "and" operation and replaces the variable value with
+	the result)
+*	``|=`` (Does bitwise "or" operation and replaces the variable value with
+	the result)
+*	``^=`` (Does bitwise "exclusive-or" operation and replaces the variable
+	value with the result)
 
 For example the following template will output ``40``::
 
@@ -869,10 +879,9 @@ Floor division
 ++++++++++++++
 
 The float division operator ``//`` returns the quotient of its operands (which
-must be integer, float or boolean values) rounded down to an integer. If any of
+must be integer, float or boolean values) rounded down to an integer (rounding
+is always done towards -infinity, i.e. ``(-25)/10`` returns ``-3``). If any of
 the operands is a float the result is a float too, otherwise it's an integer.
-
-``1//2`` returns ``0``.
 
 
 Modulo
@@ -1000,7 +1009,7 @@ Boolean negation
 
 The unary operator ``not`` inverts the truth value of its operand. I.e.
 ``not x`` is ``True`` for ``None``, ``False``, the undefined value, ``0``,
-``0.0``, empty lists, strings, dictionaries and other empty container and
+``0.0``, empty lists, strings, dictionaries and other empty containers and
 ``False`` for everything else.
 
 
@@ -1008,8 +1017,9 @@ Boolean "and" operator
 """"""""""""""""""""""
 
 The binary operator ``and`` returns whether both of its operands are true.
-It work like in Python by short-circuiting operand evaluation, i.e. if the
-result is clear from the first operand the seconds won't be evaluated.
+It works like Python ``and`` operator by short-circuiting operand evaluation,
+i.e. if the result is clear from the first operand the seconds won't be
+evaluated.
 
 Furthermore ``and``  always return one of the operands.
 
@@ -1043,20 +1053,604 @@ Functions
 :mod:`ll.ul4c` supports a number of functions.
 
 
-``now``
-"""""""
+``now()``
+"""""""""
 
 ``now()`` returns the current date and time as a date object.
 
 
-``utcnow``
-""""""""""
+``utcnow()``
+""""""""""""
 
 ``utcnow()`` returns the current date and time as a date object in UTC.
 
 
-``date``
-""""""""
+``isundefined(obj, /)``
+"""""""""""""""""""""""
+
+``isundefined(foo)`` returns ``True`` if ``foo`` is ``Undefined``, else
+``False`` is returned::
+
+	data is <?if isundefined(data)?>undefined<?else?>defined<?end if?>!
+
+
+``isdefined(obj, /)``
+"""""""""""""""""""""
+
+``isdefined(foo)`` returns ``False`` if ``foo`` is ``Undefined``, else
+``True`` is returned::
+
+	data is <?if isdefined(data)?>defined<?else?>undefined<?end if?>!
+
+
+``isnone(obj, /)``
+""""""""""""""""""
+
+``isnone(foo)`` returns ``True`` if ``foo`` is ``None``, else ``False`` is
+returned::
+
+	data is <?if isnone(data)?>None<?else?>something else<?end if?>!
+
+
+``isbool(obj, /)``
+""""""""""""""""""
+
+``isbool(foo)`` returns ``True`` if ``foo`` is ``True`` or ``False``, else
+``False`` is returned.
+
+
+``isint(obj, /)``
+"""""""""""""""""
+
+``isint(foo)`` returns ``True`` if ``foo`` is an integer object, else ``False``
+is returned.
+
+
+``isfloat(obj, /)``
+"""""""""""""""""""
+
+``isfloat(foo)`` returns ``True`` if ``foo`` is a float object, else ``False``
+is returned.
+
+
+``isstr(obj, /)``
+"""""""""""""""""
+
+``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
+is returned.
+
+
+``isdate(obj, /)``
+""""""""""""""""""
+
+``isdate(foo)`` returns ``True`` if ``foo`` is a date object, else ``False``
+is returned.
+
+
+``istimedelta(obj, /)``
+"""""""""""""""""""""""
+
+``istimedelta(foo)`` returns ``True`` if ``foo`` is a timedelta object, else
+``False`` is returned.
+
+
+``ismonthdelta(obj, /)``
+""""""""""""""""""""""""
+
+``ismonthdelta(foo)`` returns ``True`` if ``foo`` is a monthdelta object, else
+``False`` is returned.
+
+
+``islist(obj, /)``
+""""""""""""""""""
+
+``islist(foo)`` returns ``True`` if ``foo`` is a list object, else ``False``
+is returned.
+
+
+``isdict(obj, /)``
+""""""""""""""""""
+
+``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
+``False`` is returned.
+
+
+``isset(obj, /)``
+"""""""""""""""""
+
+``isset(foo)`` returns ``True`` if ``foo`` is a set object, else
+``False`` is returned.
+
+
+``isexception(obj, /)``
+"""""""""""""""""""""""
+
+``isexception(foo)`` returns ``True`` if ``foo`` is an exception object, else
+``False`` is returned.
+
+
+``iscolor(obj, /)``
+"""""""""""""""""""
+
+``iscolor(foo)`` returns ``True`` if ``foo`` is a color object, else ``False``
+is returned.
+
+
+``istemplate(obj, /)``
+""""""""""""""""""""""
+
+``istemplate(foo)`` returns ``True`` if ``foo`` is a template object, else
+``False`` is returned.
+
+
+``isinstance(obj, /)``
+""""""""""""""""""""""
+
+``istemplate(obj, type)`` returns ``True`` if ``obj`` is a instance of the
+type ``type``. For types see the next subchapter.
+
+
+``repr(obj, /)``
+""""""""""""""""
+
+``repr(foo)`` converts ``foo`` to a string representation that is useful for
+debugging proposes. The output in most cases looks that the UL4 constant that
+could be used to recreate the object.
+
+
+``ascii(obj, /)``
+"""""""""""""""""
+
+``ascii(foo)`` produces the same output as ``repr(foo)`` except that all
+non-ASCII characters in the output for strings will be escaped.
+
+
+``format(value, spec, lang="en")``
+""""""""""""""""""""""""""""""""""
+
+``format`` formats a value. Currently ``format`` supports the following types
+for ``value``: ``date``, ``int`` and ``float`` (``float`` is only supported
+in the Python version).
+
+The second argument ``spec`` is a format specification string (whose format is
+specific to the type of ``value``).
+
+The third (optional) argument ``lang`` is the target language.
+
+So for example ``format(@(2000-02-29), "%a, %d. %b. %Y", "de")`` outputs
+``Di, 29. Feb. 2000`` and ``format(42, "08b")`` outputs ``00101010``.
+
+UL4 tries to follow Pythons convention for the format string specification,
+so for more information see the documentation for Pythons :func:`format`
+function.
+
+
+``slice(iterable, start=None, stop, step=None, /)``
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+``slice`` returns a slice from a sequence or iterator. You can either pass the
+stop index (i.e. ``slice(foo, 10)`` is an iterator over the first 10 items from
+``foo``), or a start and stop index (``slice(foo, 10, 20)`` return the 11th upto
+to 20th item from ``foo``) or a start and stop index and a step size. If given
+start and stop must be non-negative and step must be positive.
+
+
+``asjson(obj, /)``
+""""""""""""""""""
+
+``asjson(foo)`` returns a JSON representation of the object ``foo``.
+(Date objects, color objects and templates are not supported by JSON, but
+``asjson`` will output the appropriate Javascript code for those objects).
+
+
+``fromjson(string, /)``
+"""""""""""""""""""""""
+
+``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting
+object. (Date objects, color objects and templates are not supported by
+``fromjson``).
+
+
+``asul4on(obj, /, indent=None)``
+""""""""""""""""""""""""""""""""
+
+``asul4on(foo)`` returns the UL4ON representation of the object ``foo``.
+
+
+``fromul4on(dump, /)``
+""""""""""""""""""""""
+
+``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
+object.
+
+
+``csv(obj, /)``
+"""""""""""""""
+
+``csv(foo)`` formats the value ``foo`` for output into a CSV file.
+
+
+``len(obj, /)``
+"""""""""""""""
+
+``len(foo)`` returns the length of a string, or the number of items in a list
+or dictionary.
+
+
+``any(iterable, /)``
+""""""""""""""""""""
+
+``any(foo)`` returns ``True`` if any of the items in the iterable ``foo`` is
+true. Otherwise ``False`` is returns. If ``foo`` is empty ``False`` is returned.
+
+
+``all(iterable, /)``
+""""""""""""""""""""
+
+``all(foo)`` returns ``True`` if all of the items in the iterable ``foo`` are
+true. Otherwise ``False`` is returns. If ``foo`` is empty ``True`` is returned.
+
+
+``enumerate(iterable, start=0)``
+""""""""""""""""""""""""""""""""
+
+Enumerates the items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and for each item in the original iterable returns a two
+item list containing the item position and the item itself. For example the
+following code::
+
+	<?for (i, c) in enumerate("foo")?>
+		(<?print c?>=<?print i?>)
+	<?end for?>
+
+prints::
+
+	(f=0)(o=1)(o=2)
+
+
+``isfirstlast(iterable, /)``
+""""""""""""""""""""""""""""
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the first
+and/or last in the iterable. For example the following code::
+
+	<?for (first, last, c) in isfirstlast("foo")?>
+		<?if first?>[<?end if?>
+		(<?print c?>)
+		<?if last?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	[(f)(o)(o)]
+
+
+``isfirst(iterable, /)``
+""""""""""""""""""""""""
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the first
+in the iterable. For example the following code::
+
+	<?for (first, c) in isfirst("foo")?>
+		<?if first?>[<?end if?>
+		(<?print c?>)
+	<?end for?>
+
+prints::
+
+	[(f)(o)(o)
+
+
+``islast(iterable, /)``
+"""""""""""""""""""""""
+
+Iterates through items of the argument (which must be iterable, i.e. a string,
+a list or dictionary) and gives information about whether the item is the last
+in the iterable. For example the following code::
+
+	<?for (last, c) in islast("foo")?>
+		(<?print c?>)
+		<?if last?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	(f)(o)(o)]
+
+
+``enumfl(iterable, /)``
+"""""""""""""""""""""""
+
+This function is a combination of ``enumerate`` and ``isfirstlast``. It iterates
+through items of the argument (which must be iterable, i.e. a string, a list
+or dictionary) and gives information about whether the item is the first
+and/or last in the iterable and its position. For example the following code::
+
+	<?for (index, first, last, c) in enumfl("foo")?>
+		<?if first?>[<?end if?>
+		(<?print c?>=<?print index?>)
+		<?if last?>]<?end if?>
+	<?end for?>
+
+prints::
+
+	[(f=0)(o=1)(o=2)]
+
+
+``first(iterable, /, default=None)``
+""""""""""""""""""""""""""""""""""""
+
+``first`` returns the first element produced by an iterable object. If the
+iterable is empty the default value (which is the second parameter and defaults
+to ``None``) is returned.
+
+
+``last(iterable, /, default=None)``
+"""""""""""""""""""""""""""""""""""
+
+``last`` returns the last element produced by an iterable object. If the
+iterable is empty the default value (which is the second parameter and defaults
+to ``None``) is returned.
+
+
+``xmlescape(obj, /)``
+"""""""""""""""""""""
+
+``xmlescape`` takes a string as an argument. It returns a new string where the
+characters ``&``, ``<``, ``>``, ``'`` and ``"`` have been replaced with the
+appropriate XML entity or character reference. For example::
+
+	<?print xmlescape("<'foo' & 'bar'>")?>
+
+prints::
+
+	&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;
+
+If the argument is not a string, it will be converted to a string first.
+
+``<?printx foo?>`` is a shortcut for ``<?print xmlescape(foo)?>``.
+
+
+``min(*args, default=<nodefault>, key=None)``
+"""""""""""""""""""""""""""""""""""""""""""""
+
+``min`` returns the minimum value of its two or more arguments. If it's called
+with one argument, this argument must be iterable and ``min`` returns the
+minimum value of this argument. if called with one empty argument the value of
+``default`` will be returned (if given, else an exception will be raised).
+
+If ``key`` is given, it will be used for extracting comparison keys, i.e. those
+keys will be compared instead of the items themselves for determining the
+minimal item.
+
+If multiple items are minimal, the function returns the first one encountered.
+
+
+``max(*args, default=<nodefault>, key=None)``
+"""""""""""""""""""""""""""""""""""""""""""""
+
+``max`` returns the maximum value of its two or more arguments. If it's called
+with one argument, this argument must be iterable and ``max`` returns the
+maximum value of this argument. The arguments ``default`` and ``key`` work the
+same way as for ``min()``.
+
+
+``sum(iterable, /, start=0)``
+"""""""""""""""""""""""""""""
+
+``sum`` returns the sum of the number from the iterable passed in. The second
+parameter is the start value (i.e. the value that will be added to the total sum)
+and defaults to 0. For example the template ``<?print sum(range(101))?>`` will
+output ``5050``.
+
+
+``sorted(iterable, /, key=None, reverse=False)``
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+``sorted`` returns a sorted list with the items from its argument. For example::
+
+	<?for c in sorted('abracadabra')?><?print c?><?end for?>
+
+prints::
+
+	aaaaabbcdrr
+
+Supported arguments are iterable objects, i.e. strings, lists, dictionaries
+and colors.
+
+If ``key`` is given, it will be used for extracting comparison keys, i.e. those
+keys will be compared instead of the items themselves for determining the
+final order.
+
+If ``reverse`` is true, the sort order will be reversed.
+
+
+``chr(i, /)``
+"""""""""""""
+
+``chr(i)`` returns a one-character string containing the character with the
+code point ``i``. ``i`` must be an integer. For example ``<?print chr(0x61)?>``
+outputs ``a``.
+
+
+``ord(c, /)``
+"""""""""""""
+
+This is the inverse function to ``chr`` The argument for ``ord`` must be a
+one-character string. ``ord`` returns the code point of that character as an
+integer. For example ``<?print ord('a')?>`` outputs ``97``.
+
+
+``hex(number, /)``
+""""""""""""""""""
+
+Return the hexadecimal representation of the integer argument (with a leading
+``0x``). For example ``<?print hex(42)?>`` outputs ``0x2a``.
+
+
+``oct(number, /)``
+""""""""""""""""""
+
+Return the octal representation of the integer argument (with a leading ``0o``).
+For example ``<?print oct(42)?>`` outputs ``0o52``.
+
+
+``bin(number, /)``
+""""""""""""""""""
+
+Return the binary representation of the integer argument (with a leading ``0b``).
+For example ``<?print bin(42)?>`` outputs ``0b101010``.
+
+
+``range(start=None, stop, step=None, /)``
+"""""""""""""""""""""""""""""""""""""""""
+
+``range`` returns an object that can be iterated and will produce consecutive
+integers up to the specified argument. With two arguments the first is the start
+value and the second is the stop value. With three arguments the third one is
+the step size (which can be negative). For example the following template::
+
+	<?for i in range(4, 10, 2)?>(<?print i?>)<?end for?>
+
+outputs::
+
+	(4)(6)(8)
+
+
+``rgb(r, g, b, a=1.0)``
+"""""""""""""""""""""""
+
+``rgb`` returns a color object. It can be called with
+
+*	three arguments, the red, green and blue values. The alpha value will be
+	set to 255;
+*	four arguments, the red, green, blue and alpha values.
+
+Arguments are treated as values from 0 to 1 and will be clipped accordingly. For
+example::
+
+	<?print rgb(1, 1, 1)?>
+
+prints ``#fff``.
+
+
+``md5(string, /)``
+""""""""""""""""""
+
+``md5(s)`` returns the MD5 hash of the string ``s``.
+
+
+``scrypt(string, /, salt)``
+"""""""""""""""""""""""""""
+
+``scrypt(str, salt)`` returns the scrypt hash of the string ``str`` using the
+salt value ``salt``. The returned string contains 256 hex digits.
+
+For more info on scrypt, see https://en.wikipedia.org/wiki/Scrypt
+
+.. note::
+	``scrypt`` is not implemented in the Javascript version of UL4.
+
+
+``random()``
+""""""""""""
+
+``random()`` returns a random float value between 0 (included) and 1 (excluded).
+
+
+``randrange(start=None, stop, step=None, /)``
+"""""""""""""""""""""""""""""""""""""""""""""
+
+``randrange(start, stop, step)`` returns a random integer value between ``start``
+(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
+when ``r`` is the random value, ``(r-start) % step`` will always be ``0``).
+``step`` and ``start`` can be omitted.
+
+
+``randchoice(seq)``
+"""""""""""""""""""
+
+``randchoice(seq)`` returns a random item from the sequence ``seq``.
+
+
+``urlquote(string)``
+""""""""""""""""""""
+
+``urlquote`` escaped special characters for including the output in URLs. For
+example::
+
+	<?print urlquote("/\xff")?>
+
+outputs::
+
+	%2F%C3%BF
+
+``urlunquote(string)``
+""""""""""""""""""""""
+
+``urlunquote`` is the inverse function to ``urlquote``. So::
+
+	<?print urlunquote("%2F%C3%BC")?>
+
+outputs::
+
+	/ü
+
+
+``type(obj, /)``
+""""""""""""""""
+
+``type`` returns the type of an object as a type object. For type object see the
+following description.
+
+
+Types
+-----
+
+A type object has the attributes ``__module__``, ``__name__`` and ``__doc__``
+and can be used for type testing via ``isinstance()``. Some type objects are
+callable to create new instance of that type. The following builtin type objects
+exist.
+
+
+``bool(obj=False, /)``
+""""""""""""""""""""""
+
+``bool(foo)`` converts ``foo`` to an boolean. I.e. ``True`` or ``False`` is
+returned according to the truth value of ``foo``. Calling ``bool`` without
+arguments returns ``False``.
+
+
+``int(obj=0, /, base=None)``
+""""""""""""""""""""""""""""
+
+``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
+a boolean or an integer. ``int`` can also be called with two arguments. In this
+case the first argument must be a string and the second is the number base for
+the conversion. Calling ``int`` without arguments returns ``0``.
+
+
+``float(obj=0.0, /)``
+"""""""""""""""""""""
+
+``float(foo)`` converts ``foo`` to a float. ``foo`` can be a string, a float,
+a boolean or an integer. Calling ``float`` without arguments returns ``0.0``.
+
+
+``str(obj="", /)``
+""""""""""""""""""
+
+``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` or ``Undefined``
+the result will be the empty string. For lists and dictionaries the exact format
+is undefined, but should follow Python's repr format. For color objects the
+result is a CSS expression (e.g. ``"#fff"``). Calling ``str`` without arguments
+returns the empty string.
+
+
+``date(year, month, day, hour=0, minute=0, second=0, microsecond=0)``
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 ``date()`` creates a date object from the parameter passed in. ``date()``
 supports from three parameters (``year``, ``month``, ``day``) upto seven
@@ -1064,8 +1658,8 @@ parameters (``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``,
 ``microsecond``).
 
 
-``timedelta``
-"""""""""""""
+``timedelta(days=0, seconds=0, microseconds=0)``
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 ``timedelta`` returns an object that represents a timespan. ``timedelta``
 allows from zero to three arguments specifying the numbers of days, seconds and
@@ -1085,8 +1679,8 @@ context this object is treated as false (i.e. ``bool(timedelta()))`` returns
 *	``timedelta`` // ``int``
 
 
-``monthdelta``
-""""""""""""""
+``monthdelta(months=0, /)``
+"""""""""""""""""""""""""""
 
 ``monthdelta`` returns an object that represents a timespan of a number of
 months. ``monthdelta`` allows zero or one arguments. With zero arguments
@@ -1108,251 +1702,78 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29``.
 
 
-``isundefined``
-"""""""""""""""
-
-``isundefined(foo)`` returns ``True`` if ``foo`` is ``Undefined``, else
-``False`` is returned::
-
-	data is <?if isundefined(data)?>undefined<?else?>defined<?end if?>!
-
-
-``isdefined``
-"""""""""""""
-
-``isdefined(foo)`` returns ``False`` if ``foo`` is ``Undefined``, else
-``True`` is returned::
-
-	data is <?if isdefined(data)?>defined<?else?>undefined<?end if?>!
-
-
-``isnone``
-""""""""""
-
-``isnone(foo)`` returns ``True`` if ``foo`` is ``None``, else ``False`` is
-returned::
-
-	data is <?if isnone(data)?>None<?else?>something else<?end if?>!
-
-
-``isbool``
-""""""""""
-
-``isbool(foo)`` returns ``True`` if ``foo`` is ``True`` or ``False``, else
-``False`` is returned.
-
-
-``isint``
-"""""""""
-
-``isint(foo)`` returns ``True`` if ``foo`` is an integer object, else ``False``
-is returned.
-
-
-``isfloat``
-"""""""""""
-
-``isfloat(foo)`` returns ``True`` if ``foo`` is a float object, else ``False``
-is returned.
-
-
-``isstr``
-"""""""""
-
-``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
-is returned.
-
-
-``isdate``
-""""""""""
-
-``isdate(foo)`` returns ``True`` if ``foo`` is a date object, else ``False``
-is returned.
-
-
-``istimedelta``
-"""""""""""""""
-
-``istimedelta(foo)`` returns ``True`` if ``foo`` is a timedelta object, else
-``False`` is returned.
-
-
-``ismonthdelta``
-""""""""""""""""
-
-``ismonthdelta(foo)`` returns ``True`` if ``foo`` is a monthdelta object, else
-``False`` is returned.
-
-
-``islist``
-""""""""""
-
-``islist(foo)`` returns ``True`` if ``foo`` is a list object, else ``False``
-is returned.
-
-
-``isdict``
-""""""""""
-
-``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
-``False`` is returned.
-
-
-``isset``
-"""""""""
-
-``isset(foo)`` returns ``True`` if ``foo`` is a set object, else
-``False`` is returned.
-
-
-``isexception``
-"""""""""""""""
-
-``isexception(foo)`` returns ``True`` if ``foo`` is an exception object, else
-``False`` is returned.
-
-
-``iscolor``
-"""""""""""
-
-``iscolor(foo)`` returns ``True`` if ``foo`` is a color object, else ``False``
-is returned.
-
-
-``istemplate``
-""""""""""""""
-
-``istemplate(foo)`` returns ``True`` if ``foo`` is a template object, else
-``False`` is returned.
-
-
-``bool``
-""""""""
-
-``bool(foo)`` converts ``foo`` to an boolean. I.e. ``True`` or ``False`` is
-returned according to the truth value of ``foo``. Calling ``bool`` without
-arguments returns ``False``.
-
-
-``int``
-"""""""
-
-``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float,
-a boolean or an integer. ``int`` can also be called with two arguments. In this
-case the first argument must be a string and the second is the number base for
-the conversion. Calling ``int`` without arguments returns ``0``.
-
-
-``float``
-"""""""""
-
-``float(foo)`` converts ``foo`` to a float. ``foo`` can be a string, a float,
-a boolean or an integer. Calling ``float`` without arguments returns ``0.0``.
-
-
-``str``
-"""""""
-
-``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` or ``Undefined``
-the result will be the empty string. For lists and dictionaries the exact format
-is undefined, but should follow Python's repr format. For color objects the
-result is a CSS expression (e.g. ``"#fff"``). Calling ``str`` without arguments
-returns the empty string.
-
-
-``repr``
-""""""""
-
-``repr(foo)`` converts ``foo`` to a string representation that is useful for
-debugging proposes. The output in most cases looks that the UL4 constant that
-could be used to recreate the object.
-
-
-``ascii``
-"""""""""
-
-``ascii(foo)`` produces the same output as ``repr(foo)`` except that all
-non-ASCII characters in the output for strings will be escaped.
-
-
-``format``
-""""""""""
-
-``format`` formats a value. Its signature is ``format(value, spec, lang="en")``.
-Currently ``format`` supports the following types for ``value``: ``date``,
-``int`` and ``float`` (``float`` is only supported in the Python version).
-
-The second argument ``spec`` is a format specification string (whose format is
-specific to the type of ``value``).
-
-The third (optional) argument ``lang`` is the target language.
-
-So for example ``format(@(2000-02-29), "%a, %d. %b. %Y", "de")`` outputs
-``Di, 29. Feb. 2000`` and ``format(42, "08b")`` outputs ``00101010``.
-
-UL4 tries to follow Pythons convention for the format string specification,
-so for more information see the documentation for Pythons :func:`format`
-function.
-
-
-
-
-``list``
-""""""""
+``list(iterable=[], /)``
+""""""""""""""""""""""""
 
 ``list(foo)`` converts ``foo`` to a list. This works for lists, strings and all
 iterable objects. Calling ``list`` without arguments returns an empty list.
 
 
-``set``
-"""""""
+``dict(*args, **kwargs)``
+"""""""""""""""""""""""""
+
+``dict(foo)`` converts ``foo`` to a dictionary. For this ``foo`` must be either
+a dictionary itself, or an iterable of (key, value) pairs. ``dict()`` supports
+multiple positional arguments. Later entries overwrite earlier ones.
+(i.e. ``dict({17: 23}, {17: 42})`` returns ``{17: 42}``). ``dict`` also supports
+arbitrary keyword arguments, which create dictionary entries with the name of
+the argument as a string key, so ``dict(foo=42)`` returns ``{'foo': 42}``.
+Calling ``dict`` without arguments returns an empty dictionary.
+
+
+``set(iterable=[], /)``
+"""""""""""""""""""""""
 
 ``set(foo)`` converts ``foo`` to a set. This works for lists, strings and all
 iterable objects. Calling ``set`` without arguments returns an empty set.
 
 
-``slice``
-"""""""""
-``slice`` returns a slice from a sequence or iterator. You can either pass the
-stop index (i.e. ``slice(foo, 10)`` is an iterator over the first 10 items from
-``foo``), or a start and stop index (``slice(foo, 10, 20)`` return the 11th upto
-to 20th item from ``foo``) or a start and stop index and a step size. If given
-start and stop must be non-negative and step must be positive.
+Modules
+-------
+
+A module is an object that collects a number of constants, functions and
+types under a common name. Also a module always has the attributes ``__name__``
+and ``__doc__``.
 
 
-``asjson``
-""""""""""
-
-``asjson(foo)`` returns a JSON representation of the object ``foo``.
-(Date objects, color objects and templates are not supported by JSON, but
-``asjson`` will output the appropriate Javascript code for those objects).
-
-
-``fromjson``
+``operator``
 """"""""""""
 
-``fromjson(foo)`` decodes the JSON string ``foo`` and returns the resulting
-object. (Date objects, color objects and templates are not supported by
-``fromjson``).
+The ``operator`` module contains the type ``attrgetter``. Calling ``attrgetter``
+with an attribute name ``n`` returns an object that when called with an object
+``a`` returns ``a``\s attribute named ``n``.  This can be used for sorting
+objects by their attributes without having to create local templates.
+
+For example ::
+
+	<?print first(operator.attrgetter('keys')(dict(foo=42))())?>
+
+prints ``'foo'``.
 
 
-``asul4on``
-"""""""""""
+``math``
+""""""""
 
-``asul4on(foo)`` returns the UL4ON representation of the object ``foo``.
+This module contains constants and functions related to mathematical operations.
 
+``math.e`` is the base of the natural logarithm (2.718281828...), ``math.pi``
+is the ratio of a circle's circumference to its diameter (3.14159265...) and
+``math.tau`` is ``2 * math.pi``.
 
-``fromul4on``
-"""""""""""""
+``math`` also contains the trigonometric functions ``math.cos()``, ``math.sin()``
+and ``math.tan()`` and well as ``math.sqrt()`` which returns the square root
+of its argument.
 
-``fromul4on(foo)`` decodes the UL4ON string ``foo`` and returns the resulting
-object.
+Finally ``math.isclose(a, b)`` returns ``True`` if the values ``a`` and ``b``
+are close to each other and ``False`` otherwise. Whether or not two values are
+considered close is determined according to given absolute and relative
+tolerances (via the keyword arguments ``rel_tol`` and ``abs_tol``).
 
 
 ``ul4on``
 """""""""
 
-This "module" contains functions and types for working with :mod:`ll.ul4on`.
+This module contains functions and types for working with :mod:`ll.ul4on`.
 
 ``ul4on.dumps(foo)`` returns the UL4ON representation of the object ``foo``.
 
@@ -1365,339 +1786,49 @@ a method ``dumps`` that creates an UL4ON dump for the passed in object.
 
 ``ul4on.Decoder()`` creates a decoder object that can be used to recreate
 objects from multiple UL4ON dumps using the same context. An ``ul4on.Decoder``
-object has a method ``loadss`` that recreates an object from the passed in
+object has a method ``loads`` that recreates an object from the passed in
 UL4ON dump.
 
 
-``csv``
+``ul4``
 """""""
 
-``csv(foo)`` formats the value ``foo`` for output into a CSV file.
-
-
-``len``
-"""""""
-
-``len(foo)`` returns the length of a string, or the number of items in a list
-or dictionary.
-
-
-``any``
-"""""""
-
-``any(foo)`` returns ``True`` if any of the items in the iterable ``foo`` is
-true. Otherwise ``False`` is returns. If ``foo`` is empty ``False`` is returned.
-
-
-``all``
-"""""""
-
-``all(foo)`` returns ``True`` if all of the items in the iterable ``foo`` are
-true. Otherwise ``False`` is returns. If ``foo`` is empty ``True`` is returned.
-
-
-``enumerate``
-"""""""""""""
-
-Enumerates the items of the argument (which must be iterable, i.e. a string,
-a list or dictionary) and for each item in the original iterable returns a two
-item list containing the item position and the item itself. For example the
-following code::
-
-	<?for (i, c) in enumerate("foo")?>
-		(<?print c?>=<?print i?>)
-	<?end for?>
-
-prints::
-
-	(f=0)(o=1)(o=2)
-
-
-``isfirstlast``
-"""""""""""""""
-
-Iterates through items of the argument (which must be iterable, i.e. a string,
-a list or dictionary) and gives information about whether the item is the first
-and/or last in the iterable. For example the following code::
-
-	<?for (first, last, c) in isfirstlast("foo")?>
-		<?if first?>[<?end if?>
-		(<?print c?>)
-		<?if last?>]<?end if?>
-	<?end for?>
-
-prints::
-
-	[(f)(o)(o)]
-
-
-``isfirst``
-"""""""""""
-
-Iterates through items of the argument (which must be iterable, i.e. a string,
-a list or dictionary) and gives information about whether the item is the first
-in the iterable. For example the following code::
-
-	<?for (first, c) in isfirst("foo")?>
-		<?if first?>[<?end if?>
-		(<?print c?>)
-	<?end for?>
-
-prints::
-
-	[(f)(o)(o)
-
-
-``islast``
-""""""""""
-
-Iterates through items of the argument (which must be iterable, i.e. a string,
-a list or dictionary) and gives information about whether the item is the last
-in the iterable. For example the following code::
-
-	<?for (last, c) in islast("foo")?>
-		(<?print c?>)
-		<?if last?>]<?end if?>
-	<?end for?>
-
-prints::
-
-	(f)(o)(o)]
-
-
-``enumfl``
-""""""""""
-
-This function is a combination of ``enumerate`` and ``isfirstlast``. It iterates
-through items of the argument (which must be iterable, i.e. a string, a list
-or dictionary) and gives information about whether the item is the first
-and/or last in the iterable and its position. For example the following code::
-
-	<?for (index, first, last, c) in enumfl("foo")?>
-		<?if first?>[<?end if?>
-		(<?print c?>=<?print index?>)
-		<?if last?>]<?end if?>
-	<?end for?>
-
-prints::
-
-	[(f=0)(o=1)(o=2)]
-
-
-``first``
-"""""""""
-
-``first`` returns the first element produced by an iterable object. If the
-iterable is empty the default value (which is the second parameter and defaults
-to ``None``) is returned.
-
-
-``last``
-""""""""
-
-``last`` returns the last element produced by an iterable object. If the
-iterable is empty the default value (which is the second parameter and defaults
-to ``None``) is returned.
-
-
-``xmlescape``
-"""""""""""""
-
-``xmlescape`` takes a string as an argument. It returns a new string where the
-characters ``&``, ``<``, ``>``, ``'`` and ``"`` have been replaced with the
-appropriate XML entity or character reference. For example::
-
-	<?print xmlescape("<'foo' & 'bar'>")?>
-
-prints::
-
-	&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;
-
-If the argument is not a string, it will be converted to a string first.
-
-``<?printx foo?>`` is a shortcut for ``<?print xmlescape(foo)?>``.
-
-
-``min``
-"""""""
-
-``min`` returns the minimum value of its two or more arguments. If it's called
-with one argument, this argument must be iterable and ``min`` returns the
-minimum value of this argument.
-
-
-``max``
-"""""""
-
-``max`` returns the maximum value of its two or more arguments. If it's called
-with one argument, this argument must be iterable and ``max`` returns the
-maximum value of this argument.
-
-
-``sum``
-"""""""
-
-``sum`` returns the sum of the number from the iterable passed in. The second
-parameter is the start value (i.e. the value that will be added to the total sum)
-and defaults to 0. For example the template ``<?print sum(range(101))?>`` will
-output ``5050``.
-
-
-``sorted``
-""""""""""
-
-``sorted`` returns a sorted list with the items from its argument. For example::
-
-	<?for c in sorted('abracadabra')?><?print c?><?end for?>
-
-prints::
-
-	aaaaabbcdrr
-
-Supported arguments are iterable objects, i.e. strings, lists, dictionaries
-and colors.
-
-
-``chr``
-"""""""
-
-``chr(x)`` returns a one-character string containing the character with the
-code point ``x``. ``x`` must be an integer. For example ``<?print chr(0x61)?>``
-outputs ``a``.
-
-
-``ord``
-"""""""
-
-This is the inverse function to ``chr`` The argument for ``ord`` must be a
-one-character string. ``ord`` returns the code point of that character as an
-integer. For example ``<?print ord('a')?>`` outputs ``97``.
-
-
-``hex``
-"""""""
-
-Return the hexadecimal representation of the integer argument (with a leading
-``0x``). For example ``<?print hex(42)?>`` outputs ``0x2a``.
-
-
-``oct``
-"""""""
-
-Return the octal representation of the integer argument (with a leading ``0o``).
-For example ``<?print oct(42)?>`` outputs ``0o52``.
-
-
-``bin``
-"""""""
-
-Return the binary representation of the integer argument (with a leading ``0b``).
-For example ``<?print bin(42)?>`` outputs ``0b101010``.
-
-
-``range``
-""""""""""
-
-``range`` returns an object that can be iterated and will produce consecutive
-integers up to the specified argument. With two arguments the first is the start
-value and the second is the stop value. With three arguments the third one is
-the step size (which can be negative). For example the following template::
-
-	<?for i in range(4, 10, 2)?>(<?print i?>)<?end for?>
-
-outputs::
-
-	(4)(6)(8)
-
-
-``type``
-""""""""
-
-``type`` returns the type of the object as a string. Possible return values are
-``"undefined"``, ``"none"``, ``"bool"``, ``"int"``, ``"float"``, ``"str"``,
-``"list"``, ``"dict"``, ``"date"``, ``"timedelta"``, ``"monthdelta"``,
-``"color"``, ``"template"`` and ``"function"``. (If the type isn't recognized
-``None`` is returned.)
-
-
-``rgb``
-"""""""
-
-``rgb`` returns a color object. It can be called with
-
-*	three arguments, the red, green and blue values. The alpha value will be
-	set to 255;
-*	four arguments, the red, green, blue and alpha values.
-
-Arguments are treated as values from 0 to 1 and will be clipped accordingly. For
-example::
-
-	<?print rgb(1, 1, 1)?>
-
-prints ``#fff``.
-
-
-``md5``
-"""""""
-
-``md5(str)`` returns the MD5 hash of the string ``str``.
-
-
-``scrypt``
-""""""""""
-
-``scrypt(str, salt)`` returns the scrypt hash of the string ``str`` using the
-salt value ``salt``. The returned string contains 256 hex digits.
-
-For more info on scrypt, see https://en.wikipedia.org/wiki/Scrypt
+This module contains all the types of the nodes in the abstract syntax tree that
+comprises an UL4 template. The available types are: ``TextAST``, ``IndentAST``,
+``LineEndAST``, ``CodeAST``, ``ConstAST``, ``SeqItemAST``, ``UnpackSeqItemAST``,
+``DictItemAST``, ``UnpackDictItemAST``, ``PositionalArgumentAST``,
+``KeywordArgumentAST``, ``UnpackListArgumentAST``, ``UnpackDictArgumentAST``,
+``ListAST``, ``ListComprehensionAST``, ``SetAST``, ``SetComprehensionAST``,
+``DictAST``, ``DictComprehensionAST``, ``GeneratorExpressionAST``, ``VarAST``,
+``BlockAST``, ``ConditionalBlocksAST``, ``IfBlockAST``, ``ElIfBlockAST``,
+``ElseBlockAST``, ``ForBlockAST``, ``WhileBlockAST``, ``BreakAST``,
+``ContinueAST``, ``AttrAST``, ``SliceAST``, ``UnaryAST``, ``NotAST``,
+``NegAST``, ``BitNotAST``, ``PrintAST``, ``PrintXAST``, ``ReturnAST``,
+``BinaryAST``, ``ItemAST``, ``IsAST``, ``IsNotAST``, ``EQAST``, ``NEAST``,
+``LTAST``, ``LEAST``, ``GTAST``, ``GEAST``, ``ContainsAST``, ``NotContainsAST``,
+``AddAST``, ``SubAST``, ``MulAST``, ``FloorDivAST``, ``TrueDivAST``, ``ModAST``,
+``ShiftLeftAST``, ``ShiftRightAST``, ``BitAndAST``, ``BitXOrAST``, ``BitOrAST``,
+``AndAST``, ``OrAST``, ``IfAST``, ``ChangeVarAST``, ``SetVarAST``, ``AddVarAST``,
+``SubVarAST``, ``MulVarAST``, ``FloorDivVarAST``, ``TrueDivVarAST``,
+``ModVarAST``, ``ShiftLeftVarAST``, ``ShiftRightVarAST``, ``BitAndVarAST``,
+``BitXOrVarAST``, ``BitOrVarAST``, ``CallAST``, ``RenderAST``, ``RenderXAST``,
+``RenderBlockAST``, ``RenderBlocksAST``, ``SignatureAST`` and ``Template``.
+
+The only callable type in this list is ``Template`` which can be used to
+create an UL4 template from source. Its signature is ::
+
+	(
+		source=None,
+		name=None,
+		*,
+		whitespace="keep",
+		startdelim="<?",
+		enddelim="?>",
+		signature=None
+	)
 
 .. note::
-	``scrypt`` is not implemented in the Javascript version of UL4.
-
-
-``random``
-""""""""""
-
-``random()`` returns a random float value between 0 (included) and 1 (excluded).
-
-
-``randrange``
-"""""""""""""
-
-``randrange(start, stop, step)`` returns a random integer value between ``start``
-(included) and ``stop`` (excluded). ``step`` specifies the step size (i.e.
-when ``r`` is the random value, ``(r-start) % step`` will always be ``0``).
-``step`` and ``start`` can be omitted.
-
-
-``randchoice``
-""""""""""""""
-
-``randchoice(seq)`` returns a random item from the sequence ``seq``.
-
-
-``urlquote``
-""""""""""""
-
-``urlquote`` escaped special characters for including the output in URLs. For
-example::
-
-	<?print urlquote("/\xff")?>
-
-outputs::
-
-	%2F%C3%BF
-
-``urlunquote``
-""""""""""""""
-
-``urlunquote`` is the inverse function to ``urlquote``. So::
-
-	<?print urlunquote("%2F%C3%BC")?>
-
-outputs::
-
-	/ü
+	``ul4.Template`` can not be called in the Javascript version of UL4.
 
 
 Methods
