@@ -8,17 +8,17 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.?? (released ??/??/2021)
+Changes in 5.66 (released ??/??/2021)
 -------------------------------------
-
-*	Now the ``ul4attr`` attribute of objects gets honored in the implementation
-	of the ``dir()`` function in UL4.
 
 *	UL4 now use functions and methods with positional-only parameters, so
 	Python 3.8 is required now.
 
+*	UL4 functions and methods have been updated to use positional-only or
+	keyword-only arguments to match the signature of the corresponding Python
+	function/method.
 
-*	Some function now use positional-only arguments:
+*	Some functions now use positional-only arguments:
 
 	*	``ll.misc.item(iterable, index, /, default=None)``
 	*	``ll.misc.first(iterable, /, default=None)``
@@ -33,6 +33,41 @@ Changes in 5.?? (released ??/??/2021)
 	*	``ll.ul4on.load(stream, /, registry=None)``
 	*	``ll.ul4on.loads(dump, /, registry=None)``
 	*	``ll.ul4on.loadclob(clob, /, bufsize=1024*1024, registry=None)``
+
+*	Subclasses of :class:`ll.ul4c.AST` have been renamed so that their name
+	matches the name of the corresponding class in the Java implementation.
+	(for example :class:`ll.ul4c.Add` has been renamed to
+	:class:`ll.ul4c.AddAST`).
+
+*	The UL4 function ``type()`` now returns type objects instead of simple
+	strings.
+
+*	The following builtin UL4 functions are now callable type objects: ``bool``,
+	``int``, ``float``, ``str``, ``date``, ``datetime``, ``timedelta``,
+	``monthdelta``, ``list``, ``set``, ``dict`` and ``color``.
+
+*	A new function ``isinstance()`` has been added to UL4.
+
+*	The following modules have been added to the builtin UL4 objects: ``ul4``
+	containing all UL4 AST classes (``ul4.Template`` is callable to create an
+	UL4 template from source), ``ul4on`` (containing the functions ``dumps()``
+	and ``loads()`` and the types ``Encoder`` and ``Decoder``), ``operator``
+	(containing the type ``attrgetter``) and ``math`` (containing the constants
+	``e``, ``pi`` and ``tau`` as well as the functions ``cos()``, ``sin()``,
+	``tan()``, ``sqrt()`` and ``isclose()``).
+
+*	Naming of attributes that are used by UL4 to implement UL4 functionality
+	has been made more uniform. This affects the following attributes:
+	The methods :meth:`ul4_getattr`, :meth:`ul4_setattr` and :meth:`ul4_hasattr`
+	for implementing object attribute access from UL4; the methods
+	:meth:`ul4_call`, :meth:`ul4_render` and , :meth:`ul4_renders` for making
+	objects callable or renderable from UL4; the class attribute ``ul4_attrs``
+	for exposing a number of readonly attributes to UL4; the attributes
+	``ul4_context`` that is used for marking a callable as needing the context
+	as an argument in the call.
+
+*	Now the ``ul4_attr`` attribute of objects gets honored in the implementation
+	of the ``dir()`` function in UL4.
 
 
 Changes in 5.65 (released 01/13/2021)
