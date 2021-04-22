@@ -381,7 +381,12 @@ def test_bool(t):
 def test_int(t):
 	assert 42 == t(42)
 	assert -42 == t(-42)
-
+	assert 2147483647 == t(2147483647)
+	assert -2147483648 == t(-2147483648)
+	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_node, transport_js_node_pretty):
+		assert 9223372036854775807 == t(9223372036854775807)
+		assert -9223372036854775808 == t(-9223372036854775808)
+		assert 10**30 == t(10**30)
 
 def test_float(t):
 	assert -42.5 == t(-42.5)
