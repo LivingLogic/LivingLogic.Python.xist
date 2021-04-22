@@ -297,10 +297,10 @@ class Record(tuple, abc.Mapping):
 			raise AttributeError(f"{self.__class__.__module__}.{self.__class__.__qualname__} object has no attribute {name!r}")
 		return tuple.__getitem__(self, index)
 
-	def ul4getattr(self, name):
+	def ul4_getattr(self, name):
 		return getattr(self, name)
 
-	def ul4hasattr(self, name):
+	def ul4_hasattr(self, name):
 		return name.lower() in self._name2index
 
 	def get(self, name, default=None):

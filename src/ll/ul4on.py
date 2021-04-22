@@ -411,14 +411,18 @@ def register(name : str):
 	return registration
 
 
+from ll import ul4c
+
+
 class Encoder:
 	"""
-	A :class:`Encoder` is used for serializing an object into an UL4ON dump.
+	An :class:`Encoder` is used for serializing an object into an UL4ON dump.
 
 	It manages the internal state required for handling backreferences and other
 	stuff.
 	"""
-	ul4attrs = {"dumps"}
+	ul4_type = ul4c.InstantiableType("ul4on", "Encoder", "An Encoder is used for serializing an object into an UL4ON dump.")
+	ul4_attrs = {"dumps"}
 
 	def __init__(self, indent:str=None):
 		"""
@@ -587,7 +591,8 @@ class Decoder:
 	It manages the internal state required for handling backreferences,
 	persistent objects and other stuff.
 	"""
-	ul4attrs = {"loads", "reset"}
+	ul4_type = ul4c.InstantiableType("ul4on", "Decoder", "A Decoder is used for deserializing an UL4ON dump.")
+	ul4_attrs = {"loads", "reset"}
 
 	def __init__(self, registry:Optional[Dict[str, Callable[..., Any]]]=None):
 		"""
@@ -1032,6 +1037,3 @@ class StreamBuffer:
 			result = self.buffer + newdata[:needsize]
 			self.buffer = newdata[needsize:]
 			return result
-
-
-ul4attrs = {"loads", "dumps", "Encoder", "Decoder"}

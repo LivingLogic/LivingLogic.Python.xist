@@ -2092,12 +2092,12 @@ Exposing attributes
 ===================
 
 It is possible to expose attributes of an object to UL4 templates. This is done
-by setting the class attribute ``ul4attrs``::
+by setting the class attribute ``ul4_attrs``::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"firstname", "lastname"}
+		ul4_attrs = {"firstname", "lastname"}
 
 		def __init__(self, firstname, lastname, age):
 			self.firstname = firstname
@@ -2111,7 +2111,7 @@ by setting the class attribute ``ul4attrs``::
 
 This will output ``Doe, John``.
 
-Attributes not in ``ul4attrs`` will not be visible::
+Attributes not in ``ul4_attrs`` will not be visible::
 
 	template = ul4c.Template("<?print type(p.age)?>")
 	print(template.renders(p=p))
@@ -2123,12 +2123,12 @@ Exposing methods
 ================
 
 It is also possible to expose methods of an object to UL4 templates. This is
-done by including the method name in the ``ul4attrs`` class attribute::
+done by including the method name in the ``ul4_attrs`` class attribute::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"fullname"}
+		ul4_attrs = {"fullname"}
 
 		def __init__(self, firstname, lastname):
 			self.firstname = firstname
@@ -2148,7 +2148,7 @@ Furthermore it's possible to specify that the method needs access to the
 rendering context (which stores the local variables and the UL4 call stack)::
 
 	class Person:
-		ul4attrs = {"fullname", "varcount"}
+		ul4_attrs = {"fullname", "varcount"}
 
 		@ul4c.withcontext
 		def varcount(self, context):
@@ -2159,19 +2159,19 @@ Custom attributes
 =================
 
 To customize getting and setting object attributes from UL4 templates the
-methods :meth:`ul4getattr` and :meth:`ul4setattr` can be implemented::
+methods :meth:`ul4_getattr` and :meth:`ul4_setattr` can be implemented::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"firstname", "lastname"}
+		ul4_attrs = {"firstname", "lastname"}
 
 		def __init__(self, firstname, lastname, age):
 			self.firstname = firstname
 			self.lastname = lastname
 			self.age = age
 
-		def ul4getattr(self, name):
+		def ul4_getattr(self, name):
 			return getattr(self, name).upper()
 
 	p = Person("John", "Doe", 42)
@@ -2181,24 +2181,24 @@ methods :meth:`ul4getattr` and :meth:`ul4setattr` can be implemented::
 
 This will output ``DOE, JOHN``.
 
-If the object has an attribute ``ul4attrs`` :meth:`ul4getattr` will only be
-called for the attributes in ``ul4attrs``, otherwise :meth:`ul4getattr` will
+If the object has an attribute ``ul4_attrs`` :meth:`ul4_getattr` will only be
+called for the attributes in ``ul4_attrs``, otherwise :meth:`ul4_getattr` will
 be called for all attributes (and should raise an :exc:`AttributeError` for
 nonexistent attributes)
 
-Attributes can be made writable by implemention the method :meth:`ul4setattr`::
+Attributes can be made writable by implemention the method :meth:`ul4_setattr`::
 
 	from ll import ul4c
 
 	class Person:
-		ul4attrs = {"firstname", "lastname"}
+		ul4_attrs = {"firstname", "lastname"}
 
 		def __init__(self, firstname, lastname, age):
 			self.firstname = firstname
 			self.lastname = lastname
 			self.age = age
 
-		def ul4setattr(self, name, value):
+		def ul4_setattr(self, name, value):
 			return setattr(self, name, value.upper())
 
 	p = Person("John", "Doe", 42)
@@ -2208,12 +2208,12 @@ Attributes can be made writable by implemention the method :meth:`ul4setattr`::
 
 This will output ``DOE, John``.
 
-If the object has an attribute ``ul4attrs`` :meth:`ul4setattr` will only be
-called for the attributes in ``ul4attrs``, otherwise :meth:`ul4setattr` will
+If the object has an attribute ``ul4_attrs`` :meth:`ul4_setattr` will only be
+called for the attributes in ``ul4_attrs``, otherwise :meth:`ul4_setattr` will
 be called for all attributes (and should raise an :exc:`AttributeError` for
 nonexistent or readonly attributes)
 
-Without a :meth:`ul4setattr` method, attributes will never be made writable.
+Without a :meth:`ul4_setattr` method, attributes will never be made writable.
 
 
 Exceptions

@@ -16,16 +16,20 @@
 
 import colorsys
 
+from ll import ul4c
+
 
 __docformat__ = "reStructuredText"
 
 
 class Color(tuple):
 	"""
-	A :class:`Color` object represents a color with red, green and blue
+	A :class:`Color` object represents a color with 8-bit red, green and blue
 	components and transparency.
 	"""
-	ul4attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum"}
+
+	ul4_type = ul4c.InstantiableType(None, "color", "An RGBA color object with 8-bit red, green and blue components and transparency.")
+	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum"}
 
 	def __new__(cls, r=0x0, g=0x0, b=0x0, a=0xff):
 		"""

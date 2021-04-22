@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, io, tempfile, subprocess, codecs, datetime
+import sys, os, re, io, tempfile, subprocess, codecs, datetime, math
 from collections import abc
 
 import pytest
@@ -33,16 +33,16 @@ codecs.register_error("passbytes", passbytes)
 
 
 class Point:
-	ul4attrs = {"x", "y"}
+	ul4_attrs = {"x", "y"}
 
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
 
-	def ul4getattr(self, name):
+	def ul4_getattr(self, name):
 		return getattr(self, name)
 
-	def ul4setattr(self, name, value):
+	def ul4_setattr(self, name, value):
 		if name == "x":
 			if isinstance(value, int):
 				self.x = value
@@ -511,6 +511,7 @@ argumentmismatchmessage = _make_exception_re(
 	"missing required argument",
 	"takes \\d+ positional arguments? but \\d+ (was|were) given", # 3.3
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
+	"takes at least \\d+ positional arguments? \\(\\d+ given\\)",
 	# Javascript argument mismatch exception messages
 	"\\w+\\(\\) expects at most \\d+ positional arguments?, \\d+ given",
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
@@ -549,6 +550,8 @@ unknownkeywordargument = _make_exception_re(
 	"doesn't support an argument named",
 	"an argument named [a-zA-Z_][a-zA-Z0-9_]* isn't supported",
 	"too many keyword arguments",
+	"takes no keyword arguments",
+	"got some positional-only arguments passed as keyword arguments",
 )
 
 missingkeywordargument = _make_exception_re(
@@ -600,7 +603,8 @@ class raises:
 			pytest.fail("failed to raise exception")
 		# Check that any exception in the exception chain of the raised one matches a regexp
 		exceptionmsgs = [misc.format_exception(exc) for exc in misc.exception_chain(value)]
-		assert any(self.msg.search(msg) is not None for msg in exceptionmsgs)
+		if not any(self.msg.search(msg) is not None for msg in exceptionmsgs):
+			pytest.fail(f"failed to find expected exception message {self._msg!r} in exception {misc.format_exception(value)}")
 		return True # Don't propagate exception
 
 
@@ -692,8 +696,6 @@ def test_float(T):
 
 @pytest.mark.ul4
 def test_string(T):
-	with raises("Unterminated string|mismatched character|MismatchedTokenException|NoViableAltException|SyntaxException"):
-		T('<?print "?>').renders()
 	assert 'foo' == T('<?print "foo"?>').renders()
 	assert '\n' == T('<?print "\\n"?>').renders()
 	assert '\r' == T('<?print "\\r"?>').renders()
@@ -720,6 +722,9 @@ def test_string(T):
 
 	assert 'no' == T('<?if ""?>yes<?else?>no<?end if?>').renders()
 	assert 'yes' == T('<?if "foo"?>yes<?else?>no<?end if?>').renders()
+
+	with raises("Unterminated string|mismatched character|MismatchedTokenException|NoViableAltException|SyntaxException"):
+		T('<?print "?>').renders()
 
 
 @pytest.mark.ul4
@@ -789,7 +794,7 @@ def test_listcomp(T):
 	assert "[0, 2, 4, 6]" == T("<?code d = [2*i for i in range(4)]?><?print d?>").renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == T("<?code d = [2*i for i in range(4)]?><?print type(i)?>").renders()
+	assert "<type undefinedvariable>" == T("<?code d = [2*i for i in range(4)]?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
@@ -799,10 +804,10 @@ def test_set(T):
 	assert 'no' == T('<?if {/}?>yes<?else?>no<?end if?>').renders()
 	assert 'yes' == T('<?if {"gurk"}?>yes<?else?>no<?end if?>').renders()
 	if T is not TemplateJavascriptV8:
-		assert 'int' == T('<?for item in {1}?><?print type(item)?><?end for?>').renders()
+		assert '<type int>' == T('<?for item in {1}?><?print type(item)?><?end for?>').renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == T("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>").renders()
+	assert "<type undefinedvariable>" == T("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
@@ -824,7 +829,7 @@ def test_genexpr(T):
 	assert "0:g; 1:r; 2:k" == T("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>").renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == T("<?code d = (2*i for i in range(4))?><?print type(i)?>").renders()
+	assert "<type undefinedvariable>" == T("<?code d = (2*i for i in range(4))?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
@@ -839,10 +844,10 @@ def test_dict(T):
 	assert 'no' == T('<?if {}?>yes<?else?>no<?end if?>').renders()
 	assert 'yes' == T('<?if {1:2}?>yes<?else?>no<?end if?>').renders()
 	if T is not TemplateJavascriptV8:
-		assert 'int' == T('<?for (key, value) in {1:2}.items()?><?print type(key)?><?end for?>').renders()
+		assert '<type int>' == T('<?for (key, value) in {1:2}.items()?><?print type(key)?><?end for?>').renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "undefined" == T("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>").renders()
+	assert "<type undefinedvariable>" == T("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>").renders()
 
 
 @pytest.mark.ul4
@@ -1111,24 +1116,34 @@ def test_else(T):
 def test_block_errors(T):
 	with raises("block unclosed"):
 		T('<?for x in data?>').renders()
+
 	with raises("for ended by endif|endif doesn't match any if"):
 		T('<?for x in data?><?end if?>').renders()
+
 	with raises("not in any block"):
 		T('<?end?>').renders()
+
 	with raises("not in any block"):
 		T('<?end for?>').renders()
+
 	with raises("not in any block"):
 		T('<?end if?>').renders()
+
 	with raises("else doesn't match any if"):
 		T('<?else?>').renders()
+
 	with raises("block unclosed"):
 		T('<?if data?>').renders()
+
 	with raises("block unclosed"):
 		T('<?if data?><?else?>').renders()
+
 	with raises("duplicate else in if/elif/else chain|else already seen in if"):
 		T('<?if data?><?else?><?else?>').renders()
+
 	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
 		T('<?if data?><?else?><?elif data?>').renders()
+
 	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
 		T('<?if data?><?elif data?><?elif data?><?else?><?elif data?>').renders()
 
@@ -1137,12 +1152,16 @@ def test_block_errors(T):
 def test_empty():
 	with raises("expression required"):
 		TemplatePython('<?print?>').renders()
+
 	with raises("expression required"):
 		TemplatePython('<?if?>').renders()
+
 	with raises("expression required"):
 		TemplatePython('<<?if x?><?elif?><?end if?>').renders()
+
 	with raises("loop expression required"):
 		TemplatePython('<?for?>').renders()
+
 	with raises("statement required"):
 		TemplatePython('<?code?>').renders()
 
@@ -2003,10 +2022,13 @@ def test_callfunc_args(T):
 	assert "@(2013-01-07)" == T("<?print repr(date(2013, *[1], **{'day': 7}))?>").renders()
 	assert "@(2013-01-07)" == T("<?print repr(date(*[2013], *[1], *[7]))?>").renders()
 	assert "@(2013-01-07)" == T("<?print repr(date(year=2013, **{'month': 1}, **{'day': 7}))?>").renders()
+
 	with raises(duplicatekeywordargument):
 		T("<?print repr(date(year=2013, year=2013))?>").renders()
+
 	with raises(duplicatekeywordargument):
 		T("<?print repr(date(year=2013, **{'year': 2013}))?>").renders()
+
 	with raises(duplicatekeywordargument):
 		T("<?print repr(date(**{'year': 2013}, **{'year': 2013}))?>").renders()
 
@@ -2015,42 +2037,44 @@ def test_callfunc_args(T):
 def test_function_now(T):
 	now = str(datetime.datetime.now())
 
+	assert now <= T("<?print now()?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print now(1)?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print now(1, 2)?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print now(foo=1)?>").renders()
-	assert now <= T("<?print now()?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_today(T):
 	today = str(datetime.date.today())
-
-	with raises(argumentmismatchmessage):
-		T("<?print today(1)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print today(1, 2)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print today(foo=1)?>").renders()
 	result = T("<?print today()?>").renders()
 	assert today <= result
 	assert len(result) == 10
+
+	with raises(argumentmismatchmessage):
+		T("<?print today(1)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print today(foo=1)?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_utcnow(T):
 	utcnow = str(datetime.datetime.utcnow())
 
-	with raises(argumentmismatchmessage):
-		T("<?print utcnow(1)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print utcnow(1, 2)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print utcnow(foo=1)?>").renders()
 	# JS and Java only have milliseconds precision, but this shouldn't lead to problems here, as rendering the template takes longer than a millisecond
 	assert utcnow <= T("<?print utcnow()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print utcnow(1)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print utcnow(foo=1)?>").renders()
 
 
 @pytest.mark.ul4
@@ -2062,6 +2086,9 @@ def test_function_date(T):
 
 	# Test mixed argument passing
 	assert "@(2012-10-06)" == T("<?print repr(date(2012, *[10], **{'day': 6}))?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print date(2012, 10, 6, 12, 34, 56, 123456, 7890)?>").renders()
 
 
 @pytest.mark.ul4
@@ -2079,11 +2106,12 @@ def test_function_datetime(T):
 	# Test mixed argument passing
 	assert "@(2012-10-06T12:34:56)" == T("<?print repr(datetime(2012, *[10], *[6], hour=12, **{'minute': 34}, **{'second': 56}))?>").renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print datetime(2012, 10, 6, 12, 34, 56, 123456, 7890)?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_timedelta(T):
-	with raises(argumentmismatchmessage):
-		T("<?print timedelta(1, 2, 3, 4)?>").renders()
 	assert "1 day, 0:00:00" == T("<?print timedelta(1)?>").renders()
 	assert "-1 day, 0:00:00" == T("<?print timedelta(-1)?>").renders()
 	assert "2 days, 0:00:00" == T("<?print timedelta(2)?>").renders()
@@ -2106,73 +2134,83 @@ def test_function_timedelta(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert "0:00:00.000001" == T("<?print timedelta(days=0, seconds=0, microseconds=1)?>").renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print timedelta(1, 2, 3, 4)?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_monthdelta(T):
-	with raises(argumentmismatchmessage):
-		T("<?print monthdelta(1, 2)?>").renders()
 	assert "0 months" == T("<?print monthdelta()?>").renders()
 	assert "2 months" == T("<?print monthdelta(2)?>").renders()
 	assert "1 month" == T("<?print monthdelta(1)?>").renders()
 	assert "-1 month" == T("<?print monthdelta(-1)?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "1 month" == T("<?print monthdelta(months=1)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print monthdelta(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print monthdelta(months=1)?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_random(T):
+	assert "ok" == T("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print random(1)?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print random(1, 2)?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print random(foo=1)?>").renders()
-	assert "ok" == T("<?code r = random()?><?if r>=0 and r<1?>ok<?else?>fail<?end if?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_randrange(T):
-	with raises(argumentmismatchmessage):
-		T("<?print randrange()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print randrange(foo=1)?>").renders()
 	assert "ok" == T("<?code r = randrange(4)?><?if r>=0 and r<4?>ok<?else?>fail<?end if?>").renders()
 	assert "ok" == T("<?code r = randrange(17, 23)?><?if r>=17 and r<23?>ok<?else?>fail<?end if?>").renders()
 	assert "ok" == T("<?code r = randrange(17, 23, 2)?><?if r>=17 and r<23 and r%2?>ok<?else?>fail<?end if?>").renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print randrange()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print randrange(stop=1)?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_randchoice(T):
-	with raises(argumentmismatchmessage):
-		T("<?print randchoice()?>").renders()
 	assert "ok" == T("<?code r = randchoice('abc')?><?if r in 'abc'?>ok<?else?>fail<?end if?>").renders()
 	assert "ok" == T("<?code s = [17, 23, 42]?><?code r = randchoice(s)?><?if r in s?>ok<?else?>fail<?end if?>").renders()
 	assert "ok" == T("<?code s = #12345678?><?code sl = [0x12, 0x34, 0x56, 0x78]?><?code r = randchoice(s)?><?if r in sl?>ok<?else?>fail<?end if?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "ok" == T("<?code s = [17, 23, 42]?><?code r = randchoice(sequence=s)?><?if r in s?>ok<?else?>fail<?end if?>").renders()
+	assert "ok" == T("<?code s = [17, 23, 42]?><?code r = randchoice(seq=s)?><?if r in s?>ok<?else?>fail<?end if?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print randchoice()?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "42" == T("<?print randchoice(seq=[42])?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_xmlescape(T):
-	with raises(argumentmismatchmessage):
-		T("<?print xmlescape()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print xmlescape(1, 2)?>").renders()
 	assert "&lt;&lt;&gt;&gt;&amp;&#39;&quot;gurk" == T("<?print xmlescape(data)?>").renders(data='<<>>&\'"gurk')
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print xmlescape(obj=data)?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print xmlescape()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print xmlescape(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print xmlescape(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
 def test_function_csv(T):
-	with raises(argumentmismatchmessage):
-		T("<?print csv()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print csv(1, 2)?>").renders()
-
 	t = T("<?print csv(data)?>")
 
 	assert "" == t.renders(data=None)
@@ -2185,17 +2223,20 @@ def test_function_csv(T):
 	assert '"a""b""c"' == t.renders(data='a"b"c')
 	assert '"a\nb\nc"' == t.renders(data="a\nb\nc")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print csv(obj=data)?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print csv()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print csv(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print csv(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
 def test_function_asjson(T):
-	with raises(argumentmismatchmessage):
-		T("<?print asjson()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print asjson(1, 2)?>").renders()
 	t = T("<?print asjson(data)?>")
+
 	assert "null" == t.renders(data=None)
 	assert "false" == t.renders(data=False)
 	assert "true" == t.renders(data=True)
@@ -2214,17 +2255,20 @@ def test_function_asjson(T):
 	assert 'new ul4.MonthDelta(1)' == t.renders(data=misc.monthdelta(1))
 	assert 'new ul4.Color(1, 2, 3, 4)' == t.renders(data=color.Color(1, 2, 3, 4))
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print asjson(obj=data)?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print asjson()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print asjson(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print asjson(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
 def test_function_fromjson(T):
 	t = T("<?print repr(fromjson(data))?>")
-	with raises(argumentmismatchmessage):
-		T("<?print fromjson()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print fromjson(1, 2)?>").renders()
+
 	assert "None" == t.renders(data="null")
 	assert "False" == t.renders(data="false")
 	assert "True" == t.renders(data="true")
@@ -2234,22 +2278,20 @@ def test_function_fromjson(T):
 	assert '[1, 2, 3]' == t.renders(data="[1, 2, 3]")
 	assert "{'one': 1}" == t.renders(data='{"one": 1}')
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print fromjson(string=data)?>").renders(data="42")
+	with raises(argumentmismatchmessage):
+		T("<?print fromjson()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print fromjson(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print fromjson(string=data)?>").renders(data="42")
 
 
 @pytest.mark.ul4
 def test_function_ul4on(T):
 	t = T("<?print repr(fromul4on(asul4on(data)))?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print asul4on()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print asul4on(1, 2)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print fromul4on()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print fromul4on(1, 2)?>").renders()
 	assert "None" == t.renders(data=None)
 	assert "False" == t.renders(data=False)
 	assert "True" == t.renders(data=True)
@@ -2262,16 +2304,29 @@ def test_function_ul4on(T):
 	# Explicitly check the real output for at least one example
 	assert "i42" == T("<?print asul4on(42)?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print repr(fromul4on(dump=asul4on(obj=data)))?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print asul4on()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print asul4on(1, 2)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print fromul4on()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print fromul4on(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print asul4on(obj=42)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print fromul4on(dump='i42')?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_str(T):
 	t = T("<?print str(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print str(1, 2)?>").renders()
 	assert "" == T("<?print str()?>").renders()
 	assert "" == t.renders(data=None)
 	assert "True" == t.renders(data=True)
@@ -2300,15 +2355,17 @@ def test_function_str(T):
 	if T not in (TemplateJavascriptV8, TemplateJavascriptNode):
 		assert "(bad=[...])" == T("<?code bad = []?><?code bad.append(bad)?><?def f(bad=bad)?><?end def?><?print str(f.signature)?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print str(obj=data)?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print str(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print str(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
 def test_function_bool(T):
-	with raises(argumentmismatchmessage):
-		T("<?print bool(1, 2)?>").renders()
 	assert "False" == T("<?print bool()?>").renders()
+
 	t = T("<?print bool(data)?>")
 	assert "True" == t.renders(data=True)
 	assert "False" == t.renders(data=False)
@@ -2328,8 +2385,11 @@ def test_function_bool(T):
 	assert "False" == t.renders(data=misc.monthdelta())
 	assert "True" == t.renders(data=misc.monthdelta(1))
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "True" == T("<?print bool(obj=data)?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print bool(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print bool(obj=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
@@ -2345,14 +2405,12 @@ def test_function_list(T):
 	assert "foo42" == T("<?code x = list(data.items())?><?print x[0][0]?><?print x[0][1]?>").renders(data={"foo": 42})
 	assert "[0, 1, 2]" == T("<?print repr(list(range(3)))?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "g" == T("<?print list(iterable=data)[0]?>").renders(data="gurk")
+	with raises(unknownkeywordargument):
+		T("<?print list(iterable=data)[0]?>").renders(data="gurk")
 
 
 @pytest.mark.ul4
 def test_function_set(T):
-	with raises(argumentmismatchmessage):
-		T("<?print set(1, 2)?>").renders()
 	assert "{/}" == T("<?print set()?>").renders()
 	assert T("<?print set(data)?>").renders(data=["1"]) in ("{'1'}", '{"1"}')
 	if T is not TemplateJavascriptV8:
@@ -2360,18 +2418,15 @@ def test_function_set(T):
 		assert "{1}" == T("<?print set(data)?>").renders(data=[1])
 	assert T("<?print repr(set(str(i) for i in range(1)))?>").renders() in ("{'0'}", '{"0"}')
 
-	# Make sure that the parameters have the same name in all implementations
-	assert T("<?print set(iterable=data)?>").renders(data=["1"]) in ("{'1'}", '{"1"}')
+	with raises(argumentmismatchmessage):
+		T("<?print set(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print set(iterable=data)?>").renders(data=["1"]) in ("{'1'}", '{"1"}')
 
 
 @pytest.mark.ul4
 def test_function_int(T):
-	with raises(argumentmismatchmessage):
-		T("<?print int(1, 2, 3)?>").renders()
-	with raises("int\\(\\) argument must be a string, a bytes-like object or a number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported"):
-		T("<?print int(data)?>").renders(data=None)
-	with raises("invalid literal for int|NumberFormatException"):
-		T("<?print int(data)?>").renders(data="foo")
 	assert "0" == T("<?print int()?>").renders()
 	assert "1" == T("<?print int(data)?>").renders(data=True)
 	assert "0" == T("<?print int(data)?>").renders(data=False)
@@ -2380,18 +2435,23 @@ def test_function_int(T):
 	assert "42" == T("<?print int(data)?>").renders(data="42")
 	assert "66" == T("<?print int(data, 16)?>").renders(data="42")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print int(obj=data, base=None)?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print int(1, 2, 3)?>").renders()
+
+	with raises("int\\(\\) argument must be a string, a bytes-like object or a number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported|Can't convert null to int!"):
+		T("<?print int(data)?>").renders(data=None)
+
+	with raises("invalid literal for int|NumberFormatException"):
+		T("<?print int(data)?>").renders(data="foo")
+
+	with raises(unknownkeywordargument):
+		T("<?print int(obj=data, base=None)?>").renders(data=42)
 
 
 @pytest.mark.ul4
 def test_function_float(T):
 	t = T("<?print float(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print float(1, 2, 3)?>").renders()
-	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported"):
-		t.renders(data=None)
 	assert "4.2" == t.renders(data=4.2)
 	if T not in (TemplateJavascriptV8, TemplateJavascriptNode):
 		assert "0.0" == T("<?print float()?>").renders()
@@ -2399,9 +2459,6 @@ def test_function_float(T):
 		assert "0.0" == t.renders(data=False)
 		assert "42.0" == t.renders(data=42)
 		assert "42.0" == t.renders(data="42")
-
-		# Make sure that the parameters have the same name in all implementations
-		assert "42.0" == T("<?print float(obj=data)?>").renders(data=42)
 	else:
 		assert 0.0 == eval(T("<?print float()?>").renders())
 		assert 1.0 == eval(t.renders(data=True))
@@ -2409,44 +2466,51 @@ def test_function_float(T):
 		assert 42.0 == eval(t.renders(data=42))
 		assert 42.0 == eval(t.renders(data="42"))
 
-		# Make sure that the parameters have the same name in all implementations
-		assert 42.0 == eval(T("<?print float(obj=data)?>").renders(data=42))
+	with raises(argumentmismatchmessage):
+		T("<?print float(1, 2, 3)?>").renders()
+
+	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported|Can't convert null to float!"):
+		t.renders(data=None)
+
+	with raises(unknownkeywordargument):
+		T("<?print float(x=data)?>").renders(data=42)
 
 
 @pytest.mark.ul4
 def test_function_len(T):
 	t = T("<?print len(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print len()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print len(1, 2)?>").renders()
-	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		t.renders(data=None)
-	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		t.renders(data=True)
-	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		t.renders(data=False)
-	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		t.renders(data=42)
-	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
-		t.renders(data=4.2)
 	assert "42" == t.renders(data=42*"?")
 	assert "42" == t.renders(data=42*[None])
 	assert "42" == t.renders(data=dict.fromkeys(range(42)))
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print len(sequence=data)?>").renders(data=42*"?")
+	with raises(argumentmismatchmessage):
+		T("<?print len()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print len(1, 2)?>").renders()
+
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
+		t.renders(data=None)
+
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
+		t.renders(data=True)
+
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
+		t.renders(data=False)
+
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
+		t.renders(data=42)
+
+	with raises("has no len\\(\\)|len\\(.*\\) not supported"):
+		t.renders(data=4.2)
+
+	with raises(unknownkeywordargument):
+		T("<?print len(sequence=data)?>").renders(data=42*"?")
 
 
 @pytest.mark.ul4
 def test_function_any(T):
-	with raises(argumentmismatchmessage):
-		T("<?print any()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print any(1, 2)?>").renders()
-	with raises("is not iterable|any\\(.*\\) not supported"):
-		T("<?print any(data)?>").renders(data=None)
 	assert "False" == T("<?print any('')?>").renders()
 	assert "True" == T("<?print any('foo')?>").renders()
 	assert "True" == T("<?print any(i > 7 for i in range(10))?>").renders()
@@ -2456,18 +2520,21 @@ def test_function_any(T):
 		assert "True" == T("<?print any({None: 17, 0: 23, 42: 'foo'})?>").renders()
 		assert "False" == T("<?print any({0: 17})?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print any(iterable=(i > 17 for i in range(10)))?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print any()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print any(1, 2)?>").renders()
+
+	with raises("is not iterable|any\\(.*\\) not supported"):
+		T("<?print any(data)?>").renders(data=None)
+
+	with raises(unknownkeywordargument):
+		T("<?print any(iterable=(i > 17 for i in range(10)))?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_all(T):
-	with raises(argumentmismatchmessage):
-		T("<?print all()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print all(1, 2)?>").renders()
-	with raises("is not iterable|all\\(.*\\) not supported"):
-		T("<?print all(data)?>").renders(data=None)
 	assert "True" == T("<?print all('')?>").renders()
 	assert "True" == T("<?print all('foo')?>").renders()
 	assert "False" == T("<?print all(i < 7 for i in range(10))?>").renders()
@@ -2477,8 +2544,17 @@ def test_function_all(T):
 		assert "True" == T("<?print any({17: 23, 42: 'foo'})?>").renders()
 		assert "False" == T("<?print any({0: 17})?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "True" == T("<?print all(iterable=(i < 17 for i in range(10)))?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print all()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print all(1, 2)?>").renders()
+
+	with raises("is not iterable|all\\(.*\\) not supported"):
+		T("<?print all(data)?>").renders(data=None)
+
+	with raises(unknownkeywordargument):
+		T("<?print all(iterable=(i < 17 for i in range(10)))?>").renders()
 
 
 @pytest.mark.ul4
@@ -2486,20 +2562,6 @@ def test_function_enumerate(T):
 	t1 = T("<?for (i, value) in enumerate(data)?>(<?print value?>=<?print i?>)<?end for?>")
 	t2 = T("<?for (i, value) in enumerate(data, 42)?>(<?print value?>=<?print i?>)<?end for?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print enumerate()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print enumerate(1, 2, 3)?>").renders()
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=None)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=True)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=False)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=42)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=4.2)
 	assert "(f=0)(o=1)(o=2)" == t1.renders(data="foo")
 	assert "(foo=0)(bar=1)" == t1.renders(data=["foo", "bar"])
 	assert "(foo=0)" == t1.renders(data=dict(foo=True))
@@ -2509,125 +2571,167 @@ def test_function_enumerate(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert "(f=42)(o=43)(o=44)" == T("<?for (i, value) in enumerate(iterable=data, start=42)?>(<?print value?>=<?print i?>)<?end for?>").renders(data="foo")
 
+	with raises(argumentmismatchmessage):
+		T("<?print enumerate()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print enumerate(1, 2, 3)?>").renders()
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=None)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=True)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=False)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=42)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=4.2)
+
 
 @pytest.mark.ul4
 def test_function_enumfl(T):
 	t1 = T("<?for (i, f, l, value) in enumfl(data)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>")
 	t2 = T("<?for (i, f, l, value) in enumfl(data, 42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>")
-
-	with raises(argumentmismatchmessage):
-		T("<?print enumfl()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print enumfl(1, 2, 3)?>").renders()
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=None)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=True)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=False)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=42)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t1.renders(data=4.2)
 	assert "[(f=0)(o=1)(o=2)]" == t1.renders(data="foo")
 	assert "[(foo=0)(bar=1)]" == t1.renders(data=["foo", "bar"])
 	assert "[(foo=0)]" == t1.renders(data=dict(foo=True))
 	assert "" == t1.renders(data="")
 	assert "[(f=42)(o=43)(o=44)]" == t2.renders(data="foo")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "[(f=42)(o=43)(o=44)]" == T("<?for (i, f, l, value) in enumfl(iterable=data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=None)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=True)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=False)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=42)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t1.renders(data=4.2)
+
+	with raises(argumentmismatchmessage):
+		T("<?print enumfl()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print enumfl(1, 2, 3)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?for (i, f, l, value) in enumfl(iterable=data, start=42)?><?if f?>[<?end if?>(<?print value?>=<?print i?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
 
 @pytest.mark.ul4
 def test_function_isfirstlast(T):
 	t = T("<?for (f, l, value) in isfirstlast(data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>")
-
-	with raises(argumentmismatchmessage):
-		T("<?print isfirstlast()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isfirstlast(1, 2)?>").renders()
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=None)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=True)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=False)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=42)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=4.2)
 	assert "[(f)(o)(o)]" == t.renders(data="foo")
 	assert "[(foo)(bar)]" == t.renders(data=["foo", "bar"])
 	assert "[(foo)]" == t.renders(data=dict(foo=True))
 	assert "" == t.renders(data="")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "[(f)(o)(o)]" == T("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
+	with raises(argumentmismatchmessage):
+		T("<?print isfirstlast()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isfirstlast(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=None)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=True)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=False)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=42)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=4.2)
 
 
 @pytest.mark.ul4
 def test_function_isfirst(T):
 	t = T("<?for (f, value) in isfirst(data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>")
-
-	with raises(argumentmismatchmessage):
-		T("<?print isfirst()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isfirst(1, 2)?>").renders()
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=None)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=True)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=False)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=42)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=4.2)
 	assert "[(f)(o)(o)" == t.renders(data="foo")
 	assert "[(foo)(bar)" == t.renders(data=["foo", "bar"])
 	assert "[(foo)" == t.renders(data=dict(foo=True))
 	assert "" == t.renders(data="")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "[(f)(o)(o)" == T("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>").renders(data="foo")
+	with raises(argumentmismatchmessage):
+		T("<?print isfirst()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isfirst(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>").renders(data="foo")
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=None)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=True)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=False)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=42)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=4.2)
 
 
 @pytest.mark.ul4
 def test_function_islast(T):
 	t = T("<?for (l, value) in islast(data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print islast()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print islast(1, 2)?>").renders()
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=None)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=True)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=False)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=42)
-	with raises("is not iterable|iter\\(.*\\) not supported"):
-		t.renders(data=4.2)
 	assert "(f)(o)(o)]" == t.renders(data="foo")
 	assert "(foo)(bar)]" == t.renders(data=["foo", "bar"])
 	assert "(foo)]" == t.renders(data=dict(foo=True))
 	assert "" == t.renders(data="")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "(f)(o)(o)]" == T("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
+	with raises(argumentmismatchmessage):
+		T("<?print islast()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print islast(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=None)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=True)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=False)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=42)
+
+	with raises("is not iterable|iter\\(.*\\) not supported"):
+		t.renders(data=4.2)
 
 
 @pytest.mark.ul4
 def test_function_isundefined(T):
 	t = T("<?print isundefined(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isundefined()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isundefined(1, 2)?>").renders()
 	assert "True" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2647,18 +2751,20 @@ def test_function_isundefined(T):
 	assert "False" == t.renders(data=ul4c.Template(""))
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isundefined(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isundefined()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isundefined(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isundefined(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isdefined(T):
 	t = T("<?print isdefined(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isdefined()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isdefined(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "True" == t.renders(data=None)
 	assert "True" == t.renders(data=True)
@@ -2678,18 +2784,20 @@ def test_function_isdefined(T):
 	assert "True" == T("<?print isdefined(repr)?>").renders()
 	assert "True" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "True" == T("<?print isdefined(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isdefined()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isdefined(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isdefined(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isnone(T):
 	t = T("<?print isnone(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isnone()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isnone(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "True" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2709,18 +2817,20 @@ def test_function_isnone(T):
 	assert "False" == T("<?print isnone(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "True" == T("<?print isnone(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isnone()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isnone(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isnone(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isbool(T):
 	t = T("<?print isbool(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isbool()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isbool(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "True" == t.renders(data=True)
@@ -2740,18 +2850,20 @@ def test_function_isbool(T):
 	assert "False" == T("<?print isbool(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isbool(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isbool()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isbool(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isbool(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isint(T):
 	t = T("<?print isint(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isint()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isint(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2771,18 +2883,20 @@ def test_function_isint(T):
 	assert "False" == T("<?print isint(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isint(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isint()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isint(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isint(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isfloat(T):
 	t = T("<?print isfloat(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isfloat()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isfloat(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2802,18 +2916,20 @@ def test_function_isfloat(T):
 	assert "False" == T("<?print isfloat(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isfloat(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isfloat()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isfloat(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isfloat(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isstr(T):
 	t = T("<?print isstr(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isstr()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isstr(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2833,18 +2949,20 @@ def test_function_isstr(T):
 	assert "False" == T("<?print isstr(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isstr(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isstr()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isstr(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isstr(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isdate(T):
 	t = T("<?print isdate(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isdate()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isdate(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2864,18 +2982,20 @@ def test_function_isdate(T):
 	assert "False" == T("<?print isdate(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isdate(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isdate()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isdate(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isdate(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isdatetime(T):
 	t = T("<?print isdatetime(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isdatetime()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isdatetime(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2895,18 +3015,86 @@ def test_function_isdatetime(T):
 	assert "False" == T("<?print isdate(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isdate(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isdatetime()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isdatetime(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isdate(obj=data)?>").renders(data=None)
+
+
+@pytest.mark.ul4
+def test_function_istimedelta(T):
+	t = T("<?print istimedelta(data)?>")
+
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "True" == t.renders(data=datetime.timedelta(1))
+	assert "False" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print istimedelta(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
+
+	with raises(argumentmismatchmessage):
+		T("<?print istimedelta()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print istimedelta(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print istimedelta(obj=data)?>").renders(data=None)
+
+
+@pytest.mark.ul4
+def test_function_ismonthdelta(T):
+	t = T("<?print ismonthdelta(data)?>")
+
+	assert "False" == t.renders()
+	assert "False" == t.renders(data=None)
+	assert "False" == t.renders(data=True)
+	assert "False" == t.renders(data=False)
+	assert "False" == t.renders(data=42)
+	assert "False" == t.renders(data=4.2)
+	assert "False" == t.renders(data="foo")
+	assert "False" == t.renders(data=datetime.date.today())
+	assert "False" == t.renders(data=datetime.datetime.now())
+	assert "False" == t.renders(data=datetime.timedelta(1))
+	assert "True" == t.renders(data=misc.monthdelta(1))
+	assert "False" == t.renders(data=())
+	assert "False" == t.renders(data=[])
+	assert "False" == t.renders(data=set())
+	assert "False" == t.renders(data={})
+	assert "False" == t.renders(data=ul4c.Template(""))
+	assert "False" == T("<?print ismonthdelta(repr)?>").renders()
+	assert "False" == t.renders(data=color.red)
+
+	with raises(argumentmismatchmessage):
+		T("<?print ismonthdelta()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ismonthdelta(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print ismonthdelta(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_islist(T):
 	t = T("<?print islist(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print islist()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print islist(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2928,18 +3116,20 @@ def test_function_islist(T):
 	assert "False" == T("<?print islist(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print islist(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print islist()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print islist(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print islist(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isset(T):
 	t = T("<?print isset(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isset()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isset(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2961,18 +3151,20 @@ def test_function_isset(T):
 	assert "False" == T("<?print islist(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print islist(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isset()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isset(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print islist(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isdict(T):
 	t = T("<?print isdict(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isdict()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isdict(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -2994,18 +3186,20 @@ def test_function_isdict(T):
 	assert "False" == T("<?print isdict(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isdict(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isdict()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isdict(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isdict(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_istemplate(T):
 	t = T("<?print istemplate(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print istemplate()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print istemplate(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -3025,18 +3219,20 @@ def test_function_istemplate(T):
 	assert "False" == T("<?print istemplate(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print istemplate(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print istemplate()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print istemplate(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print istemplate(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isfunction(T):
 	t = T("<?print isfunction(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isfunction()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isfunction(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -3057,18 +3253,20 @@ def test_function_isfunction(T):
 	assert "True" == T("<?def f?><?return 42?><?end def?><?print isfunction(f)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print istemplate(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isfunction()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isfunction(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print istemplate(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_iscolor(T):
 	t = T("<?print iscolor(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print iscolor()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print iscolor(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -3088,80 +3286,20 @@ def test_function_iscolor(T):
 	assert "False" == T("<?print iscolor(repr)?>").renders()
 	assert "True" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print iscolor(obj=data)?>").renders(data=None)
-
-
-@pytest.mark.ul4
-def test_function_istimedelta(T):
-	t = T("<?print istimedelta(data)?>")
+	with raises(argumentmismatchmessage):
+		T("<?print iscolor()?>").renders()
 
 	with raises(argumentmismatchmessage):
-		T("<?print istimedelta()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print istimedelta(1, 2)?>").renders()
-	assert "False" == t.renders()
-	assert "False" == t.renders(data=None)
-	assert "False" == t.renders(data=True)
-	assert "False" == t.renders(data=False)
-	assert "False" == t.renders(data=42)
-	assert "False" == t.renders(data=4.2)
-	assert "False" == t.renders(data="foo")
-	assert "False" == t.renders(data=datetime.date.today())
-	assert "False" == t.renders(data=datetime.datetime.now())
-	assert "True" == t.renders(data=datetime.timedelta(1))
-	assert "False" == t.renders(data=misc.monthdelta(1))
-	assert "False" == t.renders(data=())
-	assert "False" == t.renders(data=[])
-	assert "False" == t.renders(data=set())
-	assert "False" == t.renders(data={})
-	assert "False" == t.renders(data=ul4c.Template(""))
-	assert "False" == T("<?print istimedelta(repr)?>").renders()
-	assert "False" == t.renders(data=color.red)
+		T("<?print iscolor(1, 2)?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print istimedelta(obj=data)?>").renders(data=None)
-
-
-@pytest.mark.ul4
-def test_function_ismonthdelta(T):
-	t = T("<?print ismonthdelta(data)?>")
-
-	with raises(argumentmismatchmessage):
-		T("<?print ismonthdelta()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print ismonthdelta(1, 2)?>").renders()
-	assert "False" == t.renders()
-	assert "False" == t.renders(data=None)
-	assert "False" == t.renders(data=True)
-	assert "False" == t.renders(data=False)
-	assert "False" == t.renders(data=42)
-	assert "False" == t.renders(data=4.2)
-	assert "False" == t.renders(data="foo")
-	assert "False" == t.renders(data=datetime.date.today())
-	assert "False" == t.renders(data=datetime.datetime.now())
-	assert "False" == t.renders(data=datetime.timedelta(1))
-	assert "True" == t.renders(data=misc.monthdelta(1))
-	assert "False" == t.renders(data=())
-	assert "False" == t.renders(data=[])
-	assert "False" == t.renders(data=set())
-	assert "False" == t.renders(data={})
-	assert "False" == t.renders(data=ul4c.Template(""))
-	assert "False" == T("<?print ismonthdelta(repr)?>").renders()
-	assert "False" == t.renders(data=color.red)
-
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print ismonthdelta(obj=data)?>").renders(data=None)
+	with raises(unknownkeywordargument):
+		T("<?print iscolor(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
 def test_function_isexception(T):
 	t = T("<?print isexception(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print isexception()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print isexception(1, 2)?>").renders()
 	assert "False" == t.renders()
 	assert "False" == t.renders(data=None)
 	assert "False" == t.renders(data=True)
@@ -3183,8 +3321,63 @@ def test_function_isexception(T):
 	assert "False" == T("<?print isexception(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "False" == T("<?print isexception(obj=data)?>").renders(data=None)
+	with raises(argumentmismatchmessage):
+		T("<?print isexception()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isexception(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isexception(obj=data)?>").renders(data=None)
+
+
+@pytest.mark.ul4
+def test_function_isinstance(T):
+	info = {
+		"type(None)": [None],
+		"bool": [True, False],
+		"int": [42],
+		"float": [42.5],
+		"str": ["foo"],
+		"date": [datetime.date.today()],
+		"datetime": ["=now()"],
+		"timedelta": [datetime.timedelta(1)],
+		"monthdelta": [misc.monthdelta(1)],
+		"list": [[]],
+		"set": [set()],
+		"dict": [{}],
+		"ul4.Template": [ul4c.Template("<?print x?>")],
+		"type(repr)": ["=repr"],
+		"color": [color.Color(0, 0, 0)]
+	}
+
+	for targettype in info:
+		if targettype != "ul4.Template" or not issubclass(T, TemplateJavascript):
+			for (checktype, values) in info.items():
+				if checktype != "ul4.Template" or not issubclass(T, TemplateJavascript):
+					output = str(checktype == targettype)
+
+					for value in values:
+						if isinstance(value, str) and value.startswith("="):
+							source = f"<?print isinstance({value[1:]}, {targettype})?>"
+							assert output == T(source).renders()
+						else:
+							source = f"<?print isinstance(value, {targettype})?>"
+							assert output == T(source).renders(value=value)
+
+	assert "True" == T("<?print isinstance('gurk', str)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isinstance()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isinstance(1)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print isinstance(1, 2, 3)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print isinstance(obj=42, cls=int)?>").renders()
 
 
 @pytest.mark.ul4
@@ -3319,21 +3512,15 @@ def test_function_reprascii_signature(T, reprfunc):
 
 
 @pytest.mark.ul4
-def text_function_reprascii_kwargs(T, reprfunc):
-	t = T(f"<?print {reprfunc}(data)?>")
-
-	# Make sure that the parameters have the same name in all implementations
-	assert "None" == T(f"<?print {reprfunc}(obj=data)?>").renders(data=None)
-
-
-@pytest.mark.ul4
 def text_function_reprascii_badargs(T, reprfunc):
-	t = T(f"<?print {reprfunc}(data)?>")
-
 	with raises(argumentmismatchmessage):
 		T(f"<?print {reprfunc}()?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T(f"<?print {reprfunc}(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T(f"<?print {reprfunc}(obj=data)?>").renders(data=None)
 
 
 @pytest.mark.ul4
@@ -3446,8 +3633,7 @@ def test_function_format_datetime(T):
 
 @pytest.mark.ul4
 def test_function_format_int(T):
-	t2 = T("<?print format(data, fmt)?>")
-	t3 = T("<?print format(data, fmt, lang)?>")
+	t = T("<?print format(data, fmt)?>")
 
 	formatstrings = [
 		"",
@@ -3470,10 +3656,10 @@ def test_function_format_int(T):
 	]
 
 	for f in formatstrings:
-		assert format(42, f) == t2.renders(data=42, fmt=f)
+		assert format(42, f) == t.renders(data=42, fmt=f)
 		if "c" not in f:
-			assert format(-42, f) == t2.renders(data=-42, fmt=f)
-	assert format(True, "05") == t2.renders(data=True, fmt="05")
+			assert format(-42, f) == t.renders(data=-42, fmt=f)
+	assert format(True, "05") == t.renders(data=True, fmt="05")
 
 
 @pytest.mark.ul4
@@ -3485,110 +3671,118 @@ def test_function_format_kwargs(T):
 def test_function_chr(T):
 	t = T("<?print chr(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print chr()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print chr(1, 2)?>").renders()
 	assert "\x00" == t.renders(data=0)
 	assert "a" == t.renders(data=ord("a"))
 	assert "\u20ac" == t.renders(data=0x20ac)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "\x00" == T("<?print chr(i=data)?>").renders(data=0)
+	with raises(argumentmismatchmessage):
+		T("<?print chr()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print chr(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print chr(i=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
 def test_function_ord(T):
 	t = T("<?print ord(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print ord()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print ord(1, 2)?>").renders()
 	assert "0" == t.renders(data="\x00")
 	assert str(ord("a")) == t.renders(data="a")
 	assert str(0x20ac) == t.renders(data="\u20ac")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "0" == T("<?print ord(c=data)?>").renders(data="\x00")
+	with raises(argumentmismatchmessage):
+		T("<?print ord()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ord(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print ord(c=data)?>").renders(data="\x00")
 
 
 @pytest.mark.ul4
 def test_function_hex(T):
 	t = T("<?print hex(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print hex()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print hex(1, 2)?>").renders()
 	assert "0x0" == t.renders(data=0)
 	assert "0xff" == t.renders(data=0xff)
 	assert "0xffff" == t.renders(data=0xffff)
 	assert "-0xffff" == t.renders(data=-0xffff)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "0x0" == T("<?print hex(number=data)?>").renders(data=0)
+	with raises(argumentmismatchmessage):
+		T("<?print hex()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print hex(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print hex(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
 def test_function_oct(T):
 	t = T("<?print oct(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print oct()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print oct(1, 2)?>").renders()
 	assert "0o0" == t.renders(data=0)
 	assert "0o77" == t.renders(data=0o77)
 	assert "0o7777" == t.renders(data=0o7777)
 	assert "-0o7777" == t.renders(data=-0o7777)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "0o0" == T("<?print oct(number=data)?>").renders(data=0)
+	with raises(argumentmismatchmessage):
+		T("<?print oct()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print oct(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print oct(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
 def test_function_bin(T):
 	t = T("<?print bin(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print bin()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print bin(1, 2)?>").renders()
 	assert "0b0" == t.renders(data=0b0)
 	assert "0b11" == t.renders(data=0b11)
 	assert "-0b1111" == t.renders(data=-0b1111)
 
+	with raises(argumentmismatchmessage):
+		T("<?print bin()?>").renders()
 
-@pytest.mark.ul4
-def test_function_bin_kwargs(T):
-	assert "0b0" == T("<?print bin(number=data)?>").renders(data=0)
+	with raises(argumentmismatchmessage):
+		T("<?print bin(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print bin(number=data)?>").renders(data=0)
 
 
 @pytest.mark.ul4
 def test_function_abs(T):
 	t = T("<?print abs(data)?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print abs()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print abs(1, 2)?>").renders()
 	assert "0" == t.render(data=0)
 	assert "42" == t.render(data=42)
 	assert "42" == t.render(data=-42)
 	assert "1 month" == t.render(data=misc.monthdelta(-1))
 	assert "1 day, 0:00:01.000001" == t.render(data=datetime.timedelta(-1, -1, -1))
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "0" == T("<?print abs(number=data)?>").renders(data=0)
+	with raises(argumentmismatchmessage):
+		T("<?print abs()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print abs(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print abs(number=1)?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_sorted(T):
 	t = T("<?for i in sorted(data)?><?print i?><?end for?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print sorted()?>").renders()
 	assert "gkru" == t.renders(data="gurk")
 	assert "24679" == t.renders(data="92746")
 	assert "172342" == t.renders(data=(42, 17, 23))
@@ -3604,10 +3798,17 @@ def test_function_sorted(T):
 	# reverse=True does not invert the runs of items that compare equal
 	assert "72;62;82;31;41;51;20;10;0;" == T("<?def key(v)?><?return v % 10?><?end def?><?for i in sorted(data, key, True)?><?print i?>;<?end for?>").renders(data=[72, 31, 20, 62, 41, 10, 0, 82, 51])
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "123" == T("<?for i in sorted(iterable=data)?><?print i?><?end for?>").renders(data="321")
-	assert "cba" == T("<?for i in sorted(iterable=data, reverse=True)?><?print i?><?end for?>").renders(data="bca")
-	assert "123;12;1;" == T("<?def key(v)?><?return -len(str(v))?><?end def?><?for i in sorted(iterable=data, key=key)?><?print i?>;<?end for?>").renders(data=[1, 12, 123])
+	with raises(argumentmismatchmessage):
+		T("<?print sorted()?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print sorted(iterable='123')?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print sorted(iterable='bca', reverse=True)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print sorted(iterable=data, key=str)?>").renders()
 
 
 @pytest.mark.ul4
@@ -3616,10 +3817,6 @@ def test_function_range(T):
 	t2 = T("<?for i in range(data[0], data[1])?><?print i?>;<?end for?>")
 	t3 = T("<?for i in range(data[0], data[1], data[2])?><?print i?>;<?end for?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print range()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print range(1, 2, 3, 4)?>").renders()
 	assert "" == t1.renders(data=-10)
 	assert "" == t1.renders(data=0)
 	assert "0;" == t1.renders(data=1)
@@ -3635,6 +3832,15 @@ def test_function_range(T):
 	assert "10;8;6;4;2;" == t3.renders(data=[10, 0, -2])
 	assert "" == t3.renders(data=[10, 0, 2])
 
+	with raises(argumentmismatchmessage):
+		T("<?print range()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print range(1, 2, 3, 4)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print range(stop=10)?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_slice(T):
@@ -3642,16 +3848,22 @@ def test_function_slice(T):
 	t3 = T("<?for i in slice(data[0], data[1], data[2])?><?print i?>;<?end for?>")
 	t4 = T("<?for i in slice(data[0], data[1], data[2], data[3])?><?print i?>;<?end for?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print slice(1)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print slice(1, 2, 3, 4, 5)?>").renders()
 	assert "g;u;r;k;" == t2.renders(data=("gurk", None))
 	assert "g;u;" == t2.renders(data=("gurk", 2))
 	assert "u;r;" == t3.renders(data=("gurk", 1, 3))
 	assert "u;r;k;" == t3.renders(data=("gurk", 1, None))
 	assert "g;u;" == t3.renders(data=("gurk", None, 2))
 	assert "u;u;" == t4.renders(data=("gurkgurk", 1, 6, 4))
+	assert "u;k;u;k;u;k;" == t4.renders(data=("gurkgurkgurk", 1, None, 2))
+
+	with raises(argumentmismatchmessage):
+		T("<?print slice(1)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print slice(1, 2, 3, 4, 5)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print slice('gurk', stop=10)?>").renders()
 
 
 @pytest.mark.ul4
@@ -3690,93 +3902,120 @@ def test_function_zip(T):
 	assert "1-3+5;2-4+6;" == t3.renders(x=[1, 2], y=[3, 4], z=[5, 6])
 	assert "1-4+6;" == t3.renders(x=[1, 2, 3], y=[4, 5], z=[6])
 
+	with raises(unknownkeywordargument):
+		T("<?print zip(iterables='gurk')?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_type(T):
 	t = T("<?print type(x)?>")
 
+	assert "<type undefinedvariable>" == t.renders()
+	assert "<type None>" == t.renders(x=None)
+	assert "<type bool>" == t.renders(x=False)
+	assert "<type bool>" == t.renders(x=True)
+	assert "<type int>" == t.renders(x=42)
+	assert "<type float>" == t.renders(x=4.2)
+	assert "<type str>" == t.renders(x="foo")
+	assert "<type date>" == t.renders(x=datetime.date.today())
+	assert "<type datetime>" == t.renders(x=datetime.datetime.now())
+	assert "<type timedelta>" == t.renders(x=datetime.timedelta())
+	assert "<type monthdelta>" == t.renders(x=misc.monthdelta())
+	assert "<type list>" == t.renders(x=(1, 2))
+	assert "<type list>" == t.renders(x=[1, 2])
+	assert "<type list>" == t.renders(x=PseudoList([1, 2]))
+	assert "<type dict>" == t.renders(x={1: 2})
+	assert "<type dict>" == t.renders(x=PseudoDict({1: 2}))
+	assert "<type ul4.Template>" == t.renders(x=ul4c.Template(""))
+	assert "<type ul4.TemplateClosure>" == T("<?def t?><?end def?><?print type(t)?>").renders()
+	assert "<type function>" == T("<?print type(repr)?>").renders()
+	assert "<type color>" == T("<?print type(#000)?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print type()?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print type(1, 2)?>").renders()
-	assert "undefined" == t.renders()
-	assert "none" == t.renders(x=None)
-	assert "bool" == t.renders(x=False)
-	assert "bool" == t.renders(x=True)
-	assert "int" == t.renders(x=42)
-	assert "float" == t.renders(x=4.2)
-	assert "str" == t.renders(x="foo")
-	assert "date" == t.renders(x=datetime.date.today())
-	assert "datetime" == t.renders(x=datetime.datetime.now())
-	assert "timedelta" == t.renders(x=datetime.timedelta())
-	assert "monthdelta" == t.renders(x=misc.monthdelta())
-	assert "list" == t.renders(x=(1, 2))
-	assert "list" == t.renders(x=[1, 2])
-	assert "list" == t.renders(x=PseudoList([1, 2]))
-	assert "dict" == t.renders(x={1: 2})
-	assert "dict" == t.renders(x=PseudoDict({1: 2}))
-	assert t.renders(x=ul4c.Template("")).lower().endswith("template")
-	assert T("<?def t?><?end def?><?print type(t)?>").renders().lower().endswith(("template", "templateclosure"))
-	assert "function" == T("<?print type(repr)?>").renders()
-	assert t.renders(x=color.red).lower().endswith("color")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "none" == T("<?print type(obj=x)?>").renders(x=None)
+	with raises(unknownkeywordargument):
+		T("<?print type(obj=x)?>").renders(x=None)
 
 
 @pytest.mark.ul4
 def test_function_reversed(T):
 	t = T("<?for i in reversed(x)?>(<?print i?>)<?end for?>")
 
-	with raises(argumentmismatchmessage):
-		T("<?print reversed()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print reversed(1, 2)?>").renders()
 	assert "(3)(2)(1)" == t.renders(x="123")
 	assert "(3)(2)(1)" == t.renders(x=[1, 2, 3])
 	assert "(3)(2)(1)" == t.renders(x=(1, 2, 3))
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "(3)(2)(1)" == T("<?for i in reversed(sequence=x)?>(<?print i?>)<?end for?>").renders(x=(1, 2, 3))
+	with raises(argumentmismatchmessage):
+		T("<?print reversed()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print reversed(1, 2)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?code reversed(sequence=x)?>").renders(x=(1, 2, 3))
 
 
 @pytest.mark.ul4
 def test_function_min(T):
-	with raises(argumentmismatchmessage):
-		T("<?print min()?>").renders()
-	with raises("empty sequence"):
-		T("<?print min([])?>").renders()
 	assert "1" == T("<?print min('123')?>").renders()
 	assert "1" == T("<?print min(1, 2, 3)?>").renders()
 	assert "0" == T("<?print min(0, False, 1, True)?>").renders()
 	assert "False" == T("<?print min(False, 0, True, 1)?>").renders()
 	assert "False" == T("<?print min([False, 0, True, 1])?>").renders()
 
+	assert "42" == T("<?print min([], default=42)?>").renders()
+	assert "hinz" == T("<?def key(s)?><?return s[1]?><?end def?><?print min(['gurk', 'hurz', 'hinz', 'kunz'], key=key)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print min()?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?code min(args='gurk')?>").renders()
+
+	with raises("empty sequence"):
+		T("<?print min([])?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_max(T):
-	with raises(argumentmismatchmessage):
-		T("<?print max()?>").renders()
-	with raises("empty sequence"):
-		T("<?print max([])?>").renders()
 	assert "3" == T("<?print max('123')?>").renders()
 	assert "3" == T("<?print max(1, 2, 3)?>").renders()
 	assert "1" == T("<?print max(0, False, 1, True)?>").renders()
 	assert "True" == T("<?print max(False, 0, True, 1)?>").renders()
 	assert "True" == T("<?print max([False, 0, True, 1])?>").renders()
 
+	assert "42" == T("<?print max([], default=42)?>").renders()
+	assert "hurz" == T("<?def key(s)?><?return s[2:]?><?end def?><?print max(['gurk', 'hurz', 'hinz', 'kunz'], key=key)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print max()?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?code max(args='gurk')?>").renders()
+
+	with raises("empty sequence"):
+		T("<?print max([])?>").renders()
+
 
 @pytest.mark.ul4
 def test_function_sum(T):
-	with raises(argumentmismatchmessage):
-		T("<?print sum()?>").renders()
-
 	assert "0" == T("<?print sum([])?>").renders()
 	assert "6" == T("<?print sum([1, 2, 3])?>").renders()
 	assert "12" == T("<?print sum([1, 2, 3], 6)?>").renders()
 	assert "5050" == T("<?print sum(range(101))?>").renders()
 
-	assert "12" == T("<?print sum(iterable=[1, 2, 3], start=6)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print sum()?>").renders()
+
+	msg = unknownkeywordargument[1:-1]
+	msg = f"(sum\\(\\) takes at least 1 positional argument \\(0 given\\)|{msg})"
+
+	with raises(msg):
+		T("<?print sum(iterable=[1, 2, 3], start=6)?>").renders()
 
 
 @pytest.mark.ul4
@@ -3785,7 +4024,8 @@ def test_function_first(T):
 	assert "None" == T("<?print repr(first(''))?>").renders()
 	assert "x" == T("<?print first('', 'x')?>").renders()
 
-	assert "x" == T("<?print first(iterable='', default='x')?>").renders()
+	with raises(unknownkeywordargument):
+		T("<?print first(iterable='', default='x')?>").renders()
 
 
 @pytest.mark.ul4
@@ -3794,7 +4034,8 @@ def test_function_last(T):
 	assert "None" == T("<?print repr(last(''))?>").renders()
 	assert "x" == T("<?print last('', 'x')?>").renders()
 
-	assert "x" == T("<?print last(iterable='', default='x')?>").renders()
+	with raises(unknownkeywordargument):
+		T("<?print last(iterable='', default='x')?>").renders()
 
 
 @pytest.mark.ul4
@@ -3829,8 +4070,8 @@ def test_function_md5(T):
 	result = "acbd18db4cc2f85cedef654fccc4a4d8"
 	assert result == T("<?print md5('foo')?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert result == T("<?print md5(string='foo')?>").renders()
+	with raises(unknownkeywordargument):
+		assert result == T("<?print md5(string='foo')?>").renders()
 
 
 @pytest.mark.ul4
@@ -3839,17 +4080,12 @@ def test_function_scrypt(T):
 		result = "468b5b132508a02f1868576247763abed96ac41db9287d21c8b5379ad71fbe2a2bf77fd3a738dda0572e0761938149f5b91b58d2ff87b9482680540606a710943d2a69f66fe89e2693361300c914b42c24abb29a80ef8840b6a0b67c96e5960292cc38cd959017931fe28e2a921107ade2f845e09a7590e9bf6755bd04ec51af"
 		assert result == T("<?print scrypt('foo', 'bar')?>").renders()
 
-		# Make sure that the parameters have the same name in all implementations
-		assert result == T("<?print scrypt(string='foo', salt='bar')?>").renders()
+		with raises(unknownkeywordargument):
+			assert result == T("<?print scrypt(string='foo', salt='bar')?>").renders()
 
 
 @pytest.mark.ul4
 def test_function_round(T):
-	with raises(argumentmismatchmessage):
-		T("<?print round()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print round(1, 2, 3)?>").renders()
-
 	assert "True" == T("<?print round(42) == 42?>").renders()
 	assert "True" == T("<?print round(42, 1) == 42?>").renders()
 	assert "True" == T("<?print round(42, -1) == 40?>").renders()
@@ -3858,13 +4094,13 @@ def test_function_round(T):
 	assert "True" == T("<?print round(42.6) == 43?>").renders()
 	assert "True" == T("<?print round(-42.4) == -42?>").renders()
 	assert "True" == T("<?print round(-42.6) == -43?>").renders()
-	assert "int" == T("<?print type(round(42.5))?>").renders()
+	assert "<type int>" == T("<?print type(round(42.5))?>").renders()
 
 	assert "True" == T("<?print round(42.4, -1) == 40?>").renders()
 	assert "True" == T("<?print round(46.2, -1) == 50?>").renders()
 	assert "True" == T("<?print round(-42.4, -1) == -40?>").renders()
 	assert "True" == T("<?print round(-46.2, -1) == -50?>").renders()
-	assert "int" == T("<?print type(round(42.5, -1))?>").renders()
+	assert "<type int>" == T("<?print type(round(42.5, -1))?>").renders()
 
 	assert "True" == T("<?print round(42.987, 1) == 43.0?>").renders()
 	assert "True" == T("<?print round(42.123, 1) == 42.1?>").renders()
@@ -3874,7 +4110,151 @@ def test_function_round(T):
 	assert "True" == T("<?print round(42.123, 2) == 42.12?>").renders()
 	# assert "True" == T("<?print round(-42.589, 2) == -42.59?>").renders()
 	assert "True" == T("<?print round(-42.123, 2) == -42.12?>").renders()
-	assert "float" == T("<?print type(round(42.5, 1))?>").renders()
+	assert "<type float>" == T("<?print type(round(42.5, 1))?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "True" == T("<?print round(-42.123, digits=2) == -42.12?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print round()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print round(1, 2, 3)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print round(number=-42.123, digits=2)?>").renders()
+
+
+@pytest.mark.ul4
+def test_function_floor(T):
+	assert "42" == T("<?print floor(x)?>").renders(x=42)
+	# Javascript can't distinguish between int and float, so test the value not the output
+	assert "True" == T("<?print floor(x, 1) == x?>").renders(x=42)
+	assert "40" == T("<?print floor(x, -1)?>").renders(x=40)
+	assert "40" == T("<?print floor(x, -1)?>").renders(x=49)
+	assert "-50" == T("<?print floor(x, -1)?>").renders(x=-41)
+	assert "-50" == T("<?print floor(x, -1)?>").renders(x=-50)
+	assert "400" == T("<?print floor(x, -2)?>").renders(x=400)
+	assert "400" == T("<?print floor(x, -2)?>").renders(x=499)
+	assert "-500" == T("<?print floor(x, -2)?>").renders(x=-401)
+	assert "-500" == T("<?print floor(x, -2)?>").renders(x=-500)
+	assert "<type int>" == T("<?print type(floor(x))?>").renders(x=42)
+	assert "<type int>" == T("<?print type(floor(x, 1))?>").renders(x=42)
+	assert "<type int>" == T("<?print type(floor(x, -1))?>").renders(x=42)
+
+	if not issubclass(T, TemplateJavascript):
+		base = 10 ** 30
+		assert str(base) == T(f"<?print floor(x, -30)?>").renders(x=base)
+		assert str(base) == T(f"<?print floor(2*x-1, -30)?>").renders(x=base)
+		assert str(2*base) == T(f"<?print floor(2*x, -30)?>").renders(x=base)
+		assert str(-base) == T(f"<?print floor(-x, -30)?>").renders(x=base)
+		assert str(-2*base) == T(f"<?print floor(-x-1, -30)?>").renders(x=base)
+		assert str(-2*base) == T(f"<?print floor(-2*x, -30)?>").renders(x=base)
+		assert str(-2*base) == T(f"<?print floor(-2*x+1, -30)?>").renders(x=base)
+		# This checks integer overflow in the Java implementation
+		assert "-10000000000" == T(f"<?print floor(x, -10)?>").renders(x=-2147483648)
+		# This checks long overflow in the Java implementation
+		assert "-10000000000000000000" == T(f"<?print floor(x, -19)?>").renders(x=-9223372036854775808)
+
+	assert "True" == T("<?print floor(42.6) == 42?>").renders()
+	assert "True" == T("<?print floor(-42.4) == -43?>").renders()
+	assert "True" == T("<?print floor(-42.6) == -43?>").renders()
+	assert "<type int>" == T("<?print type(floor(42.5))?>").renders()
+
+	assert "True" == T("<?print floor(42.4, -1) == 40?>").renders()
+	assert "True" == T("<?print floor(46.2, -1) == 40?>").renders()
+	assert "True" == T("<?print floor(-42.4, -1) == -50?>").renders()
+	assert "True" == T("<?print floor(-46.2, -1) == -50?>").renders()
+	assert "<type int>" == T("<?print type(floor(42.5, -1))?>").renders()
+
+	assert "True" == T("<?print floor(42.987, 1) == 42.9?>").renders()
+	assert "True" == T("<?print floor(42.123, 1) == 42.1?>").renders()
+	assert "True" == T("<?print floor(-42.987, 1) == -43.0?>").renders()
+	assert "True" == T("<?print floor(-42.123, 1) == -42.2?>").renders()
+	#
+	assert "True" == T("<?print floor(42.589, 2) == 42.58?>").renders()
+	assert "True" == T("<?print floor(42.123, 2) == 42.12?>").renders()
+	#
+	assert "True" == T("<?print math.isclose(floor(-42.589, 2), -42.59)?>").renders()
+	assert "True" == T("<?print floor(-42.123, 2) == -42.13?>").renders()
+	assert "<type float>" == T("<?print type(floor(42.5, 1))?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "True" == T("<?print floor(-42.123, digits=2) == -42.13?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print floor()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print floor(1, 2, 3)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print floor(number=-42.123, digits=2)?>").renders()
+
+
+@pytest.mark.ul4
+def test_function_ceil(T):
+	assert "42" == T("<?print ceil(x)?>").renders(x=42)
+	# Javascript can't distinguish between int and float, so test the value not the output
+	assert "True" == T("<?print ceil(x, 1) == x?>").renders(x=42)
+	assert "40" == T("<?print ceil(x, -1)?>").renders(x=40)
+	assert "50" == T("<?print ceil(x, -1)?>").renders(x=41)
+	assert "-40" == T("<?print ceil(x, -1)?>").renders(x=-49)
+	assert "-50" == T("<?print ceil(x, -1)?>").renders(x=-50)
+	assert "400" == T("<?print ceil(x, -2)?>").renders(x=400)
+	assert "500" == T("<?print ceil(x, -2)?>").renders(x=499)
+	assert "-400" == T("<?print ceil(x, -2)?>").renders(x=-401)
+	assert "-500" == T("<?print ceil(x, -2)?>").renders(x=-500)
+	assert "<type int>" == T("<?print type(ceil(x))?>").renders(x=42)
+	assert "<type int>" == T("<?print type(ceil(x, 1))?>").renders(x=42)
+	assert "<type int>" == T("<?print type(ceil(x, -1))?>").renders(x=42)
+
+	if not issubclass(T, TemplateJavascript):
+		base = 10 ** 30
+		assert str(base) == T(f"<?print ceil(x, -30)?>").renders(x=base)
+		assert str(2*base) == T(f"<?print ceil(x+1, -30)?>").renders(x=base)
+		assert str(2*base) == T(f"<?print ceil(2*x, -30)?>").renders(x=base)
+		assert str(-base) == T(f"<?print ceil(-x, -30)?>").renders(x=base)
+		assert "0" == T(f"<?print ceil(-x+1, -30)?>").renders(x=base)
+		assert str(-2*base) == T(f"<?print ceil(-2*x, -30)?>").renders(x=base)
+		assert str(-base) == T(f"<?print ceil(-2*x+1, -30)?>").renders(x=base)
+		# This checks integer overflow in the Java implementation
+		assert "10000000000" == T(f"<?print ceil(x, -10)?>").renders(x=2147483647)
+		# This checks long overflow in the Java implementation
+		assert "10000000000000000000" == T(f"<?print ceil(x, -19)?>").renders(x=9223372036854775807)
+
+	assert "43" == T("<?print ceil(42.6)?>").renders()
+	assert "-42" == T("<?print ceil(-42.4)?>").renders()
+	assert "<type int>" == T("<?print type(ceil(42.5))?>").renders()
+
+	assert "50" == T("<?print ceil(42.4, -1)?>").renders()
+	assert "50" == T("<?print ceil(46.2, -1)?>").renders()
+	assert "-40" == T("<?print ceil(-42.4, -1)?>").renders()
+	assert "-40" == T("<?print ceil(-46.2, -1)?>").renders()
+	assert "<type int>" == T("<?print type(ceil(42.5, -1))?>").renders()
+
+	assert "True" == T("<?print ceil(42.987, 1) == 43.0?>").renders()
+	assert "42.2" == T("<?print ceil(42.123, 1)?>").renders()
+	assert "-42.9" == T("<?print ceil(-42.987, 1)?>").renders()
+	assert "-42.1" == T("<?print ceil(-42.123, 1)?>").renders()
+	assert "True" == T("<?print math.isclose(ceil(42.589, 2), 42.59)?>").renders()
+	assert "True" == T("<?print math.isclose(ceil(42.123, 2), 42.13)?>").renders()
+	#
+	assert "True" == T("<?print ceil(-42.589, 2) == -42.58?>").renders()
+	assert "True" == T("<?print ceil(-42.123, 2) == -42.12?>").renders()
+	assert "<type float>" == T("<?print type(ceil(42.5, 1))?>").renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert "True" == T("<?print math.isclose(ceil(-42.123, digits=2), -42.12)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ceil()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ceil(1, 2, 3)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print ceil(number=-42.123, digits=2)?>").renders()
 
 
 @pytest.mark.ul4
@@ -3945,37 +4325,96 @@ def test_function_dir(T):
 	# Check that ``getattr(x, ...)`` returns every attribute in ``dir(x)``
 	assert "" == T("<?for obj in all?><?for an in dir(d)?><?if getattr(obj, an, None) is None?><?print repr(obj)?>.<?print an?>: FAIL<?end if?><?end for?><?end for?>").renders(all=all)
 
+	with raises(unknownkeywordargument):
+		T("<?print dir(obj=42)?>").renders()
+
 
 @pytest.mark.ul4
-def test_function_math_cos(T):
+def test_module_math(T):
+	assert "math" == T("<?print math.__name__?>").renders()
+	assert "Math related functions and constants" == T("<?print math.__doc__?>").renders()
+
+
+@pytest.mark.ul4
+def test_module_math_cos(T):
 	t = T("<?code v = math.cos(x*math.pi)?><?print e-0.01 < v and v < e+0.01?>")
 
 	for x in (0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2):
 		assert "True" == t.renders(x=x, e=math.cos(x*math.pi))
 
+	with raises(argumentmismatchmessage):
+		T("<?print math.cos()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.cos(0, 0)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print math.cos(x=0)?>").renders()
+
 
 @pytest.mark.ul4
-def test_function_math_sin(T):
+def test_module_math_sin(T):
 	t = T("<?code v = math.sin(x*math.pi)?><?print e-0.01 < v and v < e+0.01?>")
 
 	for x in (0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2):
 		assert "True" == t.renders(x=x, e=math.sin(x*math.pi))
 
+	with raises(argumentmismatchmessage):
+		T("<?print math.sin()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.sin(0, 0)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print math.sin(x=0)?>").renders()
+
 
 @pytest.mark.ul4
-def test_function_math_tan(T):
+def test_module_math_tan(T):
 	t = T("<?code v = math.tan(x*math.pi)?><?print e-0.01 < v and v < e+0.01?>")
 
 	for x in (0, 0.25, 0.75, 1, 1.25, 1.75, 2):
 		assert "True" == t.renders(x=x, e=math.tan(x*math.pi))
 
+	with raises(argumentmismatchmessage):
+		T("<?print math.tan()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.tan(0, 0)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print math.tan(x=0)?>").renders()
+
 
 @pytest.mark.ul4
-def test_function_math_sqrt(T):
+def test_module_math_sqrt(T):
 	t = T("<?code v = math.sqrt(x)?><?print e-0.01 < v and v < e+0.01?>")
 
 	for x in range(10):
 		assert "True" == t.renders(x=x, e=math.sqrt(x))
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.sqrt()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.sqrt(0, 0)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print math.sqrt(x=0)?>").renders()
+
+
+@pytest.mark.ul4
+def test_module_math_isclose(T):
+	t = T("<?print math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)?>")
+
+	assert "True" == t.renders(a=10.0, b=12.5, rel_tol=0.25, abs_tol=0.0 )
+	assert "True" == t.renders(a=1.0, b=1.25, rel_tol=0.0,  abs_tol=0.25)
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.isclose()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print math.isclose(0, 0, 0, 0)?>").renders()
 
 
 @pytest.mark.ul4
@@ -3983,17 +4422,26 @@ def test_method_upper(T):
 	assert 'GURK' == T('<?print "gurk".upper()?>').renders()
 	assert 'GURK' == T('<?code m = "gurk".upper?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.upper(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_lower(T):
 	assert 'gurk' == T('<?print "GURK".lower()?>').renders()
 	assert 'gurk' == T('<?code m = "GURK".lower?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.lower(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_capitalize(T):
 	assert 'Gurk' == T('<?print "gURK".capitalize()?>').renders()
 	assert 'Gurk' == T('<?code m = "gURK".capitalize?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.capitalize(42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4004,8 +4452,14 @@ def test_method_startswith(T):
 	assert "True" == T("<?print 'gurkhurz'.startswith(['gu', 'hu'])?>").renders()
 	assert "False" == T("<?print 'gurkhurz'.startswith(['rk', 'rz'])?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "True" == T("<?print 'gurkhurz'.startswith(prefix='gurk')?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.startswith()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.startswith('rk', 'rz')?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print 'gurkhurz'.startswith(prefix='gurk')?>").renders()
 
 
 @pytest.mark.ul4
@@ -4016,8 +4470,14 @@ def test_method_endswith(T):
 	assert "False" == T("<?print 'gurkhurz'.endswith(['gu', 'hu'])?>").renders()
 	assert "True" == T("<?print 'gurkhurz'.endswith(['rk', 'rz'])?>").renders()
 
-	# Make sure that the parameters have the same name in all implementatiTns
-	assert "True" == T("<?print 'gurkhurz'.endswith(suffix='hurz')?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.endswith()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.endswith('rk', 'rz')?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print 'gurkhurz'.endswith(suffix='hurz')?>").renders()
 
 
 @pytest.mark.ul4
@@ -4026,8 +4486,11 @@ def test_method_strip(T):
 	assert "gurk" == T(r"<?print obj.strip('xyz')?>").renders(obj='xyzzygurkxyzzy')
 	assert "gurk" == T(r"<?code m = obj.strip?><?print m('xyz')?>").renders(obj='xyzzygurkxyzzy')
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "gurk" == T(r"<?print obj.strip(chars='xyz')?>").renders(obj='xyzzygurkxyzzy')
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.strip('g', 'u')?>").renders()
+
+	with raises(unknownkeywordargument):
+		T(r"<?print obj.strip(chars='xyz')?>").renders(obj='xyzzygurkxyzzy')
 
 
 @pytest.mark.ul4
@@ -4036,8 +4499,11 @@ def test_method_lstrip(T):
 	assert "gurkxyzzy" == T("<?print obj.lstrip(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 	assert "gurkxyzzy" == T("<?code m = obj.lstrip?><?print m(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "gurkxyzzy" == T("<?print obj.lstrip(chars=arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.lstrip('g', 'u')?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print obj.lstrip(chars=arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
 
 @pytest.mark.ul4
@@ -4046,8 +4512,11 @@ def test_method_rstrip(T):
 	assert "xyzzygurk" == T("<?print obj.rstrip(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 	assert "xyzzygurk" == T("<?code m = obj.rstrip?><?print m(arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "xyzzygurk" == T("<?print obj.rstrip(chars=arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.rstrip('g', 'u')?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print obj.rstrip(chars=arg)?>").renders(obj="xyzzygurkxyzzy", arg="xyz")
 
 
 @pytest.mark.ul4
@@ -4059,7 +4528,10 @@ def test_method_split(T):
 	assert "()(f)(oxxoxx)" == T("<?code m = obj.split?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "()(f)(oxxoxx)" == T("<?for item in obj.split(sep=arg, count=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+	assert "()(f)(oxxoxx)" == T("<?for item in obj.split(sep=arg, maxsplit=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.split('u', 2, 42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4071,7 +4543,10 @@ def test_method_rsplit(T):
 	assert "(xxfxxo)(o)()" == T("<?code m = obj.rsplit?><?for item in m(arg, 2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
 
 	# Make sure that the parameters have the same name in all implementations
-	assert "(xxfxxo)(o)()" == T("<?for item in obj.rsplit(sep=arg, count=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+	assert "(xxfxxo)(o)()" == T("<?for item in obj.rsplit(sep=arg, maxsplit=2)?>(<?print item?>)<?end for?>").renders(obj="xxfxxoxxoxx", arg="xx")
+
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.rsplit('u', 2, 42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4100,6 +4575,9 @@ def test_method_splitlines(T):
 	expected2 = "".join(f"({chr(i)+le!r})" for (i, le) in enumerate(lineends, ord('a')))
 	assert expected2 == T(source).renders(obj=text, keepends=True).replace('"', "'")
 
+	# Make sure that the parameters have the same name in all implementations
+	assert "['gurk']" == T("<?print 'gurk'.splitlines(keepends=False)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_replace(T):
@@ -4108,8 +4586,14 @@ def test_method_replace(T):
 	assert 'fuuo' == T("<?print 'foo'.replace('o', 'uu', 1)?>").renders()
 	assert 'fuuo' == T("<?code m = 'foo'.replace?><?print m('o', 'uu', 1)?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert 'fuuo' == T("<?print 'foo'.replace(old='o', new='uu', count=1)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.replace()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print 'gurk'.replace('foo', 'bar', 2, 42)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print 'foo'.replace(old='o', new='uu', count=1)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4127,6 +4611,9 @@ def test_method_renders(T):
 def test_method_isoformat_date(T):
 	assert '2000-02-29' == T('<?print @(2000-02-29).isoformat()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print @(2000-02-29).isoformat(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_isoformat_datetime(T):
@@ -4134,6 +4621,9 @@ def test_method_isoformat_datetime(T):
 	assert '2000-02-29T12:34:00' == T('<?print @(2000-02-29T12:34).isoformat()?>').renders()
 	assert '2000-02-29T12:34:56' == T('<?print @(2000-02-29T12:34:56).isoformat()?>').renders()
 	assert '2000-02-29T12:34:56.987000' == T('<?print @(2000-02-29T12:34:56.987000).isoformat()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print @(2000-02-29T12:34:56.987000).isoformat(42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4143,6 +4633,9 @@ def test_method_mimeformat_date(T):
 	assert 'Mon, 22 Feb 2010' == T("<?print data.mimeformat()?>").renders(data=t1)
 	assert 'Mon, 22 Feb 2010' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t1)
 
+	with raises(argumentmismatchmessage):
+		T("<?print @(2000-02-29).mimeformat(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_mimeformat_datetime(T):
@@ -4151,15 +4644,24 @@ def test_method_mimeformat_datetime(T):
 	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?print data.mimeformat()?>").renders(data=t2)
 	assert 'Mon, 22 Feb 2010 12:34:56 GMT' == T("<?code m = data.mimeformat?><?print m()?>").renders(data=t2)
 
+	with raises(argumentmismatchmessage):
+		T("<?print @(2000-02-29T12:34:56.987000).mimeformat(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_date_date(T):
 	assert '2000-02-29' == T('<?print @(2000-02-29).date()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print @(2000-02-29).date(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_date_datetime(T):
 	assert '2000-02-29' == T('<?print @(2000-02-29T12:34:56.987654).date()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print @(2000-02-29T12:34:56.987000).date(42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4167,11 +4669,17 @@ def test_method_items(T):
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for (key, value) in data.items()?><?print key?>:<?print value?>;<?end for?>").renders()
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.items?><?for (key, value) in m()?><?print key?>:<?print value?>;<?end for?>").renders()
 
+	with raises(argumentmismatchmessage):
+		T("<?print {}.items(42)?>").renders()
+
 
 @pytest.mark.ul4
 def test_method_values(T):
 	assert "42;17;23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for value in data.values()?><?print value?>;<?end for?>").renders()
 	assert "42;17;23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.values?><?for value in m()?><?print value?>;<?end for?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print {}.values(42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4182,8 +4690,14 @@ def test_method_get(T):
 	assert "17" == T("<?print {'foo': 17}.get('foo')?>").renders()
 	assert "17" == T("<?code m = {'foo': 17}.get?><?print m('foo')?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "17" == T("<?print {'foo': 17}.get(key='foo', default=42)?>").renders()
+	with raises(argumentmismatchmessage):
+		T("<?print {}.get()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print {}.get('foo', 2, 42)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print {'foo': 17}.get(key='foo', default=42)?>").renders()
 
 
 @pytest.mark.ul4
@@ -4262,8 +4776,8 @@ def test_method_join(T):
 	assert '1,2,3,4' == T('<?print ",".join(["1", "2", "3", "4"])?>').renders()
 	assert '1,2,3,4' == T('<?code m = ",".join?><?print m("1234")?>').renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert '1,2,3,4' == T('<?print ",".join(iterable="1234")?>').renders()
+	with raises(unknownkeywordargument):
+		T('<?print ",".join(iterable="1234")?>').renders()
 
 
 @pytest.mark.ul4
@@ -4305,6 +4819,15 @@ def test_method_count_string(T):
 	# Matches are non overlapping
 	assert '1' == T(source).renders(haystack='aaa', needle='aa')
 
+	with raises(argumentmismatchmessage):
+		T('<?print "gurk".count()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print "gurk".count("u", 1, 2, 42)?>').renders()
+
+	with raises(unknownkeywordargument):
+		T('<?print "gurk".count(sub="u")?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_count_list(T):
@@ -4314,6 +4837,15 @@ def test_method_count_list(T):
 	assert '3' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2)
 	assert '2' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2)
 	assert '1' == T(source).renders(haystack=[1, 2, 3, 2, 3, 4, 1, 2, 3], needle=2, start=2, end=7)
+
+	with raises(argumentmismatchmessage):
+		T('<?print [1, 2, 3].count()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print [1, 2, 3].count(1, 1, 2, 42)?>').renders()
+
+	with raises(unknownkeywordargument):
+		T('<?print [1, 2, 3].count(sub=1)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4330,8 +4862,14 @@ def test_method_find_string(T):
 	assert '-1' == T('<?print s.find("rk", 7)?>').renders(s=s)
 	assert '-1' == T('<?code m = s.find?><?print m("rk", 7)?>').renders(s=s)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert '2' == T('<?print s.find(sub="rk", start=2, end=4)?>').renders(s=s)
+	with raises(argumentmismatchmessage):
+		T('<?print "gurk".find()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print "gurk".find("u", 1, 2, 42)?>').renders()
+
+	with raises(unknownkeywordargument):
+		T('<?print s.find(sub="rk", start=2, end=4)?>').renders(s=s)
 
 
 @pytest.mark.ul4
@@ -4349,6 +4887,15 @@ def test_method_find_list(T):
 	assert '1' == T('<?print l.find(None)?>').renders(l=[0, None, 1, None, 2, None, 3, None])
 	assert '-1' == T('<?code m = l.find?><?print m("r", 7)?>').renders(l=l)
 
+	with raises(argumentmismatchmessage):
+		T('<?print [1, 2, 3].find()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print [1, 2, 3].find(1, 1, 2, 42)?>').renders()
+
+	with raises(unknownkeywordargument):
+		T('<?print l.find(sub="rk", start=2, end=4)?>').renders(l=l)
+
 
 @pytest.mark.ul4
 def test_method_rfind_string(T):
@@ -4364,8 +4911,14 @@ def test_method_rfind_string(T):
 	assert '-1' == T('<?print s.rfind("rk", 7)?>').renders(s=s)
 	assert '-1' == T('<?code m = s.rfind?><?print m("rk", 7)?>').renders(s=s)
 
-	# Make sure that the parameters have the same name in all implementations
-	assert '2' == T('<?print s.rfind(sub="rk", start=2, end=4)?>').renders(s=s)
+	with raises(argumentmismatchmessage):
+		T('<?print "gurk".find()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print "gurk".find("u", 1, 2, 42)?>').renders()
+
+	with raises(unknownkeywordargument):
+		T('<?print s.rfind(sub="rk", start=2, end=4)?>').renders(s=s)
 
 
 @pytest.mark.ul4
@@ -4382,12 +4935,24 @@ def test_method_rfind_list(T):
 	assert '7' == T('<?print l.rfind(None)?>').renders(l=[0, None, 1, None, 2, None, 3, None])
 	assert '-1' == T('<?code m = l.rfind?><?print m("r", 7)?>').renders(l=l)
 
+	with raises(argumentmismatchmessage):
+		T('<?print [1, 2, 3].rfind()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print [1, 2, 3].rfind(1, 1, 2, 42)?>').renders()
+
+	with raises(unknownkeywordargument):
+		T('<?print l.rfind(sub="rk", start=2, end=4)?>').renders(l=l)
+
 
 @pytest.mark.ul4
 def test_method_day(T):
 	assert '12' == T('<?print @(2010-05-12).day()?>').renders()
 	assert '12' == T('<?print d.day()?>').renders(d=datetime.date(2010, 5, 12))
 	assert '12' == T('<?code m = @(2010-05-12).day?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12).day(42)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4396,12 +4961,18 @@ def test_method_month(T):
 	assert '5' == T('<?print d.month()?>').renders(d=datetime.date(2010, 5, 12))
 	assert '5' == T('<?code m = @(2010-05-12).month?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12).month(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_year(T):
 	assert '5' == T('<?print @(2010-05-12).month()?>').renders()
 	assert '5' == T('<?print d.month()?>').renders(d=datetime.date(2010, 5, 12))
 	assert '5' == T('<?code m = @(2010-05-12).month?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12).year(42)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4410,6 +4981,9 @@ def test_method_hour(T):
 	assert '16' == T('<?print d.hour()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 	assert '16' == T('<?code m = @(2010-05-12T16:47:56).hour?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12T16:47:56).hour(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_minute(T):
@@ -4417,12 +4991,18 @@ def test_method_minute(T):
 	assert '47' == T('<?print d.minute()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 	assert '47' == T('<?code m = @(2010-05-12T16:47:56).minute?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12T16:47:56).minute(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_second(T):
 	assert '56' == T('<?print @(2010-05-12T16:47:56).second()?>').renders()
 	assert '56' == T('<?print d.second()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 	assert '56' == T('<?code m = @(2010-05-12T16:47:56).second?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12T16:47:56).second(42)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4432,12 +5012,18 @@ def test_method_microsecond(T):
 		assert '123000' == T('<?print d.microsecond()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56, 123000))
 		assert '123000' == T('<?code m = @(2010-05-12T16:47:56.123000).microsecond?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12T16:47:56).microsecond(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_weekday(T):
 	assert '2' == T('<?print @(2010-05-12).weekday()?>').renders()
 	assert '2' == T('<?print d.weekday()?>').renders(d=datetime.date(2010, 5, 12))
 	assert '2' == T('<?code m = @(2010-05-12).weekday?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print @(2010-05-12).weekday(42)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4570,6 +5156,9 @@ def test_method_calendar(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert '[2018, 1, 0]' == T('<?print @(2018-01-01).calendar(firstweekday=0, mindaysinfirstweek=4)?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2000-02-29).calendar(1, 2, 3)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_week(T):
@@ -4701,6 +5290,9 @@ def test_method_week(T):
 	# Make sure that the parameters have the same name in all implementations
 	assert '1' == T('<?print @(2018-01-01).week(firstweekday=0, mindaysinfirstweek=4)?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2000-02-29).week(1, 2, 3)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_yearday(T):
@@ -4713,11 +5305,17 @@ def test_method_yearday(T):
 	assert '132' == T('<?print d.yearday()?>').renders(d=datetime.datetime(2010, 5, 12, 16, 47, 56))
 	assert '1' == T('<?code m = @(2010-01-01).yearday?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print @(2000-02-29).yearday(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_days(T):
 	assert '1' == T('<?print timedelta(1).days()?>').renders()
 	assert '1' == T('<?code m = timedelta(1).days?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print timedelta(1).days(42)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4725,17 +5323,26 @@ def test_method_seconds(T):
 	assert '42' == T('<?print timedelta(0, 42).seconds()?>').renders()
 	assert '42' == T('<?code m = timedelta(0, 42).seconds?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print timedelta(1).seconds(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_microseconds(T):
 	assert '123000' == T('<?print timedelta(0, 0, 123000).microseconds()?>').renders()
 	assert '123000' == T('<?code m = timedelta(0, 0, 123000).microseconds?><?print m()?>').renders()
 
+	with raises(argumentmismatchmessage):
+		T('<?print timedelta(1).microseconds(42)?>').renders()
+
 
 @pytest.mark.ul4
 def test_method_months(T):
 	assert '17' == T('<?print monthdelta(17).months()?>').renders()
 	assert '17' == T('<?code m = monthdelta(17).months?><?print m()?>').renders()
+
+	with raises(argumentmismatchmessage):
+		T('<?print monthdelta(1).months(42)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4859,7 +5466,7 @@ def test_renderblock(T):
 		<?print type(content)?>
 	""")
 
-	assert "undefined" == t5.renders()
+	assert "<type undefinedvariable>" == t5.renders()
 
 
 @pytest.mark.ul4
@@ -4967,7 +5574,7 @@ def test_renderblocks(T):
 		<?print type(suffix)?>
 	""")
 
-	assert "undefined" * 3 == t6.renders()
+	assert "<type undefinedvariable>" * 3 == t6.renders()
 
 
 @pytest.mark.ul4
@@ -5014,17 +5621,18 @@ def test_exception(T):
 		assert "None" == T("<?print repr(exc.context)?>").renders(exc=ValueError("broken"))
 		exc = ValueError("broken")
 		exc.__cause__ = ValueError("because")
-		assert "ValueError" == T("<?print type(exc.context)?>").renders(exc=exc)
+		assert "<type ValueError>" == T("<?print type(exc.context)?>").renders(exc=exc)
 		assert "because" == T("<?print exc.context?>").renders(exc=exc)
 
 		stacktrace = """
 			<?ul4 stacktrace(exc)?>
 			<?whitespace strip?>
 			<?while exc is not None?>
+				<?code texc = type(exc)?>
 				<?if exc.location?>
-					<?print type(exc)?>: <?print repr(exc.location.source)?>
+					<?if texc.__module__?><?print texc.__module__?>.<?end if?><?print texc.__name__?>: <?print repr(exc.location.source)?>
 				<?else?>
-					<?print type(exc)?>: <?print exc?>
+					<?if texc.__module__?><?print texc.__module__?>.<?end if?><?print texc.__name__?>: <?print exc?>
 				<?end if?>
 				<?print "\\n"?>
 				<?code exc = exc.context?>
@@ -5259,7 +5867,7 @@ def test_nestedscopes(T):
 	<?code y = 42?>
 	<?render x()?>
 	"""
-	assert T(source, whitespace="strip").renders().lower().endswith(("template;int", "templateclosure;int"))
+	assert "<type ul4.TemplateClosure>;<type int>" == T(source, whitespace="strip").renders()
 
 	source = """
 	<?def outer?>
@@ -5467,16 +6075,16 @@ def test_return_in_template(T):
 @pytest.mark.ul4
 def test_customattributes():
 	class CustomAttributes:
-		ul4attrs = {"foo", "bar"}
+		ul4_attrs = {"foo", "bar"}
 
 		def __init__(self, foo, bar):
 			self.foo = foo
 			self.bar = bar
 
-		def ul4getattr(self, name):
+		def ul4_getattr(self, name):
 			return getattr(self, name)
 
-		def ul4setattr(self, name, value):
+		def ul4_setattr(self, name, value):
 			if name == "foo":
 				self.foo = value
 			elif name == "bar":
@@ -5487,7 +6095,7 @@ def test_customattributes():
 	o = CustomAttributes(foo=42, bar=23)
 	assert "42" == TemplatePython("<?print o.foo?>").renders(o=o)
 	assert "23" == TemplatePython("<?print o.bar?>").renders(o=o)
-	assert "undefined" == TemplatePython("<?print type(o.baz)?>").renders(o=o)
+	assert "undefinedkey" == TemplatePython("<?print type(o.baz).__name__?>").renders(o=o)
 
 	readonlymessage = "readonly"
 
@@ -5577,7 +6185,7 @@ def test_custommethods():
 		def baz(self):
 			pass
 
-		def ul4getattr(self, name):
+		def ul4_getattr(self, name):
 			if name in {"foo", "bar"}:
 				return getattr(self, name)
 			raise AttributeError(name)
@@ -5853,13 +6461,13 @@ def test_function_signature_kwargs(T):
 
 @pytest.mark.ul4
 def test_template_signature(T):
-	assert "42" == T("<?print x?>", signature="x").renders(x=42)
+	assert "42" == T("<?print x?>", name="template_signature_1", signature="x").renders(x=42)
 
 	with raises("missing a required argument: .?x.?|required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
-		T("<?print x?>", signature="x").renders()
+		T("<?print x?>", name="template_signature_2", signature="x").renders()
 
 	with raises("got an unexpected keyword argument .?y.?|doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
-		T("<?print x?>", signature="x").renders(x=17, y=23)
+		T("<?print x?>", name="template_signature_3", signature="x").renders(x=17, y=23)
 
 
 @pytest.mark.ul4
@@ -6023,16 +6631,10 @@ def test_attr_if(T):
 
 @pytest.mark.ul4
 def test_module_ul4on(T):
-	t = T("<?print repr(ul4on.loads(ul4on.dumps(data)))?>")
+	assert "ul4on" == T("<?print ul4on.__name__?>").renders()
+	assert "Object serialization" == T("<?print ul4on.__doc__?>").renders()
 
-	with raises(argumentmismatchmessage):
-		T("<?print ul4on.dumps()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print ul4on.dumps(1, 2, 3)?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print ul4on.loads()?>").renders()
-	with raises(argumentmismatchmessage):
-		T("<?print ul4on.loads(1, 2, 3)?>").renders()
+	t = T("<?print repr(ul4on.loads(ul4on.dumps(data)))?>")
 	assert "None" == t.renders(data=None)
 	assert "False" == t.renders(data=False)
 	assert "True" == t.renders(data=True)
@@ -6042,11 +6644,29 @@ def test_module_ul4on(T):
 	assert '[1, 2, 3]' == t.renders(data=[1, 2, 3])
 	assert t.renders(data={'one': 1}) in ('{"one": 1}', "{'one': 1}")
 
+	assert "True" == T("<?print isinstance(ul4on.Encoder(), ul4on.Encoder)?>").renders(data=None)
+	assert "True" == T("<?print isinstance(ul4on.Decoder(), ul4on.Decoder)?>").renders(data=None)
+
 	# Explicitly check the real output for at least one example
 	assert "i42" == T("<?print ul4on.dumps(42)?>").renders()
 
-	# Make sure that the parameters have the same name in all implementations
-	assert "42" == T("<?print repr(ul4on.loads(dump=ul4on.dumps(obj=data)))?>").renders(data=42)
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.dumps()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.dumps(1, 2, 3)?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.loads()?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print ul4on.loads(1, 2, 3)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print ul4on.dumps(obj=42)?>").renders()
+
+	with raises(unknownkeywordargument):
+		T("<?print ul4on.loads(dump='i42')?>").renders()
 
 
 @pytest.mark.ul4
@@ -6072,8 +6692,528 @@ def test_module_ul4on_chunked_decoder_calls(T):
 		<?code d = ul4on.Decoder()?>
 		<?print d.loads("S'gurk'")?>
 		<?print d.loads("S'hurz'")?>
-		<?print d.loads(dump="^0")?>
-		<?print d.loads(dump="^1")?>
+		<?print d.loads("^0")?>
+		<?print d.loads("^1")?>
 	""")
 
 	assert "gurkhurzgurkhurz" == t.renders()
+
+
+@pytest.mark.ul4
+def test_module_operator(T):
+	assert "operator" == T("<?print operator.__name__?>").renders()
+	assert "Various operators as functions" == T("<?print operator.__doc__?>").renders()
+
+	assert "True" == T("<?print isinstance(operator.attrgetter('upper'), operator.attrgetter)?>").renders(data=None)
+
+	t1 = T("<?print operator.attrgetter('upper')('foo')()?>")
+	assert "FOO" == t1.renders()
+
+	t2 = T("<?print operator.attrgetter('pos', 'pos.start', 'pos.stop')(t.content[-1])?>")
+	assert "[slice(0, 11, None), 0, 11]" == t2.renders(t=ul4c.Template("<?print x?>"))
+
+
+@pytest.mark.ul4
+def test_module_ul4(T):
+	assert "ul4" == T("<?print ul4.__name__?>").renders()
+	assert "UL4 - A templating language" == T("<?print ul4.__doc__?>").renders()
+
+	# Check that all the types we expect are there
+	assert "True" == T("<?print bool(ul4.TextAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.IndentAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.LineEndAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ConstAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SeqItemAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.UnpackSeqItemAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ListAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ListComprehensionAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SetAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SetComprehensionAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.DictItemAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.UnpackDictItemAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.DictAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.DictComprehensionAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.GeneratorExpressionAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.VarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ConditionalBlocksAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.IfBlockAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ElIfBlockAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ElseBlockAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ForBlockAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.WhileBlockAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BreakAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ContinueAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.AttrAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SliceAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.NotAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.IfAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.NegAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitNotAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.PrintAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.PrintXAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ReturnAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ItemAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ShiftLeftAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ShiftRightAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitAndAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitXOrAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitOrAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.IsAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.IsNotAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.EQAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.NEAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.LTAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.LEAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.GTAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.GEAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ContainsAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.NotContainsAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.AddAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SubAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.MulAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.FloorDivAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.TrueDivAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.OrAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.AndAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ModAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SetVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.AddVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SubVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.MulVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.FloorDivVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.TrueDivVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ModVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ShiftLeftVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.ShiftRightVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitAndVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitXOrVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.BitOrVarAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.PositionalArgumentAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.KeywordArgumentAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.UnpackListArgumentAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.UnpackDictArgumentAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.CallAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.RenderAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.RenderXAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.RenderBlockAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.RenderBlocksAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.SignatureAST)?>").renders()
+	assert "True" == T("<?print bool(ul4.Template)?>").renders()
+	assert "True" == T("<?print bool(ul4.TemplateClosure)?>").renders()
+
+	# Javascript can't compile templates
+	if not issubclass(T, TemplateJavascript):
+		assert "gurk;hurz" == T("<?code t = ul4.Template('<?print x?' + '>', name='gurk', signature='x')?><?print t.name?>;<?render t('hurz')?>").renders()
+
+
+def check_ast_types(T, source, obj, type):
+	template = ul4c.Template(source)
+	testsource = f"<?print type({obj}) is {type}?>;<?print isinstance({obj}, {type})?>;<?print repr(type({obj}))?>;<?print repr({type})?>"
+	expected = f"True;True;<type {type}>;<type {type}>"
+	output = T(testsource).renders(t=template)
+	assert expected == output
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_indent(T):
+	check_ast_types(T, "\t gurk\n", "t.content[0]", "ul4.IndentAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_text(T):
+	check_ast_types(T, "\t gurk\n", "t.content[1]", "ul4.TextAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_lineend(T):
+	check_ast_types(T, "\t gurk\n", "t.content[2]", "ul4.LineEndAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_const(T):
+	check_ast_types(T, "<?print 42?>", "t.content[-1].obj", "ul4.ConstAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_seqitem(T):
+	check_ast_types(T, "<?print [42]?>", "t.content[-1].obj.items[0]", "ul4.SeqItemAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_unpackseqitem(T):
+	check_ast_types(T, "<?print [*x]?>", "t.content[-1].obj.items[0]", "ul4.UnpackSeqItemAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_list(T):
+	check_ast_types(T, "<?print []?>", "t.content[-1].obj", "ul4.ListAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_listcomprehension(T):
+	check_ast_types(T, "<?print [c for c in '123']?>", "t.content[-1].obj", "ul4.ListComprehensionAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_set(T):
+	check_ast_types(T, "<?print {/}?>", "t.content[-1].obj", "ul4.SetAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_setcomprehension(T):
+	check_ast_types(T, "<?print {c for c in '123'}?>", "t.content[-1].obj", "ul4.SetComprehensionAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_dictitem(T):
+	check_ast_types(T, "<?print {'x': 42}?>", "t.content[-1].obj.items[0]", "ul4.DictItemAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_unpackdictitem(T):
+	check_ast_types(T, "<?print {**x}?>", "t.content[-1].obj.items[0]", "ul4.UnpackDictItemAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_dict(T):
+	check_ast_types(T, "<?print {}?>", "t.content[-1].obj", "ul4.DictAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_dictcomprehension(T):
+	check_ast_types(T, "<?print {k: v for (k, v) in enumerate('123')}?>", "t.content[-1].obj", "ul4.DictComprehensionAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_generatorexpression(T):
+	check_ast_types(T, "<?print (c for c in '123')?>", "t.content[-1].obj", "ul4.GeneratorExpressionAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_var(T):
+	check_ast_types(T, "<?print x?>", "t.content[-1].obj", "ul4.VarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_conditionalblocks(T):
+	check_ast_types(T, "<?if x?><?end if?>", "t.content[-1]", "ul4.ConditionalBlocksAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_ifblock(T):
+	check_ast_types(T, "<?if x?><?end if?>", "t.content[-1].content[0]", "ul4.IfBlockAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_elifblock(T):
+	check_ast_types(T, "<?if x?><?elif y?><?end if?>", "t.content[-1].content[1]", "ul4.ElIfBlockAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_elseblock(T):
+	check_ast_types(T, "<?if x?><?else?><?end if?>", "t.content[-1].content[1]", "ul4.ElseBlockAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_forblock(T):
+	check_ast_types(T, "<?for x in 'x123'?><?end for?>", "t.content[-1]", "ul4.ForBlockAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_whileblock(T):
+	check_ast_types(T, "<?while x?><?end while?>", "t.content[-1]", "ul4.WhileBlockAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_break(T):
+	check_ast_types(T, "<?for x in '123'?><?break?><?end for?>", "t.content[-1].content[0]", "ul4.BreakAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_continue(T):
+	check_ast_types(T, "<?for x in '123'?><?continue?><?end for?>", "t.content[-1].content[0]", "ul4.ContinueAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_attr(T):
+	check_ast_types(T, "<?print x.y?>", "t.content[-1].obj", "ul4.AttrAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_slice(T):
+	check_ast_types(T, "<?print x[1:-1]?>", "t.content[-1].obj.obj2", "ul4.SliceAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_not(T):
+	check_ast_types(T, "<?print not x?>", "t.content[-1].obj", "ul4.NotAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_if(T):
+	check_ast_types(T, "<?print x if y else z?>", "t.content[-1].obj", "ul4.IfAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_neg(T):
+	check_ast_types(T, "<?print -x?>", "t.content[-1].obj", "ul4.NegAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitnot(T):
+	check_ast_types(T, "<?print ~x?>", "t.content[-1].obj", "ul4.BitNotAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_print(T):
+	check_ast_types(T, "<?print x?>", "t.content[-1]", "ul4.PrintAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_printx(T):
+	check_ast_types(T, "<?printx x?>", "t.content[-1]", "ul4.PrintXAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_return(T):
+	check_ast_types(T, "<?return x?>", "t.content[-1]", "ul4.ReturnAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_item(T):
+	check_ast_types(T, "<?return x[42]?>", "t.content[-1].obj", "ul4.ItemAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_shiftleft(T):
+	check_ast_types(T, "<?return x << y?>", "t.content[-1].obj", "ul4.ShiftLeftAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_shiftright(T):
+	check_ast_types(T, "<?return x >> y?>", "t.content[-1].obj", "ul4.ShiftRightAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitand(T):
+	check_ast_types(T, "<?return x & y?>", "t.content[-1].obj", "ul4.BitAndAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitxor(T):
+	check_ast_types(T, "<?return x ^ y?>", "t.content[-1].obj", "ul4.BitXOrAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitor(T):
+	check_ast_types(T, "<?return x | y?>", "t.content[-1].obj", "ul4.BitOrAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_is(T):
+	check_ast_types(T, "<?return x is y?>", "t.content[-1].obj", "ul4.IsAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_isnot(T):
+	check_ast_types(T, "<?return x is not y?>", "t.content[-1].obj", "ul4.IsNotAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_eq(T):
+	check_ast_types(T, "<?return x == y?>", "t.content[-1].obj", "ul4.EQAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_ne(T):
+	check_ast_types(T, "<?return x != y?>", "t.content[-1].obj", "ul4.NEAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_lt(T):
+	check_ast_types(T, "<?return x < y?>", "t.content[-1].obj", "ul4.LTAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_le(T):
+	check_ast_types(T, "<?return x <= y?>", "t.content[-1].obj", "ul4.LEAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_gt(T):
+	check_ast_types(T, "<?return x > y?>", "t.content[-1].obj", "ul4.GTAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_ge(T):
+	check_ast_types(T, "<?return x >= y?>", "t.content[-1].obj", "ul4.GEAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_contains(T):
+	check_ast_types(T, "<?return x in y?>", "t.content[-1].obj", "ul4.ContainsAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_notcontains(T):
+	check_ast_types(T, "<?return x not in y?>", "t.content[-1].obj", "ul4.NotContainsAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_add(T):
+	check_ast_types(T, "<?return x + y?>", "t.content[-1].obj", "ul4.AddAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_sub(T):
+	check_ast_types(T, "<?return x - y?>", "t.content[-1].obj", "ul4.SubAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_mul(T):
+	check_ast_types(T, "<?return x * y?>", "t.content[-1].obj", "ul4.MulAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_floordiv(T):
+	check_ast_types(T, "<?return x // y?>", "t.content[-1].obj", "ul4.FloorDivAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_truediv(T):
+	check_ast_types(T, "<?return x / y?>", "t.content[-1].obj", "ul4.TrueDivAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_or(T):
+	check_ast_types(T, "<?return x or y?>", "t.content[-1].obj", "ul4.OrAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_and(T):
+	check_ast_types(T, "<?return x and y?>", "t.content[-1].obj", "ul4.AndAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_mod(T):
+	check_ast_types(T, "<?return x % y?>", "t.content[-1].obj", "ul4.ModAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_setvar(T):
+	check_ast_types(T, "<?code x = y?>", "t.content[-1]", "ul4.SetVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_addvar(T):
+	check_ast_types(T, "<?code x += y?>", "t.content[-1]", "ul4.AddVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_subvar(T):
+	check_ast_types(T, "<?code x -= y?>", "t.content[-1]", "ul4.SubVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_mulvar(T):
+	check_ast_types(T, "<?code x *= y?>", "t.content[-1]", "ul4.MulVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_floordivvar(T):
+	check_ast_types(T, "<?code x //= y?>", "t.content[-1]", "ul4.FloorDivVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_truedivvar(T):
+	check_ast_types(T, "<?code x /= y?>", "t.content[-1]", "ul4.TrueDivVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_modvar(T):
+	check_ast_types(T, "<?code x %= y?>", "t.content[-1]", "ul4.ModVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_shiftleftvar(T):
+	check_ast_types(T, "<?code x <<= y?>", "t.content[-1]", "ul4.ShiftLeftVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_shiftrightvar(T):
+	check_ast_types(T, "<?code x >>= y?>", "t.content[-1]", "ul4.ShiftRightVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitandvar(T):
+	check_ast_types(T, "<?code x &= y?>", "t.content[-1]", "ul4.BitAndVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitxorvar(T):
+	check_ast_types(T, "<?code x ^= y?>", "t.content[-1]", "ul4.BitXOrVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_bitorvar(T):
+	check_ast_types(T, "<?code x |= y?>", "t.content[-1]", "ul4.BitOrVarAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_positionalargument(T):
+	check_ast_types(T, "<?print f(x)?>", "t.content[-1].obj.args[0]", "ul4.PositionalArgumentAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_keywordargument(T):
+	check_ast_types(T, "<?print f(x=y)?>", "t.content[-1].obj.args[0]", "ul4.KeywordArgumentAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_unpacklistargument(T):
+	check_ast_types(T, "<?print f(*x)?>", "t.content[-1].obj.args[0]", "ul4.UnpackListArgumentAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_unpackdictargument(T):
+	check_ast_types(T, "<?print f(**x)?>", "t.content[-1].obj.args[0]", "ul4.UnpackDictArgumentAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_call(T):
+	check_ast_types(T, "<?print f()?>", "t.content[-1].obj", "ul4.CallAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_render(T):
+	check_ast_types(T, "<?render f()?>", "t.content[-1]", "ul4.RenderAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_renderx(T):
+	check_ast_types(T, "<?renderx f()?>", "t.content[-1]", "ul4.RenderXAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_renderblock(T):
+	check_ast_types(T, "<?renderblock f()?><?end renderblock?>", "t.content[-1]", "ul4.RenderBlockAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_renderblocks(T):
+	check_ast_types(T, "<?renderblocks f()?><?end renderblocks?>", "t.content[-1]", "ul4.RenderBlocksAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_signature(T):
+	check_ast_types(T, "<?def f(x)?><?end def?>", "t.content[-1].signature", "ul4.SignatureAST")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_template(T):
+	check_ast_types(T, "<?print 42?>", "t", "ul4.Template")
+
+
+@pytest.mark.ul4
+def test_module_ul4_typecheck_templateclosure(T):
+	check_ast_types(T, "<?def f()?><?end def?><?return f?>", "t()", "ul4.TemplateClosure")

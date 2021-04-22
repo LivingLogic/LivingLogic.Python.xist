@@ -229,20 +229,20 @@ __docformat__ = "reStructuredText"
 
 
 class System:
-	ul4attrs = {"execute"}
+	ul4_attrs = {"execute"}
 
 	def execute(self, cmd):
 		return os.popen(cmd).read()
 
 
 class Var:
-	ul4attrs = {"value"}
+	ul4_attrs = {"value"}
 
 	def __init__(self, value=None):
 		self.value = value
 
-	def ul4setattr(self, name, value):
-		# As ``ul4attrs`` only contains ``"value"``, we will never be called with any other name
+	def ul4_setattr(self, name, value):
+		# As ``ul4_attrs`` only contains ``"value"``, we will never be called with any other name
 		self.value = value
 
 	@misc.notimplemented
@@ -284,7 +284,7 @@ class Connection:
 	:meth:`Globals.mysql` or :meth:`Globals.sqlite`.
 	"""
 
-	ul4attrs = {"query", "queryone", "execute", "int", "number", "str", "clob", "date"}
+	ul4_attrs = {"query", "queryone", "execute", "int", "number", "str", "clob", "date"}
 
 	def __init__(self, connection):
 		self.connection = connection
@@ -462,7 +462,7 @@ class RedisConnection:
 		<?end if?>
 	"""
 
-	ul4attrs = {"get", "put"}
+	ul4_attrs = {"get", "put"}
 
 	def __init__(self, host, port, db):
 		import redis
@@ -529,7 +529,7 @@ class Globals:
 	:meth:`redis`, :meth:`system`, :meth:`load`, :meth:`save` and :meth:`compile`.
 	"""
 
-	ul4attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
+	ul4_attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
 	def __init__(self, templates=None, vars=None, encoding=None, oracle=True, mysql=True, sqlite=True, redis=True, system=True, load=True, save=True, compile=True):
 		self.templates = templates if templates is not None else {}
 		self.encoding = encoding if encoding is not None else sys.stdout.encoding

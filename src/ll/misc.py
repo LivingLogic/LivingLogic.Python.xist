@@ -18,7 +18,7 @@ LivingLogic modules and packages.
 import sys, os, os.path, platform, types, datetime, collections, argparse, functools, signal, contextlib, subprocess, enum
 from collections import abc
 
-from ll import color
+from ll import ul4c, color
 
 
 __docformat__ = "reStructuredText"
@@ -735,7 +735,7 @@ class SysInfo:
 	time.
 	"""
 
-	ul4attrs = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
+	ul4_attrs = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
 
 	def __init__(self):
 		# Use ``object`` as a marker for "not initialized"
@@ -917,12 +917,12 @@ class SysInfo:
 		return self._script_url
 
 	def __getitem__(self, key):
-		if key in self.ul4attrs:
+		if key in self.ul4_attrs:
 			return getattr(self, key)
 		raise KeyError(key)
 
 	def __iter__(self):
-		return iter(self.ul4attrs)
+		return iter(self.ul4_attrs)
 
 
 # Single instance
@@ -942,8 +942,10 @@ class monthdelta:
 		datetime.date(2000, 2, 29)
 	"""
 
+	ul4_type = ul4c.InstantiableType(None, "monthdelta", "A number of months")
+	ul4_attrs = {"months"}
+
 	__slots__ = ("_months",)
-	ul4attrs = {"months"}
 
 	def __init__(self, months=0, /):
 		self._months = months
