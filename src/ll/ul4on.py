@@ -962,7 +962,7 @@ class Decoder:
 		self._objects[oldpos] = value
 
 
-def dumps(obj:Any, indent:Optional[str]=None) -> str:
+def dumps(obj:Any, /, indent:Optional[str]=None) -> str:
 	"""
 	Serialize ``obj`` as an UL4ON formatted string.
 	"""
@@ -971,7 +971,7 @@ def dumps(obj:Any, indent:Optional[str]=None) -> str:
 	return stream.getvalue()
 
 
-def dump(obj:Any, stream:TextIO, indent:Optional[str]=None) -> None:
+def dump(obj:Any, /, stream:TextIO, indent:Optional[str]=None) -> None:
 	"""
 	Serialize ``obj`` as an UL4ON formatted stream to ``stream``.
 
@@ -980,7 +980,7 @@ def dump(obj:Any, stream:TextIO, indent:Optional[str]=None) -> None:
 	Encoder(indent=indent).dump(obj, stream)
 
 
-def load(stream:TextIO, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+def load(stream:TextIO, /, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``stream`` (which must be file-like object with a :meth:`read`
 	method containing an UL4ON formatted object) to a Python object.
@@ -990,7 +990,7 @@ def load(stream:TextIO, registry:Optional[Dict[str, Callable[..., Any]]]=None) -
 	return Decoder(registry).load(stream)
 
 
-def loads(dump:str, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+def loads(dump:str, /, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``dump`` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
@@ -1000,7 +1000,7 @@ def loads(dump:str, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> An
 	return Decoder(registry).loads(dump)
 
 
-def loadclob(clob, bufsize:int=1024*1024, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+def loadclob(clob, /, bufsize:int=1024*1024, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``clob`` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.

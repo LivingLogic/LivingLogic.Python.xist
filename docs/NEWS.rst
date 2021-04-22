@@ -18,6 +18,23 @@ Changes in 5.?? (released ??/??/2021)
 	Python 3.8 is required now.
 
 
+*	Some function now use positional-only arguments:
+
+	*	``ll.misc.item(iterable, index, /, default=None)``
+	*	``ll.misc.first(iterable, /, default=None)``
+	*	``ll.misc.last(iterable, /, default=None)``
+	*	``ll.misc.count(iterable, /)``
+	*	``ll.misc.isfirst(iterable, /)``
+	*	``ll.misc.islast(iterable, /)``
+	*	``ll.misc.isfirstlast(iterable, /)``
+	*	``ll.misc.monthdelta.__init__(self, months=0, /)``
+	*	``ll.ul4on.dumps(obj, /, *, indent)``
+	*	``ll.ul4on.dump(obj, /, stream, indent)``
+	*	``ll.ul4on.load(stream, /, registry=None)``
+	*	``ll.ul4on.loads(dump, /, registry=None)``
+	*	``ll.ul4on.loadclob(clob, /, bufsize=1024*1024, registry=None)``
+
+
 Changes in 5.65 (released 01/13/2021)
 -------------------------------------
 
