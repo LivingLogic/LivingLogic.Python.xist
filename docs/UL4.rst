@@ -77,6 +77,7 @@ The following object types can be created and used insided templates:
 *	boolean values (``True`` and ``False``)
 *	lists
 *	dictionaries
+*	sets
 *	UL4 templates
 
 Note that depending on the implementation language of the renderer additional
