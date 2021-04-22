@@ -2426,6 +2426,13 @@ def test_function_set(T):
 
 
 @pytest.mark.ul4
+def test_function_dict(T):
+	assert "{}" == T("<?print dict()?>").renders()
+	assert "{17: 23, 42: 73}" == T("<?print dict(data)?>").renders(data=[(17, 23), (42, 73)])
+	assert "{'foo': 23, 'bar': 42}" == T("<?print dict({'foo': 17}, foo=23, bar=42)?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_int(T):
 	assert "0" == T("<?print int()?>").renders()
 	assert "1" == T("<?print int(data)?>").renders(data=True)
