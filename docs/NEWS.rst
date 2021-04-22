@@ -28,7 +28,7 @@ Changes in 5.66 (released ??/??/2021)
 	*	``ll.misc.islast(iterable, /)``
 	*	``ll.misc.isfirstlast(iterable, /)``
 	*	``ll.misc.monthdelta.__init__(self, months=0, /)``
-	*	``ll.ul4on.dumps(obj, /, *, indent)``
+	*	``ll.ul4on.dumps(obj, /, indent)``
 	*	``ll.ul4on.dump(obj, /, stream, indent)``
 	*	``ll.ul4on.load(stream, /, registry=None)``
 	*	``ll.ul4on.loads(dump, /, registry=None)``
