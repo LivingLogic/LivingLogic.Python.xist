@@ -2151,7 +2151,7 @@ rendering context (which stores the local variables and the UL4 call stack)::
 		ul4attrs = {"fullname", "varcount"}
 
 		@ul4c.withcontext
-		def varcount(self):
+		def varcount(self, context):
 			return len(context.vars)
 
 
