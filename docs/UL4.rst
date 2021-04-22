@@ -2116,10 +2116,7 @@ Attributes not in ``ul4attrs`` will not be visible::
 	template = ul4c.Template("<?print type(p.age)?>")
 	print(template.renders(p=p))
 
-This will output ``undefined``. Exposing attributes via ``ul4attrs`` also makes
-it possible to use dictionary access to the object, i.e. iterating over the
-object, using ``in`` and ``not in`` tests and using the methods ``items`` and
-``values``.
+This will output ``undefined``.
 
 
 Exposing methods
