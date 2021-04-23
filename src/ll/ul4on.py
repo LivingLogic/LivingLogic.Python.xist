@@ -376,8 +376,8 @@ those created by previous dumps.
 	information about back references.
 
 
-Module content
---------------
+Module documentation
+--------------------
 '''
 
 from typing import *
