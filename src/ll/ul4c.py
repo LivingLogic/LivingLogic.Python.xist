@@ -1703,7 +1703,7 @@ class SeqItemAST(CodeAST):
 @register("unpackseqitem")
 class UnpackSeqItemAST(CodeAST):
 	"""
-	AST nodes for '*' unpacking expressions in a list/ set "literal".
+	AST nodes for ``*`` unpacking expressions in a list/ set "literal".
 	"""
 
 	ul4_type = Type("ul4")
@@ -1787,7 +1787,7 @@ class DictItemAST(CodeAST):
 @register("unpackdictitem")
 class UnpackDictItemAST(CodeAST):
 	"""
-	AST nodes for '**' unpacking expressions in dict "literal".
+	AST nodes for ``**`` unpacking expressions in dict "literal".
 	"""
 
 	ul4_type = Type("ul4")
@@ -1910,7 +1910,7 @@ class KeywordArgumentAST(CodeAST):
 @register("unpacklistarg")
 class UnpackListArgumentAST(CodeAST):
 	"""
-	AST nodes for '*' unpacking expressions in calls.
+	AST nodes for ``*`` unpacking expressions in calls.
 	"""
 
 	ul4_type = Type("ul4")
@@ -1951,7 +1951,7 @@ class UnpackListArgumentAST(CodeAST):
 @register("unpackdictarg")
 class UnpackDictArgumentAST(CodeAST):
 	"""
-	AST nodes for '**' unpacking expressions in calls.
+	AST nodes for ``**`` unpacking expressions in calls.
 	"""
 
 	ul4_type = Type("ul4")
