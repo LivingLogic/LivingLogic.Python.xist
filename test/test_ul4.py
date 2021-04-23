@@ -2304,11 +2304,17 @@ def test_function_ul4on(T):
 	# Explicitly check the real output for at least one example
 	assert "i42" == T("<?print asul4on(42)?>").renders()
 
+	# Test pretty printing
+	expected = "L\n\ti1\n\ti2\n\ti3\n]\n"
+	if issubclass(T, TemplateJavascript):
+		expected = expected.lower()
+	assert expected == T("<?print asul4on([1, 2, 3], '\\t')?>").renders()
+
 	with raises(argumentmismatchmessage):
 		T("<?print asul4on()?>").renders()
 
 	with raises(argumentmismatchmessage):
-		T("<?print asul4on(1, 2)?>").renders()
+		T("<?print asul4on(1, 2, 3)?>").renders()
 
 	with raises(argumentmismatchmessage):
 		T("<?print fromul4on()?>").renders()
@@ -6656,6 +6662,12 @@ def test_module_ul4on(T):
 
 	# Explicitly check the real output for at least one example
 	assert "i42" == T("<?print ul4on.dumps(42)?>").renders()
+
+	# Test pretty printing
+	expected = "L\n\ti1\n\ti2\n\ti3\n]\n"
+	if issubclass(T, TemplateJavascript):
+		expected = expected.lower()
+	assert expected == T("<?print ul4on.dumps([1, 2, 3], '\\t')?>").renders()
 
 	with raises(argumentmismatchmessage):
 		T("<?print ul4on.dumps()?>").renders()
