@@ -75,6 +75,7 @@ h1, h2, h3, h4, h5, h6
 {
 	margin: 1.6em 0 0.6rem 0;
 	font-weight: 400;
+	color: #333;
 }
 
 main > :first-child > h1:first-of-type
@@ -1332,7 +1333,7 @@ div.literal-block-wrapper
 div.literal-block-wrapper div.code-block-caption,
 .caption .caption-text
 {
-	color: #999;
+	color: #333;
 	font-size: 90%;
 	font-weight: 300;
 	line-height: 1;
