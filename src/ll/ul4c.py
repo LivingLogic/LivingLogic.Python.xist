@@ -451,7 +451,7 @@ def _handleexpressioneval(f):
 		try:
 			return f(self, context, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
-			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
+			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlockAST` or :class:`Template`)
 			raise
 		except Exception as exc:
 			_decorateexception(exc, self)
@@ -476,7 +476,7 @@ def _handleoutputeval(f):
 		try:
 			yield from f(self, context, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
-			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
+			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlockAST` or :class:`Template`)
 			raise
 		except Exception as exc:
 			_decorateexception(exc, self)
@@ -1485,10 +1485,10 @@ class AST:
 		For most nodes this is a normal function that returns the result of
 		evaluating the node. (For these nodes the class attribute ``output``
 		is false.). For nodes that produce output (like literal text,
-		:class:`Print`, :class:`PrintX` or :class:`Render`) it is a generator
-		which yields the text output of the node. For blocks (which might contain
-		nodes which produce output) this is also a generator. (For these nodes
-		the class attribute ``output`` is true.)
+		:class:`PrintAST`, :class:`PrintXAST` or :class:`RenderAST`) it is a
+		generator which yields the text output of the node. For blocks (which
+		might contain nodes which produce output) this is also a generator.
+		(For these nodes the class attribute ``output`` is true.)
 		"""
 		pass
 
