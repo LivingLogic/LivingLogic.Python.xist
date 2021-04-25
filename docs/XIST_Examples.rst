@@ -346,7 +346,7 @@ according to the nesting depth of a ``<section>`` element.
 
 The output of this script will be:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<h1>Python Tutorial</h1>
 	<h2>Using the Python Interpreter</h2>

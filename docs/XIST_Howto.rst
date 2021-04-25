@@ -167,7 +167,7 @@ instead of a :class:`bytes` object):
 
 This will output:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<?code x = 42?>
 
@@ -188,7 +188,7 @@ Finally entity references can be created with the function
 
 This will output:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	&html;
 

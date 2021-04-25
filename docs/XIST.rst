@@ -4,7 +4,7 @@ XIST -- An extensible HTML/XML generator
 .. automodule:: ll.xist
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Content
    :name: xist_content
 
