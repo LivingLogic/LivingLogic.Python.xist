@@ -85,7 +85,7 @@ new version of the node, with additional white space between the elements:
 
 This will print:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<html>
 		<head>
@@ -146,6 +146,6 @@ the processing instruction. For example, consider the following XML file:
 Parsing this file and calling :meth:`~ll.xist.xsc.Node.convert` results in the
 following:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<b>5050</b>

@@ -323,7 +323,7 @@ appropriate Javascript objects. For example::
 
 This outputs:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<ul data-ul4on='5 L ^0 ^1 ^2 ^3 ]'>
 	<li data-ul4on='1 S&#39;gurk&#39;'>GURK</li>
