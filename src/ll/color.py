@@ -134,7 +134,7 @@ class Color(tuple):
 
 	def __str__(self):
 		"""
-		`self`` formatted as a CSS color string.
+		``self`` formatted as a CSS color string.
 		"""
 		if self[3] != 0xff:
 			return f"rgba({self[0]},{self[1]},{self[2]},{self[3]/255.:.3f})"
