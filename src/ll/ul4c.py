@@ -25,7 +25,7 @@ __docformat__ = "reStructuredText"
 
 import re, os.path, datetime, urllib.parse as urlparse, json, collections
 import locale, itertools, random, functools, math, inspect, contextlib
-import types, operator, textwrap
+import types, textwrap
 
 from collections import abc
 
@@ -385,7 +385,7 @@ class Context:
 			b["operator"] = _create_module(
 				"operator",
 				"Various operators as functions",
-				attrgetter=AttrGetterType,
+				attrgetter=AttrGetter.ul4_type,
 			)
 			b["math"] = _create_module(
 				"math",
@@ -1308,7 +1308,21 @@ class SliceType(Type):
 SliceType = SliceType(None, "slice", "A slice")
 
 
-AttrGetterType = InstantiableType("operator", "attrgetter", "Return a callable object that fetches the given attribute(s) from its operand.", type=operator.attrgetter)
+class AttrGetter:
+	ul4_type = InstantiableType("operator", "attrgetter", "Return a callable object that fetches the given attribute(s) from its operand.")
+
+	def __init__(self, *attrs):
+		self.attrs = [a.split(".") for a in attrs]
+
+	def _fetchattr(self, obj, attrnames):
+		for name in attrnames:
+			obj = _type(obj).getattr(obj, name)
+		return obj
+
+	def __call__(self, obj):
+		if len(self.attrs) == 1:
+			return self._fetchattr(obj, self.attrs[0])
+		return [self._fetchattr(obj, a) for a in self.attrs]
 
 
 ###
@@ -5456,8 +5470,6 @@ def _type(obj, /):
 		return DateType
 	elif isinstance(obj, datetime.timedelta):
 		return TimeDeltaType
-	elif isinstance(obj, operator.attrgetter):
-		return AttrGetterType
 	else:
 		cls = type(obj)
 		try:
