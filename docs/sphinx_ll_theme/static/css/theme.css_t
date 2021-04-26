@@ -1936,4 +1936,9 @@ dt em
 	{
 		background: #10354f;
 	}
+
+	img.graphviz
+	{
+		filter: invert(80%);
+	}
 }
