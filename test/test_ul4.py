@@ -2490,6 +2490,11 @@ def test_function_float(T):
 
 
 @pytest.mark.ul4
+def test_function_color(T):
+	assert "#369" == T("<?print color(51, 102, 153, 255)?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_len(T):
 	t = T("<?print len(data)?>")
 
