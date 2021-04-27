@@ -243,6 +243,35 @@ object.
 or dictionary.
 
 
+``round(number, /, digits=0)``
+==============================
+Returns ``number`` rounded to ``digits`` precision after the decimal point.
+If ``digits`` is non-positive the returned value will always be of type ``int``.
+
+For example ``round(42.123, 2)`` returns ``42.12`` and ``round(485, -2)``
+returns 500.
+
+
+``floor(number, /, digits=0)``
+==============================
+Returns ``number`` rounded down (i.e. towards -∞) to ``digits`` precision after
+the decimal point. If ``digits`` is non-positive the returned value will always
+be of type ``int``.
+
+For example ``floor(42.567, 2)`` returns ``42.56`` and ``floor(485, -2)``
+returns 400.
+
+
+``ceil(number, /, digits=0)``
+=============================
+Returns ``number`` rounded up (i.e. towards ∞) to ``digits`` precision after
+the decimal point. If ``digits`` is non-positive the returned value will always
+be of type ``int``.
+
+For example ``ceil(42.567, 2)`` returns ``42.57`` and ``ceil(485, -2)``
+returns 500.
+
+
 ``any(iterable, /)``
 ====================
 
