@@ -512,11 +512,13 @@ argumentmismatchmessage = _make_exception_re(
 	"takes \\d+ positional arguments? but \\d+ (was|were) given", # 3.3
 	"takes from \\d+ to \\d+ positional arguments but \\d+ (was|were) given", # 3.3
 	"takes at least \\d+ positional arguments? \\(\\d+ given\\)",
+	"missing a required argument: .\\w+.",
 	# Javascript argument mismatch exception messages
-	"\\w+\\(\\) expects at most \\d+ positional arguments?, \\d+ given",
+	"\\w+\\(\\) takes at most \\d+ positional arguments?, \\d+ given",
 	"requires (at least \\d+|\\d+(-\\d+)?) arguments?, \\d+ given",
-	"required \\w+\\(\\) argument .\\w+. \\(position \\d+\\) missing",
-	"required \\w+\\(\\) argument missing",
+	"[rR]equired \\w+\\(\\) argument \\w+ \\(position \\d+\\) missing",
+	"[rR]equired \\w+\\(\\) argument missing",
+	"doesn't support an argument named \\w+",
 	"\\w+\\(\\) doesn't support an argument named .\\w+.",
 	# Java exception classes for argument mismatches
 	"com.livinglogic.ul4.TooManyArgumentsException",
@@ -5544,7 +5546,7 @@ def test_renderblocks(T):
 		<?end renderblocks?>
 	""")
 
-	with raises(missingkeywordargument):
+	with raises(argumentmismatchmessage):
 		t3.renders()
 
 	# Check that <?renderblocks?> checks for duplicate arguments
@@ -6453,10 +6455,10 @@ def test_smart_whitespace_empty_block(T):
 def test_function_signature(T):
 	assert 42 == T("<?return x?>", signature="x")(x=42)
 
-	with raises("missing a required argument: .?x.?|required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
+	with raises(argumentmismatchmessage):
 		T("<?return x?>", signature="x")()
 
-	with raises("got an unexpected keyword argument .?y.?|doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
+	with raises(argumentmismatchmessage):
 		T("<?return x?>", signature="x")(x=17, y=23)
 
 
@@ -6481,10 +6483,10 @@ def test_function_signature_kwargs(T):
 def test_template_signature(T):
 	assert "42" == T("<?print x?>", name="template_signature_1", signature="x").renders(x=42)
 
-	with raises("missing a required argument: .?x.?|required argument .?x.? \\(position 0\\) missing|'x' parameter lacking default value"):
+	with raises(argumentmismatchmessage):
 		T("<?print x?>", name="template_signature_2", signature="x").renders()
 
-	with raises("got an unexpected keyword argument .?y.?|doesn't support an argument named .?y.?|an argument named .?y.? isn't supported|too many keyword arguments"):
+	with raises(argumentmismatchmessage):
 		T("<?print x?>", name="template_signature_3", signature="x").renders(x=17, y=23)
 
 
