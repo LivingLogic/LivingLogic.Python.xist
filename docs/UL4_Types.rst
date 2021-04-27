@@ -98,6 +98,17 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ``2000-02-29``.
 
 
+``color(r=0, g=0, b=0, a=255)``
+===============================
+
+``color`` returns a color object. Each argument must be an integer between
+0 and 255. Values will be clipped accordingly. For example::
+
+	<?print color(51, 102, 153)?>
+
+prints ``#369``.
+
+
 ``list(iterable=[], /)``
 ========================
 
