@@ -796,7 +796,7 @@ def test_listcomp(T):
 	assert "[0, 2, 4, 6]" == T("<?code d = [2*i for i in range(4)]?><?print d?>").renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "<type undefinedvariable>" == T("<?code d = [2*i for i in range(4)]?><?print type(i)?>").renders()
+	assert T("<?code d = [2*i for i in range(4)]?><?print type(i)?>").renders() in {"<type undefinedvariable>", "<type undefined>"}
 
 
 @pytest.mark.ul4
@@ -809,7 +809,7 @@ def test_set(T):
 		assert '<type int>' == T('<?for item in {1}?><?print type(item)?><?end for?>').renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "<type undefinedvariable>" == T("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>").renders()
+	assert T("<?code d = {str(2*i) for i in range(4)}?><?print type(i)?>").renders() in {"<type undefinedvariable>", "<type undefined>"}
 
 
 @pytest.mark.ul4
@@ -831,7 +831,7 @@ def test_genexpr(T):
 	assert "0:g; 1:r; 2:k" == T("<?for (i, c2) in enumerate(c for c in 'gurk' if c != 'u')?><?if i?>; <?end if?><?print i?>:<?print c2?><?end for?>").renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "<type undefinedvariable>" == T("<?code d = (2*i for i in range(4))?><?print type(i)?>").renders()
+	assert T("<?code d = (2*i for i in range(4))?><?print type(i)?>").renders() in {"<type undefinedvariable>", "<type undefined>"}
 
 
 @pytest.mark.ul4
@@ -849,7 +849,7 @@ def test_dict(T):
 		assert '<type int>' == T('<?for (key, value) in {1:2}.items()?><?print type(key)?><?end for?>').renders()
 
 	# Make sure that the loop variables doesn't leak into the surrounding scope
-	assert "<type undefinedvariable>" == T("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>").renders()
+	assert T("<?code d = {i: 2*i for i in range(4)}?><?print type(i)?>").renders() in {"<type undefinedvariable>", "<type undefined>"}
 
 
 @pytest.mark.ul4
@@ -3930,7 +3930,7 @@ def test_function_zip(T):
 def test_function_type(T):
 	t = T("<?print type(x)?>")
 
-	assert "<type undefinedvariable>" == t.renders()
+	assert t.renders() in {"<type undefinedvariable>", "<type undefined>"}
 	assert "<type None>" == t.renders(x=None)
 	assert "<type bool>" == t.renders(x=False)
 	assert "<type bool>" == t.renders(x=True)
@@ -5486,7 +5486,7 @@ def test_renderblock(T):
 		<?print type(content)?>
 	""")
 
-	assert "<type undefinedvariable>" == t5.renders()
+	assert t5.renders() in {"<type undefinedvariable>", "<type undefined>"}
 
 
 @pytest.mark.ul4
@@ -5594,7 +5594,7 @@ def test_renderblocks(T):
 		<?print type(suffix)?>
 	""")
 
-	assert "<type undefinedvariable>" * 3 == t6.renders()
+	assert t6.renders() in {"<type undefinedvariable>" * 3, "<type undefined>" * 3}
 
 
 @pytest.mark.ul4
