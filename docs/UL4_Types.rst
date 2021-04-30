@@ -102,11 +102,16 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ===============================
 
 ``color`` returns a color object. Each argument must be an integer between
-0 and 255. Values will be clipped accordingly. For example::
+0 and 255. Values will be clipped accordingly. For example ::
 
-	<?print color(51, 102, 153)?>
+	<?print color(0x33, 0x66, 0x99)?>
 
-prints ``#369``.
+prints ``#369`` and ::
+
+	<?print color(0x33, 0x66, 0x99, 0xcc)?>
+
+prints ``rgba(51,102,153,0.800)``.
+
 
 
 ``list(iterable=[], /)``
