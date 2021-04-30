@@ -3236,6 +3236,7 @@ def test_function_istemplate(T):
 	assert "False" == t.renders(data=set())
 	assert "False" == t.renders(data={})
 	assert "True" == t.renders(data=ul4c.Template(""))
+	assert "True" == T("<?def f?><?end def?><?print istemplate(f)?>").renders()
 	assert "False" == T("<?print istemplate(repr)?>").renders()
 	assert "False" == t.renders(data=color.red)
 
