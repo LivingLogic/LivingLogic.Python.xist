@@ -6221,7 +6221,7 @@ def test_custommethods():
 def test_customrender():
 	class CustomRenderNoContext:
 
-		def ul4render(self, *args):
+		def ul4_render(self, *args):
 			yield "w/o context="
 			for (i, arg) in enumerate(args):
 				if i:
@@ -6230,7 +6230,7 @@ def test_customrender():
 
 	class CustomRenderContext:
 		@ul4c.withcontext
-		def ul4render(self, context, *args):
+		def ul4_render(self, context, *args):
 			yield "w/ context="
 			for (i, arg) in enumerate(args):
 				if i:
