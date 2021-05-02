@@ -878,6 +878,7 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 	padding: 1rem 2rem;
 	border-bottom: 1px solid #ddd;
 	color: #666;
+	line-height: {{ theme_line_height }};
 }
 
 .breadcrumbs .sep
