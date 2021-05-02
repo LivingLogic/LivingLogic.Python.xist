@@ -21,4 +21,5 @@ def get_html_theme_path() -> str:
 
 # See https://www.sphinx-doc.org/en/master/development/theming.html#distribute-your-theme-as-a-python-package
 def setup(app):
+	app.require_sphinx("3.5")
 	app.add_html_theme('sphinx_ll_theme', path.abspath(path.dirname(__file__)))
