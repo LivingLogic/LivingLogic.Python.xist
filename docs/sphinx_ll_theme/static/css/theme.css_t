@@ -3,6 +3,56 @@
 @import url("../typeface-source-code-pro-0.0.71/index.css");
 @import url("{{theme_font_awesome_url}}");
 
+:root
+{
+	--body-color-fg-h: 0deg;
+	--body-color-fg-s: 0%;
+	--body-color-fg-l: 0%;
+	--body-color-fg: hsl(var(--body-color-fg-h), var(--body-color-fg-s), var(--body-color-fg-l));
+
+	--body-color-bg-h: 0deg;
+	--body-color-bg-s: 0%;
+	--body-color-bg-l: 95%;
+	--body-color-bg: hsl(var(--body-color-bg-h), var(--body-color-bg-s), var(--body-color-bg-l));
+
+	--main-color-fg-h: 0deg;
+	--main-color-fg-s: 0%;
+	--main-color-fg-l: 0%;
+	--main-color-fg: hsl(var(--main-color-fg-h), var(--main-color-fg-s), var(--main-color-fg-l));
+
+	--main-color-bg-h: var(--body-color-bg-h);
+	--main-color-bg-s: var(--body-color-bg-s);
+	--main-color-bg-l: 100%;
+	--main-color-bg: hsl(var(--main-color-bg-h), var(--main-color-bg-s), var(--main-color-bg-l));
+
+	--scrollbar-color-fg-h: 0deg;
+	--scrollbar-color-fg-s: 0%;
+	--scrollbar-color-fg-l: 80%;
+	--scrollbar-color-fg-a: 50%;
+	--scrollbar-color-fg: hsl(var(--scrollbar-color-fg-h), var(--scrollbar-color-fg-s), var(--scrollbar-color-fg-l), var(--scrollbar-color-fg-a));
+
+	--scrollbar-color-bg-h: 0deg;
+	--scrollbar-color-bg-s: 0%;
+	--scrollbar-color-bg-l: 70%;
+	--scrollbar-color-bg-a: 0%;
+	--scrollbar-color-bg: hsl(var(--scrollbar-color-bg-h), var(--scrollbar-color-bg-s), var(--scrollbar-color-bg-l), var(--scrollbar-color-bg-a));
+
+	--header-color-fg-h: 200deg;
+	--header-color-fg-s: 10%;
+	--header-color-fg-l: 30%;
+	--header-color-fg: hsl(var(--header-color-fg-h), var(--header-color-fg-s), var(--header-color-fg-l));
+
+	--active-color-fg-h: 200deg;
+	--active-color-fg-s: 60%;
+	--active-color-fg-l: 40%;
+	--active-color-fg: hsl(var(--active-color-fg-h), var(--active-color-fg-s), var(--active-color-fg-l));
+
+	--hover-color-fg-h: 180deg;
+	--hover-color-fg-s: 60%;
+	--hover-color-fg-l: 20%;
+	--hover-color-fg: hsl(var(--hover-color-fg-h), var(--hover-color-fg-s), var(--hover-color-fg-l));
+}
+
 *
 {
 	-webkit-box-sizing: border-box;
@@ -49,18 +99,20 @@ html
 	height: 100vh;
 	overflow-x: hidden;
 }
+
 body
 {
 	font-family: "Source Sans Pro", "Trebuchet MS", Arial, Helvetica, XHelvetica, sans-serif;
 	margin: 0;
 	font-weight: 400;
-	color: #000;
+	color: var(--body-color-fg);
 	display: flex;
 	flex-flow: row nowrap;
 	min-height: 100vh;
-	background-color: #edf0f2;
+	background-color: var(--body-color-bg);
 	align-items: stretch;
 	height: 100vh;
+	scrollbar-color: var(--scrollbar-color-fg) var(--scrollbar-color-bg);
 }
 
 body > *
@@ -74,8 +126,8 @@ body > *
 h1, h2, h3, h4, h5, h6
 {
 	margin: 1.6em 0 0.6rem 0;
-	font-weight: 400;
-	color: #333;
+	font-weight: 300;
+	color: var(--header-color-fg);
 }
 
 main > :first-child > h1:first-of-type
@@ -85,13 +137,13 @@ main > :first-child > h1:first-of-type
 
 a
 {
-	color:#2980B9;
-	text-decoration:none;
-	cursor:pointer;
+	color: var(--active-color-fg);
+	text-decoration: none;
+	cursor: pointer;
 }
 a:hover
 {
-	color:#3091d1;
+	color: var(--hover-color-fg);
 	text-decoration: underline;
 	outline: 0;
 }
@@ -113,8 +165,7 @@ abbr[title]{
 b,
 strong
 {
-	color: #fff;
-	font-weight:bold;
+	font-weight: bold;
 }
 
 blockquote
@@ -845,54 +896,49 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-menu-vertical header,.wy-menu-vertical p.caption{color:#3a7ca8;height:32px;display:inline-block;line-height:32px;padding:0 1.618em;margin:12px 0 0 0;display:block;font-weight:bold;text-transform:uppercase;font-size:85%;white-space:nowrap}
 .wy-menu-vertical li.divide-top{border-top:solid 1px #444;}
 .wy-menu-vertical li.divide-bottom{border-bottom:solid 1px #444;}
-.wy-menu-vertical li.current{background:#e3e3e3}
 .wy-menu-vertical li.current a{
-	color:gray;
-	border-right: 1px solid #c9c9c9;
-	padding: .4rem 2.4rem;
+	padding: .6rem 2.4rem;
 }
-.wy-menu-vertical li.current a:hover{background:#d6d6d6}
 .wy-menu-vertical li code,.wy-menu-vertical li .rst-content tt,.rst-content .wy-menu-vertical li tt{border:none;background:inherit;color:inherit;padding-left:0;padding-right:0}
 .wy-menu-vertical li span.toctree-expand{display:block;float:left;margin-left:-1.2em;font-size:.8em;line-height:1.6em;color:#4d4d4d}
 .wy-menu-vertical li.on a,
 .wy-menu-vertical li.current > a
 {
-	color: #444;
 	padding: .4rem 1.6rem;
-	font-size: 120%;
 	line-height: 120%;
-	font-weight: 300;
 	position: relative;
-	background: #fcfcfc;
 	border: none;
 	padding-left: 1.6rem;
+	font-weight: bold;
 }
-.wy-menu-vertical li.on a:hover,.wy-menu-vertical li.current>a:hover{background:#fcfcfc}
 .wy-menu-vertical li.on a:hover span.toctree-expand,.wy-menu-vertical li.current>a:hover span.toctree-expand{color:gray}
-.wy-menu-vertical li.on a span.toctree-expand,.wy-menu-vertical li.current>a span.toctree-expand{display:block;font-size:.8em;line-height:1.6em;color:#333}
-.wy-menu-vertical li.toctree-l1.current>a{border-bottom:solid 1px #c9c9c9;border-top:solid 1px #c9c9c9}
-.wy-menu-vertical li.toctree-l2 a,.wy-menu-vertical li.toctree-l3 a,.wy-menu-vertical li.toctree-l4 a{color:#444;}
+.wy-menu-vertical li.on a span.toctree-expand,
+.wy-menu-vertical li.current>a span.toctree-expand{
+	display:block;
+	font-size:.8em;
+	line-height:1.6em;
+	color:#333;
+}
 .wy-menu-vertical li.toctree-l1.current li.toctree-l2>ul,.wy-menu-vertical li.toctree-l2.current li.toctree-l3>ul{display:none}
 .wy-menu-vertical li.toctree-l1.current li.toctree-l2.current>ul,.wy-menu-vertical li.toctree-l2.current li.toctree-l3.current>ul{display:block}
 .wy-menu-vertical li.toctree-l2.current>a
 {
-	background:#c9c9c9;
 	padding: .4rem 2.4rem;
 }
 .wy-menu-vertical li.toctree-l2.current li.toctree-l3>a
 {
 	display: block;
-	background: #c9c9c9;
 	padding: .4rem 4rem;
 }
 .wy-menu-vertical li.toctree-l2 a:hover span.toctree-expand{color:gray}
 .wy-menu-vertical li.toctree-l2 span.toctree-expand{color:#a3a3a3}
 .wy-menu-vertical li.toctree-l3{font-size:.9em}
-.wy-menu-vertical li.toctree-l3.current>a{background:#bdbdbd;padding:.4045em 4.045em}
+.wy-menu-vertical li.toctree-l3.current>a{
+	padding:.4045em 4.045em;
+}
 .wy-menu-vertical li.toctree-l3.current li.toctree-l4>a
 {
 	display: block;
-	background: #bdbdbd;
 	padding: .4rem 5.6rem;
 }
 .wy-menu-vertical li.toctree-l3 a:hover span.toctree-expand{color:gray}
@@ -900,9 +946,28 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-menu-vertical li.toctree-l4{font-size:.9em}
 .wy-menu-vertical li.current ul{display:block}
 .wy-menu-vertical li ul{margin-bottom:0;display:none}
-.wy-menu-vertical li ul li a{margin-bottom:0;color:#d9d9d9;font-weight:normal}
-.wy-menu-vertical a{display:inline-block;line-height:18px;padding:.4045em 1.618em;display:block;position:relative;font-size:90%;color:#d9d9d9}
-.wy-menu-vertical a:hover{background-color:#4e4a4a;cursor:pointer}
+.wy-menu-vertical li ul li a{margin-bottom:0;font-weight:normal}
+.wy-menu-vertical a
+{
+	display:inline-block;
+	line-height:18px;
+	padding:.4045em 1.618em;
+	display:block;
+	position:relative;
+	font-size:90%;
+}
+
+.wy-menu-vertical a:hover
+{
+	background-color:#ccc;
+	cursor:pointer;
+}
+
+.wy-menu-vertical a.current
+{
+	color: var(--body-color-fg);
+}
+
 .wy-menu-vertical a:hover span.toctree-expand{color:#d9d9d9}
 .wy-menu-vertical a:active{background-color:#2980B9;cursor:pointer;color:#fff}
 .wy-menu-vertical a:active span.toctree-expand{color:#fff}
@@ -913,16 +978,15 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 	margin-bottom: .8rem;
 	text-align: center;
 	display: block;
-	color: #fcfcfc;
 	margin-bottom: 0.8rem;
 }
+
 .wy-side-nav-search input[type=text]{width:100%;border-radius:50px;padding:6px 12px;border-color:#2472a4}
 .wy-side-nav-search img{display:block;margin:auto auto .809em auto;height:45px;width:45px;background-color:#2980B9;padding:5px;border-radius:100%}
 
 .wy-side-nav-search > a,
 .wy-side-nav-search .wy-dropdown > a
 {
-	color: #fcfcfc;
 	font-size: 100%;
 	display: inline-block;
 	padding: 3px 8px;
@@ -932,14 +996,14 @@ code.code-large,.rst-content tt.code-large{font-size:90%}
 .wy-side-nav-search>a:hover,
 .wy-side-nav-search .wy-dropdown>a:hover
 {
-	background: rgba(255, 255, 255, 0.2);
-	border-radius: 0.4em;
+	background-color: #d6d6d6;
+	border-radius: 0.5em;
 }
 
 .wy-side-nav-search > a.home
 {
 	font-size: 140%;
-	border-radius: 0.5rem;
+	border-radius: 0.5em;
 }
 
 .wy-side-nav-search > a img.logo,
@@ -1020,8 +1084,7 @@ nav.wy-nav-side
 	flex: 1 3 auto;
 	min-width: 15rem;
 	max-width: 25rem;
-	color: #9b9b9b;
-	background: #343131;
+	border-right: 1px solid #c9c9c9;
 	scrollbar-width: none;
 	line-height: {{theme_line_height}};
 }
@@ -1044,7 +1107,7 @@ nav.wy-nav-side li
 	display: none;
 	flex-flow: row nowrap;
 	align-items: center;
-	background-color: #edf0f2;
+	background-color: #eee;
 	border-bottom: 1px solid #ccc;
 	padding: 1rem;
 	font-size: 100%;
@@ -1085,8 +1148,8 @@ nav.wy-nav-side li
 {
 	flex: 3 2 auto;
 	max-width: 50rem;
-	border-right: 1px solid #ddd;
-	background-color: #fcfcfc;
+	color: var(--main-color-fg);
+	background-color: var(--main-color-bg);
 	scrollbar-width: thin;
 }
 
@@ -1263,11 +1326,6 @@ aside .breadcrumbs
 
 @media screen and (max-width: 768px)
 {
-	.wy-body-for-nav
-	{
-		background: #fcfcfc;
-	}
-
 	.wy-nav-top
 	{
 		display: flex;
@@ -1602,18 +1660,9 @@ span[id*='MathJax-Span']{color:#444;}
 	line-height: 1.5;
 }
 
-h1, h2, main .toctree-wrapper p.caption, h3, h4, h5, h6, legend
+main .toctree-wrapper p.caption, legend
 {
 	font-weight: 300;
-}
-
-.wy-side-nav-search
-{
-	background-color: #0063a8;
-	background-image: url('../NautilusBlue.jpg');
-	background-attachment: fixed;
-	background-position: top left;
-	background-repeat: no-repeat;
 }
 
 @media screen and (max-width: 768px)
@@ -1713,17 +1762,35 @@ dt em
 	font-style: normal;
 }
 
-@media (prefers-color-scheme: dark)
+@media (prefers-color-scheme: dark1)
 {
-	html
+	:root
 	{
-	}
+		--body-color-fg-h: 0deg;
+		--body-color-fg-s: 0%;
+		--body-color-fg-l: 85%;
 
-	body
-	{
-		color: #ddd;
-		background-color: #444;
-		scrollbar-color: #999 #333;
+		--body-color-bg-h: 225deg;
+		--body-color-bg-s: 10%;
+		--body-color-bg-l: 15%;
+
+		--main-color-fg-h: 0deg;
+		--main-color-fg-s: 0%;
+		--main-color-fg-l: 85%;
+
+		--main-color-bg-l: 20%;
+
+		--scrollbar-color-fg-h: 225deg;
+		--scrollbar-color-fg-l: 50%;
+
+		--header-color-fg-l: 80%;
+
+		--active-color-fg-h: 45deg;
+		--active-color-fg-s: 100%;
+		--active-color-fg-l: 60%;
+
+		--hover-color-fg-h: 25deg;
+		--hover-color-fg-l: 40%;
 	}
 
 	.wy-nav-top i
@@ -1736,82 +1803,24 @@ dt em
 		color: #ff6;
 	}
 
-	nav.wy-nav-side
+	.wy-nav-side
 	{
-		color: #ddd;
-		background-color: #444;
-	}
-
-	.wy-side-nav-search
-	{
-		background-color: #727272;
-		background-image: url('../NautilusBlack.jpg');
-	}
-
-	.wy-menu-vertical li.toctree-l2 a,
-	.wy-menu-vertical li.toctree-l3 a,
-	.wy-menu-vertical li.toctree-l4 a
-	{
-		color: #ddd;
-	}
-
-	.wy-menu-vertical li.toctree-l2.current > a
-	{
-		background-color: #000;
-	}
-
-	.wy-menu-vertical li.on,
-	.wy-menu-vertical li.current
-	{
-		background-color: #333;
+		color: #d8dee9;
+		border-color: #000;
 	}
 
 	.wy-menu-vertical li.on a,
 	.wy-menu-vertical li.current > a
 	{
-		color: #fff;
 		font-size: 120%;
 		line-height: 120%;
 		font-weight: 300;
-		border-right-color: #000;
 	}
 
 	.wy-menu-vertical li.current a:hover
 	{
 		background-color: #4e4a4a;
 		color: #ff6;
-	}
-
-	.wy-menu-vertical li.toctree-l1.current > a
-	{
-		border-color: #000;
-		background-color: #333;
-	}
-
-	.wy-menu-vertical li.toctree-l2 a,
-	.wy-menu-vertical li.toctree-l3 a,
-	.wy-menu-vertical li.toctree-l4 a
-	{
-		border-right-color: #000;
-		background-color: #555;
-	}
-
-	.wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a
-	{
-		background-color: #666;
-		border-color: #000;
-	}
-
-	.wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a
-	{
-		background-color: #777;
-		border-color: #000;
-	}
-
-	.wy-nav-content-wrap
-	{
-		background-color: #333;
-		border-right-color: #000;
 	}
 
 	.wy-nav-top
@@ -1826,25 +1835,10 @@ dt em
 		border-color: #000;
 	}
 
-	h1, h2, h3, h4, h5, h6,
 	div.literal-block-wrapper div.code-block-caption,
 	.caption .caption-text
 	{
 		color: #aaa;
-	}
-
-	a
-	{
-		color: #fc3;
-	}
-	a:hover
-	{
-		color: #ff6;
-	}
-
-	a:visited
-	{
-		color: #cc6;
 	}
 
 	a.iconpanel
@@ -1877,14 +1871,9 @@ dt em
 		color: #999;
 	}
 
-	main
-	{
-		background-color: #333;
-	}
-
 	footer
 	{
-		border-top-color: #999;
+		border-top-color: #3d4144;
 		color: #ddd;
 	}
 
