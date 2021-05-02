@@ -1,15 +1,15 @@
 <aside>
 	<div class="breadcrumbs">
 		{% block breadcrumbs %}
-		  <a href="{{ pathto(master_doc) }}">{{ _('Docs') }}</a> <span class="sep"><i class="{{theme_font_awesome_style}} fa-angle-right"></i></span> 
-			 {% for doc in parents %}
-				<a href="{{ doc.link|e }}">{{ doc.title }}</a> <span class="sep"><i class="{{theme_font_awesome_style}} fa-angle-right"></i></span> 
-			 {% endfor %}
-		  <span class="here">{{ title }}</span>
+			<a href="{{ pathto(master_doc) }}">{{ _('Docs') }}</a> <span class="sep">❯</span> 
+				{% for doc in parents %}
+					<a href="{{ doc.link|e }}">{{ doc.title }}</a> <span class="sep">❯</span> 
+				{% endfor %}
+			<span class="here">{{ title }}</span>
 		{% endblock %}
-	 </div>
+	</div>
 
-	 {% if ((theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev)) or theme_pdf or (show_source and source_url_prefix) or (show_source and has_source and sourcename) %}
+	{% if ((theme_prev_next_buttons_location == 'bottom' or theme_prev_next_buttons_location == 'both') and (next or prev)) or theme_pdf or (show_source and source_url_prefix) or (show_source and has_source and sourcename) %}
 		<div class="rst-buttons" role="navigation" aria-label="aside navigation">
 			{% if prev %}
 				<a href="{{ prev.link|e }}" accesskey="p" rel="prev" class="iconpanel prev">
