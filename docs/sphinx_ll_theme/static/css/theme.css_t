@@ -211,7 +211,7 @@ pre
 
 q
 {
-	quotes:none;
+	quotes: none;
 }
 q:before,
 q:after
@@ -219,10 +219,25 @@ q:after
 	content: "";
 	content: none;
 }
-small{font-size:85%}
-sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
-sup{top:-0.5em}
-sub{bottom:-0.25em}
+small
+{
+	font-size: 85%;
+}
+sub, sup
+{
+	font-size: 75%;
+	line-height: 0;
+	position: relative;
+	vertical-align: baseline;
+}
+sup
+{
+	top: -0.5em;
+}
+sub
+{
+	bottom: -0.25em;
+}
 
 .navigation
 {
@@ -294,7 +309,7 @@ img
 	max-width: 100%;
 }
 
-svg:not(:root)
+svg: not(:root)
 {
 	overflow:hidden;
 }
