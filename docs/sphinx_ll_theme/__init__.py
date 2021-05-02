@@ -1,9 +1,9 @@
-"""LivingLogic Sphinx theme.
+"""
+LivingLogic Sphinx theme.
 
 Based on Sphinx ReadTheDocs theme.
 
 From https://github.com/ryan-roemer/sphinx-bootstrap-theme.
-
 """
 from os import path
 
