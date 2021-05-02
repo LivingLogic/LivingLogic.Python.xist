@@ -406,4 +406,5 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 	return False
 
 def setup(app):
+	app.require_sphinx("3.5")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
