@@ -39,22 +39,23 @@ Changes in 5.66 (released ??/??/2021)
 	(For example :class:`ll.ul4c.Add` has been renamed to
 	:class:`ll.ul4c.AddAST`).
 
-*	The UL4 function ``type()`` now returns type objects instead of simple
-	strings.
+*	The UL4 function ``type()`` now returns "type objects" instead of simple
+	strings. A type object can be used for checking whether an object is an
+	instance of a certain type (via the newly introduced function
+	``isinstance()``). Some type objects can also be used to create new instances
+	of that type (by calling the type object).
 
 *	The following builtin UL4 functions are now callable type objects: ``bool``,
 	``int``, ``float``, ``str``, ``date``, ``datetime``, ``timedelta``,
 	``monthdelta``, ``list``, ``set``, ``dict`` and ``color``.
 
-*	A new function ``isinstance()`` has been added to UL4.
-
 *	The following modules have been added to the builtin UL4 objects: ``ul4``
-	containing all UL4 AST classes (``ul4.Template`` is callable to create an
-	UL4 template from source), ``ul4on`` (containing the functions ``dumps()``
-	and ``loads()`` and the types ``Encoder`` and ``Decoder``), ``operator``
-	(containing the type ``attrgetter``) and ``math`` (containing the constants
+	contains all UL4 AST classes (``ul4.Template`` is callable to create an
+	UL4 template from source), ``ul4on`` contains the functions ``dumps()``
+	and ``loads()`` and the types ``Encoder`` and ``Decoder``, ``operator``
+	contains the type ``attrgetter`` and ``math`` contains the constants
 	``e``, ``pi`` and ``tau`` as well as the functions ``cos()``, ``sin()``,
-	``tan()``, ``sqrt()`` and ``isclose()``).
+	``tan()``, ``sqrt()`` and ``isclose()``.
 
 *	Naming of attributes that are used by UL4 to implement UL4 functionality
 	has been made more uniform. This affects the following attributes:
