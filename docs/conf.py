@@ -393,6 +393,7 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = {
 		'__weakref__', '__slots__', # special-members
 		'__doc__', '__module__', '__dict__',  # undoc-members
+		'ul4_type' # our own special attribute
 	}
 	doc = getattr(obj, "__doc__", None)
 	if skip:
