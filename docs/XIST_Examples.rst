@@ -55,7 +55,7 @@ generate the same HTML:
 						+xsc.Text("This example page has a link to the ")
 						with html.a():
 							with xsc.addattr("href"):
-								+xsc.Text(""http://www.python.org/"")
+								+xsc.Text("http://www.python.org/")
 							+xsc.Text("Python home page")
 						+xsc.Text(".")
 
