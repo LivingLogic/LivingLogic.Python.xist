@@ -20,6 +20,9 @@ Python's ``str()`` output as much as possible::
 
 Printing ``None`` or undefined objects produces no output.
 
+.. hint::
+	The ``<?print?>`` tag is implemented by :class:`ll.ul4c.PrintAST`.
+
 
 ``<?printx?>``
 ==============
@@ -27,6 +30,9 @@ Printing ``None`` or undefined objects produces no output.
 The ``printx`` tag outputs the value of a variable or any other expression and
 escapes the characters ``<``, ``>``, ``&``, ``'`` and ``"`` with the appropriate
 character or entity references for XML or HTML output.
+
+.. hint::
+	The ``<?printx?>`` tag is implemented by :class:`ll.ul4c.PrintXAST`.
 
 
 ``<?for?>``
@@ -52,11 +58,17 @@ This unpacking can be arbitrarily nested, i.e. the following is possible too::
 
 	<?for (i, (key, value)) in enumerate(dict.items())?>
 
+.. hint::
+	The ``<?for?>`` tag is implemented by :class:`ll.ul4c.ForBlockAST`.
+
 
 ``<?break?>``
 =============
 
 The ``break`` tag can be used to break out of the innermost running loop.
+
+.. hint::
+	The ``<?break?>`` tag is implemented by :class:`ll.ul4c.BreakAST`.
 
 
 ``<?continue?>``
@@ -64,6 +76,9 @@ The ``break`` tag can be used to break out of the innermost running loop.
 
 The ``continue`` tag can be used to skip the rest of the loop body of the
 innermost running loop and continue with the next iteration of the loop.
+
+.. hint::
+	The ``<?continue?>`` tag is implemented by :class:`ll.ul4c.ContinueAST`.
 
 
 ``<?if?>``
@@ -114,6 +129,11 @@ or::
 		<?print len(persons)?> persons found!
 	<?end if?>
 
+.. hint::
+	The ``<?if?>``, ``<?elif?>`` and ``<?else?>`` tags are implemented by
+	:class:`ll.ul4c.ConditionalBlocksAST`, :class:`ll.ul4c.IfBlockAST`,
+	:class:`ll.ul4c.ElIfBlockAST` and :class:`ll.ul4c.ElseBlockAST`.
+
 
 ``<?code?>``
 ============
@@ -147,6 +167,10 @@ For example the following template will output ``40``::
 	<?code x = 17?>
 	<?code x += 23?>
 	<?print x?>
+
+.. hint::
+	The content of ``<?code?>`` tags is implemented as
+	:ref:`UL4 expressions <UL4_expressions>`.
 
 
 ``<?render?>``
@@ -192,6 +216,9 @@ I.e. templates can be passed just like any other object as a variable.
 the ``i`` variable, which will be available in the inner template under the
 name ``item``.
 
+.. hint::
+	The ``<?render?>`` tag is implemented by :class:`ll.ul4c.RenderAST`.
+
 
 ``<?renderx?>``
 ===============
@@ -213,6 +240,9 @@ Python code demonstrates this::
 This will output::
 
 	&lt;&amp;&gt;
+
+.. hint::
+	The ``<?renderx?>`` tag is implemented by :class:`ll.ul4c.RenderXAST`.
 
 
 ``<?def?>``
@@ -249,6 +279,10 @@ This will output ``"foo" and "bar"``.
 	<?render weightedsum(17, 23, 42)?>
 
 This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
+
+.. hint::
+	The ``<?def?>`` tag simply creates a :class:`~ll.ul4c.Template` object inside
+	another :class:`~ll.ul4c.Template` object.
 
 
 ``<?renderblocks?>``
@@ -311,6 +345,10 @@ render call to ``page``. (But note that those variables will be local to the
 ``<?renderblocks?>`` block, i.e. they will not leak into the surrounding
 code.)
 
+.. hint::
+	The ``<?renderblocks?>`` tag is implemented by
+	:class:`ll.ul4c.RenderBlocksAST`.
+
 
 ``<?renderblock?>``
 ===================
@@ -339,12 +377,18 @@ The output will be::
 		Link to the Python homepage
 	</a>
 
+.. hint::
+	The ``<?renderblock?>`` tag is implemented by :class:`ll.ul4c.RenderBlockAST`.
+
 
 ``<?return?>``
 ==============
 
 The ``return`` tag returns a value from the template when the template is
 called as a function. For more info see :ref:`UL4_TemplatesAsFunctions`.
+
+.. hint::
+	The ``<?return?>`` tag is implemented by :class:`ll.ul4c.ReturnAST`.
 
 
 ``<?ul4?>``
@@ -361,12 +405,19 @@ itself. This overwrites the name and signature specified in the
 	>>> t.signature
 	<Signature (x)>
 
+.. hint::
+	The ``<?ul4?>`` tag has no corresponding AST nodes. Its content will set
+	attributes of the template instead.
+
 
 ``<?note?>``
 ============
 
 A ``note`` tag is a comment, i.e. the content of the tag will be completely
 ignored.
+
+.. hint::
+	A ``<?note?>`` tag has no corresponding AST nodes.
 
 
 ``<?doc?>``
@@ -404,9 +455,17 @@ will output ::
 	return the sum of x and y
 	(x=17, y=23)
 
+.. hint::
+	A ``<?doc?>`` tag has no corresponding AST nodes. Its content will set the
+	``doc`` property of the template instead.
+
 
 ``<?whitespace?>``
 ==================
 
 The ``whitespace`` tag can be used to overwrite the handling of whitespace in
 the template. For more info see :ref:`UL4_Whitespace`.
+
+.. hint::
+	A ``<?whitespace?>`` tag has no corresponding AST nodes. Its content will
+	set the ``whitespace`` attribute of the template instead.
