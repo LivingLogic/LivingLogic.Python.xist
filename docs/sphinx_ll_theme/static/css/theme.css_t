@@ -639,8 +639,66 @@ textarea,
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);border:0}
 .sr-only-focusable:active,.sr-only-focusable:focus{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto}
 .fa,,.rst-content .admonition-title,.rst-content h1 .headerlink,.rst-content h2 .headerlink,.rst-content h3 .headerlink,.rst-content h4 .headerlink,.rst-content h5 .headerlink,.rst-content h6 .headerlink,.rst-content dl dt .headerlink,.rst-content p.caption .headerlink,.rst-content table>caption .headerlink,.rst-content .code-block-caption .headerlink,.rst-content tt.download span:first-child,.rst-content code.download span:first-child,.icon,.wy-dropdown .caret,.wy-inline-validate.wy-inline-validate-success .wy-input-context,.wy-inline-validate.wy-inline-validate-danger .wy-input-context,.wy-inline-validate.wy-inline-validate-warning .wy-input-context,.wy-inline-validate.wy-inline-validate-info .wy-input-context{font-family:inherit}
-.fa:before,.rst-content .admonition-title:before,.rst-content h1 .headerlink:before,.rst-content h2 .headerlink:before,.rst-content h3 .headerlink:before,.rst-content h4 .headerlink:before,.rst-content h5 .headerlink:before,.rst-content h6 .headerlink:before,.rst-content dl dt .headerlink:before,.rst-content p.caption .headerlink:before,.rst-content table>caption .headerlink:before,.rst-content .code-block-caption .headerlink:before,.rst-content tt.download span:first-child:before,.rst-content code.download span:first-child:before,.icon:before,.wy-dropdown .caret:before,.wy-inline-validate.wy-inline-validate-success .wy-input-context:before,.wy-inline-validate.wy-inline-validate-danger .wy-input-context:before,.wy-inline-validate.wy-inline-validate-warning .wy-input-context:before,.wy-inline-validate.wy-inline-validate-info .wy-input-context:before{font-family:"{{theme_font_awesome_name}}";display:inline-block;font-style:normal;font-weight:{{theme_font_awesome_weight}};line-height:1;text-decoration:inherit}
-a .fa,,a .rst-content .admonition-title,.rst-content a .admonition-title,a .rst-content h1 .headerlink,.rst-content h1 a .headerlink,a .rst-content h2 .headerlink,.rst-content h2 a .headerlink,a .rst-content h3 .headerlink,.rst-content h3 a .headerlink,a .rst-content h4 .headerlink,.rst-content h4 a .headerlink,a .rst-content h5 .headerlink,.rst-content h5 a .headerlink,a .rst-content h6 .headerlink,.rst-content h6 a .headerlink,a .rst-content dl dt .headerlink,.rst-content dl dt a .headerlink,a .rst-content p.caption .headerlink,.rst-content p.caption a .headerlink,a .rst-content table>caption .headerlink,.rst-content table>caption a .headerlink,a .rst-content .code-block-caption .headerlink,.rst-content .code-block-caption a .headerlink,a .rst-content tt.download span:first-child,.rst-content tt.download a span:first-child,a .rst-content code.download span:first-child,.rst-content code.download a span:first-child,a .icon{display:inline-block;text-decoration:inherit}
+.fa:before,
+.rst-content .admonition-title:before,
+.rst-content h1 .headerlink:before,
+.rst-content h2 .headerlink:before,
+.rst-content h3 .headerlink:before,
+.rst-content h4 .headerlink:before,
+.rst-content h5 .headerlink:before,
+.rst-content h6 .headerlink:before,
+.rst-content dl dt .headerlink:before,
+.rst-content p.caption .headerlink:before,
+.rst-content table>caption .headerlink:before,
+.rst-content .code-block-caption .headerlink:before,
+.rst-content tt.download span:first-child:before,
+.rst-content code.download span:first-child:before,
+.icon:before,
+.wy-dropdown .caret:before,
+.wy-inline-validate.wy-inline-validate-success .wy-input-context:before,
+.wy-inline-validate.wy-inline-validate-danger .wy-input-context:before,
+.wy-inline-validate.wy-inline-validate-warning .wy-input-context:before,
+.wy-inline-validate.wy-inline-validate-info .wy-input-context:before
+{
+	font-family:"{{theme_font_awesome_name}}";
+	display:inline-block;
+	font-style:normal;
+	font-weight:{{theme_font_awesome_weight}};
+	line-height:1;
+	text-decoration:inherit;
+}
+a .fa,
+a .rst-content .admonition-title,
+.rst-content a .admonition-title,
+a .rst-content h1 .headerlink,
+.rst-content h1 a .headerlink,
+a .rst-content h2 .headerlink,
+.rst-content h2 a .headerlink,
+a .rst-content h3 .headerlink,
+.rst-content h3 a .headerlink,
+a .rst-content h4 .headerlink,
+.rst-content h4 a .headerlink,
+a .rst-content h5 .headerlink,
+.rst-content h5 a .headerlink,
+a .rst-content h6 .headerlink,
+.rst-content h6 a .headerlink,
+a .rst-content dl dt .headerlink,
+.rst-content dl dt a .headerlink,
+a .rst-content p.caption .headerlink,
+.rst-content p.caption a .headerlink,
+a .rst-content table>caption .headerlink,
+.rst-content table>caption a .headerlink,
+a .rst-content .code-block-caption .headerlink,
+.rst-content .code-block-caption a .headerlink,
+a .rst-content tt.download span:first-child,
+.rst-content tt.download a span:first-child,
+a .rst-content code.download span:first-child,
+.rst-content code.download a span:first-child,
+a .icon
+{
+	display:inline-block;
+	text-decoration:inherit;
+}
 .btn .fa,.btn .rst-content .admonition-title,.rst-content .btn .admonition-title,.btn .rst-content h1 .headerlink,.rst-content h1 .btn .headerlink,.btn .rst-content h2 .headerlink,.rst-content h2 .btn .headerlink,.btn .rst-content h3 .headerlink,.rst-content h3 .btn .headerlink,.btn .rst-content h4 .headerlink,.rst-content h4 .btn .headerlink,.btn .rst-content h5 .headerlink,.rst-content h5 .btn .headerlink,.btn .rst-content h6 .headerlink,.rst-content h6 .btn .headerlink,.btn .rst-content dl dt .headerlink,.rst-content dl dt .btn .headerlink,.btn .rst-content p.caption .headerlink,.rst-content p.caption .btn .headerlink,.btn .rst-content table>caption .headerlink,.rst-content table>caption .btn .headerlink,.btn .rst-content .code-block-caption .headerlink,.rst-content .code-block-caption .btn .headerlink,.btn .rst-content tt.download span:first-child,.rst-content tt.download .btn span:first-child,.btn .rst-content code.download span:first-child,.rst-content code.download .btn span:first-child,.btn .icon,.nav .fa,.nav .rst-content .admonition-title,.rst-content .nav .admonition-title,.nav .rst-content h1 .headerlink,.rst-content h1 .nav .headerlink,.nav .rst-content h2 .headerlink,.rst-content h2 .nav .headerlink,.nav .rst-content h3 .headerlink,.rst-content h3 .nav .headerlink,.nav .rst-content h4 .headerlink,.rst-content h4 .nav .headerlink,.nav .rst-content h5 .headerlink,.rst-content h5 .nav .headerlink,.nav .rst-content h6 .headerlink,.rst-content h6 .nav .headerlink,.nav .rst-content dl dt .headerlink,.rst-content dl dt .nav .headerlink,.nav .rst-content p.caption .headerlink,.rst-content p.caption .nav .headerlink,.nav .rst-content table>caption .headerlink,.rst-content table>caption .nav .headerlink,.nav .rst-content .code-block-caption .headerlink,.rst-content .code-block-caption .nav .headerlink,.nav .rst-content tt.download span:first-child,.rst-content tt.download .nav span:first-child,.nav .rst-content code.download span:first-child,.rst-content code.download .nav span:first-child,.nav .icon{display:inline}
 .btn .fa.fa-large,.btn .rst-content .fa-large.admonition-title,.rst-content .btn .fa-large.admonition-title,.btn .rst-content h1 .fa-large.headerlink,.rst-content h1 .btn .fa-large.headerlink,.btn .rst-content h2 .fa-large.headerlink,.rst-content h2 .btn .fa-large.headerlink,.btn .rst-content h3 .fa-large.headerlink,.rst-content h3 .btn .fa-large.headerlink,.btn .rst-content h4 .fa-large.headerlink,.rst-content h4 .btn .fa-large.headerlink,.btn .rst-content h5 .fa-large.headerlink,.rst-content h5 .btn .fa-large.headerlink,.btn .rst-content h6 .fa-large.headerlink,.rst-content h6 .btn .fa-large.headerlink,.btn .rst-content dl dt .fa-large.headerlink,.rst-content dl dt .btn .fa-large.headerlink,.btn .rst-content p.caption .fa-large.headerlink,.rst-content p.caption .btn .fa-large.headerlink,.btn .rst-content table>caption .fa-large.headerlink,.rst-content table>caption .btn .fa-large.headerlink,.btn .rst-content .code-block-caption .fa-large.headerlink,.rst-content .code-block-caption .btn .fa-large.headerlink,.btn .rst-content tt.download span.fa-large:first-child,.rst-content tt.download .btn span.fa-large:first-child,.btn .rst-content code.download span.fa-large:first-child,.rst-content code.download .btn span.fa-large:first-child,.btn .fa-large.icon,.nav .fa.fa-large,.nav .rst-content .fa-large.admonition-title,.rst-content .nav .fa-large.admonition-title,.nav .rst-content h1 .fa-large.headerlink,.rst-content h1 .nav .fa-large.headerlink,.nav .rst-content h2 .fa-large.headerlink,.rst-content h2 .nav .fa-large.headerlink,.nav .rst-content h3 .fa-large.headerlink,.rst-content h3 .nav .fa-large.headerlink,.nav .rst-content h4 .fa-large.headerlink,.rst-content h4 .nav .fa-large.headerlink,.nav .rst-content h5 .fa-large.headerlink,.rst-content h5 .nav .fa-large.headerlink,.nav .rst-content h6 .fa-large.headerlink,.rst-content h6 .nav .fa-large.headerlink,.nav .rst-content dl dt .fa-large.headerlink,.rst-content dl dt .nav .fa-large.headerlink,.nav .rst-content p.caption .fa-large.headerlink,.rst-content p.caption .nav .fa-large.headerlink,.nav .rst-content table>caption .fa-large.headerlink,.rst-content table>caption .nav .fa-large.headerlink,.nav .rst-content .code-block-caption .fa-large.headerlink,.rst-content .code-block-caption .nav .fa-large.headerlink,.nav .rst-content tt.download span.fa-large:first-child,.rst-content tt.download .nav span.fa-large:first-child,.nav .rst-content code.download span.fa-large:first-child,.rst-content code.download .nav span.fa-large:first-child,.nav .fa-large.icon{line-height:.9em}
 .btn .fa.fa-spin,.btn .rst-content .fa-spin.admonition-title,.rst-content .btn .fa-spin.admonition-title,.btn .rst-content h1 .fa-spin.headerlink,.rst-content h1 .btn .fa-spin.headerlink,.btn .rst-content h2 .fa-spin.headerlink,.rst-content h2 .btn .fa-spin.headerlink,.btn .rst-content h3 .fa-spin.headerlink,.rst-content h3 .btn .fa-spin.headerlink,.btn .rst-content h4 .fa-spin.headerlink,.rst-content h4 .btn .fa-spin.headerlink,.btn .rst-content h5 .fa-spin.headerlink,.rst-content h5 .btn .fa-spin.headerlink,.btn .rst-content h6 .fa-spin.headerlink,.rst-content h6 .btn .fa-spin.headerlink,.btn .rst-content dl dt .fa-spin.headerlink,.rst-content dl dt .btn .fa-spin.headerlink,.btn .rst-content p.caption .fa-spin.headerlink,.rst-content p.caption .btn .fa-spin.headerlink,.btn .rst-content table>caption .fa-spin.headerlink,.rst-content table>caption .btn .fa-spin.headerlink,.btn .rst-content .code-block-caption .fa-spin.headerlink,.rst-content .code-block-caption .btn .fa-spin.headerlink,.btn .rst-content tt.download span.fa-spin:first-child,.rst-content tt.download .btn span.fa-spin:first-child,.btn .rst-content code.download span.fa-spin:first-child,.rst-content code.download .btn span.fa-spin:first-child,.btn .fa-spin.icon,.nav .fa.fa-spin,.nav .rst-content .fa-spin.admonition-title,.rst-content .nav .fa-spin.admonition-title,.nav .rst-content h1 .fa-spin.headerlink,.rst-content h1 .nav .fa-spin.headerlink,.nav .rst-content h2 .fa-spin.headerlink,.rst-content h2 .nav .fa-spin.headerlink,.nav .rst-content h3 .fa-spin.headerlink,.rst-content h3 .nav .fa-spin.headerlink,.nav .rst-content h4 .fa-spin.headerlink,.rst-content h4 .nav .fa-spin.headerlink,.nav .rst-content h5 .fa-spin.headerlink,.rst-content h5 .nav .fa-spin.headerlink,.nav .rst-content h6 .fa-spin.headerlink,.rst-content h6 .nav .fa-spin.headerlink,.nav .rst-content dl dt .fa-spin.headerlink,.rst-content dl dt .nav .fa-spin.headerlink,.nav .rst-content p.caption .fa-spin.headerlink,.rst-content p.caption .nav .fa-spin.headerlink,.nav .rst-content table>caption .fa-spin.headerlink,.rst-content table>caption .nav .fa-spin.headerlink,.nav .rst-content .code-block-caption .fa-spin.headerlink,.rst-content .code-block-caption .nav .fa-spin.headerlink,.nav .rst-content tt.download span.fa-spin:first-child,.rst-content tt.download .nav span.fa-spin:first-child,.nav .rst-content code.download span.fa-spin:first-child,.rst-content code.download .nav span.fa-spin:first-child,.nav .fa-spin.icon{display:inline-block}
@@ -664,6 +722,7 @@ a .fa,,a .rst-content .admonition-title,.rst-content a .admonition-title,a .rst-
 {
 	background:#fdf3f2;
 }
+
 .wy-alert.wy-alert-warning,
 .rst-content .wy-alert-warning.note,
 .rst-content .attention,
@@ -711,39 +770,9 @@ a .fa,,a .rst-content .admonition-title,.rst-content a .admonition-title,a .rst-
 .rst-content .wy-alert-success.admonition-todo,
 .rst-content .wy-alert-success.admonition
 {
-	background:#dbfaf4;
+	font-size: 90%;
 }
-.wy-alert.wy-alert-success .wy-alert-title,
-.rst-content .wy-alert-success.note .wy-alert-title,
-.rst-content .wy-alert-success.attention .wy-alert-title,
-.rst-content .wy-alert-success.caution .wy-alert-title,
-.rst-content .wy-alert-success.danger .wy-alert-title,
-.rst-content .wy-alert-success.error .wy-alert-title,
-.rst-content .hint .wy-alert-title,
-.rst-content .important .wy-alert-title,
-.rst-content .tip .wy-alert-title,
-.rst-content .wy-alert-success.warning .wy-alert-title,
-.rst-content .wy-alert-success.seealso .wy-alert-title,
-.rst-content .wy-alert-success.admonition-todo .wy-alert-title,
-.rst-content .wy-alert-success.admonition .wy-alert-title,
-.wy-alert.wy-alert-success .rst-content .admonition-title,
-.rst-content .wy-alert.wy-alert-success .admonition-title,
-.rst-content .wy-alert-success.note .admonition-title,
-.rst-content .wy-alert-success.attention .admonition-title,
-.rst-content .wy-alert-success.caution .admonition-title,
-.rst-content .wy-alert-success.danger .admonition-title,
-.rst-content .wy-alert-success.error .admonition-title,
-.rst-content .hint .admonition-title,
-.rst-content .important .admonition-title,
-.rst-content .tip .admonition-title,
-.rst-content .wy-alert-success.warning .admonition-title,
-.rst-content .wy-alert-success.seealso .admonition-title,
-.rst-content .wy-alert-success.admonition-todo .admonition-title,
-.rst-content .wy-alert-success.admonition .admonition-title
-.rst-content .admonition .admonition-title
-{
-	background:#1abc9c;
-}
+
 .wy-alert.wy-alert-neutral,
 .rst-content .wy-alert-neutral.note,.rst-content .wy-alert-neutral.attention,.rst-content .wy-alert-neutral.caution,.rst-content .wy-alert-neutral.danger,.rst-content .wy-alert-neutral.error,.rst-content .wy-alert-neutral.hint,.rst-content .wy-alert-neutral.important,.rst-content .wy-alert-neutral.tip,.rst-content .wy-alert-neutral.warning,.rst-content .wy-alert-neutral.seealso,.rst-content .wy-alert-neutral.admonition-todo,.rst-content .wy-alert-neutral.admonition{background:#f3f6f6}
 .wy-alert.wy-alert-neutral .wy-alert-title,.rst-content .wy-alert-neutral.note .wy-alert-title,.rst-content .wy-alert-neutral.attention .wy-alert-title,.rst-content .wy-alert-neutral.caution .wy-alert-title,.rst-content .wy-alert-neutral.danger .wy-alert-title,.rst-content .wy-alert-neutral.error .wy-alert-title,.rst-content .wy-alert-neutral.hint .wy-alert-title,.rst-content .wy-alert-neutral.important .wy-alert-title,.rst-content .wy-alert-neutral.tip .wy-alert-title,.rst-content .wy-alert-neutral.warning .wy-alert-title,.rst-content .wy-alert-neutral.seealso .wy-alert-title,.rst-content .wy-alert-neutral.admonition-todo .wy-alert-title,.rst-content .wy-alert-neutral.admonition .wy-alert-title,.wy-alert.wy-alert-neutral .rst-content .admonition-title,.rst-content .wy-alert.wy-alert-neutral .admonition-title,.rst-content .wy-alert-neutral.note .admonition-title,.rst-content .wy-alert-neutral.attention .admonition-title,.rst-content .wy-alert-neutral.caution .admonition-title,.rst-content .wy-alert-neutral.danger .admonition-title,.rst-content .wy-alert-neutral.error .admonition-title,.rst-content .wy-alert-neutral.hint .admonition-title,.rst-content .wy-alert-neutral.important .admonition-title,.rst-content .wy-alert-neutral.tip .admonition-title,.rst-content .wy-alert-neutral.warning .admonition-title,.rst-content .wy-alert-neutral.seealso .admonition-title,.rst-content .wy-alert-neutral.admonition-todo .admonition-title,.rst-content .wy-alert-neutral.admonition .admonition-title{color:#444;background:#e1e4e5}
@@ -1685,15 +1714,10 @@ main h5 > .headerlink,
 main h6 > .headerlink,
 main .toctree-wrapper p.caption .headerlink
 {
-	padding-left: 0.4rem;
+	padding-left: 0.5em;
 	visibility: hidden;
 	font-size: 1rem;
 	text-align: right;
-}
-
-main .reference.internal .viewcode-link
-{
-	display: none;
 }
 
 main dl:not(.docutils) > dt:hover > .headerlink,
@@ -1859,6 +1883,39 @@ main dl:not(.docutils) dl.attribute > dt
 	line-height: 1.2;
 }
 
+main dl.class > dt a.reference.internal,
+main dl.function > dt a.reference.internal,
+main dl.method > dt a.reference.internal,
+main dl.classmethod > dt a.reference.internal,
+main dl.exception > dt a.reference.internal,
+main dl.attribute > dt a.reference.internal,
+main dl:not(.docutils) dl.class > dt a.reference.internal,
+main dl:not(.docutils) dl.function > dt a.reference.internal,
+main dl:not(.docutils) dl.method > dt a.reference.internal,
+main dl:not(.docutils) dl.classmethod > dt a.reference.internal,
+main dl:not(.docutils) dl.exception > dt a.reference.internal,
+main dl:not(.docutils) dl.attribute > dt a.reference.internal
+{
+	visibility: hidden;
+	padding-left: 0.5em;
+}
+
+main dl.class > dt:hover a.reference.internal,
+main dl.function > dt:hover a.reference.internal,
+main dl.method > dt:hover a.reference.internal,
+main dl.classmethod > dt:hover a.reference.internal,
+main dl.exception > dt:hover a.reference.internal,
+main dl.attribute > dt:hover a.reference.internal,
+main dl:not(.docutils) dl.class > dt:hover a.reference.internal,
+main dl:not(.docutils) dl.function > dt:hover a.reference.internal,
+main dl:not(.docutils) dl.method > dt:hover a.reference.internal,
+main dl:not(.docutils) dl.classmethod > dt:hover a.reference.internal,
+main dl:not(.docutils) dl.exception > dt:hover a.reference.internal,
+main dl:not(.docutils) dl.attribute > dt:hover a.reference.internal
+{
+	visibility: visible;
+}
+
 main dl.class > dd,
 main dl.function > dd,
 main dl.method > dd,
@@ -1896,6 +1953,7 @@ main .admonition-todo
 
 .wy-alert-title, .rst-content .admonition-title
 {
+	font-weight: 300;
 	font-size: 120%;
 	line-height: 1.2;
 	display: block;
