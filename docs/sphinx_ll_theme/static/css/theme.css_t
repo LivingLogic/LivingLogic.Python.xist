@@ -1880,7 +1880,7 @@ main dl:not(.docutils) dl.attribute > dt
 {
 	margin: {{theme_vertical_spacing}} 0;
 	font-family: "Source Code Pro", monospace;
-	line-height: 1.2;
+	line-height: {{theme_line_height}};
 }
 
 main dl.class > dt a.reference.internal,
