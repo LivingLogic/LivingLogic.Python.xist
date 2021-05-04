@@ -6745,88 +6745,108 @@ def test_module_ul4(T):
 	assert "ul4" == T("<?print ul4.__name__?>").renders()
 	assert "UL4 - A templating language" == T("<?print ul4.__doc__?>").renders()
 
-	# Check that all the types we expect are there
-	assert "True" == T("<?print bool(ul4.TextAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.IndentAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.LineEndAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ConstAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SeqItemAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.UnpackSeqItemAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ListAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ListComprehensionAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SetAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SetComprehensionAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.DictItemAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.UnpackDictItemAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.DictAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.DictComprehensionAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.GeneratorExpressionAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.VarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ConditionalBlocksAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.IfBlockAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ElIfBlockAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ElseBlockAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ForBlockAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.WhileBlockAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BreakAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ContinueAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.AttrAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SliceAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.NotAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.IfAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.NegAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitNotAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.PrintAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.PrintXAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ReturnAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ItemAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ShiftLeftAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ShiftRightAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitAndAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitXOrAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitOrAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.IsAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.IsNotAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.EQAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.NEAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.LTAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.LEAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.GTAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.GEAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ContainsAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.NotContainsAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.AddAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SubAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.MulAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.FloorDivAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.TrueDivAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.OrAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.AndAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ModAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SetVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.AddVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SubVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.MulVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.FloorDivVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.TrueDivVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ModVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ShiftLeftVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.ShiftRightVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitAndVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitXOrVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.BitOrVarAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.PositionalArgumentAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.KeywordArgumentAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.UnpackListArgumentAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.UnpackDictArgumentAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.CallAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.RenderAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.RenderXAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.RenderBlockAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.RenderBlocksAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.SignatureAST)?>").renders()
-	assert "True" == T("<?print bool(ul4.Template)?>").renders()
-	assert "True" == T("<?print bool(ul4.TemplateClosure)?>").renders()
+	# Check that all the types we expect are there with the coreect information
+	source = """
+		<?whitespace strip?>
+		<?code types = {
+			"TextAST": ul4.TextAST,
+			"IndentAST": ul4.IndentAST,
+			"LineEndAST": ul4.LineEndAST,
+			"ConstAST": ul4.ConstAST,
+			"SeqItemAST": ul4.SeqItemAST,
+			"UnpackSeqItemAST": ul4.UnpackSeqItemAST,
+			"ListAST": ul4.ListAST,
+			"ListComprehensionAST": ul4.ListComprehensionAST,
+			"SetAST": ul4.SetAST,
+			"SetComprehensionAST": ul4.SetComprehensionAST,
+			"DictItemAST": ul4.DictItemAST,
+			"UnpackDictItemAST": ul4.UnpackDictItemAST,
+			"DictAST": ul4.DictAST,
+			"DictComprehensionAST": ul4.DictComprehensionAST,
+			"GeneratorExpressionAST": ul4.GeneratorExpressionAST,
+			"VarAST": ul4.VarAST,
+			"ConditionalBlocksAST": ul4.ConditionalBlocksAST,
+			"IfBlockAST": ul4.IfBlockAST,
+			"ElIfBlockAST": ul4.ElIfBlockAST,
+			"ElseBlockAST": ul4.ElseBlockAST,
+			"ForBlockAST": ul4.ForBlockAST,
+			"WhileBlockAST": ul4.WhileBlockAST,
+			"BreakAST": ul4.BreakAST,
+			"ContinueAST": ul4.ContinueAST,
+			"AttrAST": ul4.AttrAST,
+			"SliceAST": ul4.SliceAST,
+			"NotAST": ul4.NotAST,
+			"IfAST": ul4.IfAST,
+			"NegAST": ul4.NegAST,
+			"BitNotAST": ul4.BitNotAST,
+			"PrintAST": ul4.PrintAST,
+			"PrintXAST": ul4.PrintXAST,
+			"ReturnAST": ul4.ReturnAST,
+			"ItemAST": ul4.ItemAST,
+			"ShiftLeftAST": ul4.ShiftLeftAST,
+			"ShiftRightAST": ul4.ShiftRightAST,
+			"BitAndAST": ul4.BitAndAST,
+			"BitXOrAST": ul4.BitXOrAST,
+			"BitOrAST": ul4.BitOrAST,
+			"IsAST": ul4.IsAST,
+			"IsNotAST": ul4.IsNotAST,
+			"EQAST": ul4.EQAST,
+			"NEAST": ul4.NEAST,
+			"LTAST": ul4.LTAST,
+			"LEAST": ul4.LEAST,
+			"GTAST": ul4.GTAST,
+			"GEAST": ul4.GEAST,
+			"ContainsAST": ul4.ContainsAST,
+			"NotContainsAST": ul4.NotContainsAST,
+			"AddAST": ul4.AddAST,
+			"SubAST": ul4.SubAST,
+			"MulAST": ul4.MulAST,
+			"FloorDivAST": ul4.FloorDivAST,
+			"TrueDivAST": ul4.TrueDivAST,
+			"OrAST": ul4.OrAST,
+			"AndAST": ul4.AndAST,
+			"ModAST": ul4.ModAST,
+			"SetVarAST": ul4.SetVarAST,
+			"AddVarAST": ul4.AddVarAST,
+			"SubVarAST": ul4.SubVarAST,
+			"MulVarAST": ul4.MulVarAST,
+			"FloorDivVarAST": ul4.FloorDivVarAST,
+			"TrueDivVarAST": ul4.TrueDivVarAST,
+			"ModVarAST": ul4.ModVarAST,
+			"ShiftLeftVarAST": ul4.ShiftLeftVarAST,
+			"ShiftRightVarAST": ul4.ShiftRightVarAST,
+			"BitAndVarAST": ul4.BitAndVarAST,
+			"BitXOrVarAST": ul4.BitXOrVarAST,
+			"BitOrVarAST": ul4.BitOrVarAST,
+			"PositionalArgumentAST": ul4.PositionalArgumentAST,
+			"KeywordArgumentAST": ul4.KeywordArgumentAST,
+			"UnpackListArgumentAST": ul4.UnpackListArgumentAST,
+			"UnpackDictArgumentAST": ul4.UnpackDictArgumentAST,
+			"CallAST": ul4.CallAST,
+			"RenderAST": ul4.RenderAST,
+			"RenderXAST": ul4.RenderXAST,
+			"RenderBlockAST": ul4.RenderBlockAST,
+			"RenderBlocksAST": ul4.RenderBlocksAST,
+			"SignatureAST": ul4.SignatureAST,
+			"Template": ul4.Template,
+			"TemplateClosure": ul4.TemplateClosure,
+		}?>
+		<?for (n, t) in types.items()?>
+			<?if not bool(t)?>
+				bad bool: <?print n?><?print "\\n"?>
+			<?end if?>
+			<?if t.__module__ != "ul4"?>
+				bad module: <?print n?><?print "\\n"?>
+			<?end if?>
+			<?if t.__name__ != n?>
+				bad name: <?print n?> != <?print t?><?print "\\n"?>
+			<?end if?>
+			<?if not t.__doc__?>
+				bad doc: <?print n?><?print "\\n"?>
+			<?end if?>
+		<?end for?>
+	"""
+	assert "" == T(source).renders()
 
 	# Javascript can't compile templates
 	if not issubclass(T, TemplateJavascript):
