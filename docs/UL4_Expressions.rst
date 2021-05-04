@@ -1,8 +1,10 @@
+.. _UL4_expressions:
+
 Expressions
 ###########
 
 :mod:`ll.ul4c` supports many of the operators supported by Python. The following
-subchapters describe all expression/operators that UL4 supports and are ordered
+subchapters describe all expressions/operators that UL4 supports and are ordered
 from highest precedence to lowest.
 
 
@@ -25,6 +27,10 @@ parentheses are required around generator expressions::
 
 	<?code ge = ("(" + c + ")" for c in "gurk")?>
 	<?print ", ".join(ge)?>
+
+.. hint::
+	Generator expressions are implemented by
+	:class:`ll.ul4c.GeneratorExpressionAST`.
 
 
 Index/slice access
@@ -57,6 +63,9 @@ of bounds are simply clipped:
 
 *	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
 
+.. hint::
+	Index/slice access is implemented by :class:`ll.ul4c.ItemAST`.
+
 
 Attribute access
 ================
@@ -64,6 +73,9 @@ Attribute access
 For string keys it's also possible to access dictionary entries via the
 attribute access operator ``.``, i.e. ``foo.key`` is the same as ``foo["key"]``
 if ``foo`` is a dictionary.
+
+.. hint::
+	Attribute access is implemented by :class:`ll.ul4c.AttrAST`.
 
 
 Function calls
@@ -108,7 +120,7 @@ argument list and positional arguments must always be before keyword arguments.
 
 A list of builtin functions can be found in :ref:`UL4_functions`.
 
-.. note::
+.. hint::
 	This documentation uses Python's `/` and `*` notation to specify
 	positional-only and keyword-only arguments. So ::
 
@@ -117,6 +129,9 @@ A list of builtin functions can be found in :ref:`UL4_functions`.
 	means that the function `f` accepts the parameter ``x`` only when passed by
 	position, `y` can be passed either by position or by keyword and `z` will
 	only be accepted when passed by keyword.
+
+.. hint::
+	Function calls are implemented by :class:`ll.ul4c.CallAST`.
 
 
 Unary operators
@@ -138,6 +153,9 @@ prints ``-42``. For ``-`` boolean values are treated as the numbers ``0`` and
 
 prints ``-1``.
 
+.. hint::
+	Arithmetic negation is implemented by :class:`ll.ul4c.NegAST`.
+
 
 Binary negation
 ---------------
@@ -147,6 +165,9 @@ Non-negative numbers are interpreted as having an unlimited number of leading
 ``0`` bits and negative numbers are interpreted as having an unlimited number
 of leading ``1`` bits. The means that ``~x`` will be negative if ``x`` is
 non-negative and vice versa.
+
+.. hint::
+	Arithmetic negation is implemented by :class:`ll.ul4c.BitNotAST`.
 
 
 Multiplicative binary operators
@@ -164,6 +185,9 @@ number of times, e.g. ``"foo" * 2`` returns ``"foofoo"`` and ``[1, 2, 3] * 3``
 return ``[1, 2, 3, 1, 2, 3, 1, 2, 3]``. Multiplying with ``0`` returns an empty
 string or list.
 
+.. hint::
+	Multiplication is implemented by :class:`ll.ul4c.MulAST`.
+
 
 True division
 -------------
@@ -171,6 +195,9 @@ True division
 The true division operator ``/`` returns the quotient of its operands (which
 must be integer, float or boolean values). The result is always a float value.
 ``1/2`` returns ``0.5``.
+
+.. hint::
+	True division is implemented by :class:`ll.ul4c.TrueDivAST`.
 
 
 Floor division
@@ -181,12 +208,18 @@ must be integer, float or boolean values) rounded down to an integer (rounding
 is always done towards -infinity, i.e. ``(-25)/10`` returns ``-3``). If any of
 the operands is a float the result is a float too, otherwise it's an integer.
 
+.. hint::
+	Floor division is implemented by :class:`ll.ul4c.FloorDivAST`.
+
 
 Modulo
 ------
 
 The modulo operator ``%`` returns the remainder from the division of the first
 operand by the second, e.g. ``15 % 7`` returns ``1``.
+
+.. hint::
+	The modulo operator is implemented by :class:`ll.ul4c.ModAST`.
 
 
 Additive binary operators
@@ -201,12 +234,18 @@ integer, float or boolean values). Furthermore sequences of the same type can be
 added, so ``"foo" + "bar"`` returns ``"foobar"`` and ``[1, 2] + [3, 4]`` returns
 ``[1, 2, 3, 4]``.
 
+.. hint::
+	Addition is implemented by :class:`ll.ul4c.AddAST`.
 
-Substraction
-------------
 
-The substraction operator ``-`` returns the difference of its operands (which
+Subtraction
+-----------
+
+The subtraction operator ``-`` returns the difference of its operands (which
 must be integer, float or boolean values).
+
+.. hint::
+	Subtraction is implemented by :class:`ll.ul4c.SubAST`.
 
 
 Bit shift operators
@@ -220,6 +259,9 @@ The binary left shift operator ``<<`` shifts the bits of its first operand (an
 integer or boolean) to the left by the number of positions given by the second
 operand (which must also be an integer or boolean).
 
+.. hint::
+	The binary left shift operator is implemented by :class:`ll.ul4c.ShiftLeftAST`.
+
 
 Binary right shift operator
 ---------------------------
@@ -228,37 +270,51 @@ The binary right shift operator ``>>`` shifts the bits of its first operand (an
 integer or boolean) to the right by the number of positions given by the second
 operand (which must also be an integer or boolean).
 
+.. hint::
+	The binary right shift operator is implemented by :class:`ll.ul4c.ShiftRightAST`.
+
 
 Binary bitwise "and" operator
 =============================
 
 The bitwise and operator ``&`` returns the bitwise "and" combination of its
-operands (which must be integer of boolean values). E.g. ``6 & 3`` returns ``2``.
+operands (which must be integer or boolean values). E.g. ``6 & 3`` returns ``2``.
 
 As with the unary operator ``~``, negative numbers are interpreted as having an
 unlimited number of leading ``1`` bits.
+
+.. hint::
+	The binary bitwise "and" operator is implemented by :class:`ll.ul4c.BitAndAST`.
 
 
 Binary bitwise "exclusive or" operator
 ======================================
 
 The bitwise exclusive or operator ``^`` returns the bitwise exclusive "or"
-combination of its operands (which must be integer of boolean values).
+combination of its operands (which must be integer or boolean values).
 E.g. ``6 ^ 3`` returns ``5``.
 
 Negative numbers are again interpreted as having an unlimited number of leading
 ``1`` bits.
+
+.. hint::
+	The binary bitwise "exclusive or" operator is implemented by
+	:class:`ll.ul4c.BitXOrAST`.
 
 
 Binary bitwise "inclusive or" operator
 ======================================
 
 The bitwise inclusive or operator ``|`` returns the bitwise inclusive "or"
-combination of its operands (which must be integer of boolean values).
+combination of its operands (which must be integer or boolean values).
 E.g. ``6 | 3`` returns ``7``.
 
 Negative numbers are again interpreted as having an unlimited number of leading
 ``1`` bits.
+
+.. hint::
+	The binary bitwise "inclusive or" operator is implemented by
+	:class:`ll.ul4c.BitOrAST`.
 
 
 Binary comparison operators
@@ -270,6 +326,11 @@ types of object. All others support comparison of "compatible" objects, which
 means all "number" objects (integer, float and boolean) can be compared with
 each other, all other objects can only be compared to objects of the same type.
 
+.. hint::
+	These operators are implemented by :class:`ll.ul4c.EQAST`,
+	:class:`ll.ul4c.NEAST`, :class:`ll.ul4c.LTAST`, :class:`ll.ul4c.LEAST`,
+	:class:`ll.ul4c.GTAST` and :class:`ll.ul4c.GEAST`.
+
 
 Identity comparison operators
 =============================
@@ -280,6 +341,9 @@ to the same object or not.
 Note that the behaviour of these operators for "atomic" immutable objects
 (like integers, floats and strings) is implementation defined.
 
+.. hint::
+	These operators are implemented by :class:`ll.ul4c.IsAST` and
+	:class:`ll.ul4c.IsNotAST`.
 
 Containment tests
 =================
@@ -298,12 +362,18 @@ supported:
 	(Note that some implementations might support keys other than strings too.
 	E.g. Python and Java do, Javascript does only for ``Map`` objects.)
 
+.. hint::
+	The ``in`` operator is implemented by :class:`ll.ul4c.ContainsAST`.
+
 
 The ``not in`` operator
 -----------------------
 
 The ``not in`` operator returns the inverted result of the ``in`` operator, i.e.
 it tests whether the first operand is not contained in the second operand.
+
+.. hint::
+	The ``not in`` operator is implemented by :class:`ll.ul4c.NotContainsAST`.
 
 
 Boolean negation
@@ -313,6 +383,9 @@ The unary operator ``not`` inverts the truth value of its operand. I.e.
 ``not x`` is ``True`` for ``None``, ``False``, the undefined value, ``0``,
 ``0.0``, empty lists, strings, dictionaries and other empty containers and
 ``False`` for everything else.
+
+.. hint::
+	The boolean negation operator is implemented by :class:`ll.ul4c.NotAST`.
 
 
 Boolean "and" operator
@@ -328,6 +401,9 @@ Furthermore ``and``  always return one of the operands.
 So ``a and b`` first evaluates ``a``; if ``a`` is false, its value is returned;
 otherwise, ``b`` is evaluated and the resulting value is returned.
 
+.. hint::
+	The boolean "and" operator is implemented by :class:`ll.ul4c.AndAST`.
+
 
 Boolean "or" operator
 =====================
@@ -340,6 +416,9 @@ true, else ``data.id`` will be output::
 
 	<?printx data.title or data.id?>
 
+.. hint::
+	The boolean "or" operator is implemented by :class:`ll.ul4c.OrAST`.
+
 
 Conditional expression
 ======================
@@ -347,3 +426,6 @@ Conditional expression
 The conditional expression (also called an "inline if") ``a if c else b`` first
 evaluates the condition ``c``. If it is true ``a`` is evaluated and returned
 else ``b`` is evaluated and returned.
+
+.. hint::
+	The "inline if" operator is implemented by :class:`ll.ul4c.IfAST`.
