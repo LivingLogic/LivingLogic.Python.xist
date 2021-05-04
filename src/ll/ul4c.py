@@ -814,7 +814,7 @@ class Type:
 		if self.__name__ is None and type.__name__ is not None:
 			self.__name__ = type.__name__
 		if self.__doc__ is None and type.__doc__ is not None:
-			self.__doc__ = textwrap.dedent(type.__doc__).strip()
+			self.__doc__ = textwrap.dedent(type.__doc__).strip().split("\n\n")[0]
 
 	def instancecheck(self, obj):
 		return isinstance(obj, self.type)
