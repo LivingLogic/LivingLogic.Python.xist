@@ -1331,7 +1331,7 @@ class AttrGetter:
 
 class AST:
 	"""
-	Base class for all syntax tree nodes.
+	Base class for all UL4 syntax tree nodes.
 	"""
 
 	ul4_type = Type("ul4")
@@ -1519,7 +1519,12 @@ class AST:
 @register("text")
 class TextAST(AST):
 	"""
-	AST node for literal text.
+	AST node for literal text (i.e. the stuff between tags).
+
+	Attributes are:
+
+	``text`` : :class:`str`
+		The text
 	"""
 
 	ul4_type = Type("ul4")
@@ -1551,6 +1556,11 @@ class TextAST(AST):
 class IndentAST(TextAST):
 	"""
 	AST node for literal text that is an indentation at the start of the line.
+
+	Attributes are:
+
+	``text`` : :class:`str`
+		The indentation text (i.e. a string that consists solely of whitespace).
 	"""
 
 	ul4_type = Type("ul4")
@@ -1591,8 +1601,13 @@ class IndentAST(TextAST):
 
 @register("lineend")
 class LineEndAST(TextAST):
-	"""
+	r"""
 	AST node for literal text that is the end of a line.
+
+	Attributes are:
+
+	``text`` : :class:`str`
+		The text of the linefeed (i.e. ``"\n"`` or ``"\r\n"``).
 	"""
 
 	ul4_type = Type("ul4")
@@ -1643,7 +1658,12 @@ class CodeAST(AST):
 @register("const")
 class ConstAST(CodeAST):
 	"""
-	Load a constant
+	AST node for load a constant value.
+
+	Attributes are:
+
+	``value``
+		The constant to be loaded.
 	"""
 
 	ul4_type = Type("ul4")
@@ -1679,7 +1699,12 @@ class ConstAST(CodeAST):
 @register("seqitem")
 class SeqItemAST(CodeAST):
 	"""
-	AST node for an item in a list/set "literal"
+	AST node for an item in a list/set "literal" (e.g. ``{x, y}`` or ``[x, y]``)
+
+	Attributes are:
+
+	``value`` : :class:`AST`
+		The list/set item (``x`` and ``y`` in the above examples).
 	"""
 
 	ul4_type = Type("ul4")
@@ -1717,7 +1742,14 @@ class SeqItemAST(CodeAST):
 @register("unpackseqitem")
 class UnpackSeqItemAST(CodeAST):
 	"""
-	AST nodes for ``*`` unpacking expressions in a list/ set "literal".
+	AST node for an ``*`` unpacking expression in a list/set "literal"
+	(e.g. the ``y`` in ``{x, *y}`` or ``[x, *y]``)
+
+	Attributes are:
+
+	``value`` : :class:`AST`
+		The item to be unpacked into list/set items (``y`` in the above
+		examples).
 	"""
 
 	ul4_type = Type("ul4")
@@ -1759,7 +1791,15 @@ class UnpackSeqItemAST(CodeAST):
 @register("dictitem")
 class DictItemAST(CodeAST):
 	"""
-	AST node for a dictionary key
+	AST node for a dictionary entry in a dict expression (:class:`DictAST`).
+
+	Attributes are:
+
+	``key`` : :class:`AST`
+		The key of the entry.
+
+	``value`` : :class:`AST`
+		The value of the entry.
 	"""
 
 	ul4_type = Type("ul4")
@@ -1801,7 +1841,14 @@ class DictItemAST(CodeAST):
 @register("unpackdictitem")
 class UnpackDictItemAST(CodeAST):
 	"""
-	AST nodes for ``**`` unpacking expressions in dict "literal".
+	AST node for ``**`` unpacking expressions in dict "literal"
+	(e.g. the ``**u`` in ``{k: v, **u}``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The argument that must evaluate to a dictionary or an iterable of
+		(key, value) pairs.
 	"""
 
 	ul4_type = Type("ul4")
@@ -1837,7 +1884,12 @@ class UnpackDictItemAST(CodeAST):
 @register("posarg")
 class PositionalArgumentAST(CodeAST):
 	"""
-	AST node for a positional argument
+	AST node for a positional argument. (e.g. the ``x`` in ``f(x)``).
+
+	Attributes are:
+
+	``value`` : :class:`AST`
+		The value of the argument (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -1879,7 +1931,16 @@ class PositionalArgumentAST(CodeAST):
 @register("keywordarg")
 class KeywordArgumentAST(CodeAST):
 	"""
-	AST node for a keyword argument
+	AST node for a keyword argument in a :class:`CallAST` (e.g. the ``x=y``
+	in the function call``f(x=y)``).
+
+	Attributes are:
+
+	``name`` : :class:`str`
+		The keyword argument name (``"x"`` in the above example).
+
+	``value`` : :class:`AST`
+		The keyword argument value (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -1924,7 +1985,13 @@ class KeywordArgumentAST(CodeAST):
 @register("unpacklistarg")
 class UnpackListArgumentAST(CodeAST):
 	"""
-	AST nodes for ``*`` unpacking expressions in calls.
+	AST node for an ``*`` unpacking expressions in a :class:`CallAST`
+	(e.g. the ``*x`` in ``f(*x)``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The argument that must evaluate an iterable.
 	"""
 
 	ul4_type = Type("ul4")
@@ -1965,7 +2032,14 @@ class UnpackListArgumentAST(CodeAST):
 @register("unpackdictarg")
 class UnpackDictArgumentAST(CodeAST):
 	"""
-	AST nodes for ``**`` unpacking expressions in calls.
+	AST node for an ``**`` unpacking expressions in a :class:`CallAST`
+	(e.g. the ``**x`` in ``f(**x)``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The argument that must evaluate to a dictionary or an iterable of
+		(key, value) pairs.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2012,7 +2086,14 @@ class UnpackDictArgumentAST(CodeAST):
 @register("list")
 class ListAST(CodeAST):
 	"""
-	AST nodes for loading a list object.
+	AST node for creating a list object (e.g. ``[x, y, *z]``).
+
+	Attributes are:
+
+	``items`` : :class:`list`
+		The items that will be put into the newly created list as a list of
+		:class:`SeqItemAST` (``x`` and ``y`` in the above example) and
+		:class:`UnpackSeqItemAST` objects (``z`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2049,7 +2130,24 @@ class ListAST(CodeAST):
 @register("listcomp")
 class ListComprehensionAST(CodeAST):
 	"""
-	AST node for list comprehension.
+	AST node for a list comprehension (e.g. ``[v for (a, b) in w if c]``.
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The expression for the item in the newly created list (``v`` in the
+		above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2117,7 +2215,14 @@ class ListComprehensionAST(CodeAST):
 @register("set")
 class SetAST(CodeAST):
 	"""
-	AST nodes for loading a set object.
+	AST node for creating a set object (e.g. ``{x, y, *z}``.
+
+	Attributes are:
+
+	``items`` : :class:`list`
+		The items that will be put into the newly created set as a list of
+		:class:`SeqItemAST` (``x`` and ``y`` in the above example) and
+		:class:`UnpackSeqItemAST` objects (``z`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2154,7 +2259,24 @@ class SetAST(CodeAST):
 @register("setcomp")
 class SetComprehensionAST(CodeAST):
 	"""
-	AST node for set comprehension.
+	AST node for a set comprehension (e.g. ``{v for (a, b) in w if c}``.
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The expression for the item in the newly created set (``v`` in the
+		above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2222,7 +2344,14 @@ class SetComprehensionAST(CodeAST):
 @register("dict")
 class DictAST(CodeAST):
 	"""
-	AST node for loading a dict object.
+	AST node for creating a dict object (e.g. `{k: v, **u}`.
+
+	Attributes are:
+
+	``items`` : :class:`list`
+		The items that will be put into the newly created dictionary as a list of
+		:class:`DictItemAST` (for ``k`` and ``v`` in the above example) and
+		:class:`UnpackDictItemAST` objects (for ``u`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2259,7 +2388,28 @@ class DictAST(CodeAST):
 @register("dictcomp")
 class DictComprehensionAST(CodeAST):
 	"""
-	AST node for dictionary comprehension.
+	AST node for a dictionary comprehension (e.g. ``{k: v for (a, b) in w if c}``.
+
+	Attributes are:
+
+	``key`` : :class:`AST`
+		The expression for the keys in the newly created dictionary (``k`` in the
+		above example).
+
+	``value`` : :class:`AST`
+		The expression for the values in the newly created dictionary (``v`` in
+		the above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2331,7 +2481,24 @@ class DictComprehensionAST(CodeAST):
 @register("genexpr")
 class GeneratorExpressionAST(CodeAST):
 	"""
-	AST node for a generator expression.
+	AST node for a generator expression (e.g. ``(x for (a, b) in w if c)``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		An expression for the item that looping over the generator expression will
+		produce (``x`` in the above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2400,7 +2567,12 @@ class GeneratorExpressionAST(CodeAST):
 @register("var")
 class VarAST(CodeAST):
 	"""
-	AST nodes for loading a variable.
+	AST node for getting a variable.
+
+	Attributes are:
+
+	``name`` : :class:`str`
+		The name of the variable.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2505,11 +2677,14 @@ class BlockAST(CodeAST):
 @register("condblock")
 class ConditionalBlocksAST(BlockAST):
 	r"""
-	AST node for an conditional block.
+	AST node for a conditional ``<?if?>/<?elif?>/<?else?>`` block.
 
-	The content of the :class:`ConditionalBlocksAST` block is one :class:`IfBlockAST`
-	followed by zero or more :class:`ElIfBlockAST`\s followed by zero or one
-	:class:`ElseBlockAST`.
+	Attributes are:
+
+	``content`` : :class:`list`
+		The content of the :class:`ConditionalBlocksAST` block is one
+		:class:`IfBlockAST` followed by zero or more :class:`ElIfBlockAST`\s followed
+		by zero or one :class:`ElseBlockAST`.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2560,7 +2735,15 @@ class ConditionalBlocksAST(BlockAST):
 @register("ifblock")
 class IfBlockAST(BlockAST):
 	"""
-	AST node for an ``<?if?>`` block.
+	AST node for an ``<?if?>`` block in an ``<?if?>/<?elif?>/<?else?>`` block.
+
+	Attributes are:
+
+	``condition`` : class:`AST`
+		The condition in the ``<?if?>`` block.
+
+	``content`` : :class:`list` of `:class:`AST` objects
+		The content of the ``<?if?>`` block.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2605,6 +2788,14 @@ class IfBlockAST(BlockAST):
 class ElIfBlockAST(BlockAST):
 	"""
 	AST node for an ``<?elif?>`` block.
+
+	Attributes are:
+
+	``condition`` : class:`AST`
+		The condition in the ``<?elif?>`` block.
+
+	``content`` : :class:`list` of `:class:`AST` objects
+		The content of the ``<?elif?>`` block.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2649,6 +2840,11 @@ class ElIfBlockAST(BlockAST):
 class ElseBlockAST(BlockAST):
 	"""
 	AST node for an ``<?else?>`` block.
+
+	Attributes are:
+
+	``content`` : :class:`list` of `:class:`AST` objects
+		The content of the ``<?else?>`` block.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2672,6 +2868,24 @@ class ElseBlockAST(BlockAST):
 class ForBlockAST(BlockAST):
 	"""
 	AST node for a ``<?for?>`` loop.
+
+	For example ::
+
+		<?for (a, b) in w?>
+			body
+		<?end for?>
+
+	Attributes are:
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The loop body (``body`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2736,6 +2950,21 @@ class ForBlockAST(BlockAST):
 class WhileBlockAST(BlockAST):
 	"""
 	AST node for a ``<?while?>`` loop.
+
+	For example ::
+
+		<?while c?>
+			body
+		<?end for?>
+
+	Attributes are:
+
+	``condition`` : :class:`AST`
+		The condition which must be true to continue executing the loops booy
+		(``c`` in the above example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The loop body (``body`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2792,7 +3021,7 @@ class WhileBlockAST(BlockAST):
 @register("break")
 class BreakAST(CodeAST):
 	"""
-	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
+	AST node for a ``<?break?>`` tag inside a ``<?for?>`` loop.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2808,7 +3037,7 @@ class BreakAST(CodeAST):
 @register("continue")
 class ContinueAST(CodeAST):
 	"""
-	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
+	AST node for a ``<?continue?>`` tag inside a ``<?for?>`` block.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2824,10 +3053,16 @@ class ContinueAST(CodeAST):
 @register("attr")
 class AttrAST(CodeAST):
 	"""
-	AST node for getting and setting an attribute of an object.
+	AST node for an expression that gets or sets an attribute of an object.
+	(e.g. ``x.y``).
 
-	The object is loaded from the AST node ``obj`` and the attribute name
-	is stored in the string ``attrname``.
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object from which to get the attribute (``x`` in the above example);
+
+	``attrname`` : :class:`str`
+		The name of the attribute (``"y"`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2888,10 +3123,17 @@ class SliceAST(CodeAST):
 	"""
 	AST node for creating a slice object (used in ``obj[index1:index2]``).
 
-	The start and stop indices are loaded from  the AST nodes ``index1`` and
-	``index2``. ``index1`` and ``index2`` may also be :const:`None`
-	(for missing slice indices, which default to the 0 for the start index and
-	the length of the sequence for the end index).
+	Attributes are:
+
+	``index1`` : :class:`AST` or ``None``
+		The start index (``index1`` in the above example).
+
+	``index2`` : :class:`AST` or ``None``
+		The stop hand side (``y`` in the above example).
+
+	``index1`` and ``index2`` may also be :const:`None` (for missing slice indices,
+	which default to the 0 for the start index and the length of the sequence for
+	the end index).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2986,7 +3228,12 @@ class UnaryAST(CodeAST):
 @register("not")
 class NotAST(UnaryAST):
 	"""
-	AST node for the unary ``not`` operator.
+	AST node for a unary "not" expression (e.g. ``not x``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -2999,7 +3246,12 @@ class NotAST(UnaryAST):
 @register("neg")
 class NegAST(UnaryAST):
 	"""
-	AST node for the unary negation (i.e. "-") operator.
+	AST node for a unary negation expression (e.g. ``-x``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3012,7 +3264,13 @@ class NegAST(UnaryAST):
 @register("bitnot")
 class BitNotAST(UnaryAST):
 	"""
-	AST node for the bitwise not operator.
+	AST node for a bitwise unary "not" expression that returns its operand
+	with its bits inverted (e.g. ``~x``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3025,7 +3283,12 @@ class BitNotAST(UnaryAST):
 @register("print")
 class PrintAST(UnaryAST):
 	"""
-	AST node for a ``<?print?>`` tag.
+	AST node for a ``<?print?>`` tag (e.g. ``<?print x?>``.
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be printed (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3044,7 +3307,12 @@ class PrintAST(UnaryAST):
 @register("printx")
 class PrintXAST(UnaryAST):
 	"""
-	AST node for a ``<?printx?>`` tag.
+	AST node for a ``<?printx?>`` tag (e.g. ``<?printx x?>``.
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be printed (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3063,7 +3331,12 @@ class PrintXAST(UnaryAST):
 @register("return")
 class ReturnAST(UnaryAST):
 	"""
-	AST node for a ``<?return?>`` tag.
+	AST node for a ``<?return?>`` tag (e.g. ``<?return x?>``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3080,7 +3353,12 @@ class ReturnAST(UnaryAST):
 
 class BinaryAST(CodeAST):
 	"""
-	Base class for all AST nodes implementing binary operators.
+	Base class for all UL4 AST nodes implementing binary expressions
+	(i.e. operators with two operands).
+
+	The first operand is loaded from the AST node ``obj1`` and second operand
+	is loaded from the AST node ``obj2``.
+
 	"""
 
 	ul4_type = Type("ul4")
@@ -3132,10 +3410,16 @@ class BinaryAST(CodeAST):
 @register("item")
 class ItemAST(BinaryAST):
 	"""
-	AST node for subscripting operator.
+	AST node for subscripting expression (e.g. ``x[y]``).
 
-	The object (which must be a list, string or dict) is loaded from the AST
-	node ``obj1`` and the index/key is loaded from the AST node ``obj2``.
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The container object, which must be a list, string or dict
+		(``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The index/key object (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3165,7 +3449,15 @@ class ItemAST(BinaryAST):
 @register("is")
 class IsAST(BinaryAST):
 	"""
-	AST node for the binary ``is`` comparison operator.
+	AST node for a binary ``is`` comparison expression (e.g. ``x is y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3178,7 +3470,15 @@ class IsAST(BinaryAST):
 @register("isnot")
 class IsNotAST(BinaryAST):
 	"""
-	AST node for the binary ``is not`` comparison operator.
+	AST node for a binary ``is not`` comparison expression (e.g. ``x is not y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3191,7 +3491,15 @@ class IsNotAST(BinaryAST):
 @register("eq")
 class EQAST(BinaryAST):
 	"""
-	AST node for the binary ``==`` comparison operator.
+	AST node for the binary equality comparison (e.g. ``x == y``.
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3204,7 +3512,15 @@ class EQAST(BinaryAST):
 @register("ne")
 class NEAST(BinaryAST):
 	"""
-	AST node for the binary ``!=`` comparison operator.
+	AST node for a binary inequalitiy comparison (e.g. ``x != y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3217,7 +3533,15 @@ class NEAST(BinaryAST):
 @register("lt")
 class LTAST(BinaryAST):
 	"""
-	AST node for the binary ``<`` comparison operator.
+	AST node for the binary "less than" comparison (e.g. ``x < y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3230,7 +3554,15 @@ class LTAST(BinaryAST):
 @register("le")
 class LEAST(BinaryAST):
 	"""
-	AST node for the binary ``<=`` comparison operator.
+	AST node for the binary "less than or equal" comparison (e.g. ``x <= y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3243,7 +3575,15 @@ class LEAST(BinaryAST):
 @register("gt")
 class GTAST(BinaryAST):
 	"""
-	AST node for the binary ``>`` comparison operator.
+	AST node for the binary "greater than" comparison (e.g. ``x > y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3256,7 +3596,15 @@ class GTAST(BinaryAST):
 @register("ge")
 class GEAST(BinaryAST):
 	"""
-	AST node for the binary ``>=`` comparison operator.
+	AST node for the binary "greater than or equal" comparison (e.g. ``x >= y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3269,11 +3617,15 @@ class GEAST(BinaryAST):
 @register("contains")
 class ContainsAST(BinaryAST):
 	"""
-	AST node for the binary containment testing operator.
+	AST node for the binary containment testing operator (e.g. ``x in y``).
 
-	The item/key object is loaded from the AST node ``obj1`` and the container
-	object (which must be a list, string, dict or an object with a ``ul4_attrs``
-	attribute) is loaded from the AST node ``obj2``.
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The item/key object (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The container object (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3286,11 +3638,15 @@ class ContainsAST(BinaryAST):
 @register("notcontains")
 class NotContainsAST(BinaryAST):
 	"""
-	AST node for the inverted containment testing operator.
+	AST node for an inverted containment testing expression (e.g. ``x not in y``).
 
-	The item/key object is loaded from the AST node ``obj1`` and the container
-	object (which must be a list, string, dict or an object with a ``ul4_attrs``
-	attribute) is loaded from the AST node ``obj2``.
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The item/key object (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The container object (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3303,7 +3659,16 @@ class NotContainsAST(BinaryAST):
 @register("add")
 class AddAST(BinaryAST):
 	"""
-	AST node for the binary addition operator.
+	AST node for a binary addition expression that adds its two operands and
+	returns the result  (e.g. ``x + y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left summand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right summand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3339,7 +3704,15 @@ class SubAST(BinaryAST):
 @register("mul")
 class MulAST(BinaryAST):
 	"""
-	AST node for the binary multiplication operator.
+	AST node for the binary multiplication expression (e.g. ``x * y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left factor (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right factor (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3357,7 +3730,15 @@ class MulAST(BinaryAST):
 @register("floordiv")
 class FloorDivAST(BinaryAST):
 	"""
-	AST node for the binary truncating division operator.
+	AST node for a binary truncating division expression (e.g. ``x // y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The dividend (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The divisor (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3375,7 +3756,15 @@ class FloorDivAST(BinaryAST):
 @register("truediv")
 class TrueDivAST(BinaryAST):
 	"""
-	AST node for the binary true division operator.
+	AST node for a binary true division expression (e.g. ``x / y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The dividend (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The divisor (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3393,7 +3782,15 @@ class TrueDivAST(BinaryAST):
 @register("mod")
 class ModAST(BinaryAST):
 	"""
-	AST node for the binary modulo operator.
+	AST node for a binary modulo expression (e.g. ``x % y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3411,7 +3808,15 @@ class ModAST(BinaryAST):
 @register("shiftleft")
 class ShiftLeftAST(BinaryAST):
 	"""
-	AST node for the bitwise left shift operator.
+	AST node for a bitwise left shift expression (e.g. ``x << y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3432,7 +3837,15 @@ class ShiftLeftAST(BinaryAST):
 @register("shiftright")
 class ShiftRightAST(BinaryAST):
 	"""
-	AST node for the bitwise right shift operator.
+	AST node for a bitwise right shift expression (e.g. ``x >> y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3453,7 +3866,15 @@ class ShiftRightAST(BinaryAST):
 @register("bitand")
 class BitAndAST(BinaryAST):
 	"""
-	AST node for the binary bitwise and operator (``&``).
+	AST node for a binary bitwise "and" expression (e.g ``x & y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3479,7 +3900,15 @@ class BitAndAST(BinaryAST):
 @register("bitxor")
 class BitXOrAST(BinaryAST):
 	"""
-	AST node for the binary bitwise exclusive or operator (``^``).
+	AST node for the binary bitwise "exclusive or" expression (e.g. ``x ^ y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3505,7 +3934,15 @@ class BitXOrAST(BinaryAST):
 @register("bitor")
 class BitOrAST(BinaryAST):
 	"""
-	AST node for the binary bitwise or operator (``|``).
+	AST node for a binary bitwise "or" expression (e.g. ``x | y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3531,7 +3968,15 @@ class BitOrAST(BinaryAST):
 @register("and")
 class AndAST(BinaryAST):
 	"""
-	AST node for the binary ``and`` operator.
+	AST node for the binary "and" expression (i.e. ``x and y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3552,7 +3997,15 @@ class AndAST(BinaryAST):
 @register("or")
 class OrAST(BinaryAST):
 	"""
-	AST node for the binary ``or`` operator.
+	AST node for a binary "or" expression (e.g. ``x or y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The item/key object (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The container object (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3573,7 +4026,20 @@ class OrAST(BinaryAST):
 @register("if")
 class IfAST(CodeAST):
 	"""
-	AST node for the ternary inline ``if/else`` operator.
+	AST node for the ternary inline ``if/else`` operator (e.g. ``x if y else z``).
+
+	Attributes are:
+
+	``objif`` : :class:`AST`
+		The value of the ``if/else`` expression when the condition is true
+		(``x`` in the above example).
+
+	``objcond`` : :class:`AST`
+		The condition (``y`` in the above example).
+
+	``objelse`` : :class:`AST`
+		The value of the ``if/else`` expression when the condition is false
+		(``z`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3667,7 +4133,14 @@ class ChangeVarAST(CodeAST):
 @register("setvar")
 class SetVarAST(ChangeVarAST):
 	"""
-	AST node that stores a value into a variable.
+	AST node for setting a variable, attribute or item to a value (e.g.
+	``x = y``).
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3682,7 +4155,16 @@ class SetVarAST(ChangeVarAST):
 @register("addvar")
 class AddVarAST(ChangeVarAST):
 	"""
-	AST node that adds a value to a variable (i.e. the ``+=`` operator).
+	AST node for an augmented assignment expression that adds a value to a
+	variable (e.g. ``x += y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3697,7 +4179,16 @@ class AddVarAST(ChangeVarAST):
 @register("subvar")
 class SubVarAST(ChangeVarAST):
 	"""
-	AST node that subtracts a value from a variable (i.e. the ``-=`` operator).
+	AST node for an augmented assignment expression that subtracts a value from
+	a variable/attribute/item. (e.g. ``x -= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3712,7 +4203,16 @@ class SubVarAST(ChangeVarAST):
 @register("mulvar")
 class MulVarAST(ChangeVarAST):
 	"""
-	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
+	AST node for an augmented assignment expression that assigns the result
+	of a multiplication to its left operand. (e.g. ``x *= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3727,8 +4227,16 @@ class MulVarAST(ChangeVarAST):
 @register("floordivvar")
 class FloorDivVarAST(ChangeVarAST):
 	"""
-	AST node that divides a variable by a value (truncating to an integer value;
-	i.e. the ``//=`` operator).
+	AST node for augmented assignment expression that divides a variable by a
+	value, truncating to an integer value (e.g. ``x //= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3743,7 +4251,16 @@ class FloorDivVarAST(ChangeVarAST):
 @register("truedivvar")
 class TrueDivVarAST(ChangeVarAST):
 	"""
-	AST node that divides a variable by a value (i.e. the ``/=`` operator).
+	AST node for an augmented assignment expression that assigns the result
+	of a truncation division to its left operand. (e.g. ``x //= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3758,7 +4275,16 @@ class TrueDivVarAST(ChangeVarAST):
 @register("modvar")
 class ModVarAST(ChangeVarAST):
 	"""
-	AST node for the ``%=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a modulo expression to its left operand. (e.g. ``x %= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3773,7 +4299,16 @@ class ModVarAST(ChangeVarAST):
 @register("shiftleftvar")
 class ShiftLeftVarAST(ChangeVarAST):
 	"""
-	AST node for the ``<<=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a "shift left" expression to its left operand. (e.g. ``x <<= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3788,7 +4323,16 @@ class ShiftLeftVarAST(ChangeVarAST):
 @register("shiftrightvar")
 class ShiftRightVarAST(ChangeVarAST):
 	"""
-	AST node for the ``>>=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a "shift right" expression to its left operand. (e.g. ``x >>= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3803,7 +4347,17 @@ class ShiftRightVarAST(ChangeVarAST):
 @register("bitandvar")
 class BitAndVarAST(ChangeVarAST):
 	"""
-	AST node for the ``&=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a binary bitwise "and" expression to its left operand.
+	(e.g. ``x &= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3818,7 +4372,17 @@ class BitAndVarAST(ChangeVarAST):
 @register("bitxorvar")
 class BitXOrVarAST(ChangeVarAST):
 	"""
-	AST node for the ``^=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a binary bitwise "exclusive or" expression to its left operand.
+	(e.g. ``x ^= y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3833,7 +4397,17 @@ class BitXOrVarAST(ChangeVarAST):
 @register("bitorvar")
 class BitOrVarAST(ChangeVarAST):
 	"""
-	AST node for the ``|=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a binary bitwise "or" expression to its left operand.
+	(e.g. ``x |= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3848,10 +4422,18 @@ class BitOrVarAST(ChangeVarAST):
 @register("call")
 class CallAST(CodeAST):
 	"""
-	AST node for calling an object.
+	AST node for calling an object (e.g. ``f(x, y)``).
 
-	The object to be called is stored in the attribute ``obj``. The list of
-	arguments is found in ``args``.
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be called (``f`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of :class:`PositionalArgumentAST`,
+		:class:`KeywordArgumentAST`, :class:`UnpackListArgumentAST` or
+		:class:`UnpackDictArgumentAST` objects (``x`` and ``y`` in the above
+		example).
 	"""
 
 	ul4_type = Type("ul4")
@@ -3926,10 +4508,17 @@ class CallAST(CodeAST):
 @register("render")
 class RenderAST(CallAST):
 	"""
-	AST node for rendering a template.
+	AST node for rendering a template (e.g. ``<?render t(x)?>``.
 
-	The template to be rendered is stored in the attribute ``obj``. The list
-	of arguments is found in ``args``.
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects.
 	"""
 
 	ul4_type = Type("ul4")
@@ -4019,6 +4608,21 @@ class RenderAST(CallAST):
 
 @register("renderx")
 class RenderXAST(RenderAST):
+	"""
+	AST node for rendering a template and XML-escaping the output
+	(e.g. ``<?renderx t(x)?>``.
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects.
+	"""
+
 	ul4_type = Type("ul4")
 
 	def eval(self, context):
@@ -4032,12 +4636,31 @@ class RenderXAST(RenderAST):
 @register("renderblock")
 class RenderBlockAST(RenderAST):
 	"""
-	AST node for rendering a template and passing one additional argument that is
-	the anonymous template that is defined in the block with will be passed as
-	the keyword argument ``content``.
+	AST node for rendering a template via a ``<?renderblock?>`` block and
+	passing the content of the block as one additional keyword argument named
+	``content``.
 
-	The object to be called is stored in the attribute ``obj``. The list of
-	arguments is found in ``args``.
+	For example ::
+
+		<?renderblock t(a, b)?>
+			content
+		<?end renderblock?>
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects
+		(``a`` and ``b`` in the above example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The content of the ``<?renderblock?>`` tag (``content`` in the above
+		example) that will be passed as a signatureless template as the keyword
+		argument ``content`` to the object.
 	"""
 
 	ul4_type = Type("ul4")
@@ -4099,10 +4722,31 @@ class RenderBlockAST(RenderAST):
 class RenderBlocksAST(RenderAST):
 	"""
 	AST node for rendering a template and passing additional arguments via
-	nested variable definitions.
+	nested variable definitions, e.g.::
 
-	The object to be called is stored in the attribute ``obj``. The list of
-	arguments is found in ``args``.
+		<?renderblocks t(a, b)?>
+			<?code x = 42?>
+			<?def n?>
+				...
+			<?end def?>
+		<?end renderblocks?>
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects
+		(``a`` and ``b`` in the above example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The content of the ``<?renderblocks?>`` tag. These must be :class:`AST`
+		nodes that define variables (e.g. :class:`SetVarAST` (the
+		``<?code x = 42?>`` in the above example), or :class:`Template`
+		(the ``<?def n?>...<?end def?>`` in the above example)).
 	"""
 
 	ul4_type = Type("ul4")
@@ -4202,6 +4846,8 @@ class RenderBlocksAST(RenderAST):
 @register("template")
 class Template(BlockAST):
 	"""
+	A UL4 template.
+
 	A template object is normally created by passing the template source to the
 	constructor. It can also be loaded from the compiled format via the class
 	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
@@ -4222,7 +4868,8 @@ class Template(BlockAST):
 	:meth:`renders_with_globals` and :meth:`call_with_globals`.
 
 	A :class:`Template` object is itself an AST node. Evaluating it will store
-	the template object under its name in the local variables.
+	a :class:`TemplateClosure` object for this template under the template's name
+	in the local variables.
 	"""
 
 	ul4_type = InstantiableType("ul4", "Template", "An UL4 template")
@@ -4295,8 +4942,9 @@ class Template(BlockAST):
 			``"x, y=42, *args, **kwargs"``. This string will be parsed and
 			evaluated to create the signature for the template.
 
-		If the template is a subtemplate (i.e. a template defined by another
-		template via ``<?def t?>...<?end def?>``), ``signature`` can be:
+		If the template is a locally defined subtemplate (i.e. a template defined
+		by another template via ``<?def t?>...<?end def?>``), ``signature``
+		can be:
 
 		:const:`None`
 			The template will accept all arguments.
@@ -5103,9 +5751,31 @@ class Template(BlockAST):
 @register("signature")
 class SignatureAST(CodeAST):
 	"""
-	AST node for the signature of a template.
+	AST node for the signature of a locally defined subtemplate.
 
-	The list of arguments is found in ``params``.
+	Attributes are:
+
+	``params`` : :class:`list`
+		The parameter. Each list item is a :class:`tuple` with three items:
+
+		``name`` : :class:`str`
+			The name of the argument.
+
+		``type`` : :class:`str`
+			The type of the argument. One of:
+
+			-	``pk`` (positional or keyword argument without default)
+			-	``pk=`` (positional or keyword argument with default)
+			-	``p`` (positional-only argument without default)
+			-	``p=`` (positional-only argument with default)
+			-	``k`` (keyword-only argument without default)
+			-	``k=`` (keyword-only argument with default)
+			-	``*`` (argument that collects addition positional arguments)
+			-	``**`` (argument that collects addition keyword arguments)
+
+		``default`` : :class:`AST` or ``None``
+			The default value for the argument (or ``None`` if the argument
+			has no default value).
 	"""
 
 	ul4_type = Type("ul4")
@@ -5582,6 +6252,12 @@ def _dir(obj, /):
 
 
 class TemplateClosure(BlockAST):
+	"""
+	A locally defined subtemplate.
+
+	A :class:`!TemplateClosure` is a closure, i.e. it can use the local variables
+	of the template it is defined in.
+	"""
 	ul4_type = Type("ul4", "TemplateClosure", "A locally defined UL4 template")
 	ul4_attrs = Template.ul4_attrs
 
