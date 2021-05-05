@@ -36,8 +36,8 @@ Changes to UL4
 	of readonly attributes to UL4; the attributes ``ul4_context`` that is used
 	for marking a callable as needing the context as an argument in the call.
 
-*	Support vor using custom tag delimiters for UL4 templates has been removed,
-	i.e. now the tag delimiters will always be ``<?`` and ``?>``. If you have
+*	Support for using custom tag delimiters for UL4 templates tag has been
+	removed, i.e. now the tag delimiters will always be ``<?`` and ``?>``.
 
 Changes to ``ll.misc`` and ``ll.ul4on``
 ---------------------------------------
