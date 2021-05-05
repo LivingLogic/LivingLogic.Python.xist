@@ -1646,7 +1646,9 @@ class Tag(AST):
 
 class CodeAST(AST):
 	"""
-	The base class of all AST nodes that appear inside a :class:`Tag`.
+	The base class of all AST nodes that are not literal text.
+
+	These nodes appear inside a :class:`Tag`.
 	"""
 
 	ul4_type = Type("ul4")
@@ -2621,6 +2623,11 @@ class BlockAST(CodeAST):
 	A block contains a sequence of AST nodes that are executed sequencially.
 	A block may execute its content zero (e.g. an ``<?if?>`` block) or more times
 	(e.g. a ``<?for?>`` block).
+
+	Attributes are:
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The content of the block.
 	"""
 
 	output = True
@@ -3183,7 +3190,13 @@ class SliceAST(CodeAST):
 
 class UnaryAST(CodeAST):
 	"""
-	Base class for all AST nodes implementing unary operators.
+	Base class for all AST nodes implementing unary expressions
+	(i.e. operators with one operand).
+
+	Atttributes are:
+
+	``obj`` : :class:`AST`
+		The operand of the unary operator.
 	"""
 
 	ul4_type = Type("ul4")
@@ -3356,9 +3369,11 @@ class BinaryAST(CodeAST):
 	Base class for all UL4 AST nodes implementing binary expressions
 	(i.e. operators with two operands).
 
-	The first operand is loaded from the AST node ``obj1`` and second operand
-	is loaded from the AST node ``obj2``.
+	``obj1`` : :class:`AST`
+		The first operand.
 
+	``obj2`` : :class:`AST`
+		The second operand.
 	"""
 
 	ul4_type = Type("ul4")
@@ -4092,11 +4107,17 @@ class IfAST(CodeAST):
 
 class ChangeVarAST(CodeAST):
 	"""
-	Baseclass for all AST nodes that store or modify a variable.
+	Base class for all AST nodes that are assignment operators, i.e. that
+	set or modify a variable/attribute or item.
 
-	The left hand side is loaded from the AST node ``label`` and the value that
-	will be stored or be used to modify the stored value is loaded from the
-	AST node ``value``.
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side, i.e. the value that will be modified.
+
+	``value`` : :class:`AST`
+		The right hand side, the value that will be assigned or be used to modify
+		the intial value.
 	"""
 
 	ul4_type = Type("ul4")
