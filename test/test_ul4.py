@@ -6743,94 +6743,42 @@ def test_module_ul4(T):
 	assert "ul4" == T("<?print ul4.__name__?>").renders()
 	assert "UL4 - A templating language" == T("<?print ul4.__doc__?>").renders()
 
-	# Check that all the types we expect are there with the coreect information
-	source = """
+	def saferepr(s):
+		"""
+		Escape tag delimiters
+		"""
+		s = repr(s)
+		q = s[0]
+		s = s.replace("<?", f"<{q} + {q}?")
+		s = s.replace("?>", f"?{q} + {q}>")
+		return s
+
+	def ok(obj):
+		if not isinstance(obj, type):
+			return False
+		elif not issubclass(obj, ul4c.AST):
+			return False
+		elif obj is ul4c.Tag:
+			return False
+		return True
+
+	types = [ t for t in ul4c.__dict__.values() if ok(t) ]
+
+	assert len(types) >= 82
+
+	ul4c.Context.add_builtins()
+	ul4 = ul4c.Context.builtins["ul4"]
+
+	source_types = "".join(f"\t\t\t{t.__name__!r}: [ul4.{t.__name__}, {saferepr(getattr(ul4, t.__name__).__doc__)}],\n" for t in types)
+
+	# Check that all the types we expect are there and correct
+	source = f"""
 		<?whitespace strip?>
-		<?code types = {
-			"TextAST": ul4.TextAST,
-			"IndentAST": ul4.IndentAST,
-			"LineEndAST": ul4.LineEndAST,
-			"ConstAST": ul4.ConstAST,
-			"SeqItemAST": ul4.SeqItemAST,
-			"UnpackSeqItemAST": ul4.UnpackSeqItemAST,
-			"ListAST": ul4.ListAST,
-			"ListComprehensionAST": ul4.ListComprehensionAST,
-			"SetAST": ul4.SetAST,
-			"SetComprehensionAST": ul4.SetComprehensionAST,
-			"DictItemAST": ul4.DictItemAST,
-			"UnpackDictItemAST": ul4.UnpackDictItemAST,
-			"DictAST": ul4.DictAST,
-			"DictComprehensionAST": ul4.DictComprehensionAST,
-			"GeneratorExpressionAST": ul4.GeneratorExpressionAST,
-			"VarAST": ul4.VarAST,
-			"ConditionalBlocksAST": ul4.ConditionalBlocksAST,
-			"IfBlockAST": ul4.IfBlockAST,
-			"ElIfBlockAST": ul4.ElIfBlockAST,
-			"ElseBlockAST": ul4.ElseBlockAST,
-			"ForBlockAST": ul4.ForBlockAST,
-			"WhileBlockAST": ul4.WhileBlockAST,
-			"BreakAST": ul4.BreakAST,
-			"ContinueAST": ul4.ContinueAST,
-			"AttrAST": ul4.AttrAST,
-			"SliceAST": ul4.SliceAST,
-			"NotAST": ul4.NotAST,
-			"IfAST": ul4.IfAST,
-			"NegAST": ul4.NegAST,
-			"BitNotAST": ul4.BitNotAST,
-			"PrintAST": ul4.PrintAST,
-			"PrintXAST": ul4.PrintXAST,
-			"ReturnAST": ul4.ReturnAST,
-			"ItemAST": ul4.ItemAST,
-			"ShiftLeftAST": ul4.ShiftLeftAST,
-			"ShiftRightAST": ul4.ShiftRightAST,
-			"BitAndAST": ul4.BitAndAST,
-			"BitXOrAST": ul4.BitXOrAST,
-			"BitOrAST": ul4.BitOrAST,
-			"IsAST": ul4.IsAST,
-			"IsNotAST": ul4.IsNotAST,
-			"EQAST": ul4.EQAST,
-			"NEAST": ul4.NEAST,
-			"LTAST": ul4.LTAST,
-			"LEAST": ul4.LEAST,
-			"GTAST": ul4.GTAST,
-			"GEAST": ul4.GEAST,
-			"ContainsAST": ul4.ContainsAST,
-			"NotContainsAST": ul4.NotContainsAST,
-			"AddAST": ul4.AddAST,
-			"SubAST": ul4.SubAST,
-			"MulAST": ul4.MulAST,
-			"FloorDivAST": ul4.FloorDivAST,
-			"TrueDivAST": ul4.TrueDivAST,
-			"OrAST": ul4.OrAST,
-			"AndAST": ul4.AndAST,
-			"ModAST": ul4.ModAST,
-			"SetVarAST": ul4.SetVarAST,
-			"AddVarAST": ul4.AddVarAST,
-			"SubVarAST": ul4.SubVarAST,
-			"MulVarAST": ul4.MulVarAST,
-			"FloorDivVarAST": ul4.FloorDivVarAST,
-			"TrueDivVarAST": ul4.TrueDivVarAST,
-			"ModVarAST": ul4.ModVarAST,
-			"ShiftLeftVarAST": ul4.ShiftLeftVarAST,
-			"ShiftRightVarAST": ul4.ShiftRightVarAST,
-			"BitAndVarAST": ul4.BitAndVarAST,
-			"BitXOrVarAST": ul4.BitXOrVarAST,
-			"BitOrVarAST": ul4.BitOrVarAST,
-			"PositionalArgumentAST": ul4.PositionalArgumentAST,
-			"KeywordArgumentAST": ul4.KeywordArgumentAST,
-			"UnpackListArgumentAST": ul4.UnpackListArgumentAST,
-			"UnpackDictArgumentAST": ul4.UnpackDictArgumentAST,
-			"CallAST": ul4.CallAST,
-			"RenderAST": ul4.RenderAST,
-			"RenderXAST": ul4.RenderXAST,
-			"RenderBlockAST": ul4.RenderBlockAST,
-			"RenderBlocksAST": ul4.RenderBlocksAST,
-			"SignatureAST": ul4.SignatureAST,
-			"Template": ul4.Template,
-			"TemplateClosure": ul4.TemplateClosure,
-		}?>
-		<?for (n, t) in types.items()?>
-			<?if not bool(t)?>
+		<?code types = {{
+			{source_types}
+		}}?>
+		<?for (n, (t, d)) in types.items()?>
+			<?if not t?>
 				bad bool: <?print n?><?print "\\n"?>
 			<?end if?>
 			<?if t.__module__ != "ul4"?>
@@ -6840,7 +6788,9 @@ def test_module_ul4(T):
 				bad name: <?print n?> != <?print t?><?print "\\n"?>
 			<?end if?>
 			<?if not t.__doc__?>
-				bad doc: <?print n?><?print "\\n"?>
+				empty doc: <?print n?><?print "\\n"?>
+			<?elif t.__doc__ != d?>
+				bad doc: <?print n?>; <?print repr(t.__doc__)?> != <?print repr(d)?><?print "\\n"?>
 			<?end if?>
 		<?end for?>
 	"""
