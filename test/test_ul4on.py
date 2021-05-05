@@ -520,8 +520,6 @@ def test_template_from_source():
 	assert t.name == "test"
 	assert t.source == "<?ul4 test(x, y=23)?><?print x + y?>"
 	assert t.whitespace == "keep"
-	assert t.startdelim == "<?"
-	assert t.enddelim == "?>"
 	assert t.renders(17) == "40"
 
 

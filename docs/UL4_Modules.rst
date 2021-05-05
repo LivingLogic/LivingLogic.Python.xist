@@ -97,8 +97,6 @@ create an UL4 template from source. Its signature is ::
 		name=None,
 		*,
 		whitespace="keep",
-		startdelim="<?",
-		enddelim="?>",
 		signature=None
 	)
 

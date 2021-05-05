@@ -5683,8 +5683,6 @@ def test_astattributes(T):
 
 	assert "t1" == T("<?print template.template.name?>").renders(template=t1)
 	assert "None" == T("<?print repr(template.parenttemplate)?>").renders(template=t1)
-	assert "<?" == T("<?print template.startdelim?>").renders(template=t1)
-	assert "?>" == T("<?print template.enddelim?>").renders(template=t1)
 	assert "2" == T("<?print len(template.content)?>").renders(template=t1) # The template AST always contains an :class:`Indent` node at the start
 	assert "(indent) (print)" == T("<?print ' '.join('(' + ast.type + ')' for ast in template.content)?>").renders(template=t1)
 	assert "t1" == T("<?print template.content[0].template.name?>").renders(template=t1)

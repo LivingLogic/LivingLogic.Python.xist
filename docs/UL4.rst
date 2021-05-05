@@ -30,10 +30,6 @@ variable ``foo``). A complete example template looks like this::
 		</ul>
 	<?end if?>
 
-(For text formats where the delimiters ``<?`` and ``?>`` collide with elements
-that are used often or where using these delimiters is inconvenient it's
-possible to specify a different delimiter pair when compiling the template.)
-
 A complete Python program that compiles a template and renders it might look
 like this::
 
@@ -59,9 +55,7 @@ method :meth:`~ll.ul4c.Template.renders` as keyword arguments.
 Alternatively the method :meth:`~ll.ul4c.Template.render` can be used, which is
 a generator and returns the output piecewise.
 
-
 For more information see the following chapters:
-
 
 .. toctree::
    :maxdepth: 1
@@ -81,5 +75,4 @@ For more information see the following chapters:
 	UL4_InterfacingWithPython
    UL4_Exceptions
    UL4_Whitespace
-   UL4_Delimiters
    UL4_API

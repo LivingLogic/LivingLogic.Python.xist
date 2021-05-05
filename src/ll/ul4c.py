@@ -4900,19 +4900,18 @@ class Template(BlockAST):
 	"""
 
 	ul4_type = InstantiableType("ul4", "Template", "An UL4 template")
-	ul4_attrs = BlockAST.ul4_attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
+	ul4_attrs = BlockAST.ul4_attrs.union({"signature", "doc", "name", "whitespace", "parenttemplate", "fullsource", "renders"})
 
-	version = "50"
+	version = "51"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
-	def __init__(self, source=None, name=None, *, whitespace="keep", startdelim="<?", enddelim="?>", signature=None):
+	def __init__(self, source=None, name=None, *, whitespace="keep", signature=None):
 		"""
 		Create a :class:`Template` object.
 
 		If ``source`` is :const:`None`, the :class:`Template` remains uninitialized,
-		otherwise ``source`` will be compiled (using ``startdelim`` and
-		``enddelim`` as the tag delimiters).
+		otherwise ``source`` will be compiled.
 
 		``name`` is the name of the template. It will be used in exception
 		messages and should be a valid Python identifier.
@@ -4982,8 +4981,6 @@ class Template(BlockAST):
 		"""
 		super().__init__(self, slice(0, 0), None)
 		self.whitespace = whitespace
-		self.startdelim = startdelim or "<?"
-		self.enddelim = enddelim or "?>"
 		self.name = name
 		self._fullsource = None
 		self.docpos = None
@@ -4991,7 +4988,7 @@ class Template(BlockAST):
 		if isinstance(signature, str):
 			# The parser needs a tag, and each tag references its template which contains the source.
 			# So to make the source of the signature available in the source, we prepend an ``<?ul4?>`` tag
-			source = f"{self.startdelim}ul4 {name or ''}({signature}){self.enddelim}{source}"
+			source = f"<?ul4 {name or ''}({signature})?>{source}"
 			signature = None
 		elif callable(signature):
 			signature = inspect.signature(signature)
@@ -5001,7 +4998,7 @@ class Template(BlockAST):
 		if source is not None:
 			stop = len(source)
 			self.stoppos = slice(stop, stop)
-			self._compile(source, startdelim, enddelim)
+			self._compile(source)
 		else:
 			self._fullsource = ""
 			self.stoppos = self._startpos
@@ -5009,10 +5006,6 @@ class Template(BlockAST):
 	def _repr(self):
 		yield f"name={self.name!r}"
 		yield f"whitespace={self.whitespace!r}"
-		if self.startdelim != "<?":
-			yield f"startdelim={self.startdelim!r}"
-		if self.enddelim != "?>":
-			yield f"enddelim={self.enddelim!r}"
 		if self.signature is not None:
 			yield f"signature={self.signature}"
 
@@ -5023,14 +5016,6 @@ class Template(BlockAST):
 		p.breakable()
 		p.text("whitespace=")
 		p.pretty(self.whitespace)
-		if self.startdelim != "<?":
-			p.breakable()
-			p.text("startdelim=")
-			p.pretty(self.startdelim)
-		if self.enddelim != "?>":
-			p.breakable()
-			p.text("enddelim=")
-			p.pretty(self.enddelim)
 		if self.signature is not None:
 			p.breakable()
 			if isinstance(self.signature, SignatureAST):
@@ -5074,8 +5059,6 @@ class Template(BlockAST):
 		encoder.dump(self.name)
 		encoder.dump(self._fullsource)
 		encoder.dump(self.whitespace)
-		encoder.dump(self.startdelim)
-		encoder.dump(self.enddelim)
 		encoder.dump(self.docpos)
 		encoder.dump(self.parenttemplate)
 
@@ -5140,28 +5123,20 @@ class Template(BlockAST):
 			source = decoder.load()
 			signature = decoder.load()
 			self.whitespace = decoder.load()
-			startdelim = decoder.load()
-			if startdelim is None:
-				startdelim = "<?"
-			enddelim = decoder.load()
-			if enddelim is None:
-				enddelim = "?>"
 			if signature is not None:
-				source = f"{startdelim}ul4 {self.name or ''}({signature}){enddelim}{source}"
+				source = f"<?ul4 {self.name or ''}({signature})?>{source}"
 			# Remove old content, before compiling the source
 			self.startpos = slice(0, 0)
 			stop = len(source)
 			self.stoppos = slice(stop, stop)
 			del self.content[:]
-			self._compile(source, startdelim, enddelim)
+			self._compile(source)
 		else: # dump is in compiled form
 			if version != self.version:
 				raise ValueError(f"invalid version, expected {self.version!r}, got {version!r}")
 			self.name = decoder.load()
 			self._fullsource = decoder.load()
 			self.whitespace = decoder.load()
-			self.startdelim = decoder.load()
-			self.enddelim = decoder.load()
 			self.docpos = decoder.load()
 			self.parenttemplate = decoder.load()
 
@@ -5356,16 +5331,16 @@ class Template(BlockAST):
 		from ll import misc
 		return f"com.livinglogic.ul4.Template.loads({misc.javaexpr(self.dumps())})"
 
-	def _tokenize(self, source, startdelim, enddelim):
+	def _tokenize(self, source):
 		"""
 		Tokenize the template source code in ``source`` into tags and non-tag
-		text. ``startdelim`` and ``enddelim`` are used as the tag delimiters.
+		text.
 
 		This is a generator which produces :class:`Text`/:class:`Tag` objects
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = fr"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\n)*?)\s*)?{re.escape(enddelim)}"
+		pattern = fr"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\n)*?)\s*)?\?>"
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -5559,14 +5534,11 @@ class Template(BlockAST):
 		parser.tag = tag
 		return parser
 
-	def _compile(self, source, startdelim, enddelim):
+	def _compile(self, source):
 		"""
 		Compile the template source code ``source`` into an AST.
-		``startdelim`` and ``enddelim`` are used as the tag delimiters.
 		"""
 		self._fullsource = source
-		self.startdelim = startdelim
-		self.enddelim = enddelim
 
 		if source is None:
 			return
@@ -5602,14 +5574,14 @@ class Template(BlockAST):
 			render.args = call.args
 			if tag.tag == "renderblock":
 				# We create the sub template without source so there won't be any compilation done ...
-				render.content = Template(None, name="content", whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim)
+				render.content = Template(None, name="content", whitespace=self.whitespace)
 				# ... but then we have to fix the ``fullsource`` and ``startpos`` attributes ourselves
 				render.content._fullsource = self._fullsource
 				# The stop position will be updated by :meth:`RenderBlock.finish`.
 				render.content.startpos = slice(tag.startpos.stop, tag.startpos.stop)
 			return render
 
-		tags = self._tokenize(source, startdelim, enddelim)
+		tags = self._tokenize(source)
 		lines = list(self._tags2lines(tags))
 
 		# Find template declarations and whitespace specification
@@ -5728,7 +5700,7 @@ class Template(BlockAST):
 					blockstack[-1].append(ContinueAST(templatestack[-1], tag.startpos))
 				elif tag.tag == "def":
 					(name, signature) = parsedef(tag)
-					block = Template(None, name=name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
+					block = Template(None, name=name, whitespace=self.whitespace, signature=signature)
 					block.template = block
 					block.parenttemplate = templatestack[-1]
 					tag.template = block
@@ -6336,10 +6308,6 @@ class TemplateClosure(BlockAST):
 	def _repr(self):
 		yield f"name={self.name!r}"
 		yield f"whitespace={self.whitespace!r}"
-		if self.startdelim != "<?":
-			yield f"startdelim={self.startdelim!r}"
-		if self.enddelim != "?>":
-			yield f"enddelim={self.enddelim!r}"
 		if self.signature is not None:
 			yield f"signature={self.signature}"
 
@@ -6350,14 +6318,6 @@ class TemplateClosure(BlockAST):
 		p.breakable()
 		p.text("whitespace=")
 		p.pretty(self.whitespace)
-		if self.startdelim != "<?":
-			p.breakable()
-			p.text("startdelim=")
-			p.pretty(self.startdelim)
-		if self.enddelim != "?>":
-			p.breakable()
-			p.text("enddelim=")
-			p.pretty(self.enddelim)
 		if self.signature is not None:
 			p.breakable()
 			p.text(f"signature={self.signature}")

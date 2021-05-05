@@ -735,13 +735,13 @@ class Globals:
 		with open(filename, "w", encoding=encoding) as f:
 			f.write(data)
 
-	def compile(self, source, name=None, whitespace="keep", signature=None, startdelim="<?", enddelim="?>"):
+	def compile(self, source, name=None, whitespace="keep", signature=None):
 		"""
 		Compile the UL4 source ``source`` into a :class:`~ll.ul4c.Template` object
 		and return it. All other parameters are passed to the
 		:class:`~ll.ul4c.Template` constructor too.
 		"""
-		return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature, startdelim=startdelim, enddelim=enddelim)
+		return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature)
 
 	def define(self, arg):
 		(name, _, value) = arg.partition("=")
