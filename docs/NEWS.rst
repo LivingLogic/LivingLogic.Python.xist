@@ -70,6 +70,9 @@ Changes in 5.66 (released ??/??/2021)
 *	Now the ``ul4_attr`` attribute of objects gets honored in the implementation
 	of the ``dir()`` function in UL4.
 
+*	Support vor using custom tag delimiters for UL4 templates has been removed,
+	i.e. now the tag delimiters will always be ``<?`` and ``?>``.
+
 
 Changes in 5.65 (released 01/13/2021)
 -------------------------------------
