@@ -843,8 +843,6 @@ class Type:
 		ul4_attrs = getattr(obj, "ul4_attrs", None)
 
 		if ul4_getattr is not None:
-			if ul4_attrs is not None and name not in ul4_attrs:
-				return self.missing(obj, name, default)
 			try:
 				return ul4_getattr(name)
 			except AttributeError:
