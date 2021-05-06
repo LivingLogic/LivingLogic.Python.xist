@@ -515,7 +515,7 @@ def test_nested(t):
 
 
 def test_template_from_source():
-	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'<?print x + y?>' s'x, y=23' s'keep' n n )")
+	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'<?print x + y?>' s'x, y=23' s'keep' )")
 
 	assert t.name == "test"
 	assert t.source == "<?ul4 test(x, y=23)?><?print x + y?>"
