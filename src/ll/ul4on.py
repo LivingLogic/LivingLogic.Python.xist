@@ -905,6 +905,15 @@ class Decoder:
 		"""
 		self._persistent_objects[(object.ul4onname, object.ul4onid)] = object
 
+	def forget_persistent_object(self, object) -> None:
+		"""
+		Remove a persistent object from the cache of persistent objects.
+		"""
+		try:
+			del self._persistent_objects[(object.ul4onname, object.ul4onid)]
+		except KeyError:
+			pass
+
 	def persistent_object(self, name:str, id:str) -> Any:
 		"""
 		Return the persistent object with the type ``name`` and the id ``id``,

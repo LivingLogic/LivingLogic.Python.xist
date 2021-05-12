@@ -73,6 +73,9 @@ Changes in 5.66 (released ??/??/2021)
 *	Support vor using custom tag delimiters for UL4 templates has been removed,
 	i.e. now the tag delimiters will always be ``<?`` and ``?>``.
 
+*	:class:`ll.ul4on.Decoder` gained a new method
+	:meth:`~ll.ul4on.Decoder.forget_persistent_object`.
+
 
 Changes in 5.65 (released 01/13/2021)
 -------------------------------------
