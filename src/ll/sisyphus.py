@@ -727,7 +727,7 @@ class Job:
 		Return the filename of the logfile for this job.
 
 		The value must by an absolute :class:`pathlib.Path` object (or ``None``
-		the disable creating the logfile).
+		to disable creating the logfile).
 		"""
 		return self.basedir() / f"{self.starttime:%Y-%m-%d %H-%M-%S_%f}.sisyphuslog"
 
@@ -737,7 +737,7 @@ class Job:
 		Return the filename of the link to the currently active logfile.
 
 		The value must by an absolute :class:`pathlib.Path` object (or ``None``
-		the disable creating the link).
+		to disable creating the link).
 		"""
 		return self.basedir() / f"current.sisyphuslog"
 
@@ -748,7 +748,7 @@ class Job:
 		successful run of the job.
 
 		The value must by an absolute :class:`pathlib.Path` object (or ``None``
-		the disable creating the link).
+		to disable creating the link).
 		"""
 		return self.basedir() / f"last_successful.sisyphuslog"
 
@@ -759,7 +759,7 @@ class Job:
 		failed run of the job.
 
 		The value must by an absolute :class:`pathlib.Path` object (or ``None``
-		the disable creating the link).
+		to disable creating the link).
 		"""
 		return self.basedir() / f"last_failed.sisyphuslog"
 
@@ -770,7 +770,7 @@ class Job:
 		interrupted run of the job.
 
 		The value must by an absolute :class:`pathlib.Path` object (or ``None``
-		the disable creating the link).
+		to disable creating the link).
 		"""
 		return self.basedir() / f"last_interrupted.sisyphuslog"
 
@@ -781,7 +781,7 @@ class Job:
 		run of the job with a timeout.
 
 		The value must by an absolute :class:`pathlib.Path` object (or ``None``
-		the disable creating the link).
+		to disable creating the link).
 		"""
 		return self.basedir() / f"last_timeout.sisyphuslog"
 
