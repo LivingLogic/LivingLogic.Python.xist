@@ -427,7 +427,7 @@ class OracleConnection(Connection):
 			return var
 
 	def __repr__(self):
-		connectstring = f"{self.connection.username}@{self.connection.tnsentry}"
+		connectstring = f"{self.connection.username}@{self.connection.dsn}"
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} schema={connectstring!r} at {id(self):#x}>"
 
 	def str(self, value=None):

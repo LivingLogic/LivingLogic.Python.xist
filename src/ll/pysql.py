@@ -534,7 +534,7 @@ def connectstring(connection):
 	if connection is None:
 		return ""
 	else:
-		return f"{connection.username}@{connection.tnsentry}"
+		return f"{connection.username}@{connection.dsn}"
 
 
 ###

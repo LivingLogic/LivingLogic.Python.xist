@@ -372,7 +372,7 @@ class SessionPool(SessionPool):
 		super().__init__(user, password, database, min, max, increment, connectiontype, threaded, getmode, homogeneous)
 
 	def connectstring(self):
-		return f"{self.username}@{self.tnsentry}"
+		return f"{self.username}@{self.dsn}"
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object db={self.connectstring()!r} at {id(self):#x}>"
@@ -469,7 +469,7 @@ class Connection(Connection):
 			return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
 	def connectstring(self):
-		return f"{self.username}@{self.tnsentry}"
+		return f"{self.username}@{self.dsn}"
 
 	def cursor(self, readlobs=None):
 		"""
