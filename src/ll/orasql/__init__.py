@@ -366,10 +366,8 @@ class SessionPool(SessionPool):
 	:class:`SessionPool` is a subclass of :class:`cx_Oracle.SessionPool`.
 	"""
 
-	def __init__(self, user, password, database, min, max, increment, connectiontype=None, threaded=False, getmode=SPOOL_ATTRVAL_NOWAIT, homogeneous=True):
-		if connectiontype is None:
-			connectiontype = Connection
-		super().__init__(user, password, database, min, max, increment, connectiontype, threaded, getmode, homogeneous)
+	def __init__(self, user=None, password=None, dsn=None, **kwargs):
+		super().__init__(user, password, dsn, **{**{"connectiontype": Connection}, **kwargs})
 
 	def connectstring(self):
 		return f"{self.username}@{self.dsn}"
