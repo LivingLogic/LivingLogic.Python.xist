@@ -71,12 +71,12 @@ new version of the node, with additional white space between the elements:
 	from ll.xist.ns import html
 	node = html.html(
 		html.head(
-			html.title(u"foo"),
+			html.title("foo"),
 		),
 		html.body(
 			html.div(
-				html.h1(u"The ", html.em(u"foo"), u" page!"),
-				html.p(u"Welcome to the ", html.em(u"foo"), u" page."),
+				html.h1("The ", html.em("foo"), " page!"),
+				html.p("Welcome to the ", html.em("foo"), " page."),
 			),
 		),
 	)
