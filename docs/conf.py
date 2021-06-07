@@ -390,6 +390,8 @@ autodoc_default_options = {
 	"undoc-members": False,
 }
 
+autodoc_typehints = "signature"
+
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = {

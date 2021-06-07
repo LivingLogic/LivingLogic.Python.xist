@@ -1941,6 +1941,31 @@ dt em
 	font-style: normal;
 }
 
+/* Type hints */
+.sig-param .n + .p + .n
+{
+	font-size: 90%;
+	color: var(--fade-color-fg);
+	letter-spacing: -1px;
+}
+
+.sig-param .n + .p + .n a
+{
+	color: var(--fadeactive-color-fg);
+}
+
+.sig-return-typehint
+{
+	font-size: 90%;
+	color: var(--fade-color-fg);
+	letter-spacing: -1px;
+}
+
+.sig-return a
+{
+	color: var(--fadeactive-color-fg);
+}
+
 @media (prefers-color-scheme: dark)
 {
 	:root

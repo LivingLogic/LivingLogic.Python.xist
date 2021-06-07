@@ -7,8 +7,18 @@ From https://github.com/ryan-roemer/sphinx-bootstrap-theme.
 """
 from os import path
 
+from sphinx.writers import html5
+
 __version__ = '0.2'
 __version_full__ = __version__
+
+
+class HTML5Translator(html5.HTML5Translator):
+	def visit_desc_returns(self, node):
+		self.body.append(' <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint">')
+
+	def depart_desc_returns(self, node):
+		self.body.append('</span></span>')
 
 
 def get_html_theme_path() -> str:
@@ -23,3 +33,4 @@ def get_html_theme_path() -> str:
 def setup(app):
 	app.require_sphinx("3.5")
 	app.add_html_theme('sphinx_ll_theme', path.abspath(path.dirname(__file__)))
+	app.set_translator("html", HTML5Translator, True)
