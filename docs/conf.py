@@ -424,19 +424,15 @@ class HTML5Translator(html5.HTML5Translator):
 
 class OutputLexer(lexer.Lexer):
 	"""
-	"Simple lexer that highlights evrything as output.
+	Simple lexer that highlights everything as output.
 	"""
-	name = 'Text only'
+	name = 'Text output'
 	aliases = ['output']
 	filenames = ['*.txt']
 	mimetypes = ['text/plain']
-	priority = 0.005
 
 	def get_tokens_unprocessed(self, text):
 		yield 0, token.Generic.Output, text
-
-	def analyse_text(text):
-		return OutpuLexer.priority
 
 
 def setup(app):
