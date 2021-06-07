@@ -521,8 +521,10 @@ class Job:
 	.. option:: --mattermost_url <url>
 
 		The URL where log entries can be posted to a Mattermost chat. For
-		example::
-		
+		example:
+
+		.. sourcecode:: text
+
 			https://mattermost.example.org/api/v4/posts
 
 		A log entry will only be posted to the Mattermost chat channel if the
@@ -535,14 +537,18 @@ class Job:
 	.. option:: --mattermost_channel <id>
 
 		The channel id of the Mattermost chat channel where log entries should be
-		posted. For example::
+		posted. For example:
+
+		.. sourcecode:: text
 
 			4cnszmopr3ntjexi4qmx499inc
 
 	.. option:: --mattermost_token <auth>
 
 		The "Personal Access Token" used for authorizing the post with the
-		Mattermost server. For example::
+		Mattermost server. For example:
+
+		.. sourcecode:: text
 
 			9xuqwrwgstrb3mzrxb83nb357a
 
