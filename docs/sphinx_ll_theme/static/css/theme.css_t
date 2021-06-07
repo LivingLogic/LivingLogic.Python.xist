@@ -1881,35 +1881,13 @@ main dl:not(.docutils) dl.attribute > dt
 	line-height: {{theme_line_height}};
 }
 
-main dl.class > dt a.reference.internal,
-main dl.function > dt a.reference.internal,
-main dl.method > dt a.reference.internal,
-main dl.classmethod > dt a.reference.internal,
-main dl.exception > dt a.reference.internal,
-main dl.attribute > dt a.reference.internal,
-main dl:not(.docutils) dl.class > dt a.reference.internal,
-main dl:not(.docutils) dl.function > dt a.reference.internal,
-main dl:not(.docutils) dl.method > dt a.reference.internal,
-main dl:not(.docutils) dl.classmethod > dt a.reference.internal,
-main dl:not(.docutils) dl.exception > dt a.reference.internal,
-main dl:not(.docutils) dl.attribute > dt a.reference.internal
+main dt .viewcode-link
 {
 	visibility: hidden;
 	padding-left: 0.5em;
 }
 
-main dl.class > dt:hover a.reference.internal,
-main dl.function > dt:hover a.reference.internal,
-main dl.method > dt:hover a.reference.internal,
-main dl.classmethod > dt:hover a.reference.internal,
-main dl.exception > dt:hover a.reference.internal,
-main dl.attribute > dt:hover a.reference.internal,
-main dl:not(.docutils) dl.class > dt:hover a.reference.internal,
-main dl:not(.docutils) dl.function > dt:hover a.reference.internal,
-main dl:not(.docutils) dl.method > dt:hover a.reference.internal,
-main dl:not(.docutils) dl.classmethod > dt:hover a.reference.internal,
-main dl:not(.docutils) dl.exception > dt:hover a.reference.internal,
-main dl:not(.docutils) dl.attribute > dt:hover a.reference.internal
+main dt:hover .viewcode-link
 {
 	visibility: visible;
 }
