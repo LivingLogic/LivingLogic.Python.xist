@@ -1617,9 +1617,7 @@ aside .breadcrumbs
 
 .rst-content .linenodiv pre
 {
-	border-right: 1px solid #e6e9ea;
-	margin: 0;
-	padding: 12px 12px;
+	border-right: 1px solid var(--rule-color-fg);
 	user-select: none;
 	pointer-events: none;
 }
