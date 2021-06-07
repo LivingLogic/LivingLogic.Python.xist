@@ -1657,7 +1657,7 @@ div.literal-block-wrapper div.code-block-caption,
 	font-size: 90%;
 	font-weight: 300;
 	line-height: 1;
-	margin: 0.1em 0 0 0;
+	margin: 3px 0 0 0;
 }
 
 div.literal-block-wrapper div.code-block-caption a.headerlink,
