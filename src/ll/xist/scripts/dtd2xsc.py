@@ -89,9 +89,9 @@ Suppose we have the following DTD file (named :file:`foo.dtd`):
 
 Then we can generate a skeleton XIST namespace from it with the following command:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	dtd2xsc ~/gurk.dtd -xhttp://xmlns.example.org/ -mfullall
+	$ dtd2xsc ~/gurk.dtd -xhttp://xmlns.example.org/ -mfullall
 
 The output will be:
 

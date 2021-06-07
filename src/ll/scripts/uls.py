@@ -96,7 +96,7 @@ Examples
 
 List the current directory:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ uls
 	CREDITS.rst   installer.bmp   NEWS.rst           scripts/    test/
@@ -106,7 +106,7 @@ List the current directory:
 
 List the current directory in long format with human readable file sizes:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ uls -s -l
 	rw-r--r--  walter    staff      1114    1  2008-01-06 22:27:15  CREDITS.rst
@@ -129,14 +129,14 @@ List the current directory in long format with human readable file sizes:
 
 Recursively list a remote directory:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ uls ssh://user@www.example.org/~/dir/ -r
 	...
 
 Recursively list the schema objects in an Oracle database:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ uls oracle://user:pwd@oracle.example.org/ -r
 	...

@@ -241,7 +241,9 @@ all element and attribute names::
 
 	print(e.string())
 
-This scripts outputs::
+This scripts outputs:
+
+.. sourcecode:: xml
 
 	<a href="gurk"><b>gurk</b></a>
 """

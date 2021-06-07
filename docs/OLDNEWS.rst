@@ -85,7 +85,9 @@ Changes in 1.9 (released 03/30/2007)
 	block. This should finally fix the problem with hanging threads at the end
 	of the program.
 
-*	A script ``ucp.py`` has been added that can be used to copy stuff around::
+*	A script ``ucp.py`` has been added that can be used to copy stuff around:
+
+	.. sourcecode:: console
 
 		$ ucp -v http://www.python.org ssh://root@www.example.net/~joe/public_html/index.html -u joe -g users
 

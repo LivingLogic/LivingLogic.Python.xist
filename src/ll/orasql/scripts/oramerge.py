@@ -67,7 +67,7 @@ Example
 Output a script that merges the changes between ``user@db`` and ``user2@db2``
 into ``user3@db3``:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ oramerge user/pwd@db user2/pwd2@db2 user3/pwd3@db3 -v >db.sql
 """

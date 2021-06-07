@@ -145,7 +145,9 @@ Options
 		``value`` is a string.
 
 	``oracle``
-		``value`` will be a connection to an Oracle database, e.g.::
+		``value`` will be a connection to an Oracle database, e.g.:
+
+		.. sourcecode:: text
 
 			-Ddb:oracle=user/password@database
 
@@ -156,7 +158,9 @@ Options
 		``value`` is a connection to a MySQL database.
 
 	``redis``
-		``value`` will be a connection to an Redis database, e.g.::
+		``value`` will be a connection to an Redis database, e.g.:
+
+		.. sourcecode:: text
 
 			-Ddb:redis=192.168.123.1:6379/42
 
@@ -200,17 +204,17 @@ Then we can use the following template to output the table into an XML file:
 If we put the template into the file :file:`person.ul4` we can call
 :program:`rul4` like this:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	rul4 person.ul4 >person.xml
+	$ rul4 person.ul4 >person.xml
 
 We could also pass the connection to our database via the :option:`-D` option
 and disallow the script to make any database connections itself or execute any
 system commands:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	rul4 person.ul4 -Ddb:oracle=user/password@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
+	$ rul4 person.ul4 -Ddb:oracle=user/password@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
 
 Then the template can use the Oracle connection object ``db`` directly.
 

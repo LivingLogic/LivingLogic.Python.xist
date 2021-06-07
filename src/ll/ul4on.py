@@ -155,7 +155,9 @@ the class with the UL4ON serialization machinery::
 	jd2 = ul4on.loads(output)
 	print("Loaded:", jd2)
 
-This script outputs::
+This script outputs:
+
+.. sourcecode:: console
 
 	Dump: O S'com.example.person' S'John' S'Doe' )
 	Loaded: <Person firstname='John' lastname='Doe'>
@@ -254,7 +256,9 @@ For our example class it could be used like this::
 	j = ul4on.loads(output, {"com.example.person": Person})
 	print("Loaded:", j)
 
-This outputs::
+This outputs:
+
+.. sourcecode:: console
 
 	Loaded: <Person firstname='John' lastname=None>
 
@@ -274,7 +278,9 @@ An example for encoding::
 	print(encoder.dumps(obj))
 	print(encoder.dumps(obj))
 
-This prints::
+This prints:
+
+.. sourcecode:: console
 
 	S'spam'
 	^0
@@ -288,7 +294,9 @@ An example for decoding::
 	print(decoder.loads("S'spam'"))
 	print(decoder.loads("^0"))
 
-This prints::
+This prints:
+
+.. sourcecode:: console
 
 	spam
 	spam
@@ -346,7 +354,6 @@ persistent object (even across multiple unrelated UL4ON dumps).
 
 An :class:`Encoder` will dump those objects differently than other objects
 without an ``ul4onid`` attribute.
-
 
 A :class:`Decoder` will remember all persistent objects it has loaded
 (under their ``ul4onname`` and ``ul4onid``). If the decoder encounters the

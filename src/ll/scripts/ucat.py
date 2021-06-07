@@ -63,19 +63,19 @@ Examples
 
 Print a file:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ ucat foo.txt
 
 Print a remote file:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ ucat ssh://user@www.example.org/~/foo.txt
 
 Print the SQL source code of the procedure ``FOO`` in an Oracle database:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ ucat oracle://user:pwd@oracle.example.org/procedure/FOO
 """

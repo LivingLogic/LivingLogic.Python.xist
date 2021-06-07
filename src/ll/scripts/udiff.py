@@ -98,19 +98,19 @@ Examples
 
 Compare two files:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ udiff foo.txt bar.txt
 
 Recursively compare two directories, but skip the ``.git`` directory:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ udiff foo/ bar/ -r --skipdir=.git
 
 Recursively compare two Oracle schemas:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ udiff oracle://user1:pwd@database1  oracle://user2:pwd@database2 -r
 """

@@ -397,7 +397,7 @@ The following example will print all header element on the Python home page:
 
 This will output:
 
-.. sourcecode:: text
+.. sourcecode:: xml
 
 	<h1 id="logoheader">
 	  <a accesskey="1" href="http://www.python.org/" id="logolink">

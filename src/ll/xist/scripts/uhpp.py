@@ -46,19 +46,19 @@ Examples
 
 Pretty print stdin:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ cat foo.html | uhpp
 
 Pretty print a local HTML file:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ uhpp foo.html
 
 Pretty print a remote HTML file:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ uhpp ssh://user@www.example.org/~/foo.html
 """

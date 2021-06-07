@@ -2448,7 +2448,9 @@ Changes in 3.20 (released 05/05/2011)
 -------------------------------------
 
 *	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
-	``SYSOPER``) in ``oracle`` URLs like this::
+	``SYSOPER``) in ``oracle`` URLs like this:
+
+	.. sourcecode:: console
 
 		$ uls oracle://sys:pwd:sysdba@dsn/
 
