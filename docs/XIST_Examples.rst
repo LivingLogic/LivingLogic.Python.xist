@@ -399,7 +399,7 @@ plain text:
 
 This will output:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	The Zen of Python, by Tim Peters
 	================================

@@ -357,7 +357,7 @@ Python home page:
 
 This gives the output:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	http://www.python.org/
 	http://www.python.org/#left%2Dhand%2Dnavigation
@@ -459,7 +459,7 @@ The following example will find all external links on the Python home page:
 
 This gives the output:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	http://docs.python.org/devguide/
 	http://pypi.python.org/pypi
@@ -493,7 +493,7 @@ ones. For example searching for links that contain images works as follows:
 
 The output looks like this:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	http://www.python.org/ http://www.python.org/images/python-logo.gif
 	http://www.python.org/#left%2Dhand%2Dnavigation http://www.python.org/images/trans.gif
@@ -543,7 +543,7 @@ Here's another example that finds all elements that have an ``id`` attribute:
 
 The output looks like this:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	screen-switcher-stylesheet
 	logoheader
@@ -585,7 +585,7 @@ into an :mod:`~ll.xist.xfind` selector:
 
 This outputs all the first level links in the navigation:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	http://www.python.org/about/
 	http://www.python.org/news/

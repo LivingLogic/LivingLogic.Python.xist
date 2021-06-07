@@ -17,7 +17,9 @@ import sys
 import os
 import types
 
-from sphinx.writers import latex
+from pygments import lexer, token
+
+from sphinx.writers import latex, html5
 
 def visit_definition_list(self, node):
 	self.body.append('\\begin{description}[style=unboxed]\n')
@@ -406,6 +408,37 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 		return True
 	return False
 
+
+class HTML5Translator(html5.HTML5Translator):
+	def visit_desc_returns(self, node):
+		self.body.append(' <span class="sig-return">')
+		self.body.append('<span class="sig-return-icon">')
+		self.body.append('&#x2192;')
+		self.body.append('</span> <span class="sig-return-typehint">')
+
+	def depart_desc_returns(self, node):
+		self.body.append('</span></span>')
+
+
+class OutputLexer(lexer.Lexer):
+	"""
+	"Simple lexer that highlights evrything as output.
+	"""
+	name = 'Text only'
+	aliases = ['output']
+	filenames = ['*.txt']
+	mimetypes = ['text/plain']
+	priority = 0.005
+
+	def get_tokens_unprocessed(self, text):
+		yield 0, token.Generic.Output, text
+
+	def analyse_text(text):
+		return OutpuLexer.priority
+
+
 def setup(app):
 	app.require_sphinx("3.5")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
+	app.set_translator("html", HTML5Translator, True)
+	app.add_lexer("output", OutputLexer)
