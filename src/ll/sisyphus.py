@@ -23,22 +23,22 @@ execute the job repeatedly.
 
 A job has a maximum allowed runtime. If this maximum is exceeded, the job will
 kill itself. In addition to that, job execution can be logged and in case of
-job failure an email can be sent or a message can be posted to a `Mattermost
-chat channel`__.
+job failure an email can be sent, a message can be posted to a `Mattermost
+chat channel`__ ar an event can be emitted to a `Sentry server`__.
 
 To use this module, you must derive your own class from :class:`Job`,
-implement the :meth:`execute` method and then call :func:`execute` or
-:func:`executewithargs` with your job object (preferably in an
-``if __name__ == "__main__"`` block).
+implement the :meth:`execute` method and then call the module level function
+:func:`execute` or :func:`executewithargs` with your job object (preferably
+in an ``if __name__ == "__main__"`` block).
 
 Logs will (by default) be created in the :file:`~/ll.sisyphus` directory.
-This can be changed by deriving a new subclass and overwriting the appropriate
-class attributes.
+This can be changed overwriting the appropriate methods in the subclass.
 
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
 
 __ https://mattermost.com/
+__ https://sentry.io/
 
 
 Example
@@ -47,6 +47,8 @@ Example
 The following example illustrates the use of this module:
 
 .. sourcecode:: python
+	:linenos:
+	:emphasize-lines: 6-9
 
 	import os
 	import urllib.request
@@ -107,7 +109,7 @@ Repeat mode
 
 Normally sisyphus jobs run under the control of a cron daemon or similar process
 runner. In this mode the method :meth:`Job.execute` is executed once and after
-that execution of the Python script ends.
+that, execution of the Python script ends.
 
 However it is possible to activate repeat mode with the class/instance attribute
 ``repeat`` (or the command line option :option:`--repeat`).
@@ -199,9 +201,9 @@ to the log call automatically.
 Delayed logs
 ------------
 
-If a log message has the tag ``delay`` is is considered a delayed message.
-Log messages will be buffered up until the first log message that isn't delayed
-is encountered (:mod:`sisyphus`\s log messages all do include ``delay``).
+If a log message has the tag ``delay`` it is considered a delayed message.
+Delayed messages will be buffered up until the first log message that isn't
+delayed is encountered (:mod:`sisyphus`\s messages all are delayed).
 Then all buffered messages will be output. If only delayed messages are output
 during the complete job run, only the result of the job run will be output.
 If this output is ``None`` nothing will be output.
@@ -226,23 +228,26 @@ be used to determine the date of the last run).
 
 The following links will be created at the end of the job run and will only
 start to point to non-existent files when the log file they point get cleaned up:
-The "last successful" link (by default named :file:`last_successful.sisyphuslog`)
-will always point to the last successful job run, :file:`last_failed.sisyphuslog`
-points to the last failed run, :file:`last_interrupted.sisyphuslog`
-points to the last interrupted run and :file:`last_timeout.sisyphuslog` points
-to the last run that timed out.
+
+*	The "last successful" link (by default named
+	:file:`last_successful.sisyphuslog`) will always point to the last
+	successful job run,
+*	:file:`last_failed.sisyphuslog` points to the last failed run,
+*	:file:`last_interrupted.sisyphuslog` points to the last interrupted run and
+*	:file:`last_timeout.sisyphuslog` points to the last run that timed out.
 
 
 Email
 -----
 
 It is possible to send an email when a job fails. For this, the options
-:option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` have to be
-set. If the job terminates because of an exception or exceeds its maximum
-runtime (and the option :option:`--noisykills` is set) or any of the calls
-to :meth:`~Job.log` include the tag ``email``, an email will be sent. This
-email includes the last 10 logging calls and the final exception (if there is
-any) in plain text and HTML format as well as as a JSON attachment.
+:option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` (or the
+appropriate class attributes) have to be set. If the job terminates because of
+an exception or exceeds its maximum runtime (and the option
+:option:`--noisykills` is set) or any of the calls to :meth:`~Job.log` include
+the tag ``email``, an email will be sent. This email includes the last 10
+logging calls and the final exception (if there is any) in plain text and HTML
+format as well as as a JSON attachment.
 
 
 Mattermost
@@ -250,10 +255,32 @@ Mattermost
 
 It is possible to send log entries to a Mattermost_ chat channel. For this the
 options :option:`--mattermost_url`, :option:`--mattermost_channel` and
-:option:`--mattermost_token` must be specified and the log entry must
-include the tag ``mattermost``.
+:option:`--mattermost_token` (or the appropriate class attributes) must be
+specified. All log entries including the tag ``mattermost``, as well as
+all exceptions that abort the job will be sent to the Mattermost channel.
 
 .. _Mattermost: https://mattermost.com/
+
+
+Sentry
+------
+
+It is possible to send log entries to a Sentry_ server. For this the
+option :option:`--sentry_dsn` (or the appropriate class attribute) must be
+specified. All log entries including the tag ``sentry``, as well as
+all exceptions that abort the job will be sent to the Sentry server.
+
+.. _Sentry: https://sentry.io/
+
+If the logging call includes any of the tags ``fatal``, ``error``, ``warning``,
+``info``, ``debug`` this will be used as the event level. If the log argument
+is an exception the event level will be ``fatal``. Otherwise it wil default to
+``info``.
+
+All tags will be converted to Sentry tags like this: A sisyphus tag ``foo``
+will be converted into a Sentry tag ``sisypus.tag.foo`` with a value of ``true``.
+
+Active tasks will be converted into Sentry breadcrumbs.
 
 
 Health checks
@@ -265,8 +292,8 @@ prevents multiple instances of the job from running (i.e. you can have a normal
 job execution and a health check running in parallel).
 
 If the job is healthy this will exit with an exit status of 0, otherwise it will
-exit with an exit status of 1 and an error message stating the reason why the
-job is considered unhealthy on ``stdout``. There are three possible scenarios
+exit with an exit status of 1 and an error message on ``stdout`` stating the
+reason why the job is considered unhealthy. There are three possible scenarios
 for this:
 
 1.	The job has never been run.
@@ -359,6 +386,7 @@ try:
 except ImportError:
 	setproctitle = None
 
+
 from ll import url, ul4c, ul4on, misc
 
 
@@ -373,6 +401,7 @@ T = TypeVar("T")
 OptStr = Optional[str]
 OptInt = Optional[int]
 OptStrFromCall = Union[str, None, Callable[..., Union[str, None]]]
+OptDictFromCall = Union[dict, None, Callable[..., Union[dict, None]]]
 Tags = Tuple[str, ...]
 LogList  = List[Tuple[datetime.datetime, Tags, List["Task"], Any]]
 
@@ -552,6 +581,14 @@ class Job:
 
 			9xuqwrwgstrb3mzrxb83nb357a
 
+	.. option:: --sentry_dsn <dsn>
+
+		Sentry DSN for logging to a Sentry server. Something like:
+
+		.. sourcecode:: text
+
+			https://examplePublicKey@o0.ingest.sentry.io/0
+
 	.. option:: -m <seconds>, --maxtime <seconds>
 
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -686,6 +723,8 @@ class Job:
 	mattermost_url = None
 	mattermost_channel = None
 	mattermost_token = None
+
+	sentry_dsn = None
 
 	identifier = None
 
@@ -1182,6 +1221,7 @@ class Job:
 		p.add_argument(      "--mattermost_url", dest="mattermost_url", metavar="URL", help="URL for logging to mattermost chat channel. (default: %(default)s)", default=self.mattermost_url)
 		p.add_argument(      "--mattermost_channel", dest="mattermost_channel", metavar="ID", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_channel)
 		p.add_argument(      "--mattermost_token", dest="mattermost_token", metavar="AUTH", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_token)
+		p.add_argument(      "--sentry_dsn", dest="sentry_dsn", metavar="DSN", help="Sentry DSN for logging to a Sentry server. (default: %(default)s)", default=self.sentry_dsn)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=argseconds, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -1225,6 +1265,7 @@ class Job:
 		self.mattermost_url = ns.mattermost_url
 		self.mattermost_channel = ns.mattermost_channel
 		self.mattermost_token = ns.mattermost_token
+		self.sentry_dsn = ns.sentry_dsn
 		self.identifier = ns.identifier
 		self.maxtime = ns.maxtime
 		self.fork = ns.fork
@@ -1259,6 +1300,7 @@ class Job:
 		self.keepfilelogs = argdays(self.keepfilelogs)
 		self.compressfilelogs = argdays(self.compressfilelogs)
 		self.waitchildbreak = argseconds(self.waitchildbreak)
+		self.sentry_sdk = None
 
 		self._healthfilename = self.healthfilename()
 		if self.runhealthcheck:
@@ -1311,6 +1353,7 @@ class Job:
 
 		# we were able to obtain the lock, so we are the only one running
 		self.starttime = datetime.datetime.now()
+		self.starttime_utc = datetime.datetime.utcnow()
 		self.endtime = None # type: Optional[datetime.datetime]
 
 		self._getscriptsource() # Get source code
@@ -1386,13 +1429,16 @@ class Job:
 						self._finished_successful(None)
 					return status # finish normally (or continue, if we're in repeat mode)
 			# Here we are in the child process
+
 			self.process = Process.CHILD
 			self.setproctitle()
+			self._init_sentry()
 			task = self.task("child", misc.sysinfo.pid, self._run if self.repeat else None)
 			self._tasks = [task] # This replaces the task stack inherited from the parent
 			self.log.sisyphus.init.delay(f"forked worker child")
 		else: # We didn't fork
 			# set a signal to kill ourselves after the maximum runtime
+			self._init_sentry()
 			if self.maxtime is not None and hasattr(signal, "SIGALRM"):
 				signal.signal(signal.SIGALRM, self._signal_timeout)
 				signal.alarm(int(self.maxtime.total_seconds()))
@@ -1467,6 +1513,57 @@ class Job:
 			pidstr = ", ".join(str(pid) for pid in pids)
 			return f"Ternminated children {pidstr}: {exc}"
 
+	def _init_sentry(self) -> None:
+		if self.sentry_dsn is not None:
+			self.log.sisyphus.init(f"Setting up sentry")
+			try:
+				import sentry_sdk
+			except ImportError:
+				return
+			self.sentry_sdk = sentry_sdk
+			self.sentry_sdk.init(
+				self.sentry_dsn,
+				traces_sample_rate=1.0,
+				release="develop",
+			)
+			if self.identifier:
+				app_name = f"{self.projectname} {self.jobname} ({self.identifier})"
+			else:
+				app_name = f"{self.projectname} {self.jobname}"
+			self.sentry_sdk.set_context(
+				"app",
+				{
+					"app_identifier": f"{self.projectname}.{self.jobname}",
+					"app_name": app_name,
+					"app_start_time": self.starttime_utc,
+				}
+			)
+			self.sentry_sdk.set_context(
+				"os",
+				{
+					"name": misc.sysinfo.host_sysname,
+					"version": misc.sysinfo.host_release,
+					"kernel_version": misc.sysinfo.host_version,
+				}
+			)
+			self.sentry_sdk.set_context(
+				"Sisyphus",
+				{
+					"Script": misc.sysinfo.script_name,
+					"PID": misc.sysinfo.pid,
+					"Python": misc.sysinfo.python_executable,
+				}
+			)
+			self.sentry_sdk.set_context(
+				"User",
+				{
+					"Name": misc.sysinfo.user_name,
+					"UID": misc.sysinfo.user_uid,
+					"GID": misc.sysinfo.user_gid,
+					"Home": misc.sysinfo.user_dir,
+				}
+			)
+
 	def _finished_uneventful(self) -> Status:
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Finishing")
@@ -1501,7 +1598,7 @@ class Job:
 			strexc = misc.format_exception(exc)
 			self._write_healthfile(f"Failed with {strexc}")
 			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
-			self.log.sisyphus.email.mattermost(exc)
+			self.log.sisyphus.email.mattermost.sentry(exc)
 			self.log.sisyphus.result.fail(f"failed with {strexc}")
 		return Status.FAILED
 
@@ -1568,7 +1665,7 @@ class Job:
 				result or "uneventful",
 			)
 
-	def task(self, type:OptStr=None, name:OptStr=None, index:OptInt=None, count:OptInt=None) -> "Task":
+	def task(self, type:OptStr=None, name:OptStr=None, index:OptInt=None, count:OptInt=None, **data) -> "Task":
 		"""
 		:meth:`!task` is a context manager and can be used to specify subtasks.
 
@@ -1588,17 +1685,21 @@ class Job:
 		``count`` : :class:`int` or :const:`None`
 			If this task is one in a sequence of similar tasks and the total number
 			of tasks is known, ``count`` should be the total number of tasks.
-		"""
-		return Task(self, type=type, name=name, index=index, count=count)
 
-	def tasks(self, iterable: Iterable[T], type: OptStrFromCall=None, name: OptStrFromCall=None) -> Generator[T, None, None]:
+		``**data``
+			Additional information about the task. This will be added to the
+			Sentry breadcrumbs when logging to Sentry. Otherwise this is ignored.
+		"""
+		return Task(self, type=type, name=name, index=index, count=count, **data)
+
+	def tasks(self, iterable: Iterable[T], type: OptStrFromCall=None, name: OptStrFromCall=None, data: OptDictFromCall=None) -> Generator[T, None, None]:
 		"""
 		:meth:`!tasks` iterates through ``iterable`` and calls :meth:`task` for
 		each item. ``index`` and ``count`` will be passed to :meth:`task`
-		automatically. ``type`` and ``name`` will be used for the type and
-		name of the task. They can either be constants (in which case they will
-		be passed as is) or callables (in which case they will be called with the
-		item to get the type/name).
+		automatically. ``type``, ``name`` and ``data`` will be used for the type,
+		name and additional data of the task. They can either be constants
+		(in which case they will be passed as is) or callables (in which case
+		they will be called with the item to get the type/name/data).
 
 		Example::
 
@@ -1628,7 +1729,10 @@ class Job:
 		except TypeError:
 			count = None
 		for (i, item) in enumerate(iterable):
-			with self.task(type(item) if callable(type) else type, name(item) if callable(name) else name, i, count):
+			realtype = type(item) if callable(type) else type
+			realname = name(item) if callable(name) else name
+			realdata = data(item) if callable(data) else data
+			with self.task(realtype, realname, i, count, **(realdata or {})):
 				yield item
 
 	def makeproctitle(self, detail: OptStr=None) -> str:
@@ -1771,6 +1875,8 @@ class Job:
 			self._loggers.append(StreamLogger(self, sys.stderr, self._formatlogline))
 		if self.mattermost_url is not None and self.mattermost_channel is not None and self.mattermost_token is not None:
 			self._loggers.append(MattermostLogger(self))
+		if self.sentry_dsn is not None:
+			self._loggers.append(SentryLogger(self))
 
 	def _closelogs(self, status:Status) -> None:
 		# Note that in forking mode the child process inherits the delayed log
@@ -1810,9 +1916,9 @@ class Task:
 	A subtask of a :class:`Job`.
 	"""
 
-	ul4_attrs = {"index", "count", "type", "name", "starttime", "endtime", "success"}
+	ul4_attrs = {"index", "count", "type", "name", "starttime", "endtime", "success", "data"}
 
-	def __init__(self, job:Job, type:OptStr=None, name:OptStr=None, index:OptInt=None, count:OptInt=None):
+	def __init__(self, job:Job, type:OptStr=None, name:OptStr=None, index:OptInt=None, count:OptInt=None, **data):
 		"""
 		Create a :class:`!Task` object. For the meaning of the parameters see
 		:meth:`Job.task`.
@@ -1822,6 +1928,7 @@ class Task:
 		self.name = name
 		self.index = index
 		self.count = count
+		self.data = data
 		self.starttime = None # type: Optional[datetime.datetime]
 		self.endtime = None # type: Optional[datetime.datetime]
 		self.success = None # type: Optional[bool]
@@ -2362,6 +2469,62 @@ class MattermostLogger(Logger):
 					"message": message[:15000],
 				}
 			)
+
+	def close(self, status:Status) -> bool:
+		return True
+
+
+class SentryLogger(Logger):
+	"""
+	Logger that logs messages and exceptions to Sentry.
+	"""
+
+	def __init__(self, job:Job):
+		self.job = job
+		
+	def name(self) -> str:
+		return "<sentry>"
+
+	def _task_description(self, task:Task) -> str:
+		v = ""
+		if task.type is not None and task.name is not None:
+			v = str(task.name)
+		if task.index is not None:
+			v += f" [{task.index+1:,}"
+			if task.count is not None:
+				v += f"/{task.count:,}"
+			v += "]"
+		return v or "?"
+
+	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
+		if "sentry" in tags:
+			sentry = self.job.sentry_sdk
+			if sentry is not None:
+				with sentry.push_scope() as scope:
+					if isinstance(text, BaseException):
+						scope.level = "fatal"
+					else:
+						for level in ("fatal", "error", "warning", "info", "debug"):
+							if level in tags:
+								scope.level = level
+								break
+						else:
+							scope.level = "info"
+					for tag in tags:
+						scope.set_tag(f"sisphus.tag.{tag}", "true")
+					for task in tasks:
+						sentry.add_breadcrumb(
+							type="debug",
+							category=task.type or task.name,
+							message=self._task_description(task),
+							data={k: str(v) for (k, v) in task.data.items()},
+						)
+					if isinstance(text, BaseException):
+						sentry.capture_exception(text)
+					else:
+						if not isinstance(text, str):
+							text = pprint.pformat(text)
+						sentry.capture_message(text, level="warning")
 
 	def close(self, status:Status) -> bool:
 		return True

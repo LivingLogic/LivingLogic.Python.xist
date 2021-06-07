@@ -70,11 +70,22 @@ Changes in 5.66 (released ??/??/2021)
 *	Now the ``ul4_attr`` attribute of objects gets honored in the implementation
 	of the ``dir()`` function in UL4.
 
-*	Support vor using custom tag delimiters for UL4 templates has been removed,
+*	Support for using custom tag delimiters for UL4 templates has been removed,
 	i.e. now the tag delimiters will always be ``<?`` and ``?>``.
 
 *	:class:`ll.ul4on.Decoder` gained a new method
 	:meth:`~ll.ul4on.Decoder.forget_persistent_object`.
+
+*	:class:`ll.sisyphus.Job`\s con now log to Sentry__.
+
+	__ https://sentry.io/
+
+*	:class:`ll.sisyphus.Task`\s constructor and the method
+	:class:`ll.sisyphus.Job.task` now take arbitrary additional keyword arguments.
+	Those wll be passed as additional breadcrumb data when logging to Sentry.
+
+*	:meth:`ll.sisyphus.Job.tasks` now takes an additional argument ``data`` that
+	is respsonsible for returning additional data for the task.
 
 
 Changes in 5.65 (released 01/13/2021)
