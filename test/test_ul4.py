@@ -4722,7 +4722,7 @@ def test_method_get(T):
 
 
 @pytest.mark.ul4
-def test_method_r_g_b_a(T):
+def test_color_method_r_g_b_a(T):
 	assert '0x11' == T('<?code c = #123?><?print hex(c.r())?>').renders()
 	assert '0x11' == T('<?code c = #123?><?code m = c.r?><?print hex(m())?>').renders()
 	assert '0x22' == T('<?code c = #123?><?print hex(c.g())?>').renders()
@@ -4734,7 +4734,7 @@ def test_method_r_g_b_a(T):
 
 
 @pytest.mark.ul4
-def test_method_hls(T):
+def test_color_method_hls(T):
 	assert '0' == T('<?code c = #fff?><?print int(c.hls()[0])?>').renders()
 	assert '1' == T('<?code c = #fff?><?print int(c.hls()[1])?>').renders()
 	assert '0' == T('<?code c = #fff?><?print int(c.hls()[2])?>').renders()
@@ -4742,7 +4742,7 @@ def test_method_hls(T):
 
 
 @pytest.mark.ul4
-def test_method_hlsa(T):
+def test_color_method_hlsa(T):
 	assert '0' == T('<?code c = #fff?><?print int(c.hlsa()[0])?>').renders()
 	assert '1' == T('<?code c = #fff?><?print int(c.hlsa()[1])?>').renders()
 	assert '0' == T('<?code c = #fff?><?print int(c.hlsa()[2])?>').renders()
@@ -4751,7 +4751,7 @@ def test_method_hlsa(T):
 
 
 @pytest.mark.ul4
-def test_method_hsv(T):
+def test_color_method_hsv(T):
 	assert '0' == T('<?code c = #fff?><?print int(c.hsv()[0])?>').renders()
 	assert '0' == T('<?code c = #fff?><?print int(c.hsv()[1])?>').renders()
 	assert '1' == T('<?code c = #fff?><?print int(c.hsv()[2])?>').renders()
@@ -4759,7 +4759,7 @@ def test_method_hsv(T):
 
 
 @pytest.mark.ul4
-def test_method_hsva(T):
+def test_color_method_hsva(T):
 	assert '0' == T('<?code c = #fff?><?print int(c.hsva()[0])?>').renders()
 	assert '0' == T('<?code c = #fff?><?print int(c.hsva()[1])?>').renders()
 	assert '1' == T('<?code c = #fff?><?print int(c.hsva()[2])?>').renders()
@@ -4768,13 +4768,38 @@ def test_method_hsva(T):
 
 
 @pytest.mark.ul4
-def test_method_lum(T):
+def test_color_method_hue(T):
+	assert 'True' == T('<?print #f00.hue() == 0?>').renders()
+	assert 'True' == T('<?print #0f0.hue() == 120/360?>').renders()
+	assert 'True' == T('<?print #00f.hue() == 240/360?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_sat(T):
+	assert 'True' == T('<?print #000.sat() == 0.0?>').renders()
+	assert 'True' == T('<?print #000.sat() == 0.0?>').renders()
+	assert 'True' == T('<?print #f00.sat() == 1.0?>').renders()
+	assert 'True' == T('<?print #0f0.sat() == 1.0?>').renders()
+	assert 'True' == T('<?print #00f.sat() == 1.0?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_lum(T):
 	assert 'True' == T('<?print #fff.lum() == 1?>').renders()
 	assert 'True' == T('<?code m = #fff.lum?><?print m() == 1?>').renders()
 
 
 @pytest.mark.ul4
-def test_method_withlum(T):
+def test_color_method_luma(T):
+	assert math.isclose(1.0   , float(T("<?print #fff.luma()?>").renders()))
+	assert math.isclose(0.0   , float(T("<?print #000.luma()?>").renders()))
+	assert math.isclose(0.2126, float(T("<?print #f00.luma()?>").renders()))
+	assert math.isclose(0.7152, float(T("<?print #0f0.luma()?>").renders()))
+	assert math.isclose(0.0722, float(T("<?print #00f.luma()?>").renders()))
+
+
+@pytest.mark.ul4
+def test_color_method_withlum(T):
 	assert '#fff' == T('<?print #000.withlum(1)?>').renders()
 	assert '#fff' == T('<?code m = #000.withlum?><?print m(1)?>').renders()
 
@@ -4783,12 +4808,75 @@ def test_method_withlum(T):
 
 
 @pytest.mark.ul4
-def test_method_witha(T):
+def test_color_method_witha(T):
 	assert '#0063a82a' == T('<?print repr(#0063a8.witha(42))?>').renders()
 	assert '#0063a82a' == T('<?code m = #0063a8.witha?><?print repr(m(42))?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '#0063a82a' == T('<?print repr(#0063a8.witha(a=42))?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_withluma(T):
+	assert '#fff' == T('<?print #000.withluma(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.withluma?><?print m(1)?>').renders()
+
+	assert '#000' == T('<?print #fff.withluma(0)?>').renders()
+	assert '#333' == T('<?print #fff.withluma(0.2)?>').renders()
+	assert '#f00' == T('<?print #f00.withluma(0.2126)?>').renders()
+	assert '#0f0' == T('<?print #0f0.withluma(0.7152)?>').renders()
+	assert '#00f' == T('<?print #00f.withluma(0.0722)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == T('<?print #000.withluma(luma=1)?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_absluma(T):
+	assert '#fff' == T('<?print #000.absluma(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.absluma?><?print m(1)?>').renders()
+
+	assert '#fff' == T('<?print #fff.absluma(0)?>').renders()
+	assert '#000' == T('<?print #fff.absluma(-1)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == T('<?print #000.absluma(f=1)?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_relluma(T):
+	assert '#fff' == T('<?print #000.relluma(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.relluma?><?print m(1)?>').renders()
+
+	assert '#fff' == T('<?print #fff.relluma(0)?>').renders()
+	assert '#000' == T('<?print #fff.relluma(-1)?>').renders()
+	assert '#888' == T('<?print #888.relluma(0)?>').renders()
+	assert '#f33' == T('<?print #f00.relluma(0.2)?>').renders()
+	assert '#3f3' == T('<?print #0f0.relluma(0.2)?>').renders()
+	assert '#33f' == T('<?print #00f.relluma(0.2)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == T('<?print #000.relluma(f=1)?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_invert(T):
+	assert '#fff' == T('<?code m = #000.invert?><?print m(1)?>').renders()
+
+	assert '#000' == T('<?print #000.invert(0)?>').renders()
+	assert '#333' == T('<?print #000.invert(0.2)?>').renders()
+	assert '#fff' == T('<?print #000.invert(1)?>').renders()
+	assert '#fff' == T('<?print #000.invert()?>').renders()
+	assert '#fff' == T('<?print #fff.invert(0)?>').renders()
+	assert '#ccc' == T('<?print #fff.invert(0.2)?>').renders()
+	assert '#000' == T('<?print #fff.invert(1)?>').renders()
+	assert '#000' == T('<?print #fff.invert()?>').renders()
+	assert '#0ff' == T('<?print #f00.invert()?>').renders()
+	assert '#f0f' == T('<?print #0f0.invert()?>').renders()
+	assert '#ff0' == T('<?print #00f.invert()?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == T('<?print #000.invert(f=1)?>').renders()
 
 
 @pytest.mark.ul4

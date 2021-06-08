@@ -22,6 +22,10 @@ from ll import ul4c
 __docformat__ = "reStructuredText"
 
 
+def _interpolate(lower, upper, factor):
+	return factor*upper + (1-factor) * lower
+
+
 class Color(tuple):
 	"""
 	A :class:`Color` object represents a color with 8-bit red, green and blue
@@ -29,7 +33,7 @@ class Color(tuple):
 	"""
 
 	ul4_type = ul4c.InstantiableType(None, "color", "An RGBA color object with 8-bit red, green and blue components and transparency.")
-	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "lum", "witha", "withlum", "abslum", "rellum"}
+	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "invert", "sat", "lum", "luma", "withhue", "withsat", "withlum", "withluma", "witha", "abslum", "rellum", "absluma", "relluma", "combine", "invert"}
 
 	def __new__(cls, r=0x0, g=0x0, b=0x0, a=0xff):
 		"""
@@ -210,34 +214,47 @@ class Color(tuple):
 		"""
 		return self.hls() + (self[3]/255.,)
 
+	def hue(self):
+		"""
+		The hue value from :meth:`hls`.
+		"""
+		return self.hls()[0]
+
 	def lum(self):
 		"""
 		The luminance value from :meth:`hls`.
 		"""
-		return colorsys.rgb_to_hls(self[0]/255., self[1]/255., self[2]/255.)[1]
+		return self.hls()[1]
 
-	def combine(self, r=None, g=None, b=None, a=None):
+	def sat(self):
 		"""
-		Return a copy of ``self`` with some of the values replaced by the
-		arguments.
+		The saturation value from :meth:`hls`.
 		"""
-		channels = list(self)
-		if r is not None:
-			channels[0] = r
-		if g is not None:
-			channels[1] = g
-		if b is not None:
-			channels[2] = b
-		if a is not None:
-			channels[3] = a
-		return self.__class__(*channels)
+		return self.hls()[2]
 
-	def witha(self, a):
+	def luma(self):
 		"""
-		Return a copy of ``self`` with the alpha value replaced with ``a``.
+		Luma according to sRGB:
+
+		.. sourcecode:: python
+
+			(0.2126*r + 0.7152*g + 0.0722*b)/255
 		"""
-		(r, g, b, olda) = self
-		return self.__class__(r, g, b, a)
+		return (0.2126 * self[0] + 0.7152 * self[1] + 0.0722 * self[2])/255.
+
+	def withhue(self, hue):
+		"""
+		Return a copy of ``self`` with the hue replaced with ``hue``.
+		"""
+		(h, l, s, a) = self.hlsa()
+		return self.fromhls(hue, l, s, a)
+
+	def withsat(self, sat):
+		"""
+		Return a copy of ``self`` with the saturation replaced with ``sat``.
+		"""
+		(h, l, s, a) = self.hlsa()
+		return self.fromhls(h, l, sat, a)
 
 	def withlum(self, lum):
 		"""
@@ -245,6 +262,40 @@ class Color(tuple):
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, lum, s, a)
+
+	def withluma(self, luma):
+		"""
+		Return a copy of ``self`` where the luma value has been replace with ``luma``.
+		"""
+		luma_old = self.luma()
+		if luma_old == 0.0 or luma_old == 1.0:
+			v = luma*255
+			return Color(v, v, v, self[3])
+		elif luma > luma_old:
+			f = (luma-luma_old)/(1-luma_old)
+			return Color(
+				_interpolate(self[0], 255, f),
+				_interpolate(self[1], 255, f),
+				_interpolate(self[2], 255, f),
+				self[3],
+			)
+		elif luma < luma_old:
+			f = luma/luma_old
+			return Color(
+				_interpolate(0, self[0], f),
+				_interpolate(0, self[1], f),
+				_interpolate(0, self[2], f),
+				self[3],
+			)
+		else:
+			return self
+
+	def witha(self, a):
+		"""
+		Return a copy of ``self`` with the alpha value replaced with ``a``.
+		"""
+		(r, g, b, olda) = self
+		return self.__class__(r, g, b, a)
 
 	def abslum(self, f):
 		"""
@@ -267,6 +318,58 @@ class Color(tuple):
 		elif f < 0:
 			l += l*f
 		return self.fromhls(h, l, s, a)
+
+	def absluma(self, f):
+		"""
+		Return a copy of ``self`` where ``f`` has been added to the luma value.
+		"""
+		return self.withluma(self.luma() + f)
+
+	def relluma(self, f):
+		"""
+		Return a copy of ``self`` where the luma value has been modified:
+		If ``f`` if positive the luma value will be increased, with ``f==1``
+		giving a luma value of 1. If ``f`` is negative, the luma value will be
+		decreased with ``f==-1`` giving a luma value of 0. ``f==0`` will leave
+		the luma value unchanged.
+		"""
+		luma = self.luma()
+		if f > 0:
+			luma += (1-luma)*f
+		elif f < 0:
+			luma += luma*f
+		return self.withluma(luma)
+
+	def combine(self, r=None, g=None, b=None, a=None):
+		"""
+		Return a copy of ``self`` with some of the values replaced by the
+		arguments.
+		"""
+		channels = list(self)
+		if r is not None:
+			channels[0] = r
+		if g is not None:
+			channels[1] = g
+		if b is not None:
+			channels[2] = b
+		if a is not None:
+			channels[3] = a
+		return self.__class__(*channels)
+
+	def invert(self, f=1.0):
+		"""
+		Return an inverted version of ``self``. ``f`` specifies the amount
+		of inversion, with 1 returning a complete inversion, and 0 returning
+		the original color. Values between 0 and 1 return an interpolation
+		of both extreme values. (And 0.5 always returns medium grey).
+		"""
+		invf = 1.0 - f
+		return self.__class__(
+			invf * self[0] + f * (255-self[0]),
+			invf * self[1] + f * (255-self[1]),
+			invf * self[2] + f * (255-self[2]),
+			self[3],
+		)
 
 	def __add__(self, other):
 		raise NotImplementedError

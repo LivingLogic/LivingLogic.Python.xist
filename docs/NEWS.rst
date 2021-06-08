@@ -87,6 +87,13 @@ Changes in 5.66 (released ??/??/2021)
 *	:meth:`ll.sisyphus.Job.tasks` now takes an additional argument ``data`` that
 	is respsonsible for returning additional data for the task.
 
+*	The following methods have been added to :class:`ll.color.Color`:
+	:meth:`~ll.color.Color.hue`, :meth:`~ll.color.Color.sat`,
+	:meth:`~ll.color.Color.luma`, :meth:`~ll.color.Color.withhue`,
+	:meth:`~ll.color.Color.withsat`, :meth:`~ll.color.Color.withluma`,
+	:meth:`~ll.color.Color.abluma`, :meth:`~ll.color.Color.relluma` and
+	:meth:`~ll.color.Color.invert`. They have also been made available to UL4.
+
 
 Changes in 5.65 (released 01/13/2021)
 -------------------------------------
