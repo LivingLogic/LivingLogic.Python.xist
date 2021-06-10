@@ -288,7 +288,13 @@ class Context:
 			b["list"] = ListType
 			b["set"] = SetType
 			b["dict"] = DictType
-			b["color"] = color.Color.ul4_type
+			b["color"] = _create_module(
+				"color",
+				"Types and functions for handling RGBA colors",
+				css=color.css,
+				mix=color.mix,
+				Color=color.Color.ul4_type,
+			)
 			b["ul4"] = _create_module(
 				"ul4",
 				"UL4 - A templating language",

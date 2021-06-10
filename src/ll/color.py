@@ -10,7 +10,7 @@
 
 
 """
-:mod:`!ll.color` provides classes and functions for handling RGB colors.
+:mod:`!ll.color` provides classes and functions for handling RGBA colors.
 """
 
 
@@ -19,10 +19,15 @@ import colorsys
 from ll import ul4c
 
 
+from typing import *
+OptStr = Optional[str]
+Number = Union[int, str]
+
+
 __docformat__ = "reStructuredText"
 
 
-def _interpolate(lower, upper, factor):
+def _interpolate(lower:float, upper:float, factor:float) -> float:
 	return factor*upper + (1-factor) * lower
 
 
@@ -32,10 +37,10 @@ class Color(tuple):
 	components and transparency.
 	"""
 
-	ul4_type = ul4c.InstantiableType(None, "color", "An RGBA color object with 8-bit red, green and blue components and transparency.")
+	ul4_type = ul4c.InstantiableType("color", "Color", "An RGBA color object with 8-bit red, green and blue components and transparency.")
 	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "invert", "sat", "lum", "luma", "withhue", "withsat", "withlum", "withluma", "witha", "abslum", "rellum", "absluma", "relluma", "combine", "invert"}
 
-	def __new__(cls, r=0x0, g=0x0, b=0x0, a=0xff):
+	def __new__(cls, r:int=0x0, g:int=0x0, b:int=0x0, a:int=0xff):
 		"""
 		Create a :class:`!Color` with the 8 bit red, green, blue and alpha
 		components ``r``, ``g``, ``b`` and ``a``. Values will be
@@ -44,7 +49,7 @@ class Color(tuple):
 		return tuple.__new__(cls, (max(0, min(int(r), 255)), max(0, min(int(g), 255)), max(0, min(int(b), 255)), max(0, min(int(a), 255))))
 
 	@classmethod
-	def fromrepr(cls, s):
+	def fromrepr(cls, s:str) -> "Color":
 		try:
 			if len(s) == 9:
 				return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))
@@ -59,7 +64,7 @@ class Color(tuple):
 		raise ValueError(f"can't interpret {s!r} as color repr value")
 
 	@classmethod
-	def fromcss(cls, s):
+	def fromcss(cls, s:str) -> "Color":
 		"""
 		Create a :class:`Color` object from the CSS__ color string ``s``.
 		All formats from CSS2 are supported (i.e. ``'#xxx'``, ``'#xxxxxx'``,
@@ -71,8 +76,12 @@ class Color(tuple):
 		if s.startswith("#"):
 			if len(s) == 4:
 				return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16))
+			elif len(s) == 5:
+				return cls(17*int(s[1], 16), 17*int(s[2], 16), 17*int(s[3], 16), 17*int(s[4], 16))
 			elif len(s) == 7:
 				return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:], 16))
+			elif len(s) == 9:
+				return cls(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16), int(s[7:], 16))
 		elif s.startswith("rgb(") and s.endswith(")"):
 			channels = []
 			for x in s[4:-1].split(","):
@@ -87,10 +96,10 @@ class Color(tuple):
 			channels = []
 			for x in s[5:-1].split(","):
 				x = x.strip()
-				if len(channels) == 3: # alpha value
-					v = float(x)*0xff
-				elif x.endswith("%"):
+				if x.endswith("%"):
 					v = float(x[:-1])*0xff/100
+				elif len(channels) == 3: # alpha value
+					v = float(x)*0xff
 				else:
 					v = int(x)
 				channels.append(v)
@@ -100,7 +109,7 @@ class Color(tuple):
 		raise ValueError(f"can't interpret {s!r} as css value")
 
 	@classmethod
-	def fromrgb(cls, r, g, b, a=1.0):
+	def fromrgb(cls, r:Number, g:Number, b:Number, a:Number=1.0) -> "Color":
 		"""
 		Create a :class:`Color` object from the red, green, blue and alpha values
 		``r``, ``g``, ``b`` and ``a``. All values will be clipped to the range
@@ -109,7 +118,7 @@ class Color(tuple):
 		return cls(255*r, 255*g, 255*b, 255*a)
 
 	@classmethod
-	def fromhsv(cls, h, s, v, a=1.0):
+	def fromhsv(cls, h:Number, s:Number, v:Number, a:Number=1.0) -> "Color":
 		"""
 		Create a :class:`Color` object from the hue, saturation and value values
 		``h``, ``s`` and ``v`` and the alpha value ``a``. The hue value will be
@@ -120,7 +129,7 @@ class Color(tuple):
 		return cls.fromrgb(*(rgb + (a,)))
 
 	@classmethod
-	def fromhls(cls, h, l, s, a=1.0):
+	def fromhls(cls, h:Number, l:Number, s:Number, a:Number=1.0) -> "Color":
 		"""
 		Create a :class:`Color` object from the hue, luminance and saturation
 		values ``h``, ``l`` and ``s`` and the alpha value ``a``. The hue value
@@ -130,13 +139,13 @@ class Color(tuple):
 		rgb = colorsys.hls_to_rgb(h % 1.0, max(0., min(l, 1.)), max(0., min(s, 1.)))
 		return cls.fromrgb(*(rgb + (a,)))
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		if self[3] != 0xff:
 			return f"Color({self[0]:#04x}, {self[1]:#04x}, {self[2]:#04x}, {self[3]:#04x})"
 		else:
 			return f"Color({self[0]:#04x}, {self[1]:#04x}, {self[2]:#04x})"
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""
 		``self`` formatted as a CSS color string.
 		"""
@@ -148,91 +157,91 @@ class Color(tuple):
 				s = f"#{s[1]}{s[3]}{s[5]}"
 		return s
 
-	def r(self):
+	def r(self) -> int:
 		"""
 		The red value as an int between 0 and 255.
 		"""
 		return self[0]
 
-	def g(self):
+	def g(self) -> int:
 		"""
 		The green value as an int between 0 and 255.
 		"""
 		return self[1]
 
-	def b(self):
+	def b(self) -> int:
 		"""
 		The blue value as an int between 0 and 255.
 		"""
 		return self[2]
 
-	def a(self):
+	def a(self) -> int:
 		"""
 		The alpha value as an int between 0 and 255.
 		"""
 		return self[3]
 
-	def rgb(self):
+	def rgb(self) -> Tuple[float, float, float]:
 		"""
 		The red, green and blue value as a float tuple with values between
 		0.0 and 1.0.
 		"""
 		return (self[0]/255., self[1]/255., self[2]/255.)
 
-	def rgba(self):
+	def rgba(self) -> Tuple[float, float, float, float]:
 		"""
 		The red, green, blue and alpha value as a float tuple with values between
 		0.0 and 1.0.
 		"""
 		return (self[0]/255., self[1]/255., self[2]/255., self[3]/255.)
 
-	def hsv(self):
+	def hsv(self) -> Tuple[float, float, float]:
 		"""
 		``self`` as a HSV tuple ("hue, saturation, value").
 		All three values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hsv(self[0]/255., self[1]/255., self[2]/255.)
 
-	def hsva(self):
+	def hsva(self) -> Tuple[float, float, float, float]:
 		"""
 		``self`` as a HSV+alpha tuple ("hue, saturation, value, alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hsv() + (self[3]/255.,)
 
-	def hls(self):
+	def hls(self) -> Tuple[float, float, float]:
 		"""
 		``self`` as a HLS tuple ("hue, luminance, saturation"). All three
 		values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hls(self[0]/255., self[1]/255., self[2]/255.)
 
-	def hlsa(self):
+	def hlsa(self) -> Tuple[float, float, float, float]:
 		"""
 		``self`` as a HLS+alpha tuple ("hue, luminance, saturation, alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hls() + (self[3]/255.,)
 
-	def hue(self):
+	def hue(self) -> float:
 		"""
 		The hue value from :meth:`hls`.
 		"""
 		return self.hls()[0]
 
-	def lum(self):
+	def lum(self) -> float:
 		"""
 		The luminance value from :meth:`hls`.
 		"""
 		return self.hls()[1]
 
-	def sat(self):
+	def sat(self) -> float:
 		"""
 		The saturation value from :meth:`hls`.
 		"""
 		return self.hls()[2]
 
-	def luma(self):
+	def luma(self) -> float:
 		"""
 		Luma according to sRGB:
 
@@ -242,28 +251,28 @@ class Color(tuple):
 		"""
 		return (0.2126 * self[0] + 0.7152 * self[1] + 0.0722 * self[2])/255.
 
-	def withhue(self, hue):
+	def withhue(self, hue:Number) -> "Color":
 		"""
 		Return a copy of ``self`` with the hue replaced with ``hue``.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(hue, l, s, a)
 
-	def withsat(self, sat):
+	def withsat(self, sat:Number) -> "Color":
 		"""
 		Return a copy of ``self`` with the saturation replaced with ``sat``.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l, sat, a)
 
-	def withlum(self, lum):
+	def withlum(self, lum:Number) -> "Color":
 		"""
 		Return a copy of ``self`` with the luminosity replaced with ``lum``.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, lum, s, a)
 
-	def withluma(self, luma):
+	def withluma(self, luma:Number) -> "Color":
 		"""
 		Return a copy of ``self`` where the luma value has been replace with ``luma``.
 		"""
@@ -290,21 +299,21 @@ class Color(tuple):
 		else:
 			return self
 
-	def witha(self, a):
+	def witha(self, a:int) -> "Color":
 		"""
 		Return a copy of ``self`` with the alpha value replaced with ``a``.
 		"""
 		(r, g, b, olda) = self
 		return self.__class__(r, g, b, a)
 
-	def abslum(self, f):
+	def abslum(self, f:Number) -> "Color":
 		"""
 		Return a copy of ``self`` with ``f`` added to the luminocity.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l+f, s, a)
 
-	def rellum(self, f):
+	def rellum(self, f:Number) -> "Color":
 		"""
 		Return a copy of ``self`` where the luminocity has been modified:
 		If ``f`` if positive the luminocity will be increased, with ``f==1``
@@ -319,13 +328,13 @@ class Color(tuple):
 			l += l*f
 		return self.fromhls(h, l, s, a)
 
-	def absluma(self, f):
+	def absluma(self, f:Number) -> "Color":
 		"""
 		Return a copy of ``self`` where ``f`` has been added to the luma value.
 		"""
 		return self.withluma(self.luma() + f)
 
-	def relluma(self, f):
+	def relluma(self, f:Number) -> "Color":
 		"""
 		Return a copy of ``self`` where the luma value has been modified:
 		If ``f`` if positive the luma value will be increased, with ``f==1``
@@ -340,7 +349,7 @@ class Color(tuple):
 			luma += luma*f
 		return self.withluma(luma)
 
-	def combine(self, r=None, g=None, b=None, a=None):
+	def combine(self, r:Number=None, g:Number=None, b:Number=None, a:Number=None) -> "Color":
 		"""
 		Return a copy of ``self`` with some of the values replaced by the
 		arguments.
@@ -356,7 +365,7 @@ class Color(tuple):
 			channels[3] = a
 		return self.__class__(*channels)
 
-	def invert(self, f=1.0):
+	def invert(self, f:Number=1.0) -> "Color":
 		"""
 		Return an inverted version of ``self``. ``f`` specifies the amount
 		of inversion, with 1 returning a complete inversion, and 0 returning
@@ -374,19 +383,19 @@ class Color(tuple):
 	def __add__(self, other):
 		raise NotImplementedError
 
-	def __mul__(self, factor):
+	def __mul__(self, factor:Number) -> "Color":
 		return self.__class__(factor*self[0], factor*self[1], factor*self[2], self[3])
 
-	def __rmul__(self, factor):
+	def __rmul__(self, factor:Number) -> "Color":
 		return self.__class__(factor*self[0], factor*self[1], factor*self[2], self[3])
 
-	def __truediv__(self, factor):
+	def __truediv__(self, factor:Number) -> "Color":
 		return self.__class__(self[0]/factor, self[1]/factor, self[2]/factor, self[3])
 
-	def __floordiv__(self, factor):
+	def __floordiv__(self, factor:Number) -> "Color":
 		return self.__class__(self[0]//factor, self[1]//factor, self[2]//factor, self[3])
 
-	def __mod__(self, other):
+	def __mod__(self, other:"Color") -> "Color":
 		"""
 		Blends ``self`` with the background color ``other`` according to the
 		`CSS specification`__
@@ -489,11 +498,28 @@ csscolors = {
 }
 
 
-def css(value):
-	return Color.fromcss(value)
+_missing = object()
+
+def css(value:str, default:OptStr=_missing, /) -> "Color":
+	"""
+	Create a :class:`Color` object from the CSS__ color string ``value`` via
+	:meth:`Color.fromcss`.
+
+	If ``value`` is no valid CSS color string and ``default`` is given,
+	return ``default`` instead.
+
+		__ http://www.w3.org/TR/css3-color/#colorunits
+	"""
+	if default is _missing:
+		return Color.fromcss(value)
+	else:
+		try:
+			return Color.fromcss(value)
+		except ValueError:
+			return default
 
 
-def dist(c1, c2):
+def dist(c1:"Color", c2:"Color", /) -> float:
 	"""
 	Return the distance between two colors.
 	"""
@@ -504,21 +530,21 @@ def dist(c1, c2):
 	return d0*d0+d1*d1+d2*d2
 
 
-def multiply(c1, c2):
+def multiply(c1:"Color", c2:"Color", /) -> "Color":
 	"""
 	Multiplies the colors ``c1`` and ``c2``.
 	"""
 	return Color(c1[0]*c2[0], c1[1]*c2[1], c1[2]*c2[2], 1.-(1.-c1[3])*(1.-c2[3]))
 
 
-def screen(c1, c2):
+def screen(c1:"Color", c2:"Color", /) -> "Color":
 	"""
 	Does a negative multiplication of the colors ``c1`` and ``c2``.
 	"""
 	return Color(*(1.-(1.-x)*(1.-y) for (x, y) in zip(c1, c2)))
 
 
-def mix(*args):
+def mix(*args) -> "Color":
 	"""
 	Calculates a weighted mix of the colors from ``args``. Items in
 	``args`` are either colors or weights. The following example mixes
@@ -545,5 +571,5 @@ def mix(*args):
 		else:
 			weight = arg
 	if not sumweights:
-		raise ValueError("at least one of the weights must be >0")
+		raise ValueError("at least one of the arguments must be a color and at least one of the weights must be >0")
 	return Color(channels[0]/sumweights, channels[1]/sumweights, channels[2]/sumweights, 255-sumweights*channels[3])
