@@ -25,6 +25,11 @@
 	--main-color-bg-l: 100%;
 	--main-color-bg: hsl(var(--main-color-bg-h), var(--main-color-bg-s), var(--main-color-bg-l));
 
+	--fade-color-fg-h: 0deg;
+	--fade-color-fg-s: 0%;
+	--fade-color-fg-l: 60%;
+	--fade-color-fg: hsl(var(--fade-color-fg-h), var(--fade-color-fg-s), var(--fade-color-fg-l));
+
 	--scrollbar-color-fg-h: 0deg;
 	--scrollbar-color-fg-s: 0%;
 	--scrollbar-color-fg-l: 80%;
@@ -50,23 +55,28 @@
 
 	--active-color-fg-h: 200deg;
 	--active-color-fg-s: 60%;
-	--active-color-fg-l: 40%;
+	--active-color-fg-l: calc(var(--main-color-fg-l) + 40%);
 	--active-color-fg: hsl(var(--active-color-fg-h), var(--active-color-fg-s), var(--active-color-fg-l));
 
 	--visited-color-fg-h: calc(var(--active-color-fg-h) + 60deg);
 	--visited-color-fg-s: 60%;
-	--visited-color-fg-l: 40%;
+	--visited-color-fg-l: var(--active-color-fg-l);
 	--visited-color-fg: hsl(var(--visited-color-fg-h), var(--visited-color-fg-s), var(--visited-color-fg-l));
 
 	--hover-color-fg-h: 0deg;
 	--hover-color-fg-s: 0%;
-	--hover-color-fg-l: 20%;
+	--hover-color-fg-l: var(--active-color-fg-l - 20%);
 	--hover-color-fg: hsl(var(--hover-color-fg-h), var(--hover-color-fg-s), var(--hover-color-fg-l));
 
 	--hover-color-bg-h: 0deg;
 	--hover-color-bg-s: 0%;
 	--hover-color-bg-l: 80%;
 	--hover-color-bg: hsl(var(--hover-color-bg-h), var(--hover-color-bg-s), var(--hover-color-bg-l));
+
+	--fadeactive-color-fg-h: var(--active-color-fg-h);
+	--fadeactive-color-fg-s: var(--active-color-fg-s);
+	--fadeactive-color-fg-l: 40%;
+	--fadeactive-color-fg: hsl(var(--fadeactive-color-fg-h), var(--fadeactive-color-fg-s), var(--fadeactive-color-fg-l));
 
 	--warning-color-bg-h: 30deg;
 	--warning-color-bg-s: 60%;
@@ -771,6 +781,7 @@ a .icon
 .rst-content .wy-alert-success.admonition
 {
 	font-size: 90%;
+	color: var(--fade-color-fg);
 }
 
 .wy-alert.wy-alert-neutral,
@@ -1622,6 +1633,12 @@ aside .breadcrumbs
 	pointer-events: none;
 }
 
+.highlight span.linenos
+{
+	padding-left: 0;
+	padding-right: 1.2rem;
+}
+
 .rst-content div[class^='highlight'] pre
 {
 	white-space: pre;
@@ -2035,6 +2052,22 @@ dt em
 		color: #aaa;
 	}
 
+	.rst-content .hint,
+	.rst-content .important,
+	.rst-content .tip
+	{
+		--main-color-fg-l: 60%;
+		--main-color-fg: hsl(var(--main-color-fg-h), var(--main-color-fg-s), var(--main-color-fg-l));
+		color: var(--main-color-fg);
+	}
+
+	.rst-content .hint a:link,
+	.rst-content .important a:link,
+	.rst-content .tip a:link
+	{
+		color: var(--fadeactive-color-fg);
+	}
+
 	a.iconpanel
 	{
 		border-color: #fc39;
@@ -2056,7 +2089,7 @@ dt em
 	.rst-content pre.literal-block,
 	.rst-content div[class^="highlight"]
 	{
-		border-color: #fff3;
+		border-color: var(--rule-color-fg);
 		background-color: #ffffff03;
 	}
 
