@@ -1709,7 +1709,9 @@ class Job:
 			for (name, module) in self.tasks(items, "module", operator.itemgetter(0)):
 				self.log(f"module is {module}")
 
-		The log output will look something like the following::
+		The log output will look something like the following:
+
+		.. sourcecode:: output
 
 			[2019-05-06 18:52:31.366810]=[t+0:00:00.263849] :: parent 19448 :: {sisyphus}{init} >> /Users/walter/x/gurk.py (max time 0:01:40)
 			[2019-05-06 18:52:31.367831]=[t+0:00:00.264870] :: parent 19448 :: {sisyphus}{init} >> logging to <stdout>, /Users/walter/ll.sisyphus/Test/Job/2019-05-06-18-52-31-102961.sisyphuslog
