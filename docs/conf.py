@@ -16,8 +16,10 @@
 import sys
 import os
 import types
+import re
 
 from pygments import lexer, token
+from pygments.lexers import web
 
 from sphinx.writers import latex, html5
 
@@ -147,7 +149,8 @@ exclude_patterns = []
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'livinglogic-light'
+
 
 tab_width = 3
 
@@ -435,8 +438,162 @@ class OutputLexer(lexer.Lexer):
 		yield 0, token.Generic.Output, text
 
 
+class UL4Lexer(lexer.RegexLexer):
+	"""
+	Generic lexer for XML (eXtensible Markup Language).
+	"""
+
+	flags = re.MULTILINE | re.DOTALL | re.UNICODE
+
+	name = 'UL4'
+	aliases = ['ul4']
+	filenames = ['*.ul4']
+
+	tokens = {
+		"root": [
+			(
+				r"(<\?)(\s*)(ul4)(\s*)(\?>)",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword, token.Text, token.Comment.Preproc),
+			),
+			(
+				r"(<\?)(\s*)(ul4)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword, token.Text, token.Token.Name.Function),
+				"ul4",
+			),
+			(
+				r"<\?\s*note\s+.*?\?>",
+				token.Comment,
+			),
+			(
+				r"<\?\s*doc\s+.*?\?>",
+				token.String.Doc,
+			),
+			(
+				r"(<\?\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
+				lexer.bygroups(token.Comment.Preproc, token.Keyword, token.Text, token.Token.Name.Function),
+				"ul4",
+			),
+			(
+				r"(<\?)(\s*)(printx|print|for|if|elif|else|while|code|renderblocks?|render)\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
+				"ul4",
+			),
+			(
+				r"(<\?)(\s*)(end)\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
+				"end",
+			),
+			(
+				r"(<\?)(\s*)(whitespace)\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
+				"whitespace",
+			),
+			(r"[^<]+", token.Token.Other),
+			(r"<", token.Token.Other),
+		],
+		"ul4": [
+			(r"\?>", token.Comment.Preproc, "#pop"),
+			("'''", token.String, "string13"),
+			('""""', token.String, "string23"),
+			("'", token.String, "string1"),
+			('"', token.String, "string2"),
+			(r"\d+\.\d*([eE][+-]?\d+)?", token.Number.Float),
+			(r"\.\d+([eE][+-]?\d+)?", token.Number.Float),
+			(r"\d+[eE][+-]?\d+", token.Number.Float),
+			(r"0[bB][01]+", token.Number.Bin),
+			(r"0[oO][0-7]+", token.Number.Oct),
+			(r"0[xX][0-9a-fA-F]+", token.Number.Hex),
+			(r"@\(\d\d\d\d-\d\d-\d\d(T(\d\d:\d\d(:\d\d(\.\d{6})?)?)?)?\)", token.Literal.Date),
+			(r"#[0-9a-fA-F]{8}", token.Literal.Color),
+			(r"#[0-9a-fA-F]{6}", token.Literal.Color),
+			(r"#[0-9a-fA-F]{3,4}", token.Literal.Color),
+			(r"\d+", token.Number.Integer),
+			(r"//|==|=|>=|<=|<<|>>|\+=|-=|\*=|/=|//=|<<=|>>=|&=|\|=|^=|[\[\]{},:*/().~%&|<>^+-]", token.Token.Operator),
+			(lexer.words(("for", "in", "if", "else", "not", "is", "and", "or"), suffix=r"\b"), token.Keyword),
+			(lexer.words(("None", "False", "True"), suffix=r"\b"), token.Keyword.Constant),
+			(r"[a-zA-Z_][a-zA-Z0-9_]*", token.Name),
+			(r"\s+", token.Text),
+		],
+		"end": [
+			(r"\?>", token.Comment.Preproc, "#pop"),
+			(lexer.words(("for", "if", "def", "renderblock", "renderblocks"), suffix=r"\b"), token.Keyword),
+			(r"\s+", token.Text),
+			(r".", token.Error),
+		],
+		"whitespace": [
+			(r"\?>", token.Comment.Preproc, "#pop"),
+			(lexer.words(("keep", "strip", "smart"), suffix=r"\b"), token.Comment.Preproc),
+			(r"\s+", token.Text),
+			(r".", token.Error),
+		],
+		"string": [
+			("\\\\['\"abtnfr]", token.String.Escape),
+			(r"\\x[0-9a-fA-F]{2}", token.String.Escape),
+			(r"\\u[0-9a-fA-F]{4}", token.String.Escape),
+			(r"\\U[0-9a-fA-F]{8}", token.String.Escape),
+			(r".", token.String),
+		],
+		"string13": [
+			(r"'''", token.String, "#pop"),
+			lexer.include("string"),
+		],
+		"string23": [
+			(r'"""', token.String, "#pop"),
+			lexer.include("string"),
+		],
+		"string1": [
+			(r"'", token.String, "#pop"),
+			lexer.include("string"),
+		],
+		"string2": [
+			(r'"', token.String, "#pop"),
+			lexer.include("string"),
+		],
+	}
+
+class HTMLUL4Lexer(lexer.DelegatingLexer):
+	name = 'HTML UL4'
+	aliases = ['htmlul4']
+	filenames = ['*.htmlul4']
+
+	def __init__(self, **options):
+		super().__init__(web.HtmlLexer, UL4Lexer, **options)
+
+
+class XMLUL4Lexer(lexer.DelegatingLexer):
+	name = 'XML UL4'
+	aliases = ['xmlul4']
+	filenames = ['*.xmlul4']
+
+	def __init__(self, **options):
+		super().__init__(web.XmlLexer, UL4Lexer, **options)
+
+
+class CSSUL4Lexer(lexer.DelegatingLexer):
+	name = 'CSS UL4'
+	aliases = ['cssul4']
+	filenames = ['*.cssul4']
+
+	def __init__(self, **options):
+		super().__init__(web.CssLexer, UL4Lexer, **options)
+
+
+class JavascriptUL4Lexer(lexer.DelegatingLexer):
+	name = 'Javascript UL4'
+	aliases = ['jsul4']
+	filenames = ['*.jsul4']
+
+	def __init__(self, **options):
+		super().__init__(web.JavascriptLexer, UL4Lexer, **options)
+
+
 def setup(app):
 	app.require_sphinx("3.5")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
 	app.add_lexer("output", OutputLexer)
+	app.add_lexer("ul4", UL4Lexer)
+	app.add_lexer("htmlul4", HTMLUL4Lexer)
+	app.add_lexer("xmlul4", XMLUL4Lexer)
+	app.add_lexer("cssul4", CSSUL4Lexer)
+	app.add_lexer("jsul4", JavascriptUL4Lexer)
