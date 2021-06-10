@@ -10,6 +10,8 @@
 ## See ll/xist/__init__.py for the license
 
 
+import math
+
 from ll import color
 
 
@@ -52,6 +54,96 @@ def test_r_g_b():
 	assert c.g() == 0x34
 	assert c.b() == 0x56
 	assert c.a() == 0x78
+
+
+def test_hls():
+	assert (0, 1, 0) == tuple(map(int, color.css("#fff").hls()))
+
+
+def test_hlsa():
+	assert (0, 1, 0, 1) == tuple(map(int, color.css("#fff").hlsa()))
+
+
+def test_hsv():
+	assert (0, 0, 1) == tuple(map(int, color.css("#fff").hsv()))
+
+
+def test_hsva():
+	assert (0, 0, 1, 1) == tuple(map(int, color.css("#fff").hsva()))
+
+
+def test_hue():
+	assert math.isclose(color.css("#f00").hue(), 0)
+	assert math.isclose(color.css("#0f0").hue(), 120/360)
+	assert math.isclose(color.css("#00f").hue(), 240/360)
+
+
+def test_sat():
+	assert math.isclose(0, color.css("#000").sat())
+	assert math.isclose(0, color.css("#fff").sat())
+	assert math.isclose(1, color.css("#f00").sat())
+	assert math.isclose(1, color.css("#0f0").sat())
+	assert math.isclose(1, color.css("#00f").sat())
+
+
+def test_lum():
+	math.isclose(0, color.css("#000").lum())
+	math.isclose(1, color.css("#fff").lum())
+
+
+def test_luma():
+	assert math.isclose(1.0   , color.css("#fff").luma())
+	assert math.isclose(0.0   , color.css("#000").luma())
+	assert math.isclose(0.2126, color.css("#f00").luma())
+	assert math.isclose(0.7152, color.css("#0f0").luma())
+	assert math.isclose(0.0722, color.css("#00f").luma())
+
+
+def test_withlum():
+	assert color.white == color.black.withlum(1.0)
+
+
+def test_witha():
+	assert color.Color(0x00, 0x63, 0xa8, 0x2a) == color.Color(0x00, 0x63, 0xa8).witha(42)
+
+
+def test_withluma():
+	assert "#000" == str(color.css("#fff").withluma(0))
+	assert "#333" == str(color.css("#fff").withluma(0.2))
+	assert "#f00" == str(color.css("#f00").withluma(0.2126))
+	assert "#0f0" == str(color.css("#0f0").withluma(0.7152))
+	assert "#00f" == str(color.css("#00f").withluma(0.0722))
+
+
+def test_absluma():
+	assert "#fff" == str(color.css("#000").absluma(1))
+	assert "#000" == str(color.css("#fff").withluma(0))
+	assert "#000" == str(color.css("#fff").withluma(-1))
+	assert "#333" == str(color.css("#000").absluma(0.2))
+
+
+def test_relluma():
+	assert "#fff" == str(color.css("#000").relluma(1))
+	assert "#fff" == str(color.css("#fff").relluma(0))
+	assert "#000" == str(color.css("#fff").relluma(-1))
+	assert "#888" == str(color.css("#888").relluma(0))
+	assert "#f33" == str(color.css("#f00").relluma(0.2))
+	assert "#3f3" == str(color.css("#0f0").relluma(0.2))
+	assert "#33f" == str(color.css("#00f").relluma(0.2))
+
+
+def test_invert():
+	assert "#000" == str(color.css("#000").invert(0))
+	assert "#333" == str(color.css("#000").invert(0.2))
+	assert "#fff" == str(color.css("#000").invert(1))
+	assert "#fff" == str(color.css("#000").invert())
+	assert "#fff" == str(color.css("#fff").invert(0))
+	assert "#ccc" == str(color.css("#fff").invert(0.2))
+	assert "#000" == str(color.css("#fff").invert(1))
+	assert "#000" == str(color.css("#fff").invert())
+	assert "#0ff" == str(color.css("#f00").invert())
+	assert "#f0f" == str(color.css("#0f0").invert())
+	assert "#ff0" == str(color.css("#00f").invert())
 
 
 def test_rgb():
