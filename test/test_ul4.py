@@ -2492,8 +2492,22 @@ def test_function_float(T):
 
 
 @pytest.mark.ul4
-def test_function_color(T):
-	assert "#369" == T("<?print color(51, 102, 153, 255)?>").renders()
+def test_module_color_function_Color(T):
+	assert "#369" == T("<?print color.Color(51, 102, 153, 255)?>").renders()
+
+
+@pytest.mark.ul4
+def test_module_color_function_css(T):
+	assert "#000" == T("<?print repr(color.css('black'))?>").renders()
+	assert "#fff" == T("<?print repr(color.css('white'))?>").renders()
+	assert "#123" == T("<?print repr(color.css('#123'))?>").renders()
+	assert "#1234" == T("<?print repr(color.css('#1234'))?>").renders()
+	assert "#123456" == T("<?print repr(color.css('#123456'))?>").renders()
+	assert "#12345678" == T("<?print repr(color.css('#12345678'))?>").renders()
+	assert "#136" == T("<?print repr(color.css('rgb(17, 20%, 40%)'))?>").renders()
+	assert "#1369" == T("<?print repr(color.css('rgba(17, 20%, 40%, 0.6)'))?>").renders()
+	assert "#1369" == T("<?print repr(color.css('rgba(17, 20%, 40%, 60%)'))?>").renders()
+	assert "#123" == T("<?print repr(color.css('bad', #123))?>").renders()
 
 
 @pytest.mark.ul4
@@ -3950,7 +3964,7 @@ def test_function_type(T):
 	assert "<type ul4.Template>" == t.renders(x=ul4c.Template(""))
 	assert "<type ul4.TemplateClosure>" == T("<?def t?><?end def?><?print type(t)?>").renders()
 	assert "<type function>" == T("<?print type(repr)?>").renders()
-	assert "<type color>" == T("<?print type(#000)?>").renders()
+	assert "<type color.Color>" == T("<?print type(#000)?>").renders()
 
 	with raises(argumentmismatchmessage):
 		T("<?print type()?>").renders()
@@ -4777,7 +4791,7 @@ def test_color_method_hue(T):
 @pytest.mark.ul4
 def test_color_method_sat(T):
 	assert 'True' == T('<?print #000.sat() == 0.0?>').renders()
-	assert 'True' == T('<?print #000.sat() == 0.0?>').renders()
+	assert 'True' == T('<?print #fff.sat() == 0.0?>').renders()
 	assert 'True' == T('<?print #f00.sat() == 1.0?>').renders()
 	assert 'True' == T('<?print #0f0.sat() == 1.0?>').renders()
 	assert 'True' == T('<?print #00f.sat() == 1.0?>').renders()
@@ -4785,6 +4799,7 @@ def test_color_method_sat(T):
 
 @pytest.mark.ul4
 def test_color_method_lum(T):
+	assert 'True' == T('<?print #000.lum() == 0?>').renders()
 	assert 'True' == T('<?print #fff.lum() == 1?>').renders()
 	assert 'True' == T('<?code m = #fff.lum?><?print m() == 1?>').renders()
 
