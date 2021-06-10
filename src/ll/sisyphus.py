@@ -2039,7 +2039,7 @@ class Logger:
 			The currently active stack of :class:`Task` objects.
 
 		``text`` : Any object
-			The log text. This can be any object in which case is will be
+			The log text. This can be any object. If it's not a string it will be
 			converted to a string via :func:`pprint.pformat` (or
 			:func:`traceback.format_exception` if it's an exception)
 		"""
