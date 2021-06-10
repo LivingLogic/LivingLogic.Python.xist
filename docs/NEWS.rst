@@ -55,7 +55,8 @@ Changes in 5.66 (released ??/??/2021)
 	and ``loads()`` and the types ``Encoder`` and ``Decoder``, ``operator``
 	contains the type ``attrgetter`` and ``math`` contains the constants
 	``e``, ``pi`` and ``tau`` as well as the functions ``cos()``, ``sin()``,
-	``tan()``, ``sqrt()`` and ``isclose()``.
+	``tan()``, ``sqrt()`` and ``isclose()``. ``color`` contains the type
+	``Color`` and the function ``css``.
 
 *	Naming of attributes that are used by UL4 to implement UL4 functionality
 	has been made more uniform. This affects the following attributes:
