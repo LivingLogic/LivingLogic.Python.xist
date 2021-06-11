@@ -94,6 +94,7 @@ Changes in 5.66 (released ??/??/2021)
 	:meth:`~ll.color.Color.withsat`, :meth:`~ll.color.Color.withluma`,
 	:meth:`~ll.color.Color.abluma`, :meth:`~ll.color.Color.relluma` and
 	:meth:`~ll.color.Color.invert`. They have also been made available to UL4.
+	The color method :meth:`~ll.color.Color.combine` is now also available to UL4.
 
 
 Changes in 5.65 (released 01/13/2021)

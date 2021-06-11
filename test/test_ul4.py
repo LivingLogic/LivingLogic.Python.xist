@@ -4895,6 +4895,14 @@ def test_color_method_invert(T):
 
 
 @pytest.mark.ul4
+def test_color_method_combine(T):
+	assert "#783456" == T("<?print repr(color.Color(0x12, 0x34, 0x56).combine(r=0x78))?>").renders()
+	assert "#127856" == T("<?print repr(color.Color(0x12, 0x34, 0x56).combine(g=0x78))?>").renders()
+	assert "#123478" == T("<?print repr(color.Color(0x12, 0x34, 0x56).combine(b=0x78))?>").renders()
+	assert "#12345678" == T("<?print repr(color.Color(0x12, 0x34, 0x56).combine(a=0x78))?>").renders()
+
+
+@pytest.mark.ul4
 def test_method_join(T):
 	assert '1,2,3,4' == T('<?print ",".join("1234")?>').renders()
 	assert '1,2,3,4' == T('<?print ",".join(["1", "2", "3", "4"])?>').renders()
