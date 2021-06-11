@@ -19,7 +19,7 @@ import types
 import re
 
 from pygments import lexer, token
-from pygments.lexers import web
+from pygments.lexers import web, python
 
 from sphinx.writers import latex, html5
 
@@ -552,8 +552,8 @@ class UL4Lexer(lexer.RegexLexer):
 	}
 
 class HTMLUL4Lexer(lexer.DelegatingLexer):
-	name = 'HTML UL4'
-	aliases = ['htmlul4']
+	name = 'HTML+UL4'
+	aliases = ['html+ul4']
 	filenames = ['*.htmlul4']
 
 	def __init__(self, **options):
@@ -561,8 +561,8 @@ class HTMLUL4Lexer(lexer.DelegatingLexer):
 
 
 class XMLUL4Lexer(lexer.DelegatingLexer):
-	name = 'XML UL4'
-	aliases = ['xmlul4']
+	name = 'XML+UL4'
+	aliases = ['xml+ul4']
 	filenames = ['*.xmlul4']
 
 	def __init__(self, **options):
@@ -570,8 +570,8 @@ class XMLUL4Lexer(lexer.DelegatingLexer):
 
 
 class CSSUL4Lexer(lexer.DelegatingLexer):
-	name = 'CSS UL4'
-	aliases = ['cssul4']
+	name = 'CSS+UL4'
+	aliases = ['css+ul4']
 	filenames = ['*.cssul4']
 
 	def __init__(self, **options):
@@ -579,12 +579,21 @@ class CSSUL4Lexer(lexer.DelegatingLexer):
 
 
 class JavascriptUL4Lexer(lexer.DelegatingLexer):
-	name = 'Javascript UL4'
-	aliases = ['jsul4']
+	name = 'Javascript+UL4'
+	aliases = ['js+ul4']
 	filenames = ['*.jsul4']
 
 	def __init__(self, **options):
 		super().__init__(web.JavascriptLexer, UL4Lexer, **options)
+
+
+class PythonUL4Lexer(lexer.DelegatingLexer):
+	name = 'Python+UL4'
+	aliases = ['py+ul4']
+	filenames = ['*.pyul4']
+
+	def __init__(self, **options):
+		super().__init__(python.PythonLexer, UL4Lexer, **options)
 
 
 def setup(app):
@@ -593,7 +602,8 @@ def setup(app):
 	app.set_translator("html", HTML5Translator, True)
 	app.add_lexer("output", OutputLexer)
 	app.add_lexer("ul4", UL4Lexer)
-	app.add_lexer("htmlul4", HTMLUL4Lexer)
-	app.add_lexer("xmlul4", XMLUL4Lexer)
-	app.add_lexer("cssul4", CSSUL4Lexer)
-	app.add_lexer("jsul4", JavascriptUL4Lexer)
+	app.add_lexer("html+ul4", HTMLUL4Lexer)
+	app.add_lexer("xml+ul4", XMLUL4Lexer)
+	app.add_lexer("css+ul4", CSSUL4Lexer)
+	app.add_lexer("js+ul4", JavascriptUL4Lexer)
+	app.add_lexer("py+ul4", PythonUL4Lexer)
