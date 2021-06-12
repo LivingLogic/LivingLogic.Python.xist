@@ -307,7 +307,7 @@ args = dict(
 		"scripts/oracycles.py",
 	],
 	install_requires=[
-		"cssutils == 1.0.2",
+		"cssutils == 2.3.0",
 	],
 	extras_require={
 		"oracle": ["cx_Oracle >= 8.0"],
