@@ -11,6 +11,12 @@ incompatible changes are listed here. For a list of all changes see
 Migrating to version 5.66
 =========================
 
+Changes to :mod:`ll.color`
+--------------------------
+
+*	The color method :meth:`abslum` has been renamed to :meth:`abslight` and
+	the method :meth:`rellum` has been renamed to :meth:`rellight`.
+
 Changes to UL4
 --------------
 
@@ -38,6 +44,9 @@ Changes to UL4
 
 *	Support for using custom tag delimiters for UL4 templates tag has been
 	removed, i.e. now the tag delimiters will always be ``<?`` and ``?>``.
+
+*	The color method :meth:`abslum` has been renamed to :meth:`abslight` and
+	the method :meth:`rellum` has been renamed to :meth:`rellight`.
 
 Changes to ``ll.misc`` and ``ll.ul4on``
 ---------------------------------------

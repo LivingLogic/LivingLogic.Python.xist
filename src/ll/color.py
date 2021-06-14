@@ -34,11 +34,11 @@ def _interpolate(lower:float, upper:float, factor:float) -> float:
 class Color(tuple):
 	"""
 	A :class:`Color` object represents a color with 8-bit red, green and blue
-	components and transparency.
+	components and opacity.
 	"""
 
-	ul4_type = ul4c.InstantiableType("color", "Color", "An RGBA color object with 8-bit red, green and blue components and transparency.")
-	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "invert", "sat", "lum", "luma", "withhue", "withsat", "withlum", "withluma", "witha", "abslum", "rellum", "absluma", "relluma", "combine", "invert"}
+	ul4_type = ul4c.InstantiableType("color", "Color", "An RGBA color object with 8-bit red, green and blue components and opacity.")
+	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "invert", "sat", "light", "lum", "withhue", "withsat", "withlight", "withlum", "witha", "abslight", "rellight", "abslum", "rellum", "combine", "invert"}
 
 	def __new__(cls, r:int=0x0, g:int=0x0, b:int=0x0, a:int=0xff):
 		"""
@@ -197,14 +197,14 @@ class Color(tuple):
 
 	def hsv(self) -> Tuple[float, float, float]:
 		"""
-		``self`` as a HSV tuple ("hue, saturation, value").
+		``self`` as a HSV tuple ("hue", "saturation", "value").
 		All three values are between 0.0 and 1.0.
 		"""
 		return colorsys.rgb_to_hsv(self[0]/255., self[1]/255., self[2]/255.)
 
 	def hsva(self) -> Tuple[float, float, float, float]:
 		"""
-		``self`` as a HSV+alpha tuple ("hue, saturation, value, alpha").
+		``self`` as a HSV+alpha tuple ("hue", "saturation", "value", "alpha").
 		All four values are between 0.0 and 1.0.
 		"""
 		return self.hsv() + (self[3]/255.,)
@@ -229,9 +229,9 @@ class Color(tuple):
 		"""
 		return self.hls()[0]
 
-	def lum(self) -> float:
+	def light(self) -> float:
 		"""
-		The luminance value from :meth:`hls`.
+		The lightness value from :meth:`hls`.
 		"""
 		return self.hls()[1]
 
@@ -241,9 +241,9 @@ class Color(tuple):
 		"""
 		return self.hls()[2]
 
-	def luma(self) -> float:
+	def lum(self) -> float:
 		"""
-		Luma according to sRGB:
+		Luminance according to sRGB:
 
 		.. sourcecode:: python
 
@@ -265,31 +265,31 @@ class Color(tuple):
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l, sat, a)
 
-	def withlum(self, lum:Number) -> "Color":
+	def withlight(self, light:Number) -> "Color":
 		"""
-		Return a copy of ``self`` with the luminosity replaced with ``lum``.
+		Return a copy of ``self`` with the lightness replaced with ``light``.
 		"""
 		(h, l, s, a) = self.hlsa()
-		return self.fromhls(h, lum, s, a)
+		return self.fromhls(h, light, s, a)
 
-	def withluma(self, luma:Number) -> "Color":
+	def withlum(self, lum:Number) -> "Color":
 		"""
-		Return a copy of ``self`` where the luma value has been replace with ``luma``.
+		Return a copy of ``self`` where the luminance has been replace with ``lum``.
 		"""
-		luma_old = self.luma()
-		if luma_old == 0.0 or luma_old == 1.0:
-			v = luma*255
+		lum_old = self.lum()
+		if lum_old == 0.0 or lum_old == 1.0:
+			v = lum*255
 			return Color(v, v, v, self[3])
-		elif luma > luma_old:
-			f = (luma-luma_old)/(1-luma_old)
+		elif lum > lum_old:
+			f = (lum-lum_old)/(1-lum_old)
 			return Color(
 				_interpolate(self[0], 255, f),
 				_interpolate(self[1], 255, f),
 				_interpolate(self[2], 255, f),
 				self[3],
 			)
-		elif luma < luma_old:
-			f = luma/luma_old
+		elif lum < lum_old:
+			f = lum/lum_old
 			return Color(
 				_interpolate(0, self[0], f),
 				_interpolate(0, self[1], f),
@@ -306,20 +306,20 @@ class Color(tuple):
 		(r, g, b, olda) = self
 		return self.__class__(r, g, b, a)
 
-	def abslum(self, f:Number) -> "Color":
+	def abslight(self, f:Number) -> "Color":
 		"""
-		Return a copy of ``self`` with ``f`` added to the luminocity.
+		Return a copy of ``self`` with ``f`` added to the lightness.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l+f, s, a)
 
-	def rellum(self, f:Number) -> "Color":
+	def rellight(self, f:Number) -> "Color":
 		"""
-		Return a copy of ``self`` where the luminocity has been modified:
-		If ``f`` if positive the luminocity will be increased, with ``f==1``
-		giving a luminocity of 1. If ``f`` is negative, the luminocity will be
-		decreased with ``f==-1`` giving a luminocity of 0. ``f==0`` will leave
-		the luminocity unchanged.
+		Return a copy of ``self`` where the lightness has been modified:
+		If ``f`` if positive the lightness will be increased, with ``f==1``
+		giving a lightness of 1. If ``f`` is negative, the lightness will be
+		decreased with ``f==-1`` giving a lightness of 0. ``f==0`` will leave
+		the lightness unchanged.
 		"""
 		(h, l, s, a) = self.hlsa()
 		if f > 0:
@@ -328,26 +328,26 @@ class Color(tuple):
 			l += l*f
 		return self.fromhls(h, l, s, a)
 
-	def absluma(self, f:Number) -> "Color":
+	def abslum(self, f:Number) -> "Color":
 		"""
-		Return a copy of ``self`` where ``f`` has been added to the luma value.
+		Return a copy of ``self`` where ``f`` has been added to the lum value.
 		"""
-		return self.withluma(self.luma() + f)
+		return self.withlum(self.lum() + f)
 
-	def relluma(self, f:Number) -> "Color":
+	def rellum(self, f:Number) -> "Color":
 		"""
-		Return a copy of ``self`` where the luma value has been modified:
-		If ``f`` if positive the luma value will be increased, with ``f==1``
-		giving a luma value of 1. If ``f`` is negative, the luma value will be
-		decreased with ``f==-1`` giving a luma value of 0. ``f==0`` will leave
-		the luma value unchanged.
+		Return a copy of ``self`` where the lum value has been modified:
+		If ``f`` if positive the lum value will be increased, with ``f==1``
+		giving a lum value of 1. If ``f`` is negative, the lum value will be
+		decreased with ``f==-1`` giving a lum value of 0. ``f==0`` will leave
+		the lum value unchanged.
 		"""
-		luma = self.luma()
+		lum = self.lum()
 		if f > 0:
-			luma += (1-luma)*f
+			lum += (1-lum)*f
 		elif f < 0:
-			luma += luma*f
-		return self.withluma(luma)
+			lum += lum*f
+		return self.withlum(lum)
 
 	def combine(self, r:Number=None, g:Number=None, b:Number=None, a:Number=None) -> "Color":
 		"""

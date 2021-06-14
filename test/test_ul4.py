@@ -4807,28 +4807,31 @@ def test_color_method_sat(T):
 
 
 @pytest.mark.ul4
+def test_color_method_light(T):
+	assert 'True' == T('<?print #000.light() == 0?>').renders()
+	assert 'True' == T('<?print #fff.light() == 1?>').renders()
+	assert 'True' == T('<?print #f00.light() == 0.5?>').renders()
+	assert 'True' == T('<?print #0f0.light() == 0.5?>').renders()
+	assert 'True' == T('<?print #00f.light() == 0.5?>').renders()
+	assert 'True' == T('<?code m = #fff.light?><?print m() == 1?>').renders()
+
+
+@pytest.mark.ul4
 def test_color_method_lum(T):
-	assert 'True' == T('<?print #000.lum() == 0?>').renders()
-	assert 'True' == T('<?print #fff.lum() == 1?>').renders()
-	assert 'True' == T('<?code m = #fff.lum?><?print m() == 1?>').renders()
+	assert math.isclose(1.0   , float(T("<?print #fff.lum()?>").renders()))
+	assert math.isclose(0.0   , float(T("<?print #000.lum()?>").renders()))
+	assert math.isclose(0.2126, float(T("<?print #f00.lum()?>").renders()))
+	assert math.isclose(0.7152, float(T("<?print #0f0.lum()?>").renders()))
+	assert math.isclose(0.0722, float(T("<?print #00f.lum()?>").renders()))
 
 
 @pytest.mark.ul4
-def test_color_method_luma(T):
-	assert math.isclose(1.0   , float(T("<?print #fff.luma()?>").renders()))
-	assert math.isclose(0.0   , float(T("<?print #000.luma()?>").renders()))
-	assert math.isclose(0.2126, float(T("<?print #f00.luma()?>").renders()))
-	assert math.isclose(0.7152, float(T("<?print #0f0.luma()?>").renders()))
-	assert math.isclose(0.0722, float(T("<?print #00f.luma()?>").renders()))
-
-
-@pytest.mark.ul4
-def test_color_method_withlum(T):
-	assert '#fff' == T('<?print #000.withlum(1)?>').renders()
-	assert '#fff' == T('<?code m = #000.withlum?><?print m(1)?>').renders()
+def test_color_method_withlight(T):
+	assert '#fff' == T('<?print #000.withlight(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.withlight?><?print m(1)?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#fff' == T('<?print #000.withlum(lum=1)?>').renders()
+	assert '#fff' == T('<?print #000.withlight(light=1)?>').renders()
 
 
 @pytest.mark.ul4
@@ -4841,46 +4844,46 @@ def test_color_method_witha(T):
 
 
 @pytest.mark.ul4
-def test_color_method_withluma(T):
-	assert '#fff' == T('<?print #000.withluma(1)?>').renders()
-	assert '#fff' == T('<?code m = #000.withluma?><?print m(1)?>').renders()
+def test_color_method_withlum(T):
+	assert '#fff' == T('<?print #000.withlum(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.withlum?><?print m(1)?>').renders()
 
-	assert '#000' == T('<?print #fff.withluma(0)?>').renders()
-	assert '#333' == T('<?print #fff.withluma(0.2)?>').renders()
-	assert '#f00' == T('<?print #f00.withluma(0.2126)?>').renders()
-	assert '#0f0' == T('<?print #0f0.withluma(0.7152)?>').renders()
-	assert '#00f' == T('<?print #00f.withluma(0.0722)?>').renders()
+	assert '#000' == T('<?print #fff.withlum(0)?>').renders()
+	assert '#333' == T('<?print #fff.withlum(0.2)?>').renders()
+	assert '#f00' == T('<?print #f00.withlum(0.2126)?>').renders()
+	assert '#0f0' == T('<?print #0f0.withlum(0.7152)?>').renders()
+	assert '#00f' == T('<?print #00f.withlum(0.0722)?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#fff' == T('<?print #000.withluma(luma=1)?>').renders()
+	assert '#fff' == T('<?print #000.withlum(lum=1)?>').renders()
 
 
 @pytest.mark.ul4
-def test_color_method_absluma(T):
-	assert '#fff' == T('<?print #000.absluma(1)?>').renders()
-	assert '#fff' == T('<?code m = #000.absluma?><?print m(1)?>').renders()
+def test_color_method_abslum(T):
+	assert '#fff' == T('<?print #000.abslum(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.abslum?><?print m(1)?>').renders()
 
-	assert '#fff' == T('<?print #fff.absluma(0)?>').renders()
-	assert '#000' == T('<?print #fff.absluma(-1)?>').renders()
+	assert '#fff' == T('<?print #fff.abslum(0)?>').renders()
+	assert '#000' == T('<?print #fff.abslum(-1)?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#fff' == T('<?print #000.absluma(f=1)?>').renders()
+	assert '#fff' == T('<?print #000.abslum(f=1)?>').renders()
 
 
 @pytest.mark.ul4
-def test_color_method_relluma(T):
-	assert '#fff' == T('<?print #000.relluma(1)?>').renders()
-	assert '#fff' == T('<?code m = #000.relluma?><?print m(1)?>').renders()
+def test_color_method_rellum(T):
+	assert '#fff' == T('<?print #000.rellum(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.rellum?><?print m(1)?>').renders()
 
-	assert '#fff' == T('<?print #fff.relluma(0)?>').renders()
-	assert '#000' == T('<?print #fff.relluma(-1)?>').renders()
-	assert '#888' == T('<?print #888.relluma(0)?>').renders()
-	assert '#f33' == T('<?print #f00.relluma(0.2)?>').renders()
-	assert '#3f3' == T('<?print #0f0.relluma(0.2)?>').renders()
-	assert '#33f' == T('<?print #00f.relluma(0.2)?>').renders()
+	assert '#fff' == T('<?print #fff.rellum(0)?>').renders()
+	assert '#000' == T('<?print #fff.rellum(-1)?>').renders()
+	assert '#888' == T('<?print #888.rellum(0)?>').renders()
+	assert '#f33' == T('<?print #f00.rellum(0.2)?>').renders()
+	assert '#3f3' == T('<?print #0f0.rellum(0.2)?>').renders()
+	assert '#33f' == T('<?print #00f.rellum(0.2)?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#fff' == T('<?print #000.relluma(f=1)?>').renders()
+	assert '#fff' == T('<?print #000.rellum(f=1)?>').renders()
 
 
 @pytest.mark.ul4
