@@ -102,3 +102,35 @@ create an UL4 template from source. Its signature is ::
 
 .. note::
 	``ul4.Template`` is not callable in the Javascript version of UL4.
+
+
+``color``
+=========
+This module contains the following types and functions:
+
+``color.Color(r=0, g=0, b=0, a=255)``
+	Return a color object with the red component ``r``, the green component
+	``g``, the blue component ``b`` and the alpha (opacity) component ``a``.
+	All values must be integers in the range 0 to 255. Float values will be
+	rounded to integers and values out of range will be clipped to the allowed
+	range.
+
+``color.css(value, default)``
+	Return a color object for the CSS color specification ``value``. If ``value``
+	can't be interpreted as a CSS color, ``default`` will be returned if given,
+	otherwise an exception will be raised.
+
+``color.mix(*values)``
+	Calculates a weighted mix of the colors from ``values``. Items in
+	``values`` are either colors or weights. The following example mixes
+	two parts black with one part white:
+
+	.. sourcecode:: ul4
+
+		<?print color.mix(2, #000, 1, #fff)?>
+
+	which will print:
+
+	.. sourcecode:: output
+
+		#555
