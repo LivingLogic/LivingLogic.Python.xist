@@ -560,16 +560,14 @@ def mix(*args) -> "Color":
 	for arg in args:
 		if isinstance(arg, Color):
 			sumweights += weight
-			for i in range(3):
+			for i in range(len(arg)):
 				channels[i] += weight*arg[i]
-			channels[3] += weight*(255-arg[3])
 		elif isinstance(arg, tuple):
 			sumweights += arg[1]
-			for i in range(3):
+			for i in range(len(arg)):
 				channels[i] += arg[1]*arg[0][i]
-			channels[3] += weight*(255-arg[0][3])
 		else:
 			weight = arg
 	if not sumweights:
 		raise ValueError("at least one of the arguments must be a color and at least one of the weights must be >0")
-	return Color(channels[0]/sumweights, channels[1]/sumweights, channels[2]/sumweights, 255-sumweights*channels[3])
+	return Color(channels[0]/sumweights, channels[1]/sumweights, channels[2]/sumweights, channels[3]/sumweights)
