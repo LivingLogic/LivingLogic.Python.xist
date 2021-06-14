@@ -2511,6 +2511,15 @@ def test_module_color_function_css(T):
 
 
 @pytest.mark.ul4
+def test_module_color_function_mix(T):
+	assert "#aaa" == T("<?print repr(color.mix(#000, #fff, #fff))?>").renders()
+	assert "#555" == T("<?print repr(color.mix(#000, #000, #fff))?>").renders()
+	assert "#aaaa" == T("<?print repr(color.mix(#0000, #ffff, #ffff))?>").renders()
+	assert "#aaa" == T("<?print repr(color.mix(#000, 2, #fff))?>").renders()
+	assert "#12c" == T("<?print repr(color.mix(#f00, 2, #0f0, 12, #00f))?>").renders()
+
+
+@pytest.mark.ul4
 def test_function_len(T):
 	t = T("<?print len(data)?>")
 
@@ -3383,7 +3392,7 @@ def test_function_isinstance(T):
 		"dict": [{}],
 		"ul4.Template": [ul4c.Template("<?print x?>")],
 		"type(repr)": ["=repr"],
-		"color": [color.Color(0, 0, 0)]
+		"color.Color": [color.Color(0, 0, 0)]
 	}
 
 	for targettype in info:
