@@ -38,7 +38,7 @@ class Color(tuple):
 	"""
 
 	ul4_type = ul4c.InstantiableType("color", "Color", "An RGBA color object with 8-bit red, green and blue components and opacity.")
-	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "invert", "sat", "light", "lum", "withhue", "withsat", "withlight", "withlum", "witha", "abslight", "rellight", "abslum", "rellum", "combine", "invert"}
+	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "sat", "light", "lum", "withhue", "withsat", "withlight", "withlum", "witha", "abslight", "rellight", "abslum", "rellum", "combine", "invert"}
 
 	def __new__(cls, r:int=0x0, g:int=0x0, b:int=0x0, a:int=0xff):
 		"""
