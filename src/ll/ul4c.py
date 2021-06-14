@@ -291,9 +291,9 @@ class Context:
 			b["color"] = _create_module(
 				"color",
 				"Types and functions for handling RGBA colors",
+				Color=color.Color.ul4_type,
 				css=color.css,
 				mix=color.mix,
-				Color=color.Color.ul4_type,
 			)
 			b["ul4"] = _create_module(
 				"ul4",
