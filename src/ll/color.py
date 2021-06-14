@@ -106,7 +106,7 @@ class Color(tuple):
 			return cls(*channels)
 		elif s in csscolors:
 			return csscolors[s]
-		raise ValueError(f"can't interpret {s!r} as css value")
+		raise ValueError(f"can't interpret {s!r} as CSS color")
 
 	@classmethod
 	def fromrgb(cls, r:Number, g:Number, b:Number, a:Number=1.0) -> "Color":
