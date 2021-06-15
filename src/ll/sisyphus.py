@@ -225,7 +225,8 @@ run was uneventful the link will point to a nonexistent log file (whose name can
 be used to determine the date of the last run).
 
 The following links will be created at the end of the job run and will only
-start to point to non-existent files when the log file they point get cleaned up:
+start to point to non-existent files when the log files they point to get
+cleaned up:
 
 *	The "last successful" link (by default named
 	:file:`last_successful.sisyphuslog`) will always point to the last
@@ -278,16 +279,17 @@ is an exception the event level will be ``fatal``. Otherwise it wil default to
 All tags will be converted to Sentry tags like this: A sisyphus tag ``foo``
 will be converted into a Sentry tag ``sisypus.tag.foo`` with a value of ``true``.
 
-Active tasks will be converted into Sentry breadcrumbs.
+Active tasks will be converted into Sentry breadcrumbs (See the methods
+:meth:`~Job.task` and :meth:`~Job.tasks` for more info).
 
 
 Health checks
 -------------
 
-When a job is started with the option ``--healthcheck``, instead of running the
-job normally a health check is done. This bypasses the normal mechanism that
-prevents multiple instances of the job from running (i.e. you can have a normal
-job execution and a health check running in parallel).
+When a job is started with the option :option:`--healthcheck`, instead of
+running the job normally a health check is done. This bypasses the normal
+mechanism that prevents multiple instances of the job from running (i.e. you can
+have a normal job execution and a health check running in parallel).
 
 If the job is healthy this will exit with an exit status of 0, otherwise it will
 exit with an exit status of 1 and an error message on ``stdout`` stating the
@@ -338,10 +340,16 @@ is exceeded. If :mod:`psutil` isn't available just the child process will be
 killed (which is no problem as long as the child process doesn't spawn any
 other processes).
 
-If loggging to Mattermost is used, :mod:`requests` has be installed.
+If logging to Mattermost is used, :mod:`requests` has to be installed.
+
+If logging to Sentry is used, :mod:`sentry_sdk` has to be installed.
 
 For compressing the log files one of the modules :mod:`gzip`, :mod:`bz2` or
 :mod:`lzma` is required (which might not be part of your Python installation).
+
+
+Module documentation
+--------------------
 """
 
 
@@ -468,6 +476,14 @@ class DatetimeEncoder(json.JSONEncoder):
 class Status(enum.IntEnum):
 	"""
 	The result status of a job run.
+
+	Possible values are:
+
+	*	``UNEVENTFUL``,
+	*	``SUCCESSFUL``,
+	*	``FAILED``,
+	*	``INTERRUPTED``,
+	*	``TIMEOUT``.
 	"""
 	UNEVENTFUL = 0
 	SUCCESSFUL = 1
@@ -479,6 +495,12 @@ class Status(enum.IntEnum):
 class Process(enum.Enum):
 	"""
 	The type of a running :mod:`!sisyphus` process.
+
+	Possible values are:
+
+	*	``SOLO`` (when in non-forking mode),
+	*	``PARENT`` (the parent process in forking mode),
+	*	``CHILD`` (the child process in forking mode).
 	"""
 	SOLO = 0
 	PARENT = 1
@@ -494,7 +516,7 @@ class Job:
 	A Job object executes a task (either once or repeatedly).
 
 	To use this class, derive your own class from it and overwrite the
-	:meth:`execute` method.
+	:meth:`~Job.execute` method.
 
 	The job can be configured in three ways: By class attributes in the
 	:class:`Job` subclass, by attributes of the :class:`Job` instance (e.g. set
@@ -639,7 +661,7 @@ class Job:
 
 	.. option:: --maxhealthcheckage <seconds>
 
-		if the last uneventful or successful job run is older then this number
+		If the last uneventful or successful job run is older then this number
 		of seconds, consider the job to be unhealthy.
 
 	.. option:: -f, --log2file
@@ -693,7 +715,8 @@ class Job:
 
 		When this options is specified, the process title will be modified during
 		execution of the job, so that the :command:`ps` command shows what the
-		processes are doing. (This requires :mod:`setproctitle`.)
+		processes are doing. The default is ``True`. (This
+		requires :mod:`setproctitle`.)
 
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
@@ -2005,7 +2028,7 @@ class Tag:
 
 class Logger:
 	"""
-	A :class:`Logger` is called by the :class:`Job` on any logging event.
+	A :class:`Logger` is called by the :class:`Job` for each logging event.
 	"""
 
 	def name(self) -> OptStr:
@@ -2062,7 +2085,7 @@ class Logger:
 		"""
 		Called by the :class:`Job` when job execution has finished.
 
-		``status`` (an :class:`Status`) is the result status of the job run.
+		``status`` (a :class:`Status`) is the result status of the job run.
 
 		Return whether the logfile has been closed. (All normal loggers
 		will close except ``stdout`` and ``stderr`` loggers).
