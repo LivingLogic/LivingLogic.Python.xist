@@ -715,7 +715,7 @@ class Job:
 
 		When this options is specified, the process title will be modified during
 		execution of the job, so that the :command:`ps` command shows what the
-		processes are doing. The default is ``True`. (This
+		processes are doing. The default is ``True``. (This
 		requires :mod:`setproctitle`.)
 
 	Command line arguments take precedence over instance attributes (if
