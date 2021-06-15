@@ -32,7 +32,7 @@
 
 	--scrollbar-color-fg-h: 0deg;
 	--scrollbar-color-fg-s: 0%;
-	--scrollbar-color-fg-l: 80%;
+	--scrollbar-color-fg-l: 50%;
 	--scrollbar-color-fg-a: 50%;
 	--scrollbar-color-fg: hsl(var(--scrollbar-color-fg-h), var(--scrollbar-color-fg-s), var(--scrollbar-color-fg-l), var(--scrollbar-color-fg-a));
 
