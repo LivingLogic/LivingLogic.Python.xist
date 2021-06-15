@@ -47,8 +47,6 @@ Example
 The following example illustrates the use of this module:
 
 .. sourcecode:: python
-	:linenos:
-	:emphasize-lines: 6-9
 
 	import os
 	import urllib.request
