@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.66 (released ??/??/2021)
+Changes in 5.66 (released 06/15/2021)
 -------------------------------------
 
 *	UL4 now use functions and methods with positional-only parameters, so
