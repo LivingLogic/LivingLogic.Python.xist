@@ -266,7 +266,7 @@ Set object have the following methods.
 ``add(*items)``
 ---------------
 
-`add()`` adds all arguments to the set.
+``add()`` adds all arguments to the set.
 
 
 ``clear()``
