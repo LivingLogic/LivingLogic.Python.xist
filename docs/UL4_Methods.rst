@@ -8,7 +8,7 @@ object).
 ``str``
 =======
 
-Strings support the following methods.
+Strings support the following methods:
 
 ``upper()``
 -----------
@@ -155,7 +155,7 @@ outputs ``1+2+3+4``.
 ``list``
 ========
 
-List objects support the following methods.
+List objects support the following methods:
 
 ``count(sub, start=None, end=None, /)``
 ---------------------------------------
@@ -260,7 +260,7 @@ keyword arguments will be copied to the target dictionary.
 ``set``
 =======
 
-Set object have the following methods.
+Set object have the following methods:
 
 
 ``add(*items)``
@@ -286,7 +286,7 @@ as relative to the end of the list.
 Templates
 =========
 
-Templates have the following method.
+Templates have the following method:
 
 
 ``renders(...)``
@@ -309,7 +309,7 @@ are supported.)
 ``date`` and ``datetime``
 =========================
 
-``date`` and ``datetime`` objects have the following methods.
+``date`` and ``datetime`` objects have the following methods:
 
 ``isoformat()``
 ---------------
