@@ -34,6 +34,8 @@ Changes in 5.66 (released ??/??/2021)
 	*	``ll.ul4on.loads(dump, /, registry=None)``
 	*	``ll.ul4on.loadclob(clob, /, bufsize=1024*1024, registry=None)``
 
+	as well as the UL4 function ``enumfl(iterable, /)``.
+
 *	Subclasses of :class:`ll.ul4c.AST` have been renamed so that their name
 	matches the name of the corresponding class in the Java implementation.
 	(For example :class:`ll.ul4c.Add` has been renamed to
