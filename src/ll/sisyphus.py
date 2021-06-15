@@ -24,15 +24,15 @@ execute the job repeatedly.
 A job has a maximum allowed runtime. If this maximum is exceeded, the job will
 kill itself. In addition to that, job execution can be logged and in case of
 job failure an email can be sent, a message can be posted to a `Mattermost
-chat channel`__ ar an event can be emitted to a `Sentry server`__.
+chat channel`__ or an event can be emitted to a `Sentry server`__.
 
 To use this module, you must derive your own class from :class:`Job`,
-implement the :meth:`execute` method and then call the module level function
-:func:`execute` or :func:`executewithargs` with your job object (preferably
-in an ``if __name__ == "__main__"`` block).
+implement the :meth:`~Job.execute` method and then call the module level
+function :func:`execute` or :func:`executewithargs` with your job object
+(preferably in an ``if __name__ == "__main__"`` block).
 
 Logs will (by default) be created in the :file:`~/ll.sisyphus` directory.
-This can be changed overwriting the appropriate methods in the subclass.
+This can be changed by overwriting the appropriate methods in the subclass.
 
 To execute a job, use the module level function :func:`execute` (or
 :func:`executewithargs` when you want to support command line arguments).
