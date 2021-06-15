@@ -4827,11 +4827,49 @@ def test_color_method_lum(T):
 
 @pytest.mark.ul4
 def test_color_method_withlight(T):
-	assert '#fff' == T('<?print #000.withlight(1)?>').renders()
+	assert '#fff' == T('<?code m = #000.withlight?><?print m(1.0)?>').renders()
+	assert '#fff' == T('<?print #000.withlight(1.0)?>').renders()
+	assert '#000' == T('<?print #000.withlight(0.0)?>').renders()
+	assert '#fff' == T('<?print #fff.withlight(1.0)?>').renders()
+	assert '#000' == T('<?print #fff.withlight(0.0)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == T('<?print #000.withlight(light=1.0)?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_abslight(T):
+	assert '#fff' == T('<?print #000.abslight(1.0)?>').renders()
+	assert '#333' == T('<?print #000.abslight(0.2)?>').renders()
+	assert '#000' == T('<?print #000.abslight(0.0)?>').renders()
+	assert '#000' == T('<?print #000.abslight(-1.0)?>').renders()
+	assert '#fff' == T('<?print #fff.abslight(1.0)?>').renders()
+	assert '#fff' == T('<?print #fff.abslight(0.0)?>').renders()
+	assert '#ccc' == T('<?print #fff.abslight(-0.2)?>').renders()
+	assert '#000' == T('<?print #fff.abslight(-1.0)?>').renders()
+
 	assert '#fff' == T('<?code m = #000.withlight?><?print m(1)?>').renders()
 
 	# Make sure that the parameters have the same name in all implementations
-	assert '#fff' == T('<?print #000.withlight(light=1)?>').renders()
+	assert '#fff' == T('<?print #000.abslight(f=1)?>').renders()
+
+@pytest.mark.ul4
+def test_color_method_rellight(T):
+	assert '#fff' == T('<?print #000.rellight(1.0)?>').renders()
+	assert '#333' == T('<?print #000.rellight(0.2)?>').renders()
+	assert '#999' == T('<?print #333.rellight(0.5)?>').renders()
+	assert '#000' == T('<?print #000.rellight(0.0)?>').renders()
+	assert '#000' == T('<?print #000.rellight(-1.0)?>').renders()
+	assert '#fff' == T('<?print #fff.rellight(1.0)?>').renders()
+	assert '#fff' == T('<?print #fff.rellight(0.0)?>').renders()
+	assert '#ccc' == T('<?print #fff.rellight(-0.2)?>').renders()
+	assert '#666' == T('<?print #ccc.rellight(-0.5)?>').renders()
+	assert '#000' == T('<?print #fff.rellight(-1.0)?>').renders()
+
+	assert '#fff' == T('<?code m = #000.rellight?><?print m(1)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#fff' == T('<?print #000.rellight(f=1)?>').renders()
 
 
 @pytest.mark.ul4

@@ -103,6 +103,34 @@ def test_lum():
 
 def test_withlight():
 	assert color.white == color.black.withlight(1.0)
+	assert color.black == color.black.withlight(0.0)
+	assert color.white == color.white.withlight(1.0)
+	assert color.black == color.white.withlight(0.0)
+
+
+def test_abslight():
+	assert color.white == color.black.abslight(1.0)
+	assert color.css('#333') == color.black.abslight(0.2)
+	assert color.css('#666') == color.css('#333').abslight(0.2)
+	assert color.black == color.black.abslight(0.0)
+	assert color.black == color.black.abslight(-1.0)
+	assert color.white == color.white.abslight(1.0)
+	assert color.white == color.white.abslight(0.0)
+	assert color.css('#ccc') == color.white.abslight(-0.2)
+	assert color.black == color.white.abslight(-1.0)
+
+
+def test_rellight():
+	assert color.white == color.black.rellight(1.0)
+	assert color.css('#333') == color.black.rellight(0.2)
+	assert color.css('#999') == color.css('#333').rellight(0.5)
+	assert color.black == color.black.rellight(0.0)
+	assert color.black == color.black.rellight(-1.0)
+	assert color.white == color.white.rellight(1.0)
+	assert color.white == color.white.rellight(0.0)
+	assert color.css('#ccc') == color.white.rellight(-0.2)
+	assert color.css('#666') == color.css('#ccc').rellight(-0.5)
+	assert color.black == color.white.rellight(-1.0)
 
 
 def test_witha():
