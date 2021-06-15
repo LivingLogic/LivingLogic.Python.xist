@@ -14,13 +14,13 @@ Strings support the following methods.
 -----------
 
 The ``upper`` method of strings returns an uppercase version of the string for
-which it's called::
+which it's called:
+
+.. sourcecode:: ul4
 
 	<?print 'foo'.upper()?>
 
-prints::
-
-	FOO
+prints ``FOO``.
 
 
 ``lower()``
@@ -143,13 +143,13 @@ argument ``count`` non-negative is specifies the maximum number of replacements.
 ---------------------
 
 ``join`` is a string method. It returns a concatentation of the strings in the
-argument sequence with the string itself as the separator, i.e.::
+argument sequence with the string itself as the separator, i.e.:
+
+.. sourcecode:: ul4
 
 	<?print "+".join("1234")?>
 
-outputs::
-
-	1+2+3+4
+outputs ``1+2+3+4``.
 
 
 ``list``
@@ -181,7 +181,9 @@ This method works like ``find`` but searches from the end.
 ``append(*items)``
 ------------------
 
-``append`` its arguments to the end of the list for which it is called::
+``append`` its arguments to the end of the list for which it is called:
+
+.. sourcecode:: ul4
 
 	<?code v = [1, 2]?>
 	<?code v.append(3, 4)?>
@@ -190,11 +192,13 @@ This method works like ``find`` but searches from the end.
 prints ``[1, 2, 3, 4]``.
 
 
-``insert(pos, *items``
-----------------------
+``insert(pos, *items)``
+-----------------------
 
 ``insert``\s first argument in the insert position, the remaining arguments are
-the items that will be inserted at that position, so::
+the items that will be inserted at that position, so:
+
+.. sourcecode:: ul4
 
 	<?code v = [1, 4]?>
 	<?code v.insert(1, 2, 3)?>
@@ -290,7 +294,9 @@ Templates have the following method.
 
 The ``renders`` method of template objects renders the template and returns the
 output as a string. Parameters can be passed via keyword arguments or via the
-``**`` syntax::
+``**`` syntax:
+
+.. sourcecode:: ul4
 
 	<?code output = template.renders(a=17, b=23)?>
 	<?code data = {'a': 17, 'b': 23)?>
@@ -308,42 +314,42 @@ are supported.)
 ``isoformat()``
 ---------------
 
-``isoformat`` returns the date/datetime object in ISO 8601 format, i.e.::
+``isoformat`` returns the date/datetime object in ISO 8601 format, i.e.:
+
+.. sourcecode:: ul4
 
 	<?print now().isoformat()?>
 
-might output::
+might output ``2010-02-22T18:30:29.569639``,
 
-	2010-02-22T18:30:29.569639
+and:
 
-and::
+.. sourcecode:: ul4
 
 	<?print today().isoformat()?>
 
-might output::
-
-	2010-02-22
+might output ``2010-02-22``.
 
 
 ``mimeformat()``
 ----------------
 
 ``mimeformat`` returns the date/datetime object in MIME format (assuming the
-object is in UTC), i.e.::
+object is in UTC), i.e.:
+
+.. sourcecode:: ul4
 
 	<?print utcnow().mimeformat()?>
 
-might output::
+might output ``Mon, 22 Feb 2010 17:38:40 GMT``,
 
-	Mon, 22 Feb 2010 17:38:40 GMT
+and:
 
-and::
+.. sourcecode:: ul4
 
 	<?print today().mimeformat()?>
 
-might output::
-
-	Mon, 22 Feb 2010
+might output ``Mon, 22 Feb 2010``.
 
 
 ``day()``, ``month()``, ``year()``, ``hour()``, ``minute()``, ``second()``, ``microsecond()`` and ``weekday()``
@@ -351,7 +357,9 @@ might output::
 
 Those methods return a specific attribute of a date or datetime object.
 For example the following reproduces the ``mimeformat`` output from above
-(except for the linefeeds of course)::
+(except for the linefeeds of course):
+
+.. sourcecode:: ul4
 
 	<?code weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']?>
 	<?code months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']?>
@@ -370,7 +378,9 @@ For example the following reproduces the ``mimeformat`` output from above
 ----------
 
 For date objects ``date()`` returns the object unmodified, for datetime objects
-a date object containing the date portion of the object is returned, so::
+a date object containing the date portion of the object is returned, so:
+
+.. sourcecode:: ul4
 
 	<?print @(2000-02-29T12:34:56.987654).date()?>
 
@@ -413,12 +423,137 @@ information see the method ``yearweek``.
 ``yearday()``
 -------------
 
-``yearday`` returns the number of days since the beginning of the year, so::
+``yearday`` returns the number of days since the beginning of the year, so:
+
+.. sourcecode:: ul4
 
 	<?print @(2010-01-01).yearday()?>
 
-prints ``1`` and::
+prints ``1`` and:
+
+.. sourcecode:: ul4
 
 	<?print @(2010-12-31).yearday()?>
 
 prints ``365``.
+
+
+``color``
+=========
+
+Color objects support the following methods:
+
+``r()``
+	Return the red component of the color (as an 8-bit integer).
+
+``g()``
+	Return the green component of the color (as an 8-bit integer).
+
+``b()``
+	Return the blue component of the color (as an 8-bit integer).
+
+``a()``
+	Return the alpha (opacity) component of the color (as an 8-bit integer).
+
+``hsv()``
+	Return the color as an HSV tuple ("hue", "saturation", "value"). All three
+	values are between 0.1 and 1.0.
+
+``hsva()``
+	Similar to ``hsv()``, but returns the alpha (opacity) as the fourth tuple
+	item.
+
+``hls()``
+	Return the color as an HLS tuple ("hue", "saturation", "lightness"). All
+	three values are between 0.1 and 1.0.
+
+``hlsa()``
+	Similar to ``hls()``, but returns the alpha (opacity) as the fourth tuple
+	item.
+
+	For more info about the HSV and HSV color models see Wikipedia__.
+
+	__ https://en.wikipedia.org/wiki/HSL_and_HSV
+
+``hue()``
+	Return the hue value of the HLS color tuple.
+
+``sat()``
+	Return the saturation value of the HLS color tuple.
+
+``light()``
+	Return the lightness value of the HLS color tuple.
+
+``lum()``
+	Return the luminance value of the color tuple, which is similar to lightness
+	but is the following **weighted** sum of the components:
+
+	.. sourcecode:: python
+
+		(0.2126 * r + 0.7152 * g + 0.0722 * b)/255
+
+``withhue(hue)``
+	Return a new color with the HLS hue replaced by ``hue``.
+
+``withlight(light)``
+	Return a new color with the HLS lightness replaced by ``light``.
+
+``withsat(sat)``
+	Return a new color with the HLS saturation replaced by ``sat``.
+
+``witha(a)``
+	Return a new color with the alpha (opacity) component replaced by ``a``.
+
+``withlum(lum)``
+	Return a new color with the luminance replaced by ``lum``.
+
+``abslight(f)``
+	Return a new color with ``f`` added to the HLS lightness of the original color.
+
+``rellight(f)``
+	Return a new color where the HLS lightness of the original color has been
+	modified.
+
+	.If ``f`` is positive the lightness will be increased, with ``f==1``
+	giving a lightness of 1. If ``f`` is negative, the lightness will be
+	decreased with ``f==-1`` giving a lightness of 0. ``f==0`` will leave
+	the lightness unchanged.
+
+``abslum(f)``
+	Return a new color with ``f`` added to the luminance of the original color.
+	I.e. for a color ``c`` the following should always print ``True``:
+
+	.. sourcecode:: ul4
+
+		<?print c.abslum(f).lum() == c.lum() + f?>
+
+	(except for rounding errors and when the modified luminance would be smaller
+	that 0 or larger than 1).
+
+``rellum(f)``
+	Return a new color with ``f`` used to modify the luminance of the original
+	color.
+
+	If ``f`` is positive the luminance will be increased, with ``f==1`` giving
+	a luminance of 1. If ``f`` is negative, the luminance will be decreased
+	with ``f==-1`` giving a luminance of 0. ``f==0`` will leave the luminance
+	unchanged. All other values return a linear interpolation.
+
+``combine(r=None, g=None, b=None, a=None)``
+	Return a new color with some of its components replaced by the arguments.
+	If a component is not passed (or the value ``None`` is given) the component
+	will be unchanged in the resulting color.
+
+``invert(f=1.0)``
+	Return an inverted version of the original color, i.e. for each color ``c``
+	the following prints ``True`` three times:
+
+	.. sourcecode:: ul4
+
+		<?print c.invert().r() == 255 - c.r()?>
+		<?print c.invert().g() == 255 - c.g()?>
+		<?print c.invert().b() == 255 - c.b()?>
+
+	``f`` specifies the amount of inversion, with 1 returning a complete
+	inversion, and 0 returning the original color. Values between 0 and 1 return
+	an interpolation of both extreme values. (And 0.5 always returns medium grey).

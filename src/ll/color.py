@@ -38,7 +38,7 @@ class Color(tuple):
 	"""
 
 	ul4_type = ul4c.InstantiableType("color", "Color", "An RGBA color object with 8-bit red, green and blue components and opacity.")
-	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "sat", "light", "lum", "withhue", "withsat", "withlight", "withlum", "witha", "abslight", "rellight", "abslum", "rellum", "combine", "invert"}
+	ul4_attrs = {"r", "g", "b", "a", "hsv", "hsva", "hls", "hlsa", "hue", "sat", "light", "lum", "withhue", "withlight", "withsat", "withlum", "witha", "abslight", "rellight", "abslum", "rellum", "combine", "invert"}
 
 	def __new__(cls, r:int=0x0, g:int=0x0, b:int=0x0, a:int=0xff):
 		"""
@@ -253,24 +253,24 @@ class Color(tuple):
 
 	def withhue(self, hue:Number) -> "Color":
 		"""
-		Return a copy of ``self`` with the hue replaced with ``hue``.
+		Return a new color with the HLS hue replaced by ``hue``.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(hue, l, s, a)
 
-	def withsat(self, sat:Number) -> "Color":
-		"""
-		Return a copy of ``self`` with the saturation replaced with ``sat``.
-		"""
-		(h, l, s, a) = self.hlsa()
-		return self.fromhls(h, l, sat, a)
-
 	def withlight(self, light:Number) -> "Color":
 		"""
-		Return a copy of ``self`` with the lightness replaced with ``light``.
+		Return a new color with the HLS lightness replaced by ``light``
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, light, s, a)
+
+	def withsat(self, sat:Number) -> "Color":
+		"""
+		Return a new color with the HLS saturation replaced by ``sat``
+		"""
+		(h, l, s, a) = self.hlsa()
+		return self.fromhls(h, l, sat, a)
 
 	def withlum(self, lum:Number) -> "Color":
 		"""
@@ -308,7 +308,7 @@ class Color(tuple):
 
 	def abslight(self, f:Number) -> "Color":
 		"""
-		Return a copy of ``self`` with ``f`` added to the lightness.
+		Return a copy of ``self`` with ``f`` added to the HLS lightness.
 		"""
 		(h, l, s, a) = self.hlsa()
 		return self.fromhls(h, l+f, s, a)
@@ -316,7 +316,7 @@ class Color(tuple):
 	def rellight(self, f:Number) -> "Color":
 		"""
 		Return a copy of ``self`` where the lightness has been modified:
-		If ``f`` if positive the lightness will be increased, with ``f==1``
+		If ``f`` is positive the lightness will be increased, with ``f==1``
 		giving a lightness of 1. If ``f`` is negative, the lightness will be
 		decreased with ``f==-1`` giving a lightness of 0. ``f==0`` will leave
 		the lightness unchanged.
@@ -336,11 +336,11 @@ class Color(tuple):
 
 	def rellum(self, f:Number) -> "Color":
 		"""
-		Return a copy of ``self`` where the lum value has been modified:
-		If ``f`` if positive the lum value will be increased, with ``f==1``
-		giving a lum value of 1. If ``f`` is negative, the lum value will be
-		decreased with ``f==-1`` giving a lum value of 0. ``f==0`` will leave
-		the lum value unchanged.
+		Return a copy of ``self`` where the luminance has been modified:
+		If ``f`` is positive the luminance will be increased, with ``f==1``
+		giving a luminance of 1. If ``f`` is negative, the luminance will be
+		decreased with ``f==-1`` giving a luminance of 0. ``f==0`` will leave
+		the luminance unchanged. All other values return a linear interpolation.
 		"""
 		lum = self.lum()
 		if f > 0:
@@ -351,8 +351,9 @@ class Color(tuple):
 
 	def combine(self, r:Number=None, g:Number=None, b:Number=None, a:Number=None) -> "Color":
 		"""
-		Return a copy of ``self`` with some of the values replaced by the
-		arguments.
+		Return a copy of ``self`` with some of its components replaced by the
+		arguments. If a component is nont passed (or the value ``None`` is given)
+		the component will be unchanged in the resulting color.
 		"""
 		channels = list(self)
 		if r is not None:
@@ -367,10 +368,19 @@ class Color(tuple):
 
 	def invert(self, f:Number=1.0) -> "Color":
 		"""
-		Return an inverted version of ``self``. ``f`` specifies the amount
-		of inversion, with 1 returning a complete inversion, and 0 returning
-		the original color. Values between 0 and 1 return an interpolation
-		of both extreme values. (And 0.5 always returns medium grey).
+		Return an inverted version of ``self``, i.e. for each color ``c``
+		the following prints ``True`` three times:
+
+		.. sourcecode:: ul4
+
+			<?print c.invert().r() == 255 - c.r()?>
+			<?print c.invert().g() == 255 - c.g()?>
+			<?print c.invert().b() == 255 - c.b()?>
+
+		``f`` specifies the amount of inversion, with 1 returning a complete
+		inversion, and 0 returning the original color. Values between 0 and 1
+		return an interpolation of both extreme values. (And 0.5 always returns
+		medium grey).
 		"""
 		invf = 1.0 - f
 		return self.__class__(
