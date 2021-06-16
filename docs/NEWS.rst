@@ -79,7 +79,7 @@ Changes in 5.66 (released 06/15/2021)
 *	:class:`ll.ul4on.Decoder` gained a new method
 	:meth:`~ll.ul4on.Decoder.forget_persistent_object`.
 
-*	:class:`ll.sisyphus.Job`\s con now log to Sentry__.
+*	:class:`ll.sisyphus.Job`\s can now log to Sentry__.
 
 	__ https://sentry.io/
 
