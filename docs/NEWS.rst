@@ -88,7 +88,7 @@ Changes in 5.66 (released 06/15/2021)
 	Those wll be passed as additional breadcrumb data when logging to Sentry.
 
 *	:meth:`ll.sisyphus.Job.tasks` now takes an additional argument ``data`` that
-	is respsonsible for returning additional data for the task.
+	is responsible for returning additional data for the task.
 
 *	The following methods of :class:`ll.color.Color` have been renamed:
 	:meth:`abslum` to :meth:`abslight` and :meth:`rellum` to :meth:`rellight`.
