@@ -49,7 +49,7 @@ Changes in 5.66 (released 06/15/2021)
 
 *	The following builtin UL4 functions are now callable type objects: ``bool``,
 	``int``, ``float``, ``str``, ``date``, ``datetime``, ``timedelta``,
-	``monthdelta``, ``list``, ``set``, ``dict`` and ``color``.
+	``monthdelta``, ``list``, ``set``, ``dict`` and ``color.Color``.
 
 *	The following modules have been added to the builtin UL4 objects: ``ul4``
 	contains all UL4 AST classes (``ul4.Template`` is callable to create an
