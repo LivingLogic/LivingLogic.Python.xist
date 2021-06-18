@@ -1080,7 +1080,7 @@ class OracleHandler(DBHandler):
 	"""
 
 	def connectstring(self):
-		return f"oracle:{self.connection.username}@{self.connection.tnsentry}"
+		return f"oracle:{self.connection.username}@{self.connection.dsn}"
 
 	def _touchup_sql(self, sql):
 		if sql.endswith((";", "/")):
