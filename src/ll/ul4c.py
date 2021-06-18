@@ -23,12 +23,13 @@ possible to implement template renderers in multiple programming languages.
 __docformat__ = "reStructuredText"
 
 
-import re, os.path, datetime, urllib.parse as urlparse, json, collections, locale, itertools, random, functools, math, inspect, contextlib
+import re, os.path, datetime, urllib.parse as urlparse, json, collections
+import locale, itertools, random, functools, math, inspect, contextlib
+import types, textwrap
+
 from collections import abc
 
 import antlr3
-
-from ll import misc
 
 
 # Regular expression used for splitting dates in isoformat
@@ -60,8 +61,17 @@ def withcontext(f):
 
 	This can be done with this decorator.
 	"""
-	f.ul4context = True
+	f.ul4_context = True
 	return f
+
+
+def _create_module(name, doc, **attrs):
+	module = types.ModuleType(name, doc)
+	module.ul4_attrs = {"__name__", "__doc__"}
+	for (attrname, attrvalue) in attrs.items():
+		setattr(module, attrname, attrvalue)
+		module.ul4_attrs.add(attrname)
+	return module
 
 
 error_underline = os.environ.get("LL_UL4_ERRORUNDERLINE", "~")[:1] or "~"
@@ -115,7 +125,7 @@ class LocationError(Exception):
 
 		return f"{self.strtemplate()}: {self.strlocation()}\n{prefix}{source}{suffix}\n{indent}{underline}"
 
-	def ul4getattr(self, name):
+	def ul4_getattr(self, name):
 		if name == "context":
 			if self.__context__ is not None and not self.__suppress_context__:
 				return self.__context__
@@ -158,58 +168,20 @@ class ReturnException(Exception):
 		self.value = value
 
 
-###
-### Various versions of undefined objects
-###
-
-class Undefined:
-	def __bool__(self):
-		return False
-
-	def __iter__(self):
-		raise TypeError(f"{self!r} is not iterable")
-
-	def __len__(self):
-		raise AttributeError(f"{self!r} has no len()")
-
-	def __call__(self, *args, **kwargs):
-		raise TypeError(f"{self!r} is not callable")
-
-	def __getattr__(self, key):
-		raise AttributeError(f"{self!r} has no attribute {key!r}")
-
-	def __getitem__(self, key):
-		raise TypeError(f"{self!r} is not subscriptable (key={key!r})")
-
-
-class UndefinedKey(Undefined):
-	def __init__(self, key):
-		self._key = key
-
-	def __repr__(self):
-		return f"UndefinedKey({self._key!r})"
-
-
-class UndefinedVariable(Undefined):
-	def __init__(self, name):
-		self._name = name
-
-	def __repr__(self):
-		return f"UndefinedVariable({self._name!r})"
-
-
 class Context:
 	"""
 	A :class:`Context` object stores the context of a call to a template. This
 	consists of local, global and builtin variables and the indent stack.
 	"""
 
-	# "Builtin" functions. Will be exposed to UL4 code
-	functions = {}
+	# "Builtin" functions, types and modules. Will be exposed to UL4 code
+	builtins = {}
 
 	def __init__(self, globals=None):
 		self._globals = globals if globals is not None else {}
-		self.vars = collections.ChainMap({}, self.globals, self.functions)
+		if not self.builtins:
+			self.add_builtins()
+		self.vars = collections.ChainMap({}, self.globals, self.builtins)
 		self.indents = [] # Stack of additional indentations for the ``<?render?>`` tag
 		self.escapes = [] # Stack of functions for escaping the output
 		self.asts = [] # Call stack (of :class:`AST` objects)
@@ -223,12 +195,222 @@ class Context:
 		self.vars.maps[-2] = self._globals = vars
 
 	@classmethod
-	def makefunction(cls, f):
-		name = f.__name__
-		if name.startswith("function_"):
-			name = name[9:]
-		cls.functions[name] = f
-		return f
+	def add_builtins(cls):
+		from ll import misc, color, ul4on
+
+		b = cls.builtins
+
+		if not b:
+			b["repr"] = _repr
+			b["ascii"] = _ascii
+			b["now"] = _now
+			b["today"] = datetime.date.today
+			b["utcnow"] = datetime.datetime.utcnow
+			b["random"] = random.random
+			b["xmlescape"] = _xmlescape
+			b["csv"] = _csv
+			b["asjson"] = _asjson
+			b["fromjson"] = _fromjson
+			b["asul4on"] = ul4on.dumps
+			b["fromul4on"] = _fromul4on
+			b["len"] = len
+			b["abs"] = abs
+			b["any"] = any
+			b["all"] = all
+			b["enumerate"] = enumerate
+			b["enumfl"] = _enumfl
+			b["isfirst"] = misc.isfirst
+			b["islast"] = misc.islast
+			b["isfirstlast"] = misc.isfirstlast
+			b["isundefined"] = _isundefined
+			b["isdefined"] = _isdefined
+			b["isnone"] = _isnone
+			b["isstr"] = _isstr
+			b["isint"] = _isint
+			b["isfloat"] = _isfloat
+			b["isbool"] = _isbool
+			b["isdate"] = _isdate
+			b["isdatetime"] = _isdatetime
+			b["istimedelta"] = _istimedelta
+			b["ismonthdelta"] = _ismonthdelta
+			b["isexception"] = _isexception
+			b["isinstance"] = _isinstance
+			b["islist"] = _islist
+			b["isset"] = _isset
+			b["isdict"] = _isdict
+			b["iscolor"] = _iscolor
+			b["istemplate"] = _istemplate
+			b["isfunction"] = _isfunction
+			b["chr"] = chr
+			b["ord"] = ord
+			b["hex"] = hex
+			b["oct"] = oct
+			b["bin"] = bin
+			b["min"] = _min
+			b["max"] = _max
+			b["first"] = misc.first
+			b["last"] = misc.last
+			b["sum"] = sum
+			b["sorted"] = _sorted
+			b["range"] = range
+			b["slice"] = itertools.islice
+			b["type"] = _type
+			b["reversed"] = reversed
+			b["randrange"] = _randrange
+			b["randchoice"] = random.choice
+			b["format"] = _format
+			b["zip"] = zip
+			b["urlquote"] = _urlquote
+			b["urlunquote"] = _urlunquote
+			b["rgb"] = color.Color.fromrgb
+			b["hls"] = color.Color.fromhls
+			b["hsv"] = color.Color.fromhsv
+			b["md5"] = _md5
+			b["scrypt"] = _scrypt
+			b["round"] = _round
+			b["floor"] = _floor
+			b["ceil"] = _ceil
+			b["exp"] = math.exp
+			b["log"] = math.log
+			b["pow"] = math.pow
+			b["getattr"] = _getattr
+			b["setattr"] = _setattr
+			b["hasattr"] = _hasattr
+			b["dir"] = _dir
+			b["bool"] = BoolType
+			b["int"] = IntType
+			b["float"] = FloatType
+			b["str"] = StrType
+			b["date"] = DateType
+			b["datetime"] = DateTimeType
+			b["timedelta"] = TimeDeltaType
+			b["monthdelta"] = misc.monthdelta.ul4_type
+			b["list"] = ListType
+			b["set"] = SetType
+			b["dict"] = DictType
+			b["color"] = _create_module(
+				"color",
+				"Types and functions for handling RGBA colors",
+				Color=color.Color.ul4_type,
+				css=color.css,
+				mix=color.mix,
+			)
+			b["ul4"] = _create_module(
+				"ul4",
+				"UL4 - A templating language",
+				AST=AST.ul4_type,
+				TextAST=TextAST.ul4_type,
+				IndentAST=IndentAST.ul4_type,
+				LineEndAST=LineEndAST.ul4_type,
+				CodeAST=CodeAST.ul4_type,
+				ConstAST=ConstAST.ul4_type,
+				SeqItemAST=SeqItemAST.ul4_type,
+				UnpackSeqItemAST=UnpackSeqItemAST.ul4_type,
+				ListAST=ListAST.ul4_type,
+				ListComprehensionAST=ListComprehensionAST.ul4_type,
+				SetAST=SetAST.ul4_type,
+				SetComprehensionAST=SetComprehensionAST.ul4_type,
+				DictItemAST=DictItemAST.ul4_type,
+				UnpackDictItemAST=UnpackDictItemAST.ul4_type,
+				DictAST=DictAST.ul4_type,
+				DictComprehensionAST=DictComprehensionAST.ul4_type,
+				GeneratorExpressionAST=GeneratorExpressionAST.ul4_type,
+				VarAST=VarAST.ul4_type,
+				BlockAST=BlockAST.ul4_type,
+				ConditionalBlocksAST=ConditionalBlocksAST.ul4_type,
+				IfBlockAST=IfBlockAST.ul4_type,
+				ElIfBlockAST=ElIfBlockAST.ul4_type,
+				ElseBlockAST=ElseBlockAST.ul4_type,
+				ForBlockAST=ForBlockAST.ul4_type,
+				WhileBlockAST=WhileBlockAST.ul4_type,
+				BreakAST=BreakAST.ul4_type,
+				ContinueAST=ContinueAST.ul4_type,
+				AttrAST=AttrAST.ul4_type,
+				SliceAST=SliceAST.ul4_type,
+				UnaryAST=UnaryAST.ul4_type,
+				NotAST=NotAST.ul4_type,
+				IfAST=IfAST.ul4_type,
+				NegAST=NegAST.ul4_type,
+				BitNotAST=BitNotAST.ul4_type,
+				PrintAST=PrintAST.ul4_type,
+				PrintXAST=PrintXAST.ul4_type,
+				ReturnAST=ReturnAST.ul4_type,
+				BinaryAST=BinaryAST.ul4_type,
+				ItemAST=ItemAST.ul4_type,
+				ShiftLeftAST=ShiftLeftAST.ul4_type,
+				ShiftRightAST=ShiftRightAST.ul4_type,
+				BitAndAST=BitAndAST.ul4_type,
+				BitXOrAST=BitXOrAST.ul4_type,
+				BitOrAST=BitOrAST.ul4_type,
+				IsAST=IsAST.ul4_type,
+				IsNotAST=IsNotAST.ul4_type,
+				EQAST=EQAST.ul4_type,
+				NEAST=NEAST.ul4_type,
+				LTAST=LTAST.ul4_type,
+				LEAST=LEAST.ul4_type,
+				GTAST=GTAST.ul4_type,
+				GEAST=GEAST.ul4_type,
+				ContainsAST=ContainsAST.ul4_type,
+				NotContainsAST=NotContainsAST.ul4_type,
+				AddAST=AddAST.ul4_type,
+				SubAST=SubAST.ul4_type,
+				MulAST=MulAST.ul4_type,
+				FloorDivAST=FloorDivAST.ul4_type,
+				TrueDivAST=TrueDivAST.ul4_type,
+				OrAST=OrAST.ul4_type,
+				AndAST=AndAST.ul4_type,
+				ModAST=ModAST.ul4_type,
+				ChangeVarAST=ChangeVarAST.ul4_type,
+				SetVarAST=SetVarAST.ul4_type,
+				AddVarAST=AddVarAST.ul4_type,
+				SubVarAST=SubVarAST.ul4_type,
+				MulVarAST=MulVarAST.ul4_type,
+				FloorDivVarAST=FloorDivVarAST.ul4_type,
+				TrueDivVarAST=TrueDivVarAST.ul4_type,
+				ModVarAST=ModVarAST.ul4_type,
+				ShiftLeftVarAST=ShiftLeftVarAST.ul4_type,
+				ShiftRightVarAST=ShiftRightVarAST.ul4_type,
+				BitAndVarAST=BitAndVarAST.ul4_type,
+				BitXOrVarAST=BitXOrVarAST.ul4_type,
+				BitOrVarAST=BitOrVarAST.ul4_type,
+				PositionalArgumentAST=PositionalArgumentAST.ul4_type,
+				KeywordArgumentAST=KeywordArgumentAST.ul4_type,
+				UnpackListArgumentAST=UnpackListArgumentAST.ul4_type,
+				UnpackDictArgumentAST=UnpackDictArgumentAST.ul4_type,
+				CallAST=CallAST.ul4_type,
+				RenderAST=RenderAST.ul4_type,
+				RenderXAST=RenderXAST.ul4_type,
+				RenderBlockAST=RenderBlockAST.ul4_type,
+				RenderBlocksAST=RenderBlocksAST.ul4_type,
+				SignatureAST=SignatureAST.ul4_type,
+				Template=Template.ul4_type,
+				TemplateClosure=TemplateClosure.ul4_type,
+			)
+			b["ul4on"] = _create_module(
+				"ul4on",
+				"Object serialization",
+				loads=ul4on.loads,
+				dumps=ul4on.dumps,
+				Encoder=ul4on.Encoder.ul4_type,
+				Decoder=ul4on.Decoder.ul4_type,
+			)
+			b["operator"] = _create_module(
+				"operator",
+				"Various operators as functions",
+				attrgetter=AttrGetter.ul4_type,
+			)
+			b["math"] = _create_module(
+				"math",
+				"Math related functions and constants",
+				cos=math.cos,
+				sin=math.sin,
+				tan=math.tan,
+				sqrt=math.sqrt,
+				isclose=math.isclose,
+				pi=math.pi,
+				e=math.e,
+				tau=math.tau,
+			)
 
 	@contextlib.contextmanager
 	def replacevars(self, vars):
@@ -262,7 +444,7 @@ def _decorateexception(exc, ast, obj=None):
 	while exc.__cause__:
 		exc = exc.__cause__
 	# Attach location to innermost exception
-	if not isinstance(exc, LocationError) or (isinstance(ast, Call) and isinstance(obj, (Template, TemplateClosure))):
+	if not isinstance(exc, LocationError) or (isinstance(ast, CallAST) and isinstance(obj, (Template, TemplateClosure))):
 		exc.__cause__ = LocationError(ast)
 
 
@@ -276,12 +458,12 @@ def _handleexpressioneval(f):
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, context, *args, **kwargs):
+	def wrapped(self, context, /, *args, **kwargs):
 		context.asts.append(self)
 		try:
 			return f(self, context, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
-			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
+			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlockAST` or :class:`Template`)
 			raise
 		except Exception as exc:
 			_decorateexception(exc, self)
@@ -301,12 +483,12 @@ def _handleoutputeval(f):
 	follows the UL4 call stack.
 	"""
 	@functools.wraps(f)
-	def wrapped(self, context, *args, **kwargs):
+	def wrapped(self, context, /, *args, **kwargs):
 		context.asts.append(self)
 		try:
 			yield from f(self, context, *args, **kwargs)
 		except (BreakException, ContinueException, ReturnException):
-			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlock` or :class:`Template`)
+			# Pass those exception through to the AST nodes that will handle them (:class:`ForBlockAST` or :class:`Template`)
 			raise
 		except Exception as exc:
 			_decorateexception(exc, self)
@@ -356,478 +538,8 @@ def _makevars(signature, args, kwargs):
 		return kwargs
 	else:
 		vars = signature.bind(*args, **kwargs)
-		# FIXME: use signature.apply_defaults in Python 3.6
-		for param in signature.parameters.values():
-			if param.name not in vars.arguments:
-				if param.kind is inspect.Parameter.VAR_POSITIONAL:
-					default = ()
-				elif param.kind is inspect.Parameter.VAR_KEYWORD:
-					default = {}
-				else:
-					default = param.default
-				vars.arguments[param.name] = default
+		vars.apply_defaults()
 		return vars.arguments
-
-
-class Proto:
-	name = "?"
-
-	# Attributes that are returned via a simple ``getattr`` call (either data attributes or as bound methods)
-	plainattrs = set()
-
-	# Attributes that should appear as data attributes, but are implemented as methods in the :class:`Proto` subclass
-	wrappeddataattrs = set()
-
-	# Attributes that should appear as methods and are implemented as methods in the :class:`Proto` subclass
-	wrappedmethattrs = set()
-
-	@classmethod
-	def wrapmethod(cls, obj, name):
-		func = getattr(cls, name)
-		def wrapped(*args, **kwargs):
-			return func(obj, *args, **kwargs)
-		wrapped.__name__ = name
-		wrapped.__module__ = cls.name
-		wrapped.__qualname__ = name
-		return wrapped
-
-	@classmethod
-	def missing(cls, obj, name, default=object):
-		if default is object:
-			raise AttributeError(name)
-		else:
-			return default
-
-	@classmethod
-	def getattr(cls, obj, name, default=object):
-		"""
-		Return the attribute ``name`` of the object :obj`obj` and honor
-		``ul4getattr`` and ``ul4attrs``.
-		"""
-		ul4getattr = getattr(obj, "ul4getattr", None)
-		if ul4getattr is not None:
-			try:
-				return ul4getattr(name)
-			except AttributeError:
-				return cls.missing(obj, name, default)
-		else:
-			ul4attrs = getattr(obj, "ul4attrs", None)
-			if ul4attrs is not None and name in ul4attrs:
-				return getattr(obj, name)
-			elif name in cls.plainattrs:
-				return getattr(obj, name)
-			elif name in cls.wrappeddataattrs:
-				return getattr(cls, name)(obj)
-			elif name in cls.wrappedmethattrs:
-				return cls.wrapmethod(obj, name)
-			return cls.missing(obj, name, default)
-
-	@classmethod
-	def setattr(cls, obj, name, value):
-		"""
-		Set the attribute ``name`` of the object :obj`obj` to ``value`` and
-		honor  ``ul4setattr`` and ``ul4attrs``.
-		"""
-		ul4setattr = getattr(obj, "ul4setattr", None)
-		if ul4setattr is not None:
-			ul4setattr(name, value)
-		else:
-			ul4attrs = getattr(obj, "ul4attrs", None)
-			if ul4attrs is not None:
-				# An ``ul4attrs`` attribute without ``ul4setattr`` will *not* make the attribute writable
-				raise TypeError(f"attribute {misc.format_class(obj)}.{name!r} is readonly")
-			else:
-				obj[name] = value
-
-	@classmethod
-	def hasattr(cls, obj, name):
-		"""
-		Return whether the object :obj`obj`  has an attribute ``name`` and
-		honor  ``ul4hasattr`` and ``ul4attrs``.
-		"""
-		ul4hasattr = getattr(obj, "ul4hasattr", None)
-		if ul4hasattr is not None:
-			return ul4hasattr(name)
-		else:
-			ul4attrs = getattr(obj, "ul4attrs", None)
-			if ul4attrs is not None:
-				return name in ul4attrs
-			else:
-				return name in cls.plainattrs or name in cls.wrappeddataattrs or name in cls.wrappedmethattrs
-
-	@classmethod
-	def dir(cls, obj):
-		return frozenset({*cls.plainattrs, *cls.wrappeddataattrs, *cls.wrappedmethattrs})
-
-
-class StrProto(Proto):
-	name = "str"
-	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join"}
-
-	@staticmethod
-	def split(obj, sep=None, count=None):
-		return obj.split(sep, count if count is not None else -1)
-
-	@staticmethod
-	def rsplit(obj, sep=None, count=None):
-		return obj.rsplit(sep, count if count is not None else -1)
-
-	@staticmethod
-	def splitlines(obj, keepends=False):
-		return obj.splitlines(keepends)
-
-	@staticmethod
-	def strip(obj, chars=None):
-		return obj.strip(chars)
-
-	@staticmethod
-	def lstrip(obj, chars=None):
-		return obj.lstrip(chars)
-
-	@staticmethod
-	def rstrip(obj, chars=None):
-		return obj.rstrip(chars)
-
-	@staticmethod
-	def count(obj, sub, start=None, end=None):
-		return obj.count(sub, start, end)
-
-	@staticmethod
-	def find(obj, sub, start=None, end=None):
-		return obj.find(sub, start, end)
-
-	@staticmethod
-	def rfind(obj, sub, start=None, end=None):
-		return obj.rfind(sub, start, end)
-
-	@staticmethod
-	def startswith(obj, prefix):
-		if isinstance(prefix, list):
-			prefix = tuple(prefix)
-		return obj.startswith(prefix)
-
-	@staticmethod
-	def endswith(obj, suffix):
-		if isinstance(suffix, list):
-			suffix = tuple(suffix)
-		return obj.endswith(suffix)
-
-	@staticmethod
-	def upper(obj):
-		return obj.upper()
-
-	@staticmethod
-	def lower(obj):
-		return obj.lower()
-
-	@staticmethod
-	def capitalize(obj):
-		return obj.capitalize()
-
-	@staticmethod
-	def replace(obj, old, new, count=None):
-		if count is None:
-			return obj.replace(old, new)
-		else:
-			return obj.replace(old, new, count)
-
-	@staticmethod
-	def join(obj, iterable):
-		return obj.join(iterable)
-
-
-class ListProto(Proto):
-	name = "list"
-	wrappedmethattrs = {"append", "insert", "pop", "count", "find", "rfind"}
-
-	@staticmethod
-	def append(obj, *items):
-		obj.extend(items)
-
-	@staticmethod
-	def insert(obj, pos, *items):
-		obj[pos:pos] = items
-
-	@staticmethod
-	def pop(obj, pos=-1):
-		return obj.pop(pos)
-
-	@staticmethod
-	def count(obj, sub, start=None, end=None):
-		if start is None and end is None:
-			return obj.count(sub)
-		else:
-			(start, stop, stride) = slice(start, end).indices(len(obj))
-			count = 0
-			for i in range(start, stop, stride):
-				if obj[i] == sub:
-					count += 1
-			return count
-
-	@staticmethod
-	def find(obj, sub, start=None, end=None):
-		try:
-			if end is None:
-				if start is None:
-					return obj.index(sub)
-				return obj.index(sub, start)
-			return obj.index(sub, start, end)
-		except ValueError:
-			return -1
-
-	@staticmethod
-	def rfind(obj, sub, start=None, end=None):
-		for i in reversed(range(*slice(start, end).indices(len(obj)))):
-			if obj[i] == sub:
-				return i
-		return -1
-
-
-class DictProto(Proto):
-	name = "dict"
-	plainattrs = {"items", "values", "clear", "pop"}
-	wrappedmethattrs = {"get", "update"}
-
-	@staticmethod
-	def get(obj, key, default=None):
-		return obj.get(key, default)
-
-	@staticmethod
-	def update(obj, *others, **kwargs):
-		for other in others:
-			obj.update(other)
-		obj.update(**kwargs)
-
-	@classmethod
-	def missing(cls, obj, name, default=None):
-		if name in obj:
-			return obj[name]
-		return super().missing(obj, name)
-
-
-class SetProto(Proto):
-	name = "set"
-	plainattrs = {"clear"}
-	wrappedmethattrs = {"add"}
-
-	@staticmethod
-	def add(obj, *items):
-		obj.update(items)
-
-
-class SliceProto(Proto):
-	name = "slice"
-	plainattrs = {"start", "stop"}
-
-
-class DateProto(Proto):
-	name = "date"
-	wrappedmethattrs = {"weekday", "yearday", "week", "calendar", "day", "month", "year", "date", "mimeformat", "isoformat"}
-
-	@staticmethod
-	def weekday(obj):
-		return obj.weekday()
-
-	@staticmethod
-	def calendar(obj, firstweekday=0, mindaysinfirstweek=4):
-		"""
-		Return the calendar year the date ``obj`` belongs to, the calendar week
-		number and the week day. (A day might belong to a different calender year,
-		if it is in week 1 but before January 1, or if belongs to week 1 of the
-		following year).
-
-		``firstweekday`` defines what a week is (i.e. which weekday is
-		considered the start of the week, ``0`` is Monday and ``6`` is Sunday).
-		``mindaysinfirstweek`` defines how many days must be in a week to be
-		considered the first week in the year.
-
-		For example for the ISO week number (according to
-		https://en.wikipedia.org/wiki/ISO_week_date) the week starts on Monday
-		(i.e. ``firstweekday == 0``) and a week is considered the first week if
-		it's the first week that contains a Thursday (which means that this week
-		contains at least four days in January, so ``mindaysinfirstweek == 4``).
-		This is also the default for both parameters.
-
-		For the US ``firstweekday == 6`` and ``mindaysinfirstweek == 1``, i.e.
-		the week starts on Sunday and January the first is always in week 1.
-
-		There's also the convention that the week 1 is the first complete week
-		in January. For this ``mindaysinfirstweek == 7``.
-
-		For example ``<?print repr(@(2000-02-29).calendar()?>`` prints
-		``[2000, 9, 1]``, i.e. this day is the Tuesday in week 9 of the year 2000.
-		"""
-
-		# Normalize parameters
-		firstweekday %= 7
-		mindaysinfirstweek = max(1, min(mindaysinfirstweek, 7))
-
-		# ``obj`` might be in the first week of the next year, or last week of
-		# the previous year, so we might have to try those too.
-		for year in (obj.year+1, obj.year, obj.year-1):
-			# ``refdate`` will always be in week 1
-			refdate = obj.__class__(year, 1, mindaysinfirstweek)
-			# Go back to the start of ``refdate``\s week (i.e. day 1 of week 1)
-			weekstartdate = refdate - datetime.timedelta((refdate.weekday() - firstweekday) % 7)
-			# Is our date ``obj`` at or after day 1 of week 1?
-			# (if not we have to recalculate based on the year before in the next loop iteration)
-			if obj >= weekstartdate:
-				# Add 1, because the first week is week 1, not week 0
-				return (year, (obj - weekstartdate).days//7 + 1, obj.weekday())
-
-	@staticmethod
-	def week(obj, firstweekday=0, mindaysinfirstweek=4):
-		"""
-		Return the week number of the date ``obj``. For more info see
-		:meth:`calendar`.
-		"""
-		return DateProto.calendar(obj, firstweekday, mindaysinfirstweek)[1]
-
-	@staticmethod
-	def day(obj):
-		return obj.day
-
-	@staticmethod
-	def month(obj):
-		return obj.month
-
-	@staticmethod
-	def year(obj):
-		return obj.year
-
-	@staticmethod
-	def date(obj):
-		return obj
-
-	@staticmethod
-	def mimeformat(obj):
-		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4}"
-
-	@staticmethod
-	def isoformat(obj):
-		return obj.isoformat()
-
-	@staticmethod
-	def yearday(obj):
-		return (obj - obj.__class__(obj.year, 1, 1)).days+1
-
-
-class DatetimeProto(DateProto):
-	name = "datetime"
-	wrappedmethattrs = DateProto.wrappedmethattrs.union({"hour", "minute", "second", "microsecond"})
-
-	@staticmethod
-	def hour(obj):
-		return obj.hour
-
-	@staticmethod
-	def minute(obj):
-		return obj.minute
-
-	@staticmethod
-	def second(obj):
-		return obj.second
-
-	@staticmethod
-	def microsecond(obj):
-		return obj.microsecond
-
-	@staticmethod
-	def date(obj):
-		return obj.date()
-
-	@staticmethod
-	def mimeformat(obj):
-		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4} {obj.hour:02}:{obj.minute:02}:{obj.second:02} GMT"
-
-
-class TimeDeltaProto(Proto):
-	name = "timedelta"
-	wrappedmethattrs = {"days", "seconds", "microseconds"}
-
-	@staticmethod
-	def days(obj):
-		return obj.days
-
-	@staticmethod
-	def seconds(obj):
-		return obj.seconds
-
-	@staticmethod
-	def microseconds(obj):
-		return obj.microseconds
-
-
-class ExceptionProto(Proto):
-	name = "exception"
-	wrappeddataattrs = {"context"}
-
-	@staticmethod
-	def context(obj):
-		if obj.__cause__ is not None:
-			return obj.__cause__
-		elif obj.__context__ is not None and not obj.__suppress_context__:
-			return obj.__context__
-		return None
-
-
-@functools.singledispatch
-def proto(obj):
-	return Proto
-
-
-@proto.register(str)
-def proto_str(obj):
-	return StrProto
-
-
-@proto.register(list)
-@proto.register(tuple)
-@proto.register(abc.Sequence)
-def proto_list(obj):
-	return ListProto
-
-
-@proto.register(dict)
-@proto.register(abc.Mapping)
-def proto_dict(obj):
-	return DictProto
-
-
-@proto.register(set)
-@proto.register(frozenset)
-@proto.register(abc.Set)
-def proto_set(obj):
-	return SetProto
-
-
-@proto.register(slice)
-def proto_slice(obj):
-	return SliceProto
-
-
-@proto.register(datetime.date)
-def proto_date(obj):
-	return DateProto
-
-
-@proto.register(datetime.datetime)
-def proto_datetime(obj):
-	return DatetimeProto
-
-
-@proto.register(datetime.timedelta)
-def proto_timedelta(obj):
-	return TimeDeltaProto
-
-
-@proto.register(BaseException)
-def proto_exception(obj):
-	return ExceptionProto
 
 
 def _linecol(source, index):
@@ -896,7 +608,7 @@ def _sourcesuffix(source, pos):
 ### Helper functions for the various UL4 functions
 ###
 
-def _str(obj=""):
+def _str(obj="", /):
 	from ll import color
 	if obj is None:
 		return ""
@@ -1029,16 +741,16 @@ def _repr_helper(obj, seen, forceascii):
 			yield repr(obj)
 
 
-def _repr(obj):
+def _repr(obj, /):
 	return "".join(_repr_helper(obj, set(), False))
 
 
-def _ascii(obj):
+def _ascii(obj, /):
 	return "".join(_repr_helper(obj, set(), True))
 
 
-def _asjson(obj):
-	from ll import color
+def _asjson(obj, /):
+	from ll import misc, color
 	if obj is None:
 		return "null"
 	elif isinstance(obj, Undefined):
@@ -1069,13 +781,558 @@ def _asjson(obj):
 		raise TypeError(f"can't handle object of type {type(obj)}")
 
 
-def _xmlescape(obj):
+def _xmlescape(obj, /):
 	if obj is None:
 		return ""
 	elif isinstance(obj, Undefined):
 		return ""
 	else:
+		from ll import misc
 		return misc.xmlescape(_str(obj))
+
+
+###
+### Type objects for UL4 types
+###
+
+class Type:
+	ul4_attrs = {"__module__", "__name__", "__doc__"}
+
+	# Attributes that are returned via a simple ``getattr`` call (either data attributes or as bound methods)
+	plainattrs = frozenset()
+
+	# Attributes that should appear as data attributes, but are implemented as methods in the :class:`Type` subclass
+	wrappeddataattrs = frozenset()
+
+	# Attributes that should appear as methods and are implemented as methods in the :class:`Type` subclass
+	wrappedmethattrs = frozenset()
+
+	def __init__(self, module=None, name=None, doc=None, type=None):
+		self.type = type
+		self.__module__ = module
+		self.__name__ = name
+		if doc is not None:
+			doc = textwrap.dedent(doc).strip()
+		self.__doc__ = doc
+
+	def __repr__(self):
+		if self.__module__ is None:
+			return f"<type {self.__name__}>"
+		else:
+			return f"<type {self.__module__}.{self.__name__}>"
+
+	def __set_name__(self, type, name):
+		self.type = type
+		if self.__name__ is None and type.__name__ is not None:
+			self.__name__ = type.__name__
+		if self.__doc__ is None and type.__doc__ is not None:
+			self.__doc__ = textwrap.dedent(type.__doc__).strip().split("\n\n")[0]
+
+	def instancecheck(self, obj):
+		return isinstance(obj, self.type)
+
+	def _wrapmethod(self, obj, name):
+		func = getattr(self, name)
+		def wrapped(*args, **kwargs):
+			return func(obj, *args, **kwargs)
+		wrapped.__name__ = name
+		wrapped.__module__ = self.__module__
+		wrapped.__qualname__ = name
+		return wrapped
+
+	def getattr(self, obj, name, default=object):
+		"""
+		Return the attribute ``name`` of the object :obj`obj` and honor
+		``ul4_getattr`` and ``ul4_attrs``.
+		"""
+		ul4_getattr = getattr(obj, "ul4_getattr", None)
+		ul4_attrs = getattr(obj, "ul4_attrs", None)
+
+		if ul4_getattr is not None:
+			try:
+				return ul4_getattr(name)
+			except AttributeError:
+				return self.missing(obj, name, default)
+		else:
+			if ul4_attrs is not None and name in ul4_attrs:
+				return getattr(obj, name)
+			elif name in self.plainattrs:
+				return getattr(obj, name)
+			elif name in self.wrappeddataattrs:
+				return getattr(self, name)(obj)
+			elif name in self.wrappedmethattrs:
+				return self._wrapmethod(obj, name)
+			return self.missing(obj, name, default)
+
+	def missing(self, obj, name, default=object):
+		if default is object:
+			raise AttributeError(name)
+		return default
+
+	def setattr(self, obj, name, value):
+		"""
+		Set the attribute ``name`` of the object :obj`obj` to ``value`` and
+		honors ``ul4_setattr`` and ``ul4_attrs``.
+		"""
+		ul4_setattr = getattr(obj, "ul4_setattr", None)
+		if ul4_setattr is not None:
+			ul4_setattr(name, value)
+		else:
+			ul4_attrs = getattr(obj, "ul4_attrs", None)
+			if ul4_attrs is not None:
+				# An ``ul4_attrs`` attribute without ``ul4_setattr`` will *not* make the attribute writable
+				from ll import misc
+				raise TypeError(f"attribute {misc.format_class(obj)}.{name!r} is readonly")
+			else:
+				obj[name] = value
+
+	def hasattr(self, obj, name):
+		"""
+		Return whether the object :obj`obj`  has an attribute ``name`` and
+		honors ``ul4_hasattr`` and ``ul4_attrs``.
+		"""
+		ul4_hasattr = getattr(obj, "ul4_hasattr", None)
+		if ul4_hasattr is not None:
+			return ul4_hasattr(name)
+		else:
+			ul4_attrs = getattr(obj, "ul4_attrs", None)
+			if ul4_attrs is not None:
+				return name in ul4_attrs
+			else:
+				return name in self.plainattrs or name in self.wrappeddataattrs or name in self.wrappedmethattrs
+
+	def dir(self, obj):
+		ul4_attrs = getattr(obj, "ul4_attrs", None)
+		if ul4_attrs is not None:
+			return ul4_attrs
+		return frozenset({*self.plainattrs, *self.wrappeddataattrs, *self.wrappedmethattrs})
+
+
+class InstantiableType(Type):
+	def __call__(self, /, *args, **kwargs):
+		return self.type(*args, **kwargs)
+
+
+class GenericType(Type):
+	def __init__(self, cls):
+		super().__init__(cls.__module__ if cls.__module__ != "builtins" else None, cls.__name__, cls.__doc__)
+		self.type = cls
+
+
+class GenericExceptionType(GenericType):
+	wrappeddataattrs = {"context"}
+
+	@staticmethod
+	def context(obj):
+		if obj.__cause__ is not None:
+			return obj.__cause__
+		elif obj.__context__ is not None and not obj.__suppress_context__:
+			return obj.__context__
+		return None
+
+
+class NoneType(Type):
+	def instancecheck(self, obj):
+		return obj is None
+
+NoneType = NoneType(None, "None", "Nothing")
+
+
+BoolType = InstantiableType(None, "bool", "A boolean value (True or False)", type=bool)
+
+
+class IntType(Type):
+	def __call__(self, obj=0, /, base=None):
+		if base is None:
+			return int(obj)
+		else:
+			return int(obj, base)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, int) and not isinstance(obj, bool)
+
+IntType = IntType(None, "int", "An integer value")
+
+
+class FloatType(Type):
+	def __call__(self, x=0.0, /):
+		return float(x)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, float)
+
+FloatType = FloatType(None, "float", "An floating point value")
+
+
+class StrType(Type):
+	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join"}
+
+	def __call__(self, obj="", /):
+		return _str(obj)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, str)
+
+	@staticmethod
+	def split(obj, sep=None, maxsplit=None):
+		return obj.split(sep, maxsplit if maxsplit is not None else -1)
+
+	@staticmethod
+	def rsplit(obj, sep=None, maxsplit=None):
+		return obj.rsplit(sep, maxsplit if maxsplit is not None else -1)
+
+	@staticmethod
+	def splitlines(obj, keepends=False):
+		return obj.splitlines(keepends)
+
+	@staticmethod
+	def strip(obj, chars=None, /):
+		return obj.strip(chars)
+
+	@staticmethod
+	def lstrip(obj, chars=None, /):
+		return obj.lstrip(chars)
+
+	@staticmethod
+	def rstrip(obj, chars=None, /):
+		return obj.rstrip(chars)
+
+	@staticmethod
+	def count(obj, sub, start=None, end=None, /):
+		return obj.count(sub, start, end)
+
+	@staticmethod
+	def find(obj, sub, start=None, end=None, /):
+		return obj.find(sub, start, end)
+
+	@staticmethod
+	def rfind(obj, sub, start=None, end=None, /):
+		return obj.rfind(sub, start, end)
+
+	@staticmethod
+	def startswith(obj, prefix, /):
+		if isinstance(prefix, list):
+			prefix = tuple(prefix)
+		return obj.startswith(prefix)
+
+	@staticmethod
+	def endswith(obj, suffix, /):
+		if isinstance(suffix, list):
+			suffix = tuple(suffix)
+		return obj.endswith(suffix)
+
+	@staticmethod
+	def upper(obj):
+		return obj.upper()
+
+	@staticmethod
+	def lower(obj):
+		return obj.lower()
+
+	@staticmethod
+	def capitalize(obj):
+		return obj.capitalize()
+
+	@staticmethod
+	def replace(obj, old, new, count=-1, /):
+		return obj.replace(old, new, count if count is not None else -1)
+
+	@staticmethod
+	def join(obj, iterable, /):
+		return obj.join(iterable)
+
+StrType = StrType(None, "str", "A string")
+
+
+class ListType(Type):
+	wrappedmethattrs = {"append", "insert", "pop", "count", "find", "rfind"}
+
+	def __call__(self, iterable=(), /):
+		return list(iterable)
+
+	def instancecheck(self, obj):
+		from ll import color
+		return isinstance(obj, (list, tuple, abc.Sequence)) and not isinstance(obj, (str, color.Color))
+
+	@staticmethod
+	def append(obj, *items):
+		obj.extend(items)
+
+	@staticmethod
+	def insert(obj, pos, *items):
+		obj[pos:pos] = items
+
+	@staticmethod
+	def pop(obj, pos=-1):
+		return obj.pop(pos)
+
+	@staticmethod
+	def count(obj, sub, start=None, end=None, /):
+		if start is None and end is None:
+			return obj.count(sub)
+		else:
+			(start, stop, stride) = slice(start, end).indices(len(obj))
+			count = 0
+			for i in range(start, stop, stride):
+				if obj[i] == sub:
+					count += 1
+			return count
+
+	@staticmethod
+	def find(obj, sub, start=None, end=None, /):
+		try:
+			if end is None:
+				if start is None:
+					return obj.index(sub)
+				return obj.index(sub, start)
+			return obj.index(sub, start, end)
+		except ValueError:
+			return -1
+
+	@staticmethod
+	def rfind(obj, sub, start=None, end=None, /):
+		for i in reversed(range(*slice(start, end).indices(len(obj)))):
+			if obj[i] == sub:
+				return i
+		return -1
+
+ListType = ListType(None, "list", "A list")
+
+
+class DateType(Type):
+	wrappedmethattrs = {"weekday", "yearday", "week", "calendar", "day", "month", "year", "date", "mimeformat", "isoformat"}
+
+	def __call__(self, year, month, day):
+		return datetime.date(year, month, day)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, datetime.date) and not isinstance(obj, datetime.datetime)
+
+	@staticmethod
+	def weekday(obj):
+		return obj.weekday()
+
+	@staticmethod
+	def calendar(obj, firstweekday=0, mindaysinfirstweek=4):
+		"""
+		Return the calendar year the date ``obj`` belongs to, the calendar week
+		number and the week day. (A day might belong to a different calender year,
+		if it is in week 1 but before January 1, or if belongs to week 1 of the
+		following year).
+
+		``firstweekday`` defines what a week is (i.e. which weekday is
+		considered the start of the week, ``0`` is Monday and ``6`` is Sunday).
+		``mindaysinfirstweek`` defines how many days must be in a week to be
+		considered the first week in the year.
+
+		For example for the ISO week number (according to
+		https://en.wikipedia.org/wiki/ISO_week_date) the week starts on Monday
+		(i.e. ``firstweekday == 0``) and a week is considered the first week if
+		it's the first week that contains a Thursday (which means that this week
+		contains at least four days in January, so ``mindaysinfirstweek == 4``).
+		This is also the default for both parameters.
+
+		For the US ``firstweekday == 6`` and ``mindaysinfirstweek == 1``, i.e.
+		the week starts on Sunday and January the first is always in week 1.
+
+		There's also the convention that the week 1 is the first complete week
+		in January. For this ``mindaysinfirstweek == 7``.
+
+		For example ``<?print repr(@(2000-02-29).calendar()?>`` prints
+		``[2000, 9, 1]``, i.e. this day is the Tuesday in week 9 of the year 2000.
+		"""
+
+		# Normalize parameters
+		firstweekday %= 7
+		mindaysinfirstweek = max(1, min(mindaysinfirstweek, 7))
+
+		# ``obj`` might be in the first week of the next year, or last week of
+		# the previous year, so we might have to try those too.
+		for year in (obj.year+1, obj.year, obj.year-1):
+			# ``refdate`` will always be in week 1
+			refdate = obj.__class__(year, 1, mindaysinfirstweek)
+			# Go back to the start of ``refdate``\s week (i.e. day 1 of week 1)
+			weekstartdate = refdate - datetime.timedelta((refdate.weekday() - firstweekday) % 7)
+			# Is our date ``obj`` at or after day 1 of week 1?
+			# (if not we have to recalculate based on the year before in the next loop iteration)
+			if obj >= weekstartdate:
+				# Add 1, because the first week is week 1, not week 0
+				return (year, (obj - weekstartdate).days//7 + 1, obj.weekday())
+
+	@staticmethod
+	def week(obj, firstweekday=0, mindaysinfirstweek=4):
+		"""
+		Return the week number of the date ``obj``. For more info see
+		:meth:`calendar`.
+		"""
+		return DateType.calendar(obj, firstweekday, mindaysinfirstweek)[1]
+
+	@staticmethod
+	def day(obj):
+		return obj.day
+
+	@staticmethod
+	def month(obj):
+		return obj.month
+
+	@staticmethod
+	def year(obj):
+		return obj.year
+
+	@staticmethod
+	def date(obj):
+		return obj
+
+	@staticmethod
+	def mimeformat(obj):
+		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4}"
+
+	@staticmethod
+	def isoformat(obj):
+		return obj.isoformat()
+
+	@staticmethod
+	def yearday(obj):
+		return (obj - obj.__class__(obj.year, 1, 1)).days+1
+
+DateType = DateType(None, "date", "A date")
+
+
+class DateTimeType(DateType.__class__):
+	wrappedmethattrs = DateType.wrappedmethattrs.union({"hour", "minute", "second", "microsecond"})
+
+	def __call__(self, year, month, day, hour=0, minute=0, second=0, microsecond=0):
+		return datetime.datetime(year, month, day, hour, minute, second, microsecond)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, datetime.datetime)
+
+	@staticmethod
+	def hour(obj):
+		return obj.hour
+
+	@staticmethod
+	def minute(obj):
+		return obj.minute
+
+	@staticmethod
+	def second(obj):
+		return obj.second
+
+	@staticmethod
+	def microsecond(obj):
+		return obj.microsecond
+
+	@staticmethod
+	def date(obj):
+		return obj.date()
+
+	@staticmethod
+	def mimeformat(obj):
+		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4} {obj.hour:02}:{obj.minute:02}:{obj.second:02} GMT"
+
+DateTimeType = DateTimeType(None, "datetime", "A date and time value")
+
+
+class TimeDeltaType(Type):
+	wrappedmethattrs = {"days", "seconds", "microseconds"}
+
+	def __call__(self, days=0, seconds=0, microseconds=0):
+		return datetime.timedelta(days, seconds, microseconds)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, datetime.timedelta)
+
+	@staticmethod
+	def days(obj):
+		return obj.days
+
+	@staticmethod
+	def seconds(obj):
+		return obj.seconds
+
+	@staticmethod
+	def microseconds(obj):
+		return obj.microseconds
+
+TimeDeltaType = TimeDeltaType(None, "timedelta", "A time span")
+
+
+class DictType(Type):
+	plainattrs = {"items", "values", "clear", "pop"}
+	wrappedmethattrs = {"get", "update"}
+
+	def __call__(self, *args, **kwargs):
+		return dict(*args, **kwargs)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, (dict, abc.Mapping))
+
+	@staticmethod
+	def get(obj, key, default=None, /):
+		return obj.get(key, default)
+
+	@staticmethod
+	def update(obj, *others, **kwargs):
+		for other in others:
+			obj.update(other)
+		obj.update(**kwargs)
+
+	def missing(self, obj, name, default=None):
+		if name in obj:
+			return obj[name]
+		return super().missing(obj, name)
+
+DictType = DictType(None, "dict", "A dictionary")
+
+
+class SetType(Type):
+	plainattrs = {"clear"}
+	wrappedmethattrs = {"add"}
+
+	def __call__(self, iterable=(), /):
+		return set(iterable)
+
+	def instancecheck(self, obj):
+		return isinstance(obj, (set, frozenset, abc.Set))
+
+	@staticmethod
+	def add(obj, *items):
+		obj.update(items)
+
+
+SetType = SetType(None, "set", "A set")
+
+
+class SliceType(Type):
+	plainattrs = {"start", "stop"}
+
+	def instancecheck(self, obj):
+		return isinstance(obj, slice)
+
+
+SliceType = SliceType(None, "slice", "A slice")
+
+
+class AttrGetter:
+	ul4_type = InstantiableType("operator", "attrgetter", "Return a callable object that fetches the given attribute(s) from its operand.")
+
+	def __init__(self, *attrs):
+		self.attrs = [a.split(".") for a in attrs]
+
+	def _fetchattr(self, obj, attrnames):
+		for name in attrnames:
+			obj = _type(obj).getattr(obj, name)
+		return obj
+
+	def __call__(self, obj):
+		if len(self.attrs) == 1:
+			return self._fetchattr(obj, self.attrs[0])
+		return [self._fetchattr(obj, a) for a in self.attrs]
 
 
 ###
@@ -1084,11 +1341,13 @@ def _xmlescape(obj):
 
 class AST:
 	"""
-	Base class for all syntax tree nodes.
+	Base class for all UL4 syntax tree nodes.
 	"""
 
+	ul4_type = Type("ul4")
+
 	# Set of attributes available to UL4 templates
-	ul4attrs = {"type", "template", "pos", "startpos", "startline", "startcol", "source", "startsource", "fullsource", "sourceprefix", "sourcesuffix", "startsourceprefix", "startsourcesuffix"}
+	ul4_attrs = {"type", "template", "pos", "startpos", "startline", "startcol", "source", "startsource", "fullsource", "sourceprefix", "sourcesuffix", "startsourceprefix", "startsourcesuffix", "stopsourceprefix", "stopsourcesuffix"}
 
 	# Specifies whether the node does output (so :meth:`eval` is a generator)
 	# or not (so :meth:`eval` is a normal method).
@@ -1250,10 +1509,10 @@ class AST:
 		For most nodes this is a normal function that returns the result of
 		evaluating the node. (For these nodes the class attribute ``output``
 		is false.). For nodes that produce output (like literal text,
-		:class:`Print`, :class:`PrintX` or :class:`Render`) it is a generator
-		which yields the text output of the node. For blocks (which might contain
-		nodes which produce output) this is also a generator. (For these nodes
-		the class attribute ``output`` is true.)
+		:class:`PrintAST`, :class:`PrintXAST` or :class:`RenderAST`) it is a
+		generator which yields the text output of the node. For blocks (which
+		might contain nodes which produce output) this is also a generator.
+		(For these nodes the class attribute ``output`` is true.)
 		"""
 		pass
 
@@ -1268,12 +1527,19 @@ class AST:
 
 
 @register("text")
-class Text(AST):
+class TextAST(AST):
 	"""
-	AST node for literal text.
+	AST node for literal text (i.e. the stuff between tags).
+
+	Attributes are:
+
+	``text`` : :class:`str`
+		The text
 	"""
 
-	ul4attrs = AST.ul4attrs.union({"text"})
+	ul4_type = Type("ul4")
+
+	ul4_attrs = AST.ul4_attrs.union({"text"})
 
 	output = True
 
@@ -1297,10 +1563,17 @@ class Text(AST):
 
 
 @register("indent")
-class Indent(Text):
+class IndentAST(TextAST):
 	"""
 	AST node for literal text that is an indentation at the start of the line.
+
+	Attributes are:
+
+	``text`` : :class:`str`
+		The indentation text (i.e. a string that consists solely of whitespace).
 	"""
+
+	ul4_type = Type("ul4")
 
 	def __init__(self, template=None, startpos=None, text=None):
 		super().__init__(template, startpos)
@@ -1337,10 +1610,17 @@ class Indent(Text):
 
 
 @register("lineend")
-class LineEnd(Text):
-	"""
+class LineEndAST(TextAST):
+	r"""
 	AST node for literal text that is the end of a line.
+
+	Attributes are:
+
+	``text`` : :class:`str`
+		The text of the linefeed (i.e. ``"\n"`` or ``"\r\n"``).
 	"""
+
+	ul4_type = Type("ul4")
 
 	def _str(self):
 		yield f"lineend {self.text!r}"
@@ -1350,6 +1630,9 @@ class Tag(AST):
 	"""
 	A :class:`Tag` object is the location of a template tag in a template.
 	"""
+
+	ul4_type = Type("ul4")
+
 	def __init__(self, template=None, tag=None, tagpos=None, codepos=None):
 		super().__init__(template, tagpos)
 		self.tag = tag
@@ -1371,21 +1654,32 @@ class Tag(AST):
 		return self.template._fullsource[self.codepos]
 
 
-class Code(AST):
+class CodeAST(AST):
 	"""
-	The base class of all AST nodes that appear inside a :class:`Tag`.
+	The base class of all AST nodes that are not literal text.
+
+	These nodes appear inside a :class:`Tag`.
 	"""
+
+	ul4_type = Type("ul4")
 
 	def _str(self):
 		yield " ".join(self.source.splitlines(False))
 
 
 @register("const")
-class Const(Code):
+class ConstAST(CodeAST):
 	"""
-	Load a constant
+	AST node for load a constant value.
+
+	Attributes are:
+
+	``value``
+		The constant to be loaded.
 	"""
-	ul4attrs = Code.ul4attrs.union({"value"})
+
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"value"})
 
 	def __init__(self, template=None, startpos=None, value=None):
 		super().__init__(template, startpos)
@@ -1415,12 +1709,18 @@ class Const(Code):
 ### AST nodes for items in list, set and dict "literals"
 
 @register("seqitem")
-class SeqItem(Code):
+class SeqItemAST(CodeAST):
 	"""
-	AST node for an item in a list/set "literal"
+	AST node for an item in a list/set "literal" (e.g. ``{x, y}`` or ``[x, y]``)
+
+	Attributes are:
+
+	``value`` : :class:`AST`
+		The list/set item (``x`` and ``y`` in the above examples).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"value"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"value"})
 
 	def __init__(self, template=None, startpos=None, value=None):
 		super().__init__(template, startpos)
@@ -1452,12 +1752,20 @@ class SeqItem(Code):
 
 
 @register("unpackseqitem")
-class UnpackSeqItem(Code):
+class UnpackSeqItemAST(CodeAST):
 	"""
-	AST nodes for '*' unpacking expressions in a list/ set "literal".
+	AST node for an ``*`` unpacking expression in a list/set "literal"
+	(e.g. the ``y`` in ``{x, *y}`` or ``[x, *y]``)
+
+	Attributes are:
+
+	``value`` : :class:`AST`
+		The item to be unpacked into list/set items (``y`` in the above
+		examples).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"value"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"value"})
 
 	def __init__(self, template=None, startpos=None, value=None):
 		super().__init__(template, startpos)
@@ -1493,12 +1801,21 @@ class UnpackSeqItem(Code):
 
 
 @register("dictitem")
-class DictItem(Code):
+class DictItemAST(CodeAST):
 	"""
-	AST node for a dictionary key
+	AST node for a dictionary entry in a dict expression (:class:`DictAST`).
+
+	Attributes are:
+
+	``key`` : :class:`AST`
+		The key of the entry.
+
+	``value`` : :class:`AST`
+		The value of the entry.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"key", "value"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"key", "value"})
 
 	def __init__(self, template=None, startpos=None, key=None, value=None):
 		super().__init__(template, startpos)
@@ -1534,12 +1851,20 @@ class DictItem(Code):
 
 
 @register("unpackdictitem")
-class UnpackDictItem(Code):
+class UnpackDictItemAST(CodeAST):
 	"""
-	AST nodes for '**' unpacking expressions in dict "literal".
+	AST node for ``**`` unpacking expressions in dict "literal"
+	(e.g. the ``**u`` in ``{k: v, **u}``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The argument that must evaluate to a dictionary or an iterable of
+		(key, value) pairs.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"item"})
 
 	def __init__(self, template=None, startpos=None, item=None):
 		super().__init__(template, startpos)
@@ -1569,12 +1894,18 @@ class UnpackDictItem(Code):
 ### AST nodes for call arguments
 
 @register("posarg")
-class PosArg(Code):
+class PositionalArgumentAST(CodeAST):
 	"""
-	AST node for a positional argument
+	AST node for a positional argument. (e.g. the ``x`` in ``f(x)``).
+
+	Attributes are:
+
+	``value`` : :class:`AST`
+		The value of the argument (``x`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"value"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"value"})
 
 	def __init__(self, template=None, startpos=None, value=None):
 		super().__init__(template, startpos)
@@ -1590,9 +1921,9 @@ class PosArg(Code):
 
 	def append(self, call):
 		for arg in call.args:
-			if isinstance(arg, KeywordArg):
+			if isinstance(arg, KeywordArgumentAST):
 				raise SyntaxError("positional argument follows keyword argument")
-			elif isinstance(arg, UnpackDictArg):
+			elif isinstance(arg, UnpackDictArgumentAST):
 				raise SyntaxError("positional argument follows keyword argument unpacking")
 		call.args.append(self)
 
@@ -1610,12 +1941,22 @@ class PosArg(Code):
 
 
 @register("keywordarg")
-class KeywordArg(Code):
+class KeywordArgumentAST(CodeAST):
 	"""
-	AST node for a keyword argument
+	AST node for a keyword argument in a :class:`CallAST` (e.g. the ``x=y``
+	in the function call``f(x=y)``).
+
+	Attributes are:
+
+	``name`` : :class:`str`
+		The keyword argument name (``"x"`` in the above example).
+
+	``value`` : :class:`AST`
+		The keyword argument value (``y`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"name", "value"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"name", "value"})
 
 	def __init__(self, template=None, startpos=None, name=None, value=None):
 		super().__init__(template, startpos)
@@ -1654,12 +1995,19 @@ class KeywordArg(Code):
 
 
 @register("unpacklistarg")
-class UnpackListArg(Code):
+class UnpackListArgumentAST(CodeAST):
 	"""
-	AST nodes for '*' unpacking expressions in calls.
+	AST node for an ``*`` unpacking expressions in a :class:`CallAST`
+	(e.g. the ``*x`` in ``f(*x)``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The argument that must evaluate an iterable.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"item"})
 
 	def __init__(self, template=None, startpos=None, item=None):
 		super().__init__(template, startpos)
@@ -1675,7 +2023,7 @@ class UnpackListArg(Code):
 
 	def append(self, call):
 		for arg in call.args:
-			if isinstance(arg, UnpackDictArg):
+			if isinstance(arg, UnpackDictArgumentAST):
 				raise SyntaxError("iterable argument unpacking follows keyword argument unpacking")
 		call.args.append(self)
 
@@ -1694,12 +2042,20 @@ class UnpackListArg(Code):
 
 
 @register("unpackdictarg")
-class UnpackDictArg(Code):
+class UnpackDictArgumentAST(CodeAST):
 	"""
-	AST nodes for '**' unpacking expressions in calls.
+	AST node for an ``**`` unpacking expressions in a :class:`CallAST`
+	(e.g. the ``**x`` in ``f(**x)``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The argument that must evaluate to a dictionary or an iterable of
+		(key, value) pairs.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"item"})
 
 	def __init__(self, template=None, startpos=None, item=None):
 		super().__init__(template, startpos)
@@ -1740,12 +2096,20 @@ class UnpackDictArg(Code):
 
 
 @register("list")
-class List(Code):
+class ListAST(CodeAST):
 	"""
-	AST nodes for loading a list object.
+	AST node for creating a list object (e.g. ``[x, y, *z]``).
+
+	Attributes are:
+
+	``items`` : :class:`list`
+		The items that will be put into the newly created list as a list of
+		:class:`SeqItemAST` (``x`` and ``y`` in the above example) and
+		:class:`UnpackSeqItemAST` objects (``z`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"items"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"items"})
 
 	def __init__(self, template=None, startpos=None, *items):
 		super().__init__(template, startpos)
@@ -1776,12 +2140,30 @@ class List(Code):
 
 
 @register("listcomp")
-class ListComp(Code):
+class ListComprehensionAST(CodeAST):
 	"""
-	AST node for list comprehension.
+	AST node for a list comprehension (e.g. ``[v for (a, b) in w if c]``.
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The expression for the item in the newly created list (``v`` in the
+		above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, template=None, startpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(template, startpos)
@@ -1843,12 +2225,20 @@ class ListComp(Code):
 
 
 @register("set")
-class Set(Code):
+class SetAST(CodeAST):
 	"""
-	AST nodes for loading a set object.
+	AST node for creating a set object (e.g. ``{x, y, *z}``.
+
+	Attributes are:
+
+	``items`` : :class:`list`
+		The items that will be put into the newly created set as a list of
+		:class:`SeqItemAST` (``x`` and ``y`` in the above example) and
+		:class:`UnpackSeqItemAST` objects (``z`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"items"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"items"})
 
 	def __init__(self, template=None, startpos=None, *items):
 		super().__init__(template, startpos)
@@ -1879,12 +2269,30 @@ class Set(Code):
 
 
 @register("setcomp")
-class SetComp(Code):
+class SetComprehensionAST(CodeAST):
 	"""
-	AST node for set comprehension.
+	AST node for a set comprehension (e.g. ``{v for (a, b) in w if c}``.
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		The expression for the item in the newly created set (``v`` in the
+		above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, template=None, startpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(template, startpos)
@@ -1946,12 +2354,20 @@ class SetComp(Code):
 
 
 @register("dict")
-class Dict(Code):
+class DictAST(CodeAST):
 	"""
-	AST node for loading a dict object.
+	AST node for creating a dict object (e.g. `{k: v, **u}`.
+
+	Attributes are:
+
+	``items`` : :class:`list`
+		The items that will be put into the newly created dictionary as a list of
+		:class:`DictItemAST` (for ``k`` and ``v`` in the above example) and
+		:class:`UnpackDictItemAST` objects (for ``u`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"items"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"items"})
 
 	def __init__(self, template=None, startpos=None, *items):
 		super().__init__(template, startpos)
@@ -1982,12 +2398,34 @@ class Dict(Code):
 
 
 @register("dictcomp")
-class DictComp(Code):
+class DictComprehensionAST(CodeAST):
 	"""
-	AST node for dictionary comprehension.
+	AST node for a dictionary comprehension (e.g. ``{k: v for (a, b) in w if c}``.
+
+	Attributes are:
+
+	``key`` : :class:`AST`
+		The expression for the keys in the newly created dictionary (``k`` in the
+		above example).
+
+	``value`` : :class:`AST`
+		The expression for the values in the newly created dictionary (``v`` in
+		the above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"key", "value", "varname", "container", "condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"key", "value", "varname", "container", "condition"})
 
 	def __init__(self, template=None, startpos=None, key=None, value=None, varname=None, container=None, condition=None):
 		super().__init__(template, startpos)
@@ -2053,12 +2491,30 @@ class DictComp(Code):
 
 
 @register("genexpr")
-class GenExpr(Code):
+class GeneratorExpressionAST(CodeAST):
 	"""
-	AST node for a generator expression.
+	AST node for a generator expression (e.g. ``(x for (a, b) in w if c)``).
+
+	Attributes are:
+
+	``item`` : :class:`AST`
+		An expression for the item that looping over the generator expression will
+		produce (``x`` in the above example).
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``condition`` : :class:`AST` or ``None``
+		The condition (as an :class:`AST` object if there is one, or ``None`` if
+		there is not) (``c`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"item", "varname", "container", "condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"item", "varname", "container", "condition"})
 
 	def __init__(self, template=None, startpos=None, item=None, varname=None, container=None, condition=None):
 		super().__init__(template, startpos)
@@ -2121,12 +2577,18 @@ class GenExpr(Code):
 
 
 @register("var")
-class Var(Code):
+class VarAST(CodeAST):
 	"""
-	AST nodes for loading a variable.
+	AST node for getting a variable.
+
+	Attributes are:
+
+	``name`` : :class:`str`
+		The name of the variable.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"name"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"name"})
 
 	def __init__(self, template=None, startpos=None, name=None):
 		super().__init__(template, startpos)
@@ -2164,18 +2626,24 @@ class Var(Code):
 		self.name = decoder.load()
 
 
-class Block(Code):
+class BlockAST(CodeAST):
 	"""
 	Base class for all AST nodes that are blocks.
 
 	A block contains a sequence of AST nodes that are executed sequencially.
 	A block may execute its content zero (e.g. an ``<?if?>`` block) or more times
 	(e.g. a ``<?for?>`` block).
+
+	Attributes are:
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The content of the block.
 	"""
 
 	output = True
 
-	ul4attrs = Code.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "content"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "content"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None):
 		super().__init__(template, startpos)
@@ -2188,7 +2656,7 @@ class Block(Code):
 		self.content.append(item)
 
 	def _pop_trailing_indent(self):
-		if self.content and isinstance(self.content[-1], Indent):
+		if self.content and isinstance(self.content[-1], IndentAST):
 			return self.content.pop()
 		else:
 			return None
@@ -2224,19 +2692,24 @@ class Block(Code):
 
 
 @register("condblock")
-class CondBlock(Block):
+class ConditionalBlocksAST(BlockAST):
 	r"""
-	AST node for an conditional block.
+	AST node for a conditional ``<?if?>/<?elif?>/<?else?>`` block.
 
-	The content of the :class:`CondBlock` block is one :class:`IfBlock` followed
-	by zero or more :class:`ElIfBlock`\s followed by zero or one
-	:class:`ElseBlock`.
+	Attributes are:
+
+	``content`` : :class:`list`
+		The content of the :class:`ConditionalBlocksAST` block is one
+		:class:`IfBlockAST` followed by zero or more :class:`ElIfBlockAST`\s followed
+		by zero or one :class:`ElseBlockAST`.
 	"""
+
+	ul4_type = Type("ul4")
 
 	def __init__(self, template=None, startpos=None, stoppos=None, condition=None):
 		super().__init__(template, startpos, stoppos)
 		if condition is not None:
-			self.newblock(IfBlock(template, startpos, None, condition))
+			self.newblock(IfBlockAST(template, startpos, None, condition))
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2271,18 +2744,27 @@ class CondBlock(Block):
 	@_handleoutputeval
 	def eval(self, context):
 		for node in self.content:
-			if isinstance(node, ElseBlock) or node.condition.eval(context):
+			if isinstance(node, ElseBlockAST) or node.condition.eval(context):
 				yield from node.eval(context)
 				break
 
 
 @register("ifblock")
-class IfBlock(Block):
+class IfBlockAST(BlockAST):
 	"""
-	AST node for an ``<?if?>`` block.
+	AST node for an ``<?if?>`` block in an ``<?if?>/<?elif?>/<?else?>`` block.
+
+	Attributes are:
+
+	``condition`` : class:`AST`
+		The condition in the ``<?if?>`` block.
+
+	``content`` : :class:`list` of `:class:`AST` objects
+		The content of the ``<?if?>`` block.
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = BlockAST.ul4_attrs.union({"condition"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, condition=None):
 		super().__init__(template, startpos, stoppos)
@@ -2303,11 +2785,11 @@ class IfBlock(Block):
 
 	def _str(self):
 		yield "if "
-		yield from Code._str(self)
+		yield from CodeAST._str(self)
 		yield ":"
 		yield None
 		yield +1
-		yield from Block._str(self)
+		yield from BlockAST._str(self)
 		yield -1
 
 	def ul4ondump(self, encoder):
@@ -2320,12 +2802,21 @@ class IfBlock(Block):
 
 
 @register("elifblock")
-class ElIfBlock(Block):
+class ElIfBlockAST(BlockAST):
 	"""
 	AST node for an ``<?elif?>`` block.
+
+	Attributes are:
+
+	``condition`` : class:`AST`
+		The condition in the ``<?elif?>`` block.
+
+	``content`` : :class:`list` of `:class:`AST` objects
+		The content of the ``<?elif?>`` block.
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = BlockAST.ul4_attrs.union({"condition"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, condition=None):
 		super().__init__(template, startpos, stoppos)
@@ -2346,7 +2837,7 @@ class ElIfBlock(Block):
 
 	def _str(self):
 		yield "elif "
-		yield from Code._str(self)
+		yield from CodeAST._str(self)
 		yield ":"
 		yield None
 		yield +1
@@ -2363,10 +2854,17 @@ class ElIfBlock(Block):
 
 
 @register("elseblock")
-class ElseBlock(Block):
+class ElseBlockAST(BlockAST):
 	"""
 	AST node for an ``<?else?>`` block.
+
+	Attributes are:
+
+	``content`` : :class:`list` of `:class:`AST` objects
+		The content of the ``<?else?>`` block.
 	"""
+
+	ul4_type = Type("ul4")
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2384,12 +2882,31 @@ class ElseBlock(Block):
 
 
 @register("forblock")
-class ForBlock(Block):
+class ForBlockAST(BlockAST):
 	"""
 	AST node for a ``<?for?>`` loop.
+
+	For example ::
+
+		<?for (a, b) in w?>
+			body
+		<?end for?>
+
+	Attributes are:
+
+	``varname`` : nested :class:`tuple` of :class:`VarAST` objects
+		The loop variable (or variables) (``a`` and ``b`` in the above example).
+
+	``container`` : :class:`AST`
+		The container or iterable object over which to loop (``w`` in the above
+		example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The loop body (``body`` in the above example).
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"varname", "container"})
+	ul4_type = Type("ul4")
+	ul4_attrs = BlockAST.ul4_attrs.union({"varname", "container"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, varname=None, container=None):
 		super().__init__(template, startpos, stoppos)
@@ -2425,7 +2942,7 @@ class ForBlock(Block):
 
 	def _str(self):
 		yield "for "
-		yield from Code._str(self)
+		yield from CodeAST._str(self)
 		yield ":"
 		yield None
 		yield +1
@@ -2447,12 +2964,28 @@ class ForBlock(Block):
 
 
 @register("whileblock")
-class WhileBlock(Block):
+class WhileBlockAST(BlockAST):
 	"""
 	AST node for a ``<?while?>`` loop.
+
+	For example ::
+
+		<?while c?>
+			body
+		<?end for?>
+
+	Attributes are:
+
+	``condition`` : :class:`AST`
+		The condition which must be true to continue executing the loops booy
+		(``c`` in the above example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The loop body (``body`` in the above example).
 	"""
 
-	ul4attrs = Block.ul4attrs.union({"condition"})
+	ul4_type = Type("ul4")
+	ul4_attrs = BlockAST.ul4_attrs.union({"condition"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, condition=None):
 		super().__init__(template, startpos, stoppos)
@@ -2481,7 +3014,7 @@ class WhileBlock(Block):
 
 	def _str(self):
 		yield "while "
-		yield from Code._str(self)
+		yield from CodeAST._str(self)
 		yield ":"
 		yield None
 		yield +1
@@ -2503,10 +3036,12 @@ class WhileBlock(Block):
 
 
 @register("break")
-class Break(Code):
+class BreakAST(CodeAST):
 	"""
-	AST node for a ``<?break?>`` inside a ``<?for?>`` block.
+	AST node for a ``<?break?>`` tag inside a ``<?for?>`` loop.
 	"""
+
+	ul4_type = Type("ul4")
 
 	def _str(self):
 		yield "break"
@@ -2517,10 +3052,12 @@ class Break(Code):
 
 
 @register("continue")
-class Continue(Code):
+class ContinueAST(CodeAST):
 	"""
-	AST node for a ``<?continue?>`` inside a ``<?for?>`` block.
+	AST node for a ``<?continue?>`` tag inside a ``<?for?>`` block.
 	"""
+
+	ul4_type = Type("ul4")
 
 	def _str(self):
 		yield "continue"
@@ -2531,14 +3068,22 @@ class Continue(Code):
 
 
 @register("attr")
-class Attr(Code):
+class AttrAST(CodeAST):
 	"""
-	AST node for getting and setting an attribute of an object.
+	AST node for an expression that gets or sets an attribute of an object.
+	(e.g. ``x.y``).
 
-	The object is loaded from the AST node ``obj`` and the attribute name
-	is stored in the string ``attrname``.
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object from which to get the attribute (``x`` in the above example);
+
+	``attrname`` : :class:`str`
+		The name of the attribute (``"y"`` in the above example).
 	"""
-	ul4attrs = AST.ul4attrs.union({"obj", "attrname"})
+
+	ul4_type = Type("ul4")
+	ul4_attrs = AST.ul4_attrs.union({"obj", "attrname"})
 
 	def __init__(self, template=None, startpos=None, obj=None, attrname=None):
 		super().__init__(template, startpos)
@@ -2561,23 +3106,23 @@ class Attr(Code):
 	def eval(self, context):
 		obj = self.obj.eval(context)
 		try:
-			return proto(obj).getattr(obj, self.attrname)
+			return _type(obj).getattr(obj, self.attrname)
 		except AttributeError:
 			return UndefinedKey(self.attrname)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
 		obj = self.obj.eval(context)
-		proto(obj).setattr(obj, self.attrname, value)
+		_type(obj).setattr(obj, self.attrname, value)
 
 	@_handleexpressioneval
 	def evalmodify(self, context, operator, value):
 		obj = self.obj.eval(context)
 
-		p = proto(obj)
-		oldvalue = p.getattr(obj, self.attrname)
+		t = _type(obj)
+		oldvalue = t.getattr(obj, self.attrname)
 		newvalue = operator.evalfoldaug(oldvalue, value)
-		p.setattr(obj, self.attrname, newvalue)
+		t.setattr(obj, self.attrname, newvalue)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -2591,17 +3136,25 @@ class Attr(Code):
 
 
 @register("slice")
-class Slice(Code):
+class SliceAST(CodeAST):
 	"""
 	AST node for creating a slice object (used in ``obj[index1:index2]``).
 
-	The start and stop indices are loaded from  the AST nodes ``index1`` and
-	``index2``. ``index1`` and ``index2`` may also be :const:`None`
-	(for missing slice indices, which default to the 0 for the start index and
-	the length of the sequence for the end index).
+	Attributes are:
+
+	``index1`` : :class:`AST` or ``None``
+		The start index (``index1`` in the above example).
+
+	``index2`` : :class:`AST` or ``None``
+		The stop hand side (``y`` in the above example).
+
+	``index1`` and ``index2`` may also be :const:`None` (for missing slice indices,
+	which default to the 0 for the start index and the length of the sequence for
+	the end index).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"index1", "index2"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"index1", "index2"})
 
 	def __init__(self, template=None, startpos=None, index1=None, index2=None):
 		super().__init__(template, startpos)
@@ -2645,12 +3198,19 @@ class Slice(Code):
 		self.index2 = decoder.load()
 
 
-class Unary(Code):
+class UnaryAST(CodeAST):
 	"""
-	Base class for all AST nodes implementing unary operators.
+	Base class for all AST nodes implementing unary expressions
+	(i.e. operators with one operand).
+
+	Atttributes are:
+
+	``obj`` : :class:`AST`
+		The operand of the unary operator.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"obj"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"obj"})
 
 	def __init__(self, template=None, startpos=None, obj=None):
 		super().__init__(template, startpos)
@@ -2678,21 +3238,28 @@ class Unary(Code):
 
 	@classmethod
 	def make(cls, tag, pos, obj):
-		if isinstance(obj, Const):
+		if isinstance(obj, ConstAST):
 			try:
 				result = cls.evalfold(obj.value)
 				if not isinstance(result, Undefined):
-					return Const(tag, pos, result)
+					return ConstAST(tag, pos, result)
 			except Exception:
 				pass # If constant folding doesn't work, return the original AST
 		return cls(tag, pos, obj)
 
 
 @register("not")
-class Not(Unary):
+class NotAST(UnaryAST):
 	"""
-	AST node for the unary ``not`` operator.
+	AST node for a unary "not" expression (e.g. ``not x``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj):
@@ -2700,10 +3267,17 @@ class Not(Unary):
 
 
 @register("neg")
-class Neg(Unary):
+class NegAST(UnaryAST):
 	"""
-	AST node for the unary negation (i.e. "-") operator.
+	AST node for a unary negation expression (e.g. ``-x``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj):
@@ -2711,10 +3285,18 @@ class Neg(Unary):
 
 
 @register("bitnot")
-class BitNot(Unary):
+class BitNotAST(UnaryAST):
 	"""
-	AST node for the bitwise not operator.
+	AST node for a bitwise unary "not" expression that returns its operand
+	with its bits inverted (e.g. ``~x``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj):
@@ -2722,10 +3304,17 @@ class BitNot(Unary):
 
 
 @register("print")
-class Print(Unary):
+class PrintAST(UnaryAST):
 	"""
-	AST node for a ``<?print?>`` tag.
+	AST node for a ``<?print?>`` tag (e.g. ``<?print x?>``.
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be printed (``x`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	output = True
 
@@ -2739,10 +3328,17 @@ class Print(Unary):
 
 
 @register("printx")
-class PrintX(Unary):
+class PrintXAST(UnaryAST):
 	"""
-	AST node for a ``<?printx?>`` tag.
+	AST node for a ``<?printx?>`` tag (e.g. ``<?printx x?>``.
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be printed (``x`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	output = True
 
@@ -2756,10 +3352,17 @@ class PrintX(Unary):
 
 
 @register("return")
-class Return(Unary):
+class ReturnAST(UnaryAST):
 	"""
-	AST node for a ``<?return?>`` tag.
+	AST node for a ``<?return?>`` tag (e.g. ``<?return x?>``).
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The operand (``x`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	def _str(self):
 		yield "return "
@@ -2771,12 +3374,20 @@ class Return(Unary):
 		raise ReturnException(value)
 
 
-class Binary(Code):
+class BinaryAST(CodeAST):
 	"""
-	Base class for all AST nodes implementing binary operators.
+	Base class for all UL4 AST nodes implementing binary expressions
+	(i.e. operators with two operands).
+
+	``obj1`` : :class:`AST`
+		The first operand.
+
+	``obj2`` : :class:`AST`
+		The second operand.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"obj1", "obj2"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"obj1", "obj2"})
 
 	def __init__(self, template=None, startpos=None, obj1=None, obj2=None):
 		super().__init__(template, startpos)
@@ -2811,24 +3422,32 @@ class Binary(Code):
 
 	@classmethod
 	def make(cls, tag, pos, obj1, obj2):
-		if isinstance(obj1, Const) and isinstance(obj2, Const):
+		if isinstance(obj1, ConstAST) and isinstance(obj2, ConstAST):
 			try:
 				result = cls.evalfold(obj1.value, obj2.value)
 				if not isinstance(result, Undefined):
-					return Const(tag, pos, result)
+					return ConstAST(tag, pos, result)
 			except Exception:
 				pass # If constant folding doesn't work, return the original AST
 		return cls(tag, pos, obj1, obj2)
 
 
 @register("item")
-class Item(Binary):
+class ItemAST(BinaryAST):
 	"""
-	AST node for subscripting operator.
+	AST node for subscripting expression (e.g. ``x[y]``).
 
-	The object (which must be a list, string or dict) is loaded from the AST
-	node ``obj1`` and the index/key is loaded from the AST node ``obj2``.
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The container object, which must be a list, string or dict
+		(``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The index/key object (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2853,10 +3472,20 @@ class Item(Binary):
 
 
 @register("is")
-class Is(Binary):
+class IsAST(BinaryAST):
 	"""
-	AST node for the binary ``is`` comparison operator.
+	AST node for a binary ``is`` comparison expression (e.g. ``x is y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2864,10 +3493,20 @@ class Is(Binary):
 
 
 @register("isnot")
-class IsNot(Binary):
+class IsNotAST(BinaryAST):
 	"""
-	AST node for the binary ``is not`` comparison operator.
+	AST node for a binary ``is not`` comparison expression (e.g. ``x is not y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2875,10 +3514,20 @@ class IsNot(Binary):
 
 
 @register("eq")
-class EQ(Binary):
+class EQAST(BinaryAST):
 	"""
-	AST node for the binary ``==`` comparison operator.
+	AST node for the binary equality comparison (e.g. ``x == y``.
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2886,10 +3535,20 @@ class EQ(Binary):
 
 
 @register("ne")
-class NE(Binary):
+class NEAST(BinaryAST):
 	"""
-	AST node for the binary ``!=`` comparison operator.
+	AST node for a binary inequalitiy comparison (e.g. ``x != y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2897,10 +3556,20 @@ class NE(Binary):
 
 
 @register("lt")
-class LT(Binary):
+class LTAST(BinaryAST):
 	"""
-	AST node for the binary ``<`` comparison operator.
+	AST node for the binary "less than" comparison (e.g. ``x < y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2908,10 +3577,20 @@ class LT(Binary):
 
 
 @register("le")
-class LE(Binary):
+class LEAST(BinaryAST):
 	"""
-	AST node for the binary ``<=`` comparison operator.
+	AST node for the binary "less than or equal" comparison (e.g. ``x <= y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2919,10 +3598,20 @@ class LE(Binary):
 
 
 @register("gt")
-class GT(Binary):
+class GTAST(BinaryAST):
 	"""
-	AST node for the binary ``>`` comparison operator.
+	AST node for the binary "greater than" comparison (e.g. ``x > y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2930,10 +3619,20 @@ class GT(Binary):
 
 
 @register("ge")
-class GE(Binary):
+class GEAST(BinaryAST):
 	"""
-	AST node for the binary ``>=`` comparison operator.
+	AST node for the binary "greater than or equal" comparison (e.g. ``x >= y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2941,14 +3640,20 @@ class GE(Binary):
 
 
 @register("contains")
-class Contains(Binary):
+class ContainsAST(BinaryAST):
 	"""
-	AST node for the binary containment testing operator.
+	AST node for the binary containment testing operator (e.g. ``x in y``).
 
-	The item/key object is loaded from the AST node ``obj1`` and the container
-	object (which must be a list, string, dict or an object with a ``ul4attrs``
-	attribute) is loaded from the AST node ``obj2``.
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The item/key object (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The container object (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2956,14 +3661,20 @@ class Contains(Binary):
 
 
 @register("notcontains")
-class NotContains(Binary):
+class NotContainsAST(BinaryAST):
 	"""
-	AST node for the inverted containment testing operator.
+	AST node for an inverted containment testing expression (e.g. ``x not in y``).
 
-	The item/key object is loaded from the AST node ``obj1`` and the container
-	object (which must be a list, string, dict or an object with a ``ul4attrs``
-	attribute) is loaded from the AST node ``obj2``.
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The item/key object (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The container object (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2971,10 +3682,21 @@ class NotContains(Binary):
 
 
 @register("add")
-class Add(Binary):
+class AddAST(BinaryAST):
 	"""
-	AST node for the binary addition operator.
+	AST node for a binary addition expression that adds its two operands and
+	returns the result  (e.g. ``x + y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left summand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right summand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -2987,10 +3709,12 @@ class Add(Binary):
 
 
 @register("sub")
-class Sub(Binary):
+class SubAST(BinaryAST):
 	"""
 	AST node for the binary subtraction operator.
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3003,10 +3727,20 @@ class Sub(Binary):
 
 
 @register("mul")
-class Mul(Binary):
+class MulAST(BinaryAST):
 	"""
-	AST node for the binary multiplication operator.
+	AST node for the binary multiplication expression (e.g. ``x * y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left factor (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right factor (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3019,10 +3753,20 @@ class Mul(Binary):
 
 
 @register("floordiv")
-class FloorDiv(Binary):
+class FloorDivAST(BinaryAST):
 	"""
-	AST node for the binary truncating division operator.
+	AST node for a binary truncating division expression (e.g. ``x // y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The dividend (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The divisor (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3035,10 +3779,20 @@ class FloorDiv(Binary):
 
 
 @register("truediv")
-class TrueDiv(Binary):
+class TrueDivAST(BinaryAST):
 	"""
-	AST node for the binary true division operator.
+	AST node for a binary true division expression (e.g. ``x / y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The dividend (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The divisor (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3051,10 +3805,20 @@ class TrueDiv(Binary):
 
 
 @register("mod")
-class Mod(Binary):
+class ModAST(BinaryAST):
 	"""
-	AST node for the binary modulo operator.
+	AST node for a binary modulo expression (e.g. ``x % y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3067,10 +3831,20 @@ class Mod(Binary):
 
 
 @register("shiftleft")
-class ShiftLeft(Binary):
+class ShiftLeftAST(BinaryAST):
 	"""
-	AST node for the bitwise left shift operator.
+	AST node for a bitwise left shift expression (e.g. ``x << y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3086,10 +3860,20 @@ class ShiftLeft(Binary):
 
 
 @register("shiftright")
-class ShiftRight(Binary):
+class ShiftRightAST(BinaryAST):
 	"""
-	AST node for the bitwise right shift operator.
+	AST node for a bitwise right shift expression (e.g. ``x >> y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3105,10 +3889,20 @@ class ShiftRight(Binary):
 
 
 @register("bitand")
-class BitAnd(Binary):
+class BitAndAST(BinaryAST):
 	"""
-	AST node for the binary bitwise and operator (``&``).
+	AST node for a binary bitwise "and" expression (e.g ``x & y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3129,10 +3923,20 @@ class BitAnd(Binary):
 
 
 @register("bitxor")
-class BitXOr(Binary):
+class BitXOrAST(BinaryAST):
 	"""
-	AST node for the binary bitwise exclusive or operator (``^``).
+	AST node for the binary bitwise "exclusive or" expression (e.g. ``x ^ y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3153,10 +3957,20 @@ class BitXOr(Binary):
 
 
 @register("bitor")
-class BitOr(Binary):
+class BitOrAST(BinaryAST):
 	"""
-	AST node for the binary bitwise or operator (``|``).
+	AST node for a binary bitwise "or" expression (e.g. ``x | y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3177,10 +3991,20 @@ class BitOr(Binary):
 
 
 @register("and")
-class And(Binary):
+class AndAST(BinaryAST):
 	"""
-	AST node for the binary ``and`` operator.
+	AST node for the binary "and" expression (i.e. ``x and y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3196,10 +4020,20 @@ class And(Binary):
 
 
 @register("or")
-class Or(Binary):
+class OrAST(BinaryAST):
 	"""
-	AST node for the binary ``or`` operator.
+	AST node for a binary "or" expression (e.g. ``x or y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The item/key object (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The container object (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@classmethod
 	def evalfold(cls, obj1, obj2):
@@ -3215,12 +4049,26 @@ class Or(Binary):
 
 
 @register("if")
-class If(Code):
+class IfAST(CodeAST):
 	"""
-	AST node for the ternary inline ``if/else`` operator.
+	AST node for the ternary inline ``if/else`` operator (e.g. ``x if y else z``).
+
+	Attributes are:
+
+	``objif`` : :class:`AST`
+		The value of the ``if/else`` expression when the condition is true
+		(``x`` in the above example).
+
+	``objcond`` : :class:`AST`
+		The condition (``y`` in the above example).
+
+	``objelse`` : :class:`AST`
+		The value of the ``if/else`` expression when the condition is false
+		(``z`` in the above example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"objif", "objcond", "objelse"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"objif", "objcond", "objelse"})
 
 	def __init__(self, template=None, startpos=None, objif=None, objcond=None, objelse=None):
 		super().__init__(template, startpos)
@@ -3255,7 +4103,7 @@ class If(Code):
 
 	@classmethod
 	def make(cls, tag, pos, objif, objcond, objelse):
-		if isinstance(objcond, Const) and not isinstance(objcond.value, Undefined):
+		if isinstance(objcond, ConstAST) and not isinstance(objcond.value, Undefined):
 			return objif if objcond.value else objelse
 		return cls(tag, pos, objif, objcond, objelse)
 
@@ -3267,16 +4115,23 @@ class If(Code):
 			return self.objelse.eval(context)
 
 
-class ChangeVar(Code):
+class ChangeVarAST(CodeAST):
 	"""
-	Baseclass for all AST nodes that store or modify a variable.
+	Base class for all AST nodes that are assignment operators, i.e. that
+	set or modify a variable/attribute or item.
 
-	The left hand side is loaded from the AST node ``label`` and the value that
-	will be stored or be used to modify the stored value is loaded from the
-	AST node ``value``.
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side, i.e. the value that will be modified.
+
+	``value`` : :class:`AST`
+		The right hand side, the value that will be assigned or be used to modify
+		the intial value.
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"lvalue", "value"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"lvalue", "value"})
 
 	def __init__(self, template=None, startpos=None, lvalue=None, value=None):
 		super().__init__(template, startpos)
@@ -3307,10 +4162,19 @@ class ChangeVar(Code):
 
 
 @register("setvar")
-class SetVar(ChangeVar):
+class SetVarAST(ChangeVarAST):
 	"""
-	AST node that stores a value into a variable.
+	AST node for setting a variable, attribute or item to a value (e.g.
+	``x = y``).
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
@@ -3320,159 +4184,291 @@ class SetVar(ChangeVar):
 
 
 @register("addvar")
-class AddVar(ChangeVar):
+class AddVarAST(ChangeVarAST):
 	"""
-	AST node that adds a value to a variable (i.e. the ``+=`` operator).
+	AST node for an augmented assignment expression that adds a value to a
+	variable (e.g. ``x += y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, Add, value)
+			lvalue.evalmodify(context, AddAST, value)
 
 
 @register("subvar")
-class SubVar(ChangeVar):
+class SubVarAST(ChangeVarAST):
 	"""
-	AST node that subtracts a value from a variable (i.e. the ``-=`` operator).
+	AST node for an augmented assignment expression that subtracts a value from
+	a variable/attribute/item. (e.g. ``x -= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, Sub, value)
+			lvalue.evalmodify(context, SubAST, value)
 
 
 @register("mulvar")
-class MulVar(ChangeVar):
+class MulVarAST(ChangeVarAST):
 	"""
-	AST node that multiplies a variable by a value (i.e. the ``*=`` operator).
+	AST node for an augmented assignment expression that assigns the result
+	of a multiplication to its left operand. (e.g. ``x *= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, Mul, value)
+			lvalue.evalmodify(context, MulAST, value)
 
 
 @register("floordivvar")
-class FloorDivVar(ChangeVar):
+class FloorDivVarAST(ChangeVarAST):
 	"""
-	AST node that divides a variable by a value (truncating to an integer value;
-	i.e. the ``//=`` operator).
+	AST node for augmented assignment expression that divides a variable by a
+	value, truncating to an integer value (e.g. ``x //= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, FloorDiv, value)
+			lvalue.evalmodify(context, FloorDivAST, value)
 
 
 @register("truedivvar")
-class TrueDivVar(ChangeVar):
+class TrueDivVarAST(ChangeVarAST):
 	"""
-	AST node that divides a variable by a value (i.e. the ``/=`` operator).
+	AST node for an augmented assignment expression that assigns the result
+	of a truncation division to its left operand. (e.g. ``x //= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, TrueDiv, value)
+			lvalue.evalmodify(context, TrueDivAST, value)
 
 
 @register("modvar")
-class ModVar(ChangeVar):
+class ModVarAST(ChangeVarAST):
 	"""
-	AST node for the ``%=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a modulo expression to its left operand. (e.g. ``x %= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, Mod, value)
+			lvalue.evalmodify(context, ModAST, value)
 
 
 @register("shiftleftvar")
-class ShiftLeftVar(ChangeVar):
+class ShiftLeftVarAST(ChangeVarAST):
 	"""
-	AST node for the ``<<=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a "shift left" expression to its left operand. (e.g. ``x <<= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, ShiftLeft, value)
+			lvalue.evalmodify(context, ShiftLeftAST, value)
 
 
 @register("shiftrightvar")
-class ShiftRightVar(ChangeVar):
+class ShiftRightVarAST(ChangeVarAST):
 	"""
-	AST node for the ``>>=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a "shift right" expression to its left operand. (e.g. ``x >>= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, ShiftRight, value)
+			lvalue.evalmodify(context, ShiftRightAST, value)
 
 
 @register("bitandvar")
-class BitAndVar(ChangeVar):
+class BitAndVarAST(ChangeVarAST):
 	"""
-	AST node for the ``&=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a binary bitwise "and" expression to its left operand.
+	(e.g. ``x &= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, BitAnd, value)
+			lvalue.evalmodify(context, BitAndAST, value)
 
 
 @register("bitxorvar")
-class BitXOrVar(ChangeVar):
+class BitXOrVarAST(ChangeVarAST):
 	"""
-	AST node for the ``^=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a binary bitwise "exclusive or" expression to its left operand.
+	(e.g. ``x ^= y``).
+
+	Attributes are:
+
+	``obj1`` : :class:`AST`
+		The left operand (``x`` in the above example).
+
+	``obj2`` : :class:`AST`
+		The right operand (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, BitXOr, value)
+			lvalue.evalmodify(context, BitXOrAST, value)
 
 
 @register("bitorvar")
-class BitOrVar(ChangeVar):
+class BitOrVarAST(ChangeVarAST):
 	"""
-	AST node for the ``|=`` operator.
+	AST node for an augmented assignment expression that assigns the result
+	of a binary bitwise "or" expression to its left operand.
+	(e.g. ``x |= y``).
+
+	Attributes are:
+
+	``lvalue`` : :class:`AST`
+		The left hand side (``x`` in the above example).
+
+	``value`` : :class:`AST`
+		The right hand side (``y`` in the above example).
 	"""
+
+	ul4_type = Type("ul4")
 
 	@_handleexpressioneval
 	def eval(self, context):
 		value = self.value.eval(context)
 		for (lvalue, value) in _unpackvar(self.lvalue, value):
-			lvalue.evalmodify(context, BitOr, value)
+			lvalue.evalmodify(context, BitOrAST, value)
 
 
 @register("call")
-class Call(Code):
+class CallAST(CodeAST):
 	"""
-	AST node for calling an object.
+	AST node for calling an object (e.g. ``f(x, y)``).
 
-	The object to be called is stored in the attribute ``obj``. The list of
-	arguments is found in ``args``.
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be called (``f`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of :class:`PositionalArgumentAST`,
+		:class:`KeywordArgumentAST`, :class:`UnpackListArgumentAST` or
+		:class:`UnpackDictArgumentAST` objects (``x`` and ``y`` in the above
+		example).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"obj", "args"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"obj", "args"})
 
 	def __init__(self, template=None, startpos=None, obj=None):
 		super().__init__(template, startpos)
@@ -3494,11 +4490,11 @@ class Call(Code):
 
 	@staticmethod
 	def _call(context, obj, args, kwargs):
-		ul4call = getattr(obj, "ul4call", None)
-		if callable(ul4call):
-			obj = ul4call
+		ul4_call = getattr(obj, "ul4_call", None)
+		if callable(ul4_call):
+			obj = ul4_call
 
-		needscontext = getattr(obj, "ul4context", False)
+		needscontext = getattr(obj, "ul4_context", False)
 
 		if needscontext:
 			return obj(context, *args, **kwargs)
@@ -3541,15 +4537,23 @@ class Call(Code):
 
 
 @register("render")
-class Render(Call):
+class RenderAST(CallAST):
 	"""
-	AST node for rendering a template.
+	AST node for rendering a template (e.g. ``<?render t(x)?>``.
 
-	The template to be rendered is stored in the attribute ``obj``. The list
-	of arguments is found in ``args``.
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects.
 	"""
 
-	ul4attrs = Call.ul4attrs.union({"indent"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CallAST.ul4_attrs.union({"indent"})
 
 	def __init__(self, template=None, startpos=None, obj=None):
 		super().__init__(template, startpos, obj)
@@ -3584,18 +4588,19 @@ class Render(Call):
 
 	def _renderobject(self, context, obj, args, kwargs):
 		try:
-			ul4render = getattr(obj, "ul4render", None)
-			if callable(ul4render):
+			ul4_render = getattr(obj, "ul4_render", None)
+			if callable(ul4_render):
 				if self.indent is not None:
 					context.indents.append(self.indent.text)
-				needscontext = getattr(ul4render, "ul4context", False)
+				needscontext = getattr(ul4_render, "ul4_context", False)
 				if needscontext:
-					yield from ul4render(context, *args, **kwargs)
+					yield from ul4_render(context, *args, **kwargs)
 				else:
-					yield from ul4render(*args, **kwargs)
+					yield from ul4_render(*args, **kwargs)
 				if self.indent is not None:
 					context.indents.pop()
 			else:
+				from ll import misc
 				raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
 		except Exception as exc:
 			if inspect.ismethod(obj):
@@ -3633,27 +4638,64 @@ class Render(Call):
 
 
 @register("renderx")
-class RenderX(Render):
+class RenderXAST(RenderAST):
+	"""
+	AST node for rendering a template and XML-escaping the output
+	(e.g. ``<?renderx t(x)?>``.
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects.
+	"""
+
+	ul4_type = Type("ul4")
+
 	def eval(self, context):
 		context.escapes.append(_xmlescape)
 		try:
-			yield from Render.eval(self, context)
+			yield from RenderAST.eval(self, context)
 		finally:
 			context.escapes.pop()
 
 
 @register("renderblock")
-class RenderBlock(Render):
+class RenderBlockAST(RenderAST):
 	"""
-	AST node for rendering a template and passing one additional argument that is
-	the anonymous template that is defined in the block with will be passed as
-	the keyword argument ``content``.
+	AST node for rendering a template via a ``<?renderblock?>`` block and
+	passing the content of the block as one additional keyword argument named
+	``content``.
 
-	The object to be called is stored in the attribute ``obj``. The list of
-	arguments is found in ``args``.
+	For example ::
+
+		<?renderblock t(a, b)?>
+			content
+		<?end renderblock?>
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects
+		(``a`` and ``b`` in the above example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The content of the ``<?renderblock?>`` tag (``content`` in the above
+		example) that will be passed as a signatureless template as the keyword
+		argument ``content`` to the object.
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
+	ul4_type = Type("ul4")
+	ul4_attrs = RenderAST.ul4_attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, obj=None):
 		super().__init__(template, startpos, obj)
@@ -3687,13 +4729,13 @@ class RenderBlock(Render):
 	def _str(self):
 		yield self.type
 		yield " "
-		yield from Code._str(self)
+		yield from CodeAST._str(self)
 		if self.indent is not None:
 			yield f" with indent {self.indent.text!r}"
 		yield ":"
 		yield None
 		yield +1
-		yield from Block._str(self.content)
+		yield from BlockAST._str(self.content)
 		yield -1
 
 	def ul4ondump(self, encoder):
@@ -3708,16 +4750,38 @@ class RenderBlock(Render):
 
 
 @register("renderblocks")
-class RenderBlocks(Render):
+class RenderBlocksAST(RenderAST):
 	"""
 	AST node for rendering a template and passing additional arguments via
-	nested variable definitions.
+	nested variable definitions, e.g.::
 
-	The object to be called is stored in the attribute ``obj``. The list of
-	arguments is found in ``args``.
+		<?renderblocks t(a, b)?>
+			<?code x = 42?>
+			<?def n?>
+				...
+			<?end def?>
+		<?end renderblocks?>
+
+	Attributes are:
+
+	``obj`` : :class:`AST`
+		The object to be rendered (``t`` in the above example);
+
+	``args`` : :class:`list`
+		The arguments to the call as a :class:`list` of
+		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
+		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects
+		(``a`` and ``b`` in the above example).
+
+	``content`` : :class:`list` of :class:`AST` objects
+		The content of the ``<?renderblocks?>`` tag. These must be :class:`AST`
+		nodes that define variables (e.g. :class:`SetVarAST` (the
+		``<?code x = 42?>`` in the above example), or :class:`Template`
+		(the ``<?def n?>...<?end def?>`` in the above example)).
 	"""
 
-	ul4attrs = Render.ul4attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
+	ul4_type = Type("ul4")
+	ul4_attrs = RenderAST.ul4_attrs.union({"stoppos", "stopline", "stopcol", "stopsource", "stopsourceprefix", "stopsourcesuffix", "content"})
 
 	def __init__(self, template=None, startpos=None, stoppos=None, obj=None):
 		super().__init__(template, startpos, obj)
@@ -3731,7 +4795,7 @@ class RenderBlocks(Render):
 		self.stoppos = endtag.startpos
 
 	def _pop_trailing_indent(self):
-		if self.content and isinstance(self.content[-1], Indent):
+		if self.content and isinstance(self.content[-1], IndentAST):
 			return self.content.pop()
 		else:
 			return None
@@ -3739,13 +4803,13 @@ class RenderBlocks(Render):
 	def _str(self):
 		yield self.type
 		yield " "
-		yield from Code._str(self) # Note that :class:`Block` is *not* one of our base classes, but as long as be have the proper attributes...
+		yield from CodeAST._str(self) # Note that :class:`BlockAST` is *not* one of our base classes, but as long as be have the proper attributes...
 		if self.indent is not None:
 			yield f" with indent {self.indent.text!r}"
 		yield ":"
 		yield None
 		yield +1
-		yield from Block._str(self)
+		yield from BlockAST._str(self)
 		yield -1
 
 	def _repr_pretty(self, p):
@@ -3777,7 +4841,7 @@ class RenderBlocks(Render):
 		with context.chainvars():
 			# Evaluate the block content and ignore output
 			# (Note that we're not a subclass of :class:`Block`, but have the correct attributes)
-			for output in Block.eval(self, context):
+			for output in BlockAST.eval(self, context):
 				pass
 
 			# Check that we have no duplicate arguments
@@ -3811,8 +4875,10 @@ class RenderBlocks(Render):
 
 
 @register("template")
-class Template(Block):
+class Template(BlockAST):
 	"""
+	A UL4 template.
+
 	A template object is normally created by passing the template source to the
 	constructor. It can also be loaded from the compiled format via the class
 	methods :meth:`load` (from a stream) or :meth:`loads` (from a string).
@@ -3833,21 +4899,23 @@ class Template(Block):
 	:meth:`renders_with_globals` and :meth:`call_with_globals`.
 
 	A :class:`Template` object is itself an AST node. Evaluating it will store
-	the template object under its name in the local variables.
+	a :class:`TemplateClosure` object for this template under the template's name
+	in the local variables.
 	"""
-	ul4attrs = Block.ul4attrs.union({"signature", "doc", "name", "whitespace", "startdelim", "enddelim", "parenttemplate", "fullsource", "renders"})
 
-	version = "50"
+	ul4_type = InstantiableType("ul4", "Template", "An UL4 template")
+	ul4_attrs = BlockAST.ul4_attrs.union({"signature", "doc", "name", "whitespace", "parenttemplate", "fullsource", "renders"})
+
+	version = "51"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
-	def __init__(self, source=None, name=None, whitespace="keep", startdelim="<?", enddelim="?>", signature=None):
+	def __init__(self, source=None, name=None, *, whitespace="keep", signature=None):
 		"""
 		Create a :class:`Template` object.
 
 		If ``source`` is :const:`None`, the :class:`Template` remains uninitialized,
-		otherwise ``source`` will be compiled (using ``startdelim`` and
-		``enddelim`` as the tag delimiters).
+		otherwise ``source`` will be compiled.
 
 		``name`` is the name of the template. It will be used in exception
 		messages and should be a valid Python identifier.
@@ -3904,20 +4972,19 @@ class Template(Block):
 			``"x, y=42, *args, **kwargs"``. This string will be parsed and
 			evaluated to create the signature for the template.
 
-		If the template is a subtemplate (i.e. a template defined by another
-		template via ``<?def t?>...<?end def?>``), ``signature`` can be:
+		If the template is a locally defined subtemplate (i.e. a template defined
+		by another template via ``<?def t?>...<?end def?>``), ``signature``
+		can be:
 
 		:const:`None`
 			The template will accept all arguments.
 
-		A :class:`Signature` object
+		A :class:`SignatureAST` object
 			This AST node will be evaluated at the point of definition of the
 			subtemplate to create the final signature of the subtemplate.
 		"""
 		super().__init__(self, slice(0, 0), None)
 		self.whitespace = whitespace
-		self.startdelim = startdelim or "<?"
-		self.enddelim = enddelim or "?>"
 		self.name = name
 		self._fullsource = None
 		self.docpos = None
@@ -3925,7 +4992,7 @@ class Template(Block):
 		if isinstance(signature, str):
 			# The parser needs a tag, and each tag references its template which contains the source.
 			# So to make the source of the signature available in the source, we prepend an ``<?ul4?>`` tag
-			source = f"{self.startdelim}ul4 {name or ''}({signature}){self.enddelim}{source}"
+			source = f"<?ul4 {name or ''}({signature})?>{source}"
 			signature = None
 		elif callable(signature):
 			signature = inspect.signature(signature)
@@ -3935,7 +5002,7 @@ class Template(Block):
 		if source is not None:
 			stop = len(source)
 			self.stoppos = slice(stop, stop)
-			self._compile(source, startdelim, enddelim)
+			self._compile(source)
 		else:
 			self._fullsource = ""
 			self.stoppos = self._startpos
@@ -3943,10 +5010,6 @@ class Template(Block):
 	def _repr(self):
 		yield f"name={self.name!r}"
 		yield f"whitespace={self.whitespace!r}"
-		if self.startdelim != "<?":
-			yield f"startdelim={self.startdelim!r}"
-		if self.enddelim != "?>":
-			yield f"enddelim={self.enddelim!r}"
 		if self.signature is not None:
 			yield f"signature={self.signature}"
 
@@ -3957,17 +5020,9 @@ class Template(Block):
 		p.breakable()
 		p.text("whitespace=")
 		p.pretty(self.whitespace)
-		if self.startdelim != "<?":
-			p.breakable()
-			p.text("startdelim=")
-			p.pretty(self.startdelim)
-		if self.enddelim != "?>":
-			p.breakable()
-			p.text("enddelim=")
-			p.pretty(self.enddelim)
 		if self.signature is not None:
 			p.breakable()
-			if isinstance(self.signature, Signature):
+			if isinstance(self.signature, SignatureAST):
 				p.text("signature=")
 				p.pretty(self.signature)
 			else:
@@ -3982,7 +5037,7 @@ class Template(Block):
 		yield "def "
 		yield self.name if self.name is not None else "unnamed"
 		if self.signature is not None:
-			if isinstance(self.signature, Signature):
+			if isinstance(self.signature, SignatureAST):
 				yield from self.signature._str()
 			else:
 				yield str(self.signature)
@@ -3996,9 +5051,9 @@ class Template(Block):
 	def doc(self):
 		return self._fullsource[self.docpos] if self.docpos is not None else None
 
-	def ul4getattr(self, name):
+	def ul4_getattr(self, name):
 		if name == "renders":
-			return self.ul4renders
+			return self.ul4_renders
 		else:
 			return getattr(self, name)
 
@@ -4008,34 +5063,56 @@ class Template(Block):
 		encoder.dump(self.name)
 		encoder.dump(self._fullsource)
 		encoder.dump(self.whitespace)
-		encoder.dump(self.startdelim)
-		encoder.dump(self.enddelim)
 		encoder.dump(self.docpos)
 		encoder.dump(self.parenttemplate)
 
-		# Signature can be :const:`None` or an instance of :class:`inspect.Signature` or :class:`Signature`
-		if self.signature is None or isinstance(self.signature, Signature):
+		# Signature can be :const:`None` or an instance of :class:`inspect.Signature` or :class:`SignatureAST`
+		if self.signature is None or isinstance(self.signature, SignatureAST):
 			encoder.dump(self.signature)
 		else:
 			# Serialize an instance of :class:`inspect.Signature` as a flat list
-			# e.g. ['x', 'y=', 42, '*args', '**kwargs'] for the signature ``(x, y=42, *args, **kwargs)``
+			# e.g. ['x', 'pk', 'y', 'pk=', 42, args', '*', kwargs', '**'] for the signature ``(x, y=42, *args, **kwargs)``
 			dump = []
 			for param in self.signature.parameters.values():
+				dump.append(param.name)
 				if param.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
 					if param.default is inspect.Parameter.empty:
-						dump.append(param.name)
+						dump.append("pk")
 					else:
-						dump.append(param.name + "=")
+						dump.append( "pk=")
 						dump.append(param.default)
+				elif param.kind is inspect.Parameter.POSITIONAL_ONLY:
+					if param.default is inspect.Parameter.empty:
+						dump.append("p")
+					else:
+						dump.append("p=")
+						dump.append(param.default)
+				elif param.kind is inspect.Parameter.KEYWORD_ONLY:
+					if param.default is inspect.Parameter.empty:
+						dump.append("k")
+					else:
+						dump.append("k=")
+					dump.append(param.default)
 				elif param.kind is inspect.Parameter.VAR_POSITIONAL:
-					dump.append("*" + param.name)
+					dump.append("*")
 				elif param.kind is inspect.Parameter.VAR_KEYWORD:
-					dump.append("**" + param.name)
+					dump.append("**")
 				else:
 					raise ValueError(f"can't dump parameter {param.name} of type {param.kind}")
 			encoder.dump(dump)
 
 		super().ul4ondump(encoder)
+
+	ul42signature = {
+		"pk": inspect.Parameter.POSITIONAL_OR_KEYWORD,
+		"pk=": inspect.Parameter.POSITIONAL_OR_KEYWORD,
+		"p": inspect.Parameter.POSITIONAL_ONLY,
+		"p=": inspect.Parameter.POSITIONAL_ONLY,
+		"k": inspect.Parameter.KEYWORD_ONLY,
+		"k=": inspect.Parameter.KEYWORD_ONLY,
+		"*": inspect.Parameter.VAR_POSITIONAL,
+		"**": inspect.Parameter.VAR_KEYWORD,
+	}
 
 	def ul4onload(self, decoder):
 		version = decoder.load()
@@ -4050,52 +5127,45 @@ class Template(Block):
 			source = decoder.load()
 			signature = decoder.load()
 			self.whitespace = decoder.load()
-			startdelim = decoder.load()
-			if startdelim is None:
-				startdelim = "<?"
-			enddelim = decoder.load()
-			if enddelim is None:
-				enddelim = "?>"
 			if signature is not None:
-				source = f"{startdelim}ul4 {self.name or ''}({signature}){enddelim}{source}"
+				source = f"<?ul4 {self.name or ''}({signature})?>{source}"
 			# Remove old content, before compiling the source
 			self.startpos = slice(0, 0)
 			stop = len(source)
 			self.stoppos = slice(stop, stop)
 			del self.content[:]
-			self._compile(source, startdelim, enddelim)
+			self._compile(source)
 		else: # dump is in compiled form
 			if version != self.version:
 				raise ValueError(f"invalid version, expected {self.version!r}, got {version!r}")
 			self.name = decoder.load()
 			self._fullsource = decoder.load()
 			self.whitespace = decoder.load()
-			self.startdelim = decoder.load()
-			self.enddelim = decoder.load()
 			self.docpos = decoder.load()
 			self.parenttemplate = decoder.load()
 
 			dump = decoder.load()
-			if dump is None or isinstance(dump, Signature):
+			if dump is None or isinstance(dump, SignatureAST):
 				self.signature = dump
 			else:
 				params = []
-				nextdefault = False
 				paramname = None
-				for param in dump:
-					if nextdefault:
-						params.append(inspect.Parameter(paramname, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=param))
-						nextdefault = False
-					else:
-						if param.endswith("="):
-							paramname = param[:-1]
-							nextdefault = True # The next item is the default value
-						elif param.startswith("**"):
-							params.append(inspect.Parameter(param[2:], inspect.Parameter.VAR_KEYWORD))
-						elif param.startswith("*"):
-							params.append(inspect.Parameter(param[1:], inspect.Parameter.VAR_POSITIONAL))
+				paramtype = None
+				state = 0
+				for value in dump:
+					if state == 0:
+						paramname = value
+						state = 1
+					elif state == 1:
+						paramtype = value
+						if paramtype.endswith("="):
+							state = 2
 						else:
-							params.append(inspect.Parameter(param, inspect.Parameter.POSITIONAL_OR_KEYWORD))
+							params.append(inspect.Parameter(paramname, self.ul42signature[paramtype]))
+							state = 0
+					else:
+						params.append(inspect.Parameter(paramname, self.ul42signature[paramtype], default=value))
+						state = 0
 				self.signature = inspect.Signature(params)
 			super().ul4onload(decoder)
 
@@ -4144,26 +5214,21 @@ class Template(Block):
 			pass
 
 	@withcontext
-	def ul4render(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4_render(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		with context.replacevars(vars):
 			yield from self._renderbound(context)
 
-	def render(*args, **kwargs):
+	def render(self, /, *args, **kwargs):
 		"""
 		Render the template iteratively (i.e. this is a generator).
 
-		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
-		arguments available to the template code. (``args`[0]` is the ``self``
-		parameter, but :meth:`render` is defined in this way, to allow a keyword
-		argument named ``self``). Positional arguments will only be supported if
-		the template has a signature.
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will
+		only be supported if the template has a signature.
 		"""
 		context = Context()
-		yield from args[0].ul4render(context, *args[1:], **kwargs)
+		yield from self.ul4_render(context, *args, **kwargs)
 
 	def render_with_globals(self, args, kwargs, globals):
 		"""
@@ -4175,7 +5240,7 @@ class Template(Block):
 		has a signature.
 		"""
 		context = Context(globals)
-		yield from self.ul4render(context, *args, **kwargs)
+		yield from self.ul4_render(context, *args, **kwargs)
 
 	def _rendersbound(self, context):
 		# Helper method used by :meth:`renders` and :meth:`TemplateClosure.renders`
@@ -4184,26 +5249,21 @@ class Template(Block):
 
 	# This will be exposed to UL4 as ``renders``
 	@withcontext
-	def ul4renders(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4_renders(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		with context.replacevars(vars):
 			return self._rendersbound(context)
 
-	def renders(*args, **kwargs):
+	def renders(self, /, *args, **kwargs):
 		"""
 		Render the template as a string.
 
-		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
-		arguments available to the template code. (``args`[0]` is the ``self``
-		parameter, but :meth:`renders` is defined in this way, to allow a keyword
-		argument named ``self``). Positional arguments will only be supported if
-		the template has a signature.
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will only
+		be supported if the template has a signature.
 		"""
 		context = Context()
-		return args[0].ul4renders(context, *args[1:], **kwargs)
+		return self.ul4_renders(context, *args, **kwargs)
 
 	def renders_with_globals(self, args, kwargs, globals):
 		"""
@@ -4215,7 +5275,7 @@ class Template(Block):
 		has a signature.
 		"""
 		context = Context(globals)
-		return self.ul4renders(context, *args, **kwargs)
+		return self.ul4_renders(context, *args, **kwargs)
 
 	def _callbound(self, context):
 		# Helper method used by :meth:`__call__` and :meth:`TemplateClosure.__call__`
@@ -4227,35 +5287,28 @@ class Template(Block):
 			return exc.value
 
 	@withcontext
-	def ul4call(*args, **kwargs):
+	def ul4_call(self, context, /, *args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
 
-		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
-		arguments available to the template code. (``args`[0]` is the ``self``
-		parameter, but :meth:`ul4call` is defined in this way, to allow a keyword
-		argument named ``self``). Positional arguments will only be supported if
-		the template has a signature.
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will
+		only be supported if the template has a signature.
 		"""
-		self = args[0]
-		context = args[1]
-		args = args[2:]
 		vars = _makevars(self.signature, args, kwargs)
 		with context.replacevars(vars):
 			return self._callbound(context)
 
-	def __call__(*args, **kwargs):
+	def __call__(self, /, *args, **kwargs):
 		"""
 		Call the template as a function and return the resulting value.
 
-		``args[1:]`` and ``kwargs`` contain the top level positional and keyword
-		arguments available to the template code. (``args`[0]` is the ``self``
-		parameter, but :meth:`ul4call` is defined in this way, to allow a keyword
-		argument named ``self``). Positional arguments will only be supported if
-		the template has a signature.
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will
+		only be supported if the template has a signature.
 		"""
 		context = Context()
-		return args[0].ul4call(context, *args[1:], **kwargs)
+		return self.ul4_call(context, *args, **kwargs)
 
 	def call_with_globals(self, args, kwargs, globals):
 		"""
@@ -4267,7 +5320,7 @@ class Template(Block):
 		has a signature.
 		"""
 		context = Context(globals)
-		return self.ul4call(context, *args, **kwargs)
+		return self.ul4_call(context, *args, **kwargs)
 
 	def jssource(self):
 		"""
@@ -4279,28 +5332,29 @@ class Template(Block):
 		"""
 		Return the template as Java source code.
 		"""
-		return f"com.livinglogic.ul4.InterpretedTemplate.loads({misc.javaexpr(self.dumps())})"
+		from ll import misc
+		return f"com.livinglogic.ul4.Template.loads({misc.javaexpr(self.dumps())})"
 
-	def _tokenize(self, source, startdelim, enddelim):
+	def _tokenize(self, source):
 		"""
 		Tokenize the template source code in ``source`` into tags and non-tag
-		text. ``startdelim`` and ``enddelim`` are used as the tag delimiters.
+		text.
 
 		This is a generator which produces :class:`Text`/:class:`Tag` objects
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = fr"{re.escape(startdelim)}\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\n)*?)\s*)?{re.escape(enddelim)}"
+		pattern = fr"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\n)*?)\s*)?\?>"
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
-				yield Text(self, slice(pos, match.start()))
+				yield TextAST(self, slice(pos, match.start()))
 			tagname = source[match.start(1):match.end(1)]
 			yield Tag(self, tagname, slice(match.start(), match.end()), slice(match.start(3), match.end(3)))
 			pos = match.end()
 		end = len(source)
 		if pos != end:
-			yield Text(self, slice(pos, end))
+			yield TextAST(self, slice(pos, end))
 
 	def _tags2lines(self, tags):
 		"""
@@ -4319,16 +5373,16 @@ class Template(Block):
 		def append(tag):
 			# If this is a new line and it doesn't start with an indentation,
 			# add an empty indentation at the start (We always add indentation,
-			# as this is used by :class:`Render` to reindent the output of one
+			# as this is used by :class:`RenderAST` to reindent the output of one
 			# template when called from inside another template)
-			if not tagline and not isinstance(tag, Indent):
-				tagline.append(Indent(tag.template, slice(tag._startpos.start, tag._startpos.start)))
+			if not tagline and not isinstance(tag, IndentAST):
+				tagline.append(IndentAST(tag.template, slice(tag._startpos.start, tag._startpos.start)))
 			tagline.append(tag)
 
 		# Yield lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
 		wastag = False
 		for tag in tags:
-			if isinstance(tag, Text):
+			if isinstance(tag, TextAST):
 				pos = tag._startpos.start
 				for line in tag.text.splitlines(True):
 					# Find out if the line ends with a lineend
@@ -4352,13 +5406,13 @@ class Template(Block):
 
 					# Output the parts we found
 					if lineindentlen:
-						append(Indent(tag.template, slice(pos, pos+lineindentlen)))
+						append(IndentAST(tag.template, slice(pos, pos+lineindentlen)))
 						pos += lineindentlen
 					if linelen:
-						append(Text(tag.template, slice(pos, pos+linelen)))
+						append(TextAST(tag.template, slice(pos, pos+linelen)))
 						pos += linelen
 					if lineendlen:
-						append(LineEnd(tag.template, slice(pos, pos+lineendlen)))
+						append(LineEndAST(tag.template, slice(pos, pos+lineendlen)))
 						pos += lineendlen
 						yield tagline
 						tagline = []
@@ -4376,7 +5430,7 @@ class Template(Block):
 		first = True
 		for line in lines:
 			for tag in line:
-				if first or not isinstance(tag, (Indent, LineEnd)):
+				if first or not isinstance(tag, (IndentAST, LineEndAST)):
 					yield tag
 					first = False
 
@@ -4390,7 +5444,7 @@ class Template(Block):
 			return ""
 
 		def isempty(tagline):
-			return all(isinstance(tag, (Indent, LineEnd)) for tag in tagline)
+			return all(isinstance(tag, (IndentAST, LineEndAST)) for tag in tagline)
 
 		# Records the starting and ending line number of a block and its indentation
 		class Block:
@@ -4417,7 +5471,7 @@ class Template(Block):
 		newlines = []
 		for (i, line) in enumerate(lines):
 			linelen = len(line)
-			if 2 <= linelen <= 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and (linelen == 2 or isinstance(line[2], LineEnd)):
+			if 2 <= linelen <= 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and (linelen == 2 or isinstance(line[2], LineEndAST)):
 				tag = line[1]
 				# Tags closing a block
 				if tag.tag in ("elif", "else", "end"):
@@ -4457,17 +5511,17 @@ class Template(Block):
 
 		# Step 4: Drop whitespace from empty lines or lines that only contain indentation and block tags
 		for line in lines:
-			if len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], LineEnd):
+			if len(line) == 2 and isinstance(line[0], IndentAST) and isinstance(line[1], LineEndAST):
 				del line[0]
-			elif len(line) == 2 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx"):
+			elif len(line) == 2 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx"):
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and isinstance(line[2], LineEnd):
+			elif len(line) == 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and isinstance(line[2], LineEndAST):
 				del line[2]
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], Indent) and isinstance(line[1], Tag) and line[1].tag in ("render", "renderx") and isinstance(line[2], LineEnd):
+			elif len(line) == 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag in ("render", "renderx") and isinstance(line[2], LineEndAST):
 				del line[2]
 
-		# Step 5: Yield the individual :class:`Tag`/:class:`Text` objects
+		# Step 5: Yield the individual :class:`Tag`/:class:`TextAST` objects
 		for line in lines:
 			yield from line
 
@@ -4484,14 +5538,11 @@ class Template(Block):
 		parser.tag = tag
 		return parser
 
-	def _compile(self, source, startdelim, enddelim):
+	def _compile(self, source):
 		"""
 		Compile the template source code ``source`` into an AST.
-		``startdelim`` and ``enddelim`` are used as the tag delimiters.
 		"""
 		self._fullsource = source
-		self.startdelim = startdelim
-		self.enddelim = enddelim
 
 		if source is None:
 			return
@@ -4520,21 +5571,21 @@ class Template(Block):
 
 		def parserender(tag):
 			call = self._parser(tag, "render call required").expression()
-			if not isinstance(call, Call):
+			if not isinstance(call, CallAST):
 				raise TypeError("render call required")
-			tags = dict(render=Render, renderx=RenderX, renderblock=RenderBlock, renderblocks=RenderBlocks)
+			tags = dict(render=RenderAST, renderx=RenderXAST, renderblock=RenderBlockAST, renderblocks=RenderBlocksAST)
 			render = tags[tag.tag](template=tag.template, startpos=tag.startpos, obj=call.obj)
 			render.args = call.args
 			if tag.tag == "renderblock":
 				# We create the sub template without source so there won't be any compilation done ...
-				render.content = Template(None, name="content", whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim)
+				render.content = Template(None, name="content", whitespace=self.whitespace)
 				# ... but then we have to fix the ``fullsource`` and ``startpos`` attributes ourselves
 				render.content._fullsource = self._fullsource
 				# The stop position will be updated by :meth:`RenderBlock.finish`.
 				render.content.startpos = slice(tag.startpos.stop, tag.startpos.stop)
 			return render
 
-		tags = self._tokenize(source, startdelim, enddelim)
+		tags = self._tokenize(source)
 		lines = list(self._tags2lines(tags))
 
 		# Find template declarations and whitespace specification
@@ -4573,57 +5624,57 @@ class Template(Block):
 			# (Originally it referenced the outermost one)
 			tag.template = templatestack[-1]
 			try:
-				if isinstance(tag, Text):
+				if isinstance(tag, TextAST):
 					blockstack[-1].append(tag)
 				elif tag.tag == "doc":
 					# Only use the first ``<?doc?>`` tag in each template, ignore all later ones
 					if templatestack[-1].docpos is None:
 						templatestack[-1].docpos = tag.codepos
 				elif tag.tag == "print":
-					blockstack[-1].append(Print(templatestack[-1], tag.startpos, parseexpr(tag)))
+					blockstack[-1].append(PrintAST(templatestack[-1], tag.startpos, parseexpr(tag)))
 				elif tag.tag == "printx":
-					blockstack[-1].append(PrintX(templatestack[-1], tag.startpos, parseexpr(tag)))
+					blockstack[-1].append(PrintXAST(templatestack[-1], tag.startpos, parseexpr(tag)))
 				elif tag.tag == "code":
 					blockstack[-1].append(parsestmt(tag))
 				elif tag.tag == "if":
-					block = CondBlock(templatestack[-1], tag.startpos, None, parseexpr(tag))
+					block = ConditionalBlocksAST(templatestack[-1], tag.startpos, None, parseexpr(tag))
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "elif":
-					if not isinstance(blockstack[-1], CondBlock):
+					if not isinstance(blockstack[-1], ConditionalBlocksAST):
 						raise BlockError("elif doesn't match and if")
-					elif isinstance(blockstack[-1].content[-1], ElseBlock):
+					elif isinstance(blockstack[-1].content[-1], ElseBlockAST):
 						raise BlockError("else already seen in if")
-					blockstack[-1].newblock(ElIfBlock(templatestack[-1], tag.startpos, None, parseexpr(tag)))
+					blockstack[-1].newblock(ElIfBlockAST(templatestack[-1], tag.startpos, None, parseexpr(tag)))
 				elif tag.tag == "else":
-					if not isinstance(blockstack[-1], CondBlock):
+					if not isinstance(blockstack[-1], ConditionalBlocksAST):
 						raise BlockError("else doesn't match any if")
-					elif isinstance(blockstack[-1].content[-1], ElseBlock):
+					elif isinstance(blockstack[-1].content[-1], ElseBlockAST):
 						raise BlockError("else already seen in if")
-					blockstack[-1].newblock(ElseBlock(templatestack[-1], tag.startpos, None))
+					blockstack[-1].newblock(ElseBlockAST(templatestack[-1], tag.startpos, None))
 				elif tag.tag == "end":
 					if len(blockstack) <= 1:
 						raise BlockError("not in any block")
 					code = tag.code
 					if code:
 						if code == "if":
-							if not isinstance(blockstack[-1], CondBlock):
+							if not isinstance(blockstack[-1], ConditionalBlocksAST):
 								raise BlockError("endif doesn't match any if")
 						elif code == "for":
-							if not isinstance(blockstack[-1], ForBlock):
+							if not isinstance(blockstack[-1], ForBlockAST):
 								raise BlockError("endfor doesn't match any for")
 						elif code == "while":
-							if not isinstance(blockstack[-1], WhileBlock):
+							if not isinstance(blockstack[-1], WhileBlockAST):
 								raise BlockError("endwhile doesn't match any while")
 						elif code == "def":
 							if not isinstance(blockstack[-1], Template):
 								raise BlockError("enddef doesn't match any def")
 							templatestack.pop()
 						elif code == "renderblock":
-							if not isinstance(blockstack[-1], RenderBlock):
+							if not isinstance(blockstack[-1], RenderBlockAST):
 								raise BlockError("endrenderblock doesn't match any renderblock")
 						elif code == "renderblocks":
-							if not isinstance(blockstack[-1], RenderBlocks):
+							if not isinstance(blockstack[-1], RenderBlocksAST):
 								raise BlockError("endrenderblocks doesn't match any renderblocks")
 						else:
 							raise BlockError(f"illegal end value {code!r}")
@@ -4634,26 +5685,26 @@ class Template(Block):
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "while":
-					block = WhileBlock(templatestack[-1], tag.startpos, None, parseexpr(tag))
+					block = WhileBlockAST(templatestack[-1], tag.startpos, None, parseexpr(tag))
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "break":
 					for block in reversed(blockstack):
-						if isinstance(block, (ForBlock, WhileBlock)):
+						if isinstance(block, (ForBlockAST, WhileBlockAST)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("break outside of for loop")
-					blockstack[-1].append(Break(templatestack[-1], tag.startpos))
+					blockstack[-1].append(BreakAST(templatestack[-1], tag.startpos))
 				elif tag.tag == "continue":
 					for block in reversed(blockstack):
-						if isinstance(block, (ForBlock, WhileBlock)):
+						if isinstance(block, (ForBlockAST, WhileBlockAST)):
 							break
 						elif isinstance(block, Template):
 							raise BlockError("continue outside of for loop")
-					blockstack[-1].append(Continue(templatestack[-1], tag.startpos))
+					blockstack[-1].append(ContinueAST(templatestack[-1], tag.startpos))
 				elif tag.tag == "def":
 					(name, signature) = parsedef(tag)
-					block = Template(None, name=name, whitespace=self.whitespace, startdelim=self.startdelim, enddelim=self.enddelim, signature=signature)
+					block = Template(None, name=name, whitespace=self.whitespace, signature=signature)
 					block.template = block
 					block.parenttemplate = templatestack[-1]
 					tag.template = block
@@ -4665,7 +5716,7 @@ class Template(Block):
 					blockstack[-1].append(block)
 					blockstack.append(block)
 				elif tag.tag == "return":
-					blockstack[-1].append(Return(templatestack[-1], tag.startpos, parseexpr(tag)))
+					blockstack[-1].append(ReturnAST(templatestack[-1], tag.startpos, parseexpr(tag)))
 				elif tag.tag in {"render", "renderx", "renderblock", "renderblocks"}:
 					render = parserender(tag)
 					# Find innermost block
@@ -4695,28 +5746,62 @@ class Template(Block):
 	def eval(self, context):
 		signature = self.signature
 		# If our signature is an AST, we have to evaluate it to get the final :class:`inspect.Signature` object
-		if isinstance(signature, Signature):
+		if isinstance(signature, SignatureAST):
 			signature = signature.eval(context)
 		context.vars[self.name] = TemplateClosure(self, context, signature)
 
 
 @register("signature")
-class Signature(Code):
+class SignatureAST(CodeAST):
 	"""
-	AST node for the signature of a template.
+	AST node for the signature of a locally defined subtemplate.
 
-	The list of arguments is found in ``params``.
+	Attributes are:
+
+	``params`` : :class:`list`
+		The parameter. Each list item is a :class:`tuple` with three items:
+
+		``name`` : :class:`str`
+			The name of the argument.
+
+		``type`` : :class:`str`
+			The type of the argument. One of:
+
+			-	``pk`` (positional or keyword argument without default)
+			-	``pk=`` (positional or keyword argument with default)
+			-	``p`` (positional-only argument without default)
+			-	``p=`` (positional-only argument with default)
+			-	``k`` (keyword-only argument without default)
+			-	``k=`` (keyword-only argument with default)
+			-	``*`` (argument that collects addition positional arguments)
+			-	``**`` (argument that collects addition keyword arguments)
+
+		``default`` : :class:`AST` or ``None``
+			The default value for the argument (or ``None`` if the argument
+			has no default value).
 	"""
 
-	ul4attrs = Code.ul4attrs.union({"params"})
+	ul4_type = Type("ul4")
+	ul4_attrs = CodeAST.ul4_attrs.union({"params"})
 
 	def __init__(self, template=None, startpos=None):
 		super().__init__(template, startpos)
 		self.params = []
 
 	def __repr__(self):
-		params = "".join(f" {paramname}" if default is None else f" {paramname}={default!r}" for (paramname, default) in self.params)
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {_offset(self.pos)}{params} at {id(self):#x}>"
+		params = []
+		lastparamtype = None
+		for (paramname, paramtype, default) in self.params:
+			sep = self._sep(lastparamtype, paramtype)
+			lastparamtype = paramtype
+			params.append(sep)
+			if paramtype in {"*", "**"}:
+				params.append(paramtype)
+			params.append(paramname)
+			if paramtype.endswith("="):
+				params.append(f"={default!r}")
+		params = "".join(params)
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {_offset(self.pos)} ({params}) at {id(self):#x}>"
 
 	def _repr_pretty(self, p):
 		for (paramname, default) in self.params:
@@ -4729,31 +5814,60 @@ class Signature(Code):
 
 	def _str(self):
 		yield "("
-		for (i, (paramname, default)) in enumerate(self.params):
-			if i:
-				yield ", "
+		lastparamtype = None
+		for (i, (paramname, paramtype, default)) in enumerate(self.params):
+			sep = self._sep(lastparamtype, paramtype)
+			lastparamtype = paramtype
+			if sep:
+				yield sep
 			yield paramname
-			if default is not None:
+			if paramtype.endswith("="):
 				yield "="
 				yield from default._str()
 		yield ")"
 
+	def _sep(self, lastparamtype, paramtype):
+		if lastparamtype is None:
+			return "*, " if paramtype in {"k", "k="} else ""
+		elif lastparamtype in {"pk", "pk="}:
+			return ", *, " if paramtype in {"k", "k="} else ", "
+		elif lastparamtype in {"p", "p="}:
+			if paramtype in {"pk", "pk="}:
+				return ", /, "
+			elif paramtype in {"k", "k="}:
+				return ", /, *, "
+			else:
+				return ", "
+		else:
+			return ", "
+
 	@_handleexpressioneval
 	def eval(self, context):
 		params = []
-		for (paramname, default) in self.params:
-			if default is None:
-				if paramname.startswith("**"):
-					paramname = paramname[2:]
-					kind = inspect.Parameter.VAR_KEYWORD
-				elif paramname.startswith("*"):
-					paramname = paramname[1:]
-					kind = inspect.Parameter.VAR_POSITIONAL
-				else:
-					kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+		for (paramname, paramtype, default) in self.params:
+			if paramtype == "*":
+				kind = inspect.Parameter.VAR_POSITIONAL
 				default = inspect.Parameter.empty
-			else:
+			elif paramtype	 == "**":
+				kind = inspect.Parameter.VAR_KEYWORD
+				default = inspect.Parameter.empty
+			elif paramtype == "pk":
 				kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+				default = inspect.Parameter.empty
+			elif paramtype == "pk=":
+				kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+				default = default.eval(context)
+			elif paramtype == "p":
+				kind = inspect.Parameter.POSITIONAL_ONLY
+				default = inspect.Parameter.empty
+			elif paramtype == "p=":
+				kind = inspect.Parameter.POSITIONAL_ONLY
+				default = default.eval(context)
+			elif paramtype == "k":
+				kind = inspect.Parameter.KEYWORD_ONLY
+				default = inspect.Parameter.empty
+			elif paramtype == "k=":
+				kind = inspect.Parameter.KEYWORD_ONLY
 				default = default.eval(context)
 			params.append(inspect.Parameter(paramname, kind, default=default))
 		return inspect.Signature(params)
@@ -4761,85 +5875,89 @@ class Signature(Code):
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
 		dump = []
-		for (paramname, default) in self.params:
-			if default is None:
-				dump.append(paramname)
-			else:
-				dump.append([paramname, default])
+		for (paramname, paramtype, default) in self.params:
+			dump.append(paramname)
+			dump.append(paramtype)
+			if paramtype.endswith("="):
+				dump.append(default)
 		encoder.dump(dump)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
 		dump = decoder.load()
-		for param in dump:
-			if isinstance(param, str):
-				self.params.append((param, None))
+		state = 0
+		for value in dump:
+			if state == 0:
+				paramname = value
+				state = 1
+			elif state == 1:
+				paramtype = value
+				if paramtype.endswith("="):
+					state = 2
+				else:
+					self.params.append((paramname, paramtype, None))
+					state = 0
 			else:
-				self.params.append(param)
+				self.params.append((paramname, paramtype, value))
+				state = 0
+
+
+###
+### Various versions of undefined objects
+###
+
+class Undefined:
+	ul4_type = Type(None, "undefined")
+
+	def __bool__(self):
+		return False
+
+	def __iter__(self):
+		raise TypeError(f"{self!r} is not iterable")
+
+	def __len__(self):
+		raise AttributeError(f"{self!r} has no len()")
+
+	def __call__(self, *args, **kwargs):
+		raise TypeError(f"{self!r} is not callable")
+
+	def __getattr__(self, key):
+		raise AttributeError(f"{self!r} has no attribute {key!r}")
+
+	def __getitem__(self, key):
+		raise TypeError(f"{self!r} is not subscriptable (key={key!r})")
+
+
+class UndefinedKey(Undefined):
+	ul4_type = Type(None, "undefinedkey")
+
+	def __init__(self, key):
+		self._key = key
+
+	def __repr__(self):
+		return f"UndefinedKey({self._key!r})"
+
+
+class UndefinedVariable(Undefined):
+	ul4_type = Type(None, "undefinedvariable")
+
+	def __init__(self, name):
+		self._name = name
+
+	def __repr__(self):
+		return f"UndefinedVariable({self._name!r})"
 
 
 ###
 ### Functions
 ###
 
-@Context.makefunction
-def function_str(obj=""):
-	return _str(obj)
-
-
-@Context.makefunction
-def function_repr(obj):
-	return _repr(obj)
-
-
-@Context.makefunction
-def function_ascii(obj):
-	return _ascii(obj)
-
-
-@Context.makefunction
-def function_now():
+def _now():
+	# Wrap this in our own function, because :meth:`datateimt.datetime.now` supports a ``tz`` argument.
 	return datetime.datetime.now()
 
 
-@Context.makefunction
-def function_today():
-	return datetime.date.today()
-
-
-Context.makefunction(datetime.datetime.utcnow)
-
-
-@Context.makefunction
-def function_date(year, month, day):
-	return datetime.date(year, month, day)
-
-
-@Context.makefunction
-def function_datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0):
-	return datetime.datetime(year, month, day, hour, minute, second, microsecond)
-
-
-@Context.makefunction
-def function_timedelta(days=0, seconds=0, microseconds=0):
-	return datetime.timedelta(days, seconds, microseconds)
-
-
-@Context.makefunction
-def function_monthdelta(months=0):
-	return misc.monthdelta(months)
-
-
-Context.makefunction(random.random)
-
-
-@Context.makefunction
-def function_xmlescape(obj):
-	return _xmlescape(obj)
-
-
-@Context.makefunction
-def function_csv(obj):
+def _csv(obj, /):
 	if obj is None:
 		return ""
 	elif isinstance(obj, Undefined):
@@ -4852,81 +5970,18 @@ def function_csv(obj):
 	return obj
 
 
-@Context.makefunction
-def function_asjson(obj):
-	return _asjson(obj)
-
-
-@Context.makefunction
-def function_fromjson(string):
+def _fromjson(string, /):
+	# Wrap this in our own function, because :func:`json.loads` supports a many more arguments.
 	return json.loads(string)
 
 
-@Context.makefunction
-def function_asul4on(obj):
-	from ll import ul4on
-	return ul4on.dumps(obj)
-
-
-@Context.makefunction
-def function_fromul4on(dump):
+def _fromul4on(dump, /):
+	# Wrap this in our own function, because we don't want to support the ``registry`` argument
 	from ll import ul4on
 	return ul4on.loads(dump)
 
 
-@Context.makefunction
-def function_int(obj=0, base=None):
-	if base is None:
-		return int(obj)
-	else:
-		return int(obj, base)
-
-
-@Context.makefunction
-def function_float(obj=0.0):
-	return float(obj)
-
-
-@Context.makefunction
-def function_bool(obj=False):
-	return bool(obj)
-
-
-@Context.makefunction
-def function_list(iterable=()):
-	return list(iterable)
-
-
-@Context.makefunction
-def function_set(iterable=()):
-	return set(iterable)
-
-
-@Context.makefunction
-def function_len(sequence):
-	return len(sequence)
-
-
-@Context.makefunction
-def function_abs(number):
-	return abs(number)
-
-
-@Context.makefunction
-def function_any(iterable):
-	return any(iterable)
-
-
-@Context.makefunction
-def function_all(iterable):
-	return all(iterable)
-
-
-Context.makefunction(enumerate)
-
-
-@Context.makefunction
-def function_enumfl(iterable, start=0):
+def _enumfl(iterable, /, start=0):
 	lastitem = None
 	first = True
 	i = start
@@ -4947,228 +6002,162 @@ def function_enumfl(iterable, start=0):
 		i += 1
 
 
-@Context.makefunction
-def function_isfirst(iterable):
-	return misc.isfirst(iterable)
-
-
-@Context.makefunction
-def function_islast(iterable):
-	return misc.islast(iterable)
-
-
-@Context.makefunction
-def function_isfirstlast(iterable):
-	return misc.isfirstlast(iterable)
-
-
-@Context.makefunction
-def function_isundefined(obj):
+def _isundefined(obj, /):
 	return isinstance(obj, Undefined)
 
 
-@Context.makefunction
-def function_isdefined(obj):
+def _isdefined(obj, /):
 	return not isinstance(obj, Undefined)
 
 
-@Context.makefunction
-def function_isnone(obj):
+def _isnone(obj, /):
 	return obj is None
 
 
-@Context.makefunction
-def function_isstr(obj):
+def _isstr(obj, /):
 	return isinstance(obj, str)
 
 
-@Context.makefunction
-def function_isint(obj):
+def _isint(obj, /):
 	return isinstance(obj, int) and not isinstance(obj, bool)
 
 
-@Context.makefunction
-def function_isfloat(obj):
+def _isfloat(obj, /):
 	return isinstance(obj, float)
 
 
-@Context.makefunction
-def function_isbool(obj):
+def _isbool(obj, /):
 	return isinstance(obj, bool)
 
 
-@Context.makefunction
-def function_isdate(obj):
+def _isdate(obj, /):
 	return isinstance(obj, datetime.date) and not isinstance(obj, datetime.datetime)
 
 
-@Context.makefunction
-def function_isdatetime(obj):
+def _isdatetime(obj, /):
 	return isinstance(obj, datetime.datetime)
 
 
-@Context.makefunction
-def function_istimedelta(obj):
+def _istimedelta(obj, /):
 	return isinstance(obj, datetime.timedelta)
 
 
-@Context.makefunction
-def function_ismonthdelta(obj):
+def _ismonthdelta(obj, /):
+	from ll import misc
 	return isinstance(obj, misc.monthdelta)
 
 
-@Context.makefunction
-def function_isexception(obj):
+def _isexception(obj, /):
 	return isinstance(obj, BaseException)
 
 
-@Context.makefunction
-def function_islist(obj):
+def _islist(obj, /):
 	from ll import color
-	return isinstance(obj, abc.Sequence) and not isinstance(obj, str) and not isinstance(obj, color.Color)
+	return isinstance(obj, abc.Sequence) and not isinstance(obj, (str, color.Color))
 
 
-@Context.makefunction
-def function_isset(obj):
+def _isset(obj, /):
 	return isinstance(obj, (set, frozenset))
 
 
-@Context.makefunction
-def function_isdict(obj):
+def _isdict(obj, /):
 	return isinstance(obj, abc.Mapping) and not isinstance(obj, Template)
 
 
-@Context.makefunction
-def function_iscolor(obj):
+def _iscolor(obj, /):
 	from ll import color
 	return isinstance(obj, color.Color)
 
 
-@Context.makefunction
-def function_istemplate(obj):
+def _istemplate(obj, /):
 	return isinstance(obj, (Template, TemplateClosure))
 
 
-@Context.makefunction
-def function_isfunction(obj):
-	return (callable(obj) and not isinstance(obj, Undefined)) or callable(getattr(obj, "ul4call", None))
+def _isfunction(obj, /):
+	return (callable(obj) and not isinstance(obj, Undefined)) or callable(getattr(obj, "ul4_call", None))
 
 
-@Context.makefunction
-def function_chr(i):
-	return chr(i)
+def _isinstance(obj, type, /):
+	return type.instancecheck(obj)
 
 
-@Context.makefunction
-def function_ord(c):
-	return ord(c)
-
-
-@Context.makefunction
-def function_hex(number):
-	return hex(number)
-
-
-@Context.makefunction
-def function_oct(number):
-	return oct(number)
-
-
-@Context.makefunction
-def function_bin(number):
-	return bin(number)
-
-
-@Context.makefunction
-def function_min(*args):
-	return min(*args)
-
-
-@Context.makefunction
-def function_max(*args):
-	return max(*args)
-
-
-@Context.makefunction
-def function_first(iterable, default=None):
-	return misc.first(iterable, default)
-
-
-@Context.makefunction
-def function_last(iterable, default=None):
-	return misc.last(iterable, default)
-
-
-@Context.makefunction
-def function_sum(iterable, start=0):
-	return sum(iterable, start)
-
-
-@Context.makefunction
-@withcontext
-def function_sorted(context, iterable, key=None, reverse=False):
+def _makekeyfunction(context, key):
 	if key is not None:
-		if callable(getattr(key, "ul4call", None)):
-			key = key.ul4call
+		if callable(getattr(key, "ul4_call", None)):
+			key = key.ul4_call
 		elif callable(key):
 			key = key.__call__
-		if getattr(key, "ul4context", False):
+		if getattr(key, "ul4_context", False):
 			key = functools.partial(key, context)
-	return sorted(iterable, key=key, reverse=reverse)
+	return key
 
 
-@Context.makefunction
-def function_range(*args):
-	return range(*args)
-
-
-@Context.makefunction
-def function_slice(*args):
-	return itertools.islice(*args)
-
-
-@Context.makefunction
-def function_type(obj):
-	from ll import color
-	if obj is None:
-		return "none"
-	elif isinstance(obj, Undefined):
-		return "undefined"
-	elif isinstance(obj, abc.Mapping):
-		return "dict"
-	elif isinstance(obj, datetime.datetime):
-		return "datetime"
-	elif isinstance(obj, datetime.date):
-		return "date"
-	elif isinstance(obj, datetime.timedelta):
-		return "timedelta"
-	elif isinstance(obj, misc.monthdelta):
-		return "monthdelta"
-	elif isinstance(obj, abc.Sequence) and not isinstance(obj, (str, color.Color)):
-		return "list"
-	elif callable(obj) and not isinstance(obj, (Template, TemplateClosure)):
-		return "function"
+@withcontext
+def _min(context, *args, default=_defaultitem, key=None):
+	if default is _defaultitem:
+		return min(*args, key=_makekeyfunction(context, key))
 	else:
-		return misc.format_class(obj)
+		return min(*args, default=default, key=_makekeyfunction(context, key))
 
 
-@Context.makefunction
-def function_reversed(sequence):
-	return reversed(sequence)
+@withcontext
+def _max(context, *args, default=_defaultitem, key=None):
+	if default is _defaultitem:
+		return max(*args, key=_makekeyfunction(context, key))
+	else:
+		return max(*args, default=default, key=_makekeyfunction(context, key))
 
 
-@Context.makefunction
-def function_randrange(*args):
+@withcontext
+def _sorted(context, iterable, /, key=None, reverse=False):
+	return sorted(iterable, key=_makekeyfunction(context, key), reverse=reverse)
+
+
+_py_classes_2_ul4_types = {}
+
+def _type(obj, /):
+	ul4type = getattr(obj, "ul4_type", None)
+	if ul4type is not None:
+		return ul4type
+	elif obj is None:
+		return NoneType
+	elif isinstance(obj, bool):
+		return BoolType
+	elif isinstance(obj, int):
+		return IntType
+	elif isinstance(obj, float):
+		return FloatType
+	elif isinstance(obj, str):
+		return StrType
+	elif isinstance(obj, (set, frozenset, abc.Set)):
+		return SetType
+	elif isinstance(obj, (list, tuple, abc.Sequence)):
+		return ListType
+	elif isinstance(obj, (dict, abc.Mapping)):
+		return DictType
+	elif isinstance(obj, slice):
+		return SliceType
+	elif isinstance(obj, datetime.datetime):
+		return DateTimeType
+	elif isinstance(obj, datetime.date):
+		return DateType
+	elif isinstance(obj, datetime.timedelta):
+		return TimeDeltaType
+	else:
+		cls = type(obj)
+		try:
+			return _py_classes_2_ul4_types[cls]
+		except KeyError:
+			ul4cls = GenericExceptionType if issubclass(cls, BaseException) else GenericType
+			result = _py_classes_2_ul4_types[cls] = ul4cls(cls)
+			return result
+
+
+def _randrange(*args):
 	return random.randrange(*args)
 
 
-@Context.makefunction
-def function_randchoice(sequence):
-	return random.choice(sequence)
-
-
-@Context.makefunction
-def function_format(obj, fmt, lang=None):
+def _format(obj, fmt, lang=None):
 	if isinstance(obj, (datetime.date, datetime.time, datetime.timedelta)):
 		if lang is None:
 			lang = "en"
@@ -5190,151 +6179,90 @@ def function_format(obj, fmt, lang=None):
 		return format(obj, fmt)
 
 
-@Context.makefunction
-def function_zip(*iterables):
-	return zip(*iterables)
-
-
-@Context.makefunction
-def function_urlquote(string):
+def _urlquote(string):
 	return urlparse.quote_plus(string)
 
 
-@Context.makefunction
-def function_urlunquote(string):
+def _urlunquote(string):
 	return urlparse.unquote_plus(string)
 
 
-@Context.makefunction
-def function_rgb(r, g, b, a=1.0):
-	from ll import color
-	return color.Color.fromrgb(r, g, b, a)
-
-
-@Context.makefunction
-def function_hls(h, l, s, a=1.0):
-	from ll import color
-	return color.Color.fromhls(h, l, s, a)
-
-
-@Context.makefunction
-def function_hsv(h, s, v, a=1.0):
-	from ll import color
-	return color.Color.fromhsv(h, s, v, a)
-
-
-@Context.makefunction
-def function_md5(string):
+def _md5(string, /):
 	import hashlib
 	return hashlib.md5(string.encode("utf-8")).hexdigest()
 
 
-@Context.makefunction
-def function_scrypt(string, salt):
+def _scrypt(string, /, salt):
 	import scrypt
 	return scrypt.hash(string, salt, N=16384, r=8, p=1, buflen=128).hex()
 
 
-@Context.makefunction
-def function_round(x, digits=0):
-	result = round(x, digits)
+def _round(number, /, digits=0):
+	result = round(number, digits)
 	if digits <= 0:
 		result = int(result)
 	return result
 
 
-@Context.makefunction
-def function_floor(x, digits=0):
+def _floor(number, /, digits=0):
 	if digits:
-		threshold = 10**digits
-		result = math.floor(x*threshold)/threshold
-		if digits < 0:
-			return int(result)
+		if isinstance(number, int):
+			if digits > 0:
+				return number
+			base = 10 ** -digits
+			return (number // base) * base
+		else:
+			base = 10**digits
+			result = math.floor(number*base)/base
+			if digits < 0:
+				return int(result)
 		return result
 	else:
-		return math.floor(x)
+		return math.floor(number)
 
 
-@Context.makefunction
-def function_ceil(x, digits=0):
+def _ceil(number, /, digits=0):
 	if digits:
-		threshold = 10**digits
-		result = math.ceil(x*threshold)/threshold
-		if digits < 0:
-			return int(result)
+		if isinstance(number, int):
+			if digits > 0:
+				return number
+			base = 10 ** -digits
+			return (number + base - 1) // base * base
+		else:
+			base = 10**digits
+			result = math.ceil(number*base)/base
+			if digits < 0:
+				return int(result)
 		return result
 	else:
-		return math.ceil(x)
+		return math.ceil(number)
 
 
-Context.functions["pi"] = math.pi
-Context.functions["tau"] = 2*math.pi
+def _getattr(obj, attrname, default=None):
+	return _type(obj).getattr(obj, attrname, default)
 
 
-@Context.makefunction
-def function_sqrt(x):
-	return math.sqrt(x)
+def _setattr(obj, attrname, value):
+	return _type(obj).setattr(obj, attrname, value)
 
 
-@Context.makefunction
-def function_cos(x):
-	return math.cos(x)
+def _hasattr(obj, attrname):
+	return _type(obj).hasattr(obj, attrname)
 
 
-@Context.makefunction
-def function_sin(x):
-	return math.sin(x)
+def _dir(obj, /):
+	return _type(obj).dir(obj)
 
 
-@Context.makefunction
-def function_tan(x):
-	return math.tan(x)
+class TemplateClosure(BlockAST):
+	"""
+	A locally defined subtemplate.
 
-
-@Context.makefunction
-def function_exp(x):
-	return math.exp(x)
-
-
-@Context.makefunction
-def function_log(x, base=None):
-	if base is None:
-		return math.log(x)
-	else:
-		return math.log(x, base)
-
-
-@Context.makefunction
-def function_pow(x, y):
-	return math.pow(x, y)
-
-
-@Context.makefunction
-def function_getattr(obj, attrname, default=None):
-	return proto(obj).getattr(obj, attrname, default)
-
-
-@Context.makefunction
-def function_setattr(obj, attrname, value):
-	return proto(obj).setattr(obj, attrname, value)
-
-
-@Context.makefunction
-def function_hasattr(obj, attrname):
-	return proto(obj).hasattr(obj, attrname)
-
-
-@Context.makefunction
-def function_dir(obj):
-	return proto(obj).dir(obj)
-
-
-from ll import ul4on
-Context.functions["ul4on"] = ul4on
-
-
-class TemplateClosure(Block):
-	ul4attrs = Template.ul4attrs
+	A :class:`!TemplateClosure` is a closure, i.e. it can use the local variables
+	of the template it is defined in.
+	"""
+	ul4_type = Type("ul4", "TemplateClosure", "A locally defined UL4 template")
+	ul4_attrs = Template.ul4_attrs
 
 	def __init__(self, template, context, signature):
 		self.template = template
@@ -5342,10 +6270,7 @@ class TemplateClosure(Block):
 		self.signature = signature
 
 	@withcontext
-	def ul4render(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4_render(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		vars = collections.ChainMap(vars, self.vars)
 		with context.replacevars(vars):
@@ -5355,10 +6280,7 @@ class TemplateClosure(Block):
 
 	# This will be exposed to UL4 as ``renders``
 	@withcontext
-	def ul4renders(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4_renders(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		vars = collections.ChainMap(vars, self.vars)
 		with context.replacevars(vars):
@@ -5367,10 +6289,7 @@ class TemplateClosure(Block):
 			return self.template._rendersbound(context)
 
 	@withcontext
-	def ul4call(*args, **kwargs):
-		self = args[0]
-		context = args[1]
-		args = args[2:]
+	def ul4_call(self, context, /, *args, **kwargs):
 		vars = _makevars(self.signature, args, kwargs)
 		vars = collections.ChainMap(vars, self.vars)
 		with context.replacevars(vars):
@@ -5380,23 +6299,19 @@ class TemplateClosure(Block):
 
 	def __getattr__(self, name):
 		if name == "renders":
-			return self.ul4renders
+			return self.ul4_renders
 		else:
 			return getattr(self.template, name)
 
-	def ul4getattr(self, name):
+	def ul4_getattr(self, name):
 		if name == "renders":
-			return self.ul4renders
+			return self.ul4_renders
 		else:
 			return getattr(self, name)
 
 	def _repr(self):
 		yield f"name={self.name!r}"
 		yield f"whitespace={self.whitespace!r}"
-		if self.startdelim != "<?":
-			yield f"startdelim={self.startdelim!r}"
-		if self.enddelim != "?>":
-			yield f"enddelim={self.enddelim!r}"
 		if self.signature is not None:
 			yield f"signature={self.signature}"
 
@@ -5407,14 +6322,6 @@ class TemplateClosure(Block):
 		p.breakable()
 		p.text("whitespace=")
 		p.pretty(self.whitespace)
-		if self.startdelim != "<?":
-			p.breakable()
-			p.text("startdelim=")
-			p.pretty(self.startdelim)
-		if self.enddelim != "?>":
-			p.breakable()
-			p.text("enddelim=")
-			p.pretty(self.enddelim)
 		if self.signature is not None:
 			p.breakable()
 			p.text(f"signature={self.signature}")

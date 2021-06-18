@@ -145,7 +145,9 @@ Options
 		``value`` is a string.
 
 	``oracle``
-		``value`` will be a connection to an Oracle database, e.g.::
+		``value`` will be a connection to an Oracle database, e.g.:
+
+		.. sourcecode:: text
 
 			-Ddb:oracle=user/password@database
 
@@ -156,7 +158,9 @@ Options
 		``value`` is a connection to a MySQL database.
 
 	``redis``
-		``value`` will be a connection to an Redis database, e.g.::
+		``value`` will be a connection to an Redis database, e.g.:
+
+		.. sourcecode:: text
 
 			-Ddb:redis=192.168.123.1:6379/42
 
@@ -200,17 +204,17 @@ Then we can use the following template to output the table into an XML file:
 If we put the template into the file :file:`person.ul4` we can call
 :program:`rul4` like this:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	rul4 person.ul4 >person.xml
+	$ rul4 person.ul4 >person.xml
 
 We could also pass the connection to our database via the :option:`-D` option
 and disallow the script to make any database connections itself or execute any
 system commands:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	rul4 person.ul4 -Ddb:oracle=user/password@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
+	$ rul4 person.ul4 -Ddb:oracle=user/password@database --oracle=0 --sqlite=0 --mysql=0 --redis=0 --system=0 >person.xml
 
 Then the template can use the Oracle connection object ``db`` directly.
 
@@ -229,20 +233,20 @@ __docformat__ = "reStructuredText"
 
 
 class System:
-	ul4attrs = {"execute"}
+	ul4_attrs = {"execute"}
 
 	def execute(self, cmd):
 		return os.popen(cmd).read()
 
 
 class Var:
-	ul4attrs = {"value"}
+	ul4_attrs = {"value"}
 
 	def __init__(self, value=None):
 		self.value = value
 
-	def ul4setattr(self, name, value):
-		# As ``ul4attrs`` only contains ``"value"``, we will never be called with any other name
+	def ul4_setattr(self, name, value):
+		# As ``ul4_attrs`` only contains ``"value"``, we will never be called with any other name
 		self.value = value
 
 	@misc.notimplemented
@@ -284,7 +288,7 @@ class Connection:
 	:meth:`Globals.mysql` or :meth:`Globals.sqlite`.
 	"""
 
-	ul4attrs = {"query", "queryone", "execute", "int", "number", "str", "clob", "date"}
+	ul4_attrs = {"query", "queryone", "execute", "int", "number", "str", "clob", "date"}
 
 	def __init__(self, connection):
 		self.connection = connection
@@ -427,7 +431,7 @@ class OracleConnection(Connection):
 			return var
 
 	def __repr__(self):
-		connectstring = f"{self.connection.username}@{self.connection.tnsentry}"
+		connectstring = f"{self.connection.username}@{self.connection.dsn}"
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} schema={connectstring!r} at {id(self):#x}>"
 
 	def str(self, value=None):
@@ -462,7 +466,7 @@ class RedisConnection:
 		<?end if?>
 	"""
 
-	ul4attrs = {"get", "put"}
+	ul4_attrs = {"get", "put"}
 
 	def __init__(self, host, port, db):
 		import redis
@@ -529,7 +533,7 @@ class Globals:
 	:meth:`redis`, :meth:`system`, :meth:`load`, :meth:`save` and :meth:`compile`.
 	"""
 
-	ul4attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
+	ul4_attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
 	def __init__(self, templates=None, vars=None, encoding=None, oracle=True, mysql=True, sqlite=True, redis=True, system=True, load=True, save=True, compile=True):
 		self.templates = templates if templates is not None else {}
 		self.encoding = encoding if encoding is not None else sys.stdout.encoding
@@ -735,13 +739,13 @@ class Globals:
 		with open(filename, "w", encoding=encoding) as f:
 			f.write(data)
 
-	def compile(self, source, name=None, whitespace="keep", signature=None, startdelim="<?", enddelim="?>"):
+	def compile(self, source, name=None, whitespace="keep", signature=None):
 		"""
 		Compile the UL4 source ``source`` into a :class:`~ll.ul4c.Template` object
 		and return it. All other parameters are passed to the
 		:class:`~ll.ul4c.Template` constructor too.
 		"""
-		return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature, startdelim=startdelim, enddelim=enddelim)
+		return ul4c.Template(source, name=name, whitespace=whitespace, signature=signature)
 
 	def define(self, arg):
 		(name, _, value) = arg.partition("=")

@@ -75,9 +75,9 @@ Suppose we have the following XML file (named :file:`foo.xml`):
 
 Then we can generate a skeleton XIST namespace from it with the following command:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	xml2xsc foo.xml -xhttp://xmlns.example.org/ -mfullonce
+	$ xml2xsc foo.xml -xhttp://xmlns.example.org/ -mfullonce
 
 The output will be:
 

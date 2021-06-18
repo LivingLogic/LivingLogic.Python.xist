@@ -36,15 +36,15 @@ This package contains the following scripts:
 
 These scripts can either be called via Pythons :option:`-m` option:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	python -mll.scripts.rul4 --help
+	$ python -mll.scripts.rul4 --help
 
 or as a simple script installed in the search path:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	rul4 --help
+	$ rul4 --help
 """
 
 

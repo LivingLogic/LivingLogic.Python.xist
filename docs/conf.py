@@ -16,8 +16,12 @@
 import sys
 import os
 import types
+import re
 
-from sphinx.writers import latex
+from pygments import lexer, token
+from pygments.lexers import web, python
+
+from sphinx.writers import latex, html5
 
 def visit_definition_list(self, node):
 	self.body.append('\\begin{description}[style=unboxed]\n')
@@ -39,7 +43,7 @@ latex.LaTeXTranslator.visit_definition = visit_definition
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '2.1.0' # This fixed bug #6165 (``tab_width`` was ignored)
+needs_sphinx = '3.5.0' # This fixed bug #6165 (``tab_width`` was ignored)
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -67,7 +71,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'XIST'
-copyright = '1999\N{EN DASH}2020, Walter Dörwald'
+copyright = '1999\N{EN DASH}2021, Walter Dörwald'
 author = 'Walter Dörwald'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -145,7 +149,8 @@ exclude_patterns = []
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'livinglogic-light'
+
 
 tab_width = 3
 
@@ -171,6 +176,8 @@ html_theme_path = ["."]
 # further.  For a list of options available for each theme, see the
 # documentation.
 
+html_permalinks = True
+
 if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
 	html_theme_options = {
 		"font_awesome_url": "../fontawesome-pro-5.13.0-web/css/all.min.css",
@@ -178,6 +185,7 @@ if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
 		"font_awesome_name": "Font Awesome 5 Pro",
 		"font_awesome_weight": "400",
 	}
+	html_permalinks_icon = "<i class='fal fa-link'></i>"
 else:
 	html_theme_options = {
 		"font_awesome_url": "../fontawesome-free-5.13.0-web/css/all.min.css",
@@ -185,6 +193,7 @@ else:
 		"font_awesome_name": "Font Awesome 5 Free",
 		"font_awesome_weight": "900",
 	}
+	html_permalinks_icon = "<i class='fas fa-link'></i>"
 
 html_theme_options.update(
 	pdf="XIST.pdf",
@@ -387,11 +396,14 @@ autodoc_default_options = {
 	"undoc-members": False,
 }
 
+autodoc_typehints = "signature"
+
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = {
 		'__weakref__', '__slots__', # special-members
 		'__doc__', '__module__', '__dict__',  # undoc-members
+		'ul4_type' # our own special attribute
 	}
 	doc = getattr(obj, "__doc__", None)
 	if skip:
@@ -404,5 +416,197 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 		return True
 	return False
 
+
+class HTML5Translator(html5.HTML5Translator):
+	def visit_desc_returns(self, node):
+		self.body.append(' <span class="sig-return">')
+		self.body.append('<span class="sig-return-icon">')
+		self.body.append('&#x2192;')
+		self.body.append('</span> <span class="sig-return-typehint">')
+
+	def depart_desc_returns(self, node):
+		self.body.append('</span></span>')
+
+
+class OutputLexer(lexer.Lexer):
+	"""
+	Simple lexer that highlights everything as output.
+	"""
+	name = 'Text output'
+	aliases = ['output']
+	filenames = ['*.txt']
+	mimetypes = ['text/plain']
+
+	def get_tokens_unprocessed(self, text):
+		yield 0, token.Generic.Output, text
+
+
+class UL4Lexer(lexer.RegexLexer):
+	"""
+	Generic lexer for XML (eXtensible Markup Language).
+	"""
+
+	flags = re.MULTILINE | re.DOTALL | re.UNICODE
+
+	name = 'UL4'
+	aliases = ['ul4']
+	filenames = ['*.ul4']
+
+	tokens = {
+		"root": [
+			(
+				r"(<\?)(\s*)(ul4)(\s*)(\?>)",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword, token.Text, token.Comment.Preproc),
+			),
+			(
+				r"(<\?)(\s*)(ul4)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword, token.Text, token.Token.Name.Function),
+				"ul4",
+			),
+			(
+				r"<\?\s*note\s+.*?\?>",
+				token.Comment,
+			),
+			(
+				r"<\?\s*doc\s+.*?\?>",
+				token.String.Doc,
+			),
+			(
+				r"(<\?\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
+				lexer.bygroups(token.Comment.Preproc, token.Keyword, token.Text, token.Token.Name.Function),
+				"ul4",
+			),
+			(
+				r"(<\?)(\s*)(printx|print|for|if|elif|else|while|code|renderblocks?|render)\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
+				"ul4",
+			),
+			(
+				r"(<\?)(\s*)(end)\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
+				"end",
+			),
+			(
+				r"(<\?)(\s*)(whitespace)\b",
+				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
+				"whitespace",
+			),
+			(r"[^<]+", token.Token.Other),
+			(r"<", token.Token.Other),
+		],
+		"ul4": [
+			(r"\?>", token.Comment.Preproc, "#pop"),
+			("'''", token.String, "string13"),
+			('""""', token.String, "string23"),
+			("'", token.String, "string1"),
+			('"', token.String, "string2"),
+			(r"\d+\.\d*([eE][+-]?\d+)?", token.Number.Float),
+			(r"\.\d+([eE][+-]?\d+)?", token.Number.Float),
+			(r"\d+[eE][+-]?\d+", token.Number.Float),
+			(r"0[bB][01]+", token.Number.Bin),
+			(r"0[oO][0-7]+", token.Number.Oct),
+			(r"0[xX][0-9a-fA-F]+", token.Number.Hex),
+			(r"@\(\d\d\d\d-\d\d-\d\d(T(\d\d:\d\d(:\d\d(\.\d{6})?)?)?)?\)", token.Literal.Date),
+			(r"#[0-9a-fA-F]{8}", token.Literal.Color),
+			(r"#[0-9a-fA-F]{6}", token.Literal.Color),
+			(r"#[0-9a-fA-F]{3,4}", token.Literal.Color),
+			(r"\d+", token.Number.Integer),
+			(r"//|==|=|>=|<=|<<|>>|\+=|-=|\*=|/=|//=|<<=|>>=|&=|\|=|^=|[\[\]{},:*/().~%&|<>^+-]", token.Token.Operator),
+			(lexer.words(("for", "in", "if", "else", "not", "is", "and", "or"), suffix=r"\b"), token.Keyword),
+			(lexer.words(("None", "False", "True"), suffix=r"\b"), token.Keyword.Constant),
+			(r"[a-zA-Z_][a-zA-Z0-9_]*", token.Name),
+			(r"\s+", token.Text),
+		],
+		"end": [
+			(r"\?>", token.Comment.Preproc, "#pop"),
+			(lexer.words(("for", "if", "def", "renderblock", "renderblocks"), suffix=r"\b"), token.Keyword),
+			(r"\s+", token.Text),
+			(r".", token.Error),
+		],
+		"whitespace": [
+			(r"\?>", token.Comment.Preproc, "#pop"),
+			(lexer.words(("keep", "strip", "smart"), suffix=r"\b"), token.Comment.Preproc),
+			(r"\s+", token.Text),
+			(r".", token.Error),
+		],
+		"string": [
+			("\\\\['\"abtnfr]", token.String.Escape),
+			(r"\\x[0-9a-fA-F]{2}", token.String.Escape),
+			(r"\\u[0-9a-fA-F]{4}", token.String.Escape),
+			(r"\\U[0-9a-fA-F]{8}", token.String.Escape),
+			(r".", token.String),
+		],
+		"string13": [
+			(r"'''", token.String, "#pop"),
+			lexer.include("string"),
+		],
+		"string23": [
+			(r'"""', token.String, "#pop"),
+			lexer.include("string"),
+		],
+		"string1": [
+			(r"'", token.String, "#pop"),
+			lexer.include("string"),
+		],
+		"string2": [
+			(r'"', token.String, "#pop"),
+			lexer.include("string"),
+		],
+	}
+
+class HTMLUL4Lexer(lexer.DelegatingLexer):
+	name = 'HTML+UL4'
+	aliases = ['html+ul4']
+	filenames = ['*.htmlul4']
+
+	def __init__(self, **options):
+		super().__init__(web.HtmlLexer, UL4Lexer, **options)
+
+
+class XMLUL4Lexer(lexer.DelegatingLexer):
+	name = 'XML+UL4'
+	aliases = ['xml+ul4']
+	filenames = ['*.xmlul4']
+
+	def __init__(self, **options):
+		super().__init__(web.XmlLexer, UL4Lexer, **options)
+
+
+class CSSUL4Lexer(lexer.DelegatingLexer):
+	name = 'CSS+UL4'
+	aliases = ['css+ul4']
+	filenames = ['*.cssul4']
+
+	def __init__(self, **options):
+		super().__init__(web.CssLexer, UL4Lexer, **options)
+
+
+class JavascriptUL4Lexer(lexer.DelegatingLexer):
+	name = 'Javascript+UL4'
+	aliases = ['js+ul4']
+	filenames = ['*.jsul4']
+
+	def __init__(self, **options):
+		super().__init__(web.JavascriptLexer, UL4Lexer, **options)
+
+
+class PythonUL4Lexer(lexer.DelegatingLexer):
+	name = 'Python+UL4'
+	aliases = ['py+ul4']
+	filenames = ['*.pyul4']
+
+	def __init__(self, **options):
+		super().__init__(python.PythonLexer, UL4Lexer, **options)
+
+
 def setup(app):
+	app.require_sphinx("3.5")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
+	app.set_translator("html", HTML5Translator, True)
+	app.add_lexer("output", OutputLexer)
+	app.add_lexer("ul4", UL4Lexer)
+	app.add_lexer("html+ul4", HTMLUL4Lexer)
+	app.add_lexer("xml+ul4", XMLUL4Lexer)
+	app.add_lexer("css+ul4", CSSUL4Lexer)
+	app.add_lexer("js+ul4", JavascriptUL4Lexer)
+	app.add_lexer("py+ul4", PythonUL4Lexer)

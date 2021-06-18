@@ -39,7 +39,7 @@ Installation
 pip is used for installation so you can install this package
 with the following command:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ pip install ll-xist
 

@@ -87,7 +87,7 @@ Example
 Compare the schemas ``user@db`` and ``user2@db2``, collapsing whitespace and
 using unified diff mode with 5 context lines:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ oradiff user/pwd@db user2/pwd2@db2 -bcollapse -mudiff -n5 -v >db.diff
 """

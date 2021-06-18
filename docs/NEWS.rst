@@ -47,6 +47,101 @@ Changes in HEAD (released ??/??/2021)
 	simply pass the local variable instead.
 
 
+Changes in 5.66 (released 06/15/2021)
+-------------------------------------
+
+*	UL4 now use functions and methods with positional-only parameters, so
+	Python 3.8 is required now.
+
+*	UL4 functions and methods have been updated to use positional-only or
+	keyword-only arguments to match the signature of the corresponding Python
+	function/method.
+
+*	Some functions now use positional-only arguments:
+
+	*	``ll.misc.item(iterable, index, /, default=None)``
+	*	``ll.misc.first(iterable, /, default=None)``
+	*	``ll.misc.last(iterable, /, default=None)``
+	*	``ll.misc.count(iterable, /)``
+	*	``ll.misc.isfirst(iterable, /)``
+	*	``ll.misc.islast(iterable, /)``
+	*	``ll.misc.isfirstlast(iterable, /)``
+	*	``ll.misc.monthdelta.__init__(self, months=0, /)``
+	*	``ll.ul4on.dumps(obj, /, indent)``
+	*	``ll.ul4on.dump(obj, /, stream, indent)``
+	*	``ll.ul4on.load(stream, /, registry=None)``
+	*	``ll.ul4on.loads(dump, /, registry=None)``
+	*	``ll.ul4on.loadclob(clob, /, bufsize=1024*1024, registry=None)``
+
+	as well as the UL4 function ``enumfl(iterable, /)``.
+
+*	Subclasses of :class:`ll.ul4c.AST` have been renamed so that their name
+	matches the name of the corresponding class in the Java implementation.
+	(For example :class:`ll.ul4c.Add` has been renamed to
+	:class:`ll.ul4c.AddAST`).
+
+*	The UL4 function ``type()`` now returns "type objects" instead of simple
+	strings. A type object can be used for checking whether an object is an
+	instance of a certain type (via the newly introduced function
+	``isinstance()``). Some type objects can also be used to create new instances
+	of that type (by calling the type object).
+
+*	The following builtin UL4 functions are now callable type objects: ``bool``,
+	``int``, ``float``, ``str``, ``date``, ``datetime``, ``timedelta``,
+	``monthdelta``, ``list``, ``set``, ``dict`` and ``color.Color``.
+
+*	The following modules have been added to the builtin UL4 objects: ``ul4``
+	contains all UL4 AST classes (``ul4.Template`` is callable to create an
+	UL4 template from source), ``ul4on`` contains the functions ``dumps()``
+	and ``loads()`` and the types ``Encoder`` and ``Decoder``, ``operator``
+	contains the type ``attrgetter`` and ``math`` contains the constants
+	``e``, ``pi`` and ``tau`` as well as the functions ``cos()``, ``sin()``,
+	``tan()``, ``sqrt()`` and ``isclose()``. ``color`` contains the type
+	``Color`` and the functions ``css`` and ``mix``.
+
+*	Naming of attributes that are used by UL4 to implement UL4 functionality
+	has been made more uniform. This affects the following attributes:
+	The methods :meth:`ul4_getattr`, :meth:`ul4_setattr` and :meth:`ul4_hasattr`
+	for implementing object attribute access from UL4; the methods
+	:meth:`ul4_call`, :meth:`ul4_render` and :meth:`ul4_renders` for making
+	objects callable or renderable from UL4; the class attribute ``ul4_attrs``
+	for exposing a number of readonly attributes to UL4 and the attribute
+	``ul4_context`` that is used for marking a callable as needing the context
+	as an argument in the call.
+
+*	Now the ``ul4_attr`` attribute of objects gets honored in the implementation
+	of the ``dir()`` function in UL4.
+
+*	Support for using custom tag delimiters for UL4 templates has been removed,
+	i.e. now the tag delimiters will always be ``<?`` and ``?>``.
+
+*	:class:`ll.ul4on.Decoder` gained a new method
+	:meth:`~ll.ul4on.Decoder.forget_persistent_object`.
+
+*	:class:`ll.sisyphus.Job`\s can now log to Sentry__.
+
+	__ https://sentry.io/
+
+*	:class:`ll.sisyphus.Task`\s constructor and the method
+	:class:`ll.sisyphus.Job.task` now take arbitrary additional keyword arguments.
+	Those wll be passed as additional breadcrumb data when logging to Sentry.
+
+*	:meth:`ll.sisyphus.Job.tasks` now takes an additional argument ``data`` that
+	is responsible for returning additional data for the task.
+
+*	The following methods of :class:`ll.color.Color` have been renamed:
+	:meth:`abslum` to :meth:`abslight` and :meth:`rellum` to :meth:`rellight`.
+
+*	The following methods have been added to :class:`ll.color.Color`:
+	:meth:`~ll.color.Color.hue`, :meth:`~ll.color.Color.light`,
+	:meth:`~ll.color.Color.sat`, :meth:`~ll.color.Color.withhue`,
+	:meth:`~ll.color.Color.withsat`, :meth:`~ll.color.Color.withlum`,
+	:meth:`~ll.color.Color.ablum`, :meth:`~ll.color.Color.rellum` and
+	:meth:`~ll.color.Color.invert`. They have also been made available to UL4.
+	The color method :meth:`~ll.color.Color.combine` and the functions
+	:func:`ll.color.css` and  :func:`ll.color.mix` are now also available to UL4.
+
+
 Changes in 5.65 (released 01/13/2021)
 -------------------------------------
 
@@ -2418,7 +2513,9 @@ Changes in 3.20 (released 05/05/2011)
 -------------------------------------
 
 *	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
-	``SYSOPER``) in ``oracle`` URLs like this::
+	``SYSOPER``) in ``oracle`` URLs like this:
+
+	.. sourcecode:: console
 
 		$ uls oracle://sys:pwd:sysdba@dsn/
 

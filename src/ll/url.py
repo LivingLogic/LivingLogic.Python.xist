@@ -33,6 +33,10 @@ These three levels of functionality are implemented in three classes:
 	:class:`Resource` class and its subclasses. Creating a resource is done
 	by calling the :meth:`open` method on a :class:`Connection` or a
 	:class:`URL`.
+
+
+Module documentation
+--------------------
 """
 
 

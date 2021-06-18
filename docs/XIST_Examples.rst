@@ -55,7 +55,7 @@ generate the same HTML:
 						+xsc.Text("This example page has a link to the ")
 						with html.a():
 							with xsc.addattr("href"):
-								+xsc.Text(""http://www.python.org/"")
+								+xsc.Text("http://www.python.org/")
 							+xsc.Text("Python home page")
 						+xsc.Text(".")
 
@@ -346,7 +346,7 @@ according to the nesting depth of a ``<section>`` element.
 
 The output of this script will be:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<h1>Python Tutorial</h1>
 	<h2>Using the Python Interpreter</h2>
@@ -399,7 +399,7 @@ plain text:
 
 This will output:
 
-.. sourcecode:: text
+.. sourcecode:: output
 
 	The Zen of Python, by Tim Peters
 	================================

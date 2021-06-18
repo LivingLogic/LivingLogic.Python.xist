@@ -325,11 +325,11 @@ class ConverterState:
 
 class Converter:
 	"""
-	An instance of this class is passed around in calls to the :meth:`convert`
-	method. A :class:`Converter` object can be used when some element needs to
-	keep state across a nested :meth:`convert` call. A typical example are nested
-	chapter/subchapter elements with automatic numbering. For an example see the
-	element :class:`ll.xist.ns.doc.section`.
+	An instance of this class is passed around in calls to the
+	:meth:`~Node.convert` method. A :class:`!Converter` object can be used when
+	some element needs to keep state across a nested :meth:`~Node.convert` call.
+	A typical example are nested chapter/subchapter elements with automatic
+	numbering. For an example see the element :class:`ll.xist.ns.doc.section`.
 	"""
 
 	def __init__(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, makeproject=None):

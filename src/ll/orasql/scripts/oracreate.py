@@ -89,13 +89,13 @@ Examples
 
 Print the content of the database schema ``user@db``:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ oracreate user/pwd@db >db.sql
 
 Copy the database schema ``user@db`` to ``user2@db2``:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ oracreate user/pwd@db -x user2/pwd2@db2 -v
 """

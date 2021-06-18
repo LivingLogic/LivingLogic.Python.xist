@@ -42,15 +42,15 @@ This package contains the following scripts:
 
 These scripts can either be called via Pythons :option:`-m` option:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	python -mll.orasql.scripts.oracreate --help
+	$ python -mll.orasql.scripts.oracreate --help
 
 or as a simple script installed in the search path:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	oracreate --help
+	$ oracreate --help
 """
 
 

@@ -287,7 +287,7 @@ def java_runsource(source):
 		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException, org.antlr.runtime.RecognitionException, ClassNotFoundException
 		{{
 			// Force the JVM to register the UL4 classes for UL4ON
-			Class.forName("com.livinglogic.ul4.InterpretedTemplate");
+			Class.forName("com.livinglogic.ul4.Template");
 			{source}
 		}}
 	}}
@@ -381,7 +381,12 @@ def test_bool(t):
 def test_int(t):
 	assert 42 == t(42)
 	assert -42 == t(-42)
-
+	assert 2147483647 == t(2147483647)
+	assert -2147483648 == t(-2147483648)
+	if t not in (transport_js_v8, transport_js_v8_pretty, transport_js_node, transport_js_node_pretty):
+		assert 9223372036854775807 == t(9223372036854775807)
+		assert -9223372036854775808 == t(-9223372036854775808)
+		assert 10**30 == t(10**30)
 
 def test_float(t):
 	assert -42.5 == t(-42.5)
@@ -510,13 +515,11 @@ def test_nested(t):
 
 
 def test_template_from_source():
-	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'<?print x + y?>' s'x, y=23' s'keep' n n )")
+	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'<?print x + y?>' s'x, y=23' s'keep' )")
 
 	assert t.name == "test"
 	assert t.source == "<?ul4 test(x, y=23)?><?print x + y?>"
 	assert t.whitespace == "keep"
-	assert t.startdelim == "<?"
-	assert t.enddelim == "?>"
 	assert t.renders(17) == "40"
 
 

@@ -18,7 +18,7 @@ LivingLogic modules and packages.
 import sys, os, os.path, platform, types, datetime, collections, argparse, functools, signal, contextlib, subprocess, enum
 from collections import abc
 
-from ll import color
+from ll import ul4c, color
 
 
 __docformat__ = "reStructuredText"
@@ -90,7 +90,7 @@ except ImportError:
 			return string
 
 
-def item(iterable, index, default=None):
+def item(iterable, index, /, default=None):
 	"""
 	Returns the ``index``'th item from the iterable. ``index`` may be
 	negative to count from the end. E.g. 0 returns the first item produced by
@@ -129,7 +129,7 @@ def item(iterable, index, default=None):
 	return iterable
 
 
-def first(iterable, default=None):
+def first(iterable, /, default=None):
 	"""
 	Return the first item from the iterable. If the iterator doesn't
 	produce any items ``default`` will be returned.
@@ -140,7 +140,7 @@ def first(iterable, default=None):
 	return default
 
 
-def last(iterable, default=None):
+def last(iterable, /, default=None):
 	"""
 	Return the last item from the iterable. If the iterator doesn't produce any
 	items ``default`` will be returned.
@@ -152,7 +152,7 @@ def last(iterable, default=None):
 	return item
 
 
-def count(iterable):
+def count(iterable, /):
 	"""
 	Count the number of items produced by the iterable. Calling this function
 	will exhaust the iterator.
@@ -164,7 +164,7 @@ def count(iterable):
 	return count
 
 
-def isfirst(iterable):
+def isfirst(iterable, /):
 	"""
 	Iterate through items of the iterable and give information about whether the
 	item is the first in the iterable::
@@ -179,7 +179,7 @@ def isfirst(iterable):
 		first = False
 
 
-def islast(iterable):
+def islast(iterable, /):
 	"""
 	Iterate through items of the iterable and give information about whether the
 	item is the last in the iterable::
@@ -204,7 +204,7 @@ def islast(iterable):
 			yield (False, lastitem)
 
 
-def isfirstlast(iterable):
+def isfirstlast(iterable, /):
 	"""
 	Iterate through items of the iterable and give information about whether the
 	item is the first and/or last in the iterable::
@@ -735,7 +735,7 @@ class SysInfo:
 	time.
 	"""
 
-	ul4attrs = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
+	ul4_attrs = {"host_name", "host_fqdn", "host_ip", "host_sysname", "host_nodename", "host_release", "host_version", "host_machine", "user_name", "user_uid", "user_gid", "user_gecos", "user_dir", "user_shell", "python_executable", "python_version", "pid", "script_name", "short_script_name", "script_url"}
 
 	def __init__(self):
 		# Use ``object`` as a marker for "not initialized"
@@ -917,12 +917,12 @@ class SysInfo:
 		return self._script_url
 
 	def __getitem__(self, key):
-		if key in self.ul4attrs:
+		if key in self.ul4_attrs:
 			return getattr(self, key)
 		raise KeyError(key)
 
 	def __iter__(self):
-		return iter(self.ul4attrs)
+		return iter(self.ul4_attrs)
 
 
 # Single instance
@@ -942,10 +942,12 @@ class monthdelta:
 		datetime.date(2000, 2, 29)
 	"""
 
-	__slots__ = ("_months",)
-	ul4attrs = {"months"}
+	ul4_type = ul4c.InstantiableType(None, "monthdelta", "A number of months")
+	ul4_attrs = {"months"}
 
-	def __init__(self, months=0):
+	__slots__ = ("_months",)
+
+	def __init__(self, months=0, /):
 		self._months = months
 
 	def __bool__(self):

@@ -66,7 +66,7 @@ Example
 Search for ``spam`` in all tables in the schema ``user@db``. The search is case
 insensitive and ``CLOB``\s will be printed:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ orafind user/pwd@db spam -i -r
 """

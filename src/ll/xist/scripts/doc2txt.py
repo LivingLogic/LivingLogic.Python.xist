@@ -36,7 +36,7 @@ Example
 The following generates :file:`spam.txt` from :file:`spam.xml` formatted to 80
 columns:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ doc2txt <spam.xml >spam.txt -w80
 """

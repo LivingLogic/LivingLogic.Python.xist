@@ -91,7 +91,7 @@ Example
 Grant all privileges that ``alice`` has in the schema ``user@db`` to ``bob`` in
 ``user2@db2``:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ oragrant user/pwd@db -x user2/pwd2@db2 -m '{"alice": "bob"}' -v
 """

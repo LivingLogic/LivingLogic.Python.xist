@@ -93,20 +93,20 @@ Examples
 
 Copy one file to another:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ ucp foo.txt bar.txt
 
 Copy a file into an existing directory:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ ucp foo.txt dir/
 
 Copy multiple files into a new or existing directory (and give a progress
 report):
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
 	$ ucp foo.txt bar.txt baz.txt dir/ -v
 	ucp: foo.txt -> dir/foo.txt (1,114 bytes)
@@ -115,15 +115,15 @@ report):
 
 Recursively copy the schema objects in an Oracle database to a local directory:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	ucp oracle://user:pwd@oracle.example.org/ db/ -r
+	$ ucp oracle://user:pwd@oracle.example.org/ db/ -r
 
 Recursively copy the schema objects in an Oracle database to a remote directory:
 
-.. sourcecode:: bash
+.. sourcecode:: console
 
-	ucp oracle://user:pwd@oracle.example.org/ ssh://user@www.example.org/~/db/ -r
+	$ ucp oracle://user:pwd@oracle.example.org/ ssh://user@www.example.org/~/db/ -r
 """
 
 

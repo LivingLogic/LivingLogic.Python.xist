@@ -167,7 +167,7 @@ instead of a :class:`bytes` object):
 
 This will output:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<?code x = 42?>
 
@@ -188,7 +188,7 @@ Finally entity references can be created with the function
 
 This will output:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	&html;
 
@@ -796,7 +796,12 @@ between namespace names and namespace prefixes:
 
 	s = b'<cool><python/></cool>'
 
-	node = parse.tree(s, parse.Expat(), parse.NS("http://xmlns.example.org/foo"), pool)
+	node = parse.tree(
+		s,
+		parse.Expat(),
+		parse.NS("http://xmlns.example.org/foo"),
+		pool
+	)
 
 If you have many elements, registering them in a pool becomes cumbersome.
 In this case you can put your element classes into a module and then

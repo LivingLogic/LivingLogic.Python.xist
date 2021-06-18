@@ -155,7 +155,9 @@ the class with the UL4ON serialization machinery::
 	jd2 = ul4on.loads(output)
 	print("Loaded:", jd2)
 
-This script outputs::
+This script outputs:
+
+.. sourcecode:: console
 
 	Dump: O S'com.example.person' S'John' S'Doe' )
 	Loaded: <Person firstname='John' lastname='Doe'>
@@ -254,7 +256,9 @@ For our example class it could be used like this::
 	j = ul4on.loads(output, {"com.example.person": Person})
 	print("Loaded:", j)
 
-This outputs::
+This outputs:
+
+.. sourcecode:: console
 
 	Loaded: <Person firstname='John' lastname=None>
 
@@ -274,7 +278,9 @@ An example for encoding::
 	print(encoder.dumps(obj))
 	print(encoder.dumps(obj))
 
-This prints::
+This prints:
+
+.. sourcecode:: console
 
 	S'spam'
 	^0
@@ -288,7 +294,9 @@ An example for decoding::
 	print(decoder.loads("S'spam'"))
 	print(decoder.loads("^0"))
 
-This prints::
+This prints:
+
+.. sourcecode:: console
 
 	spam
 	spam
@@ -323,7 +331,7 @@ appropriate Javascript objects. For example::
 
 This outputs:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<ul data-ul4on='5 L ^0 ^1 ^2 ^3 ]'>
 	<li data-ul4on='1 S&#39;gurk&#39;'>GURK</li>
@@ -346,7 +354,6 @@ persistent object (even across multiple unrelated UL4ON dumps).
 
 An :class:`Encoder` will dump those objects differently than other objects
 without an ``ul4onid`` attribute.
-
 
 A :class:`Decoder` will remember all persistent objects it has loaded
 (under their ``ul4onname`` and ``ul4onid``). If the decoder encounters the
@@ -376,8 +383,8 @@ those created by previous dumps.
 	information about back references.
 
 
-Module content
---------------
+Module documentation
+--------------------
 '''
 
 from typing import *
@@ -411,14 +418,18 @@ def register(name : str):
 	return registration
 
 
+from ll import ul4c
+
+
 class Encoder:
 	"""
-	A :class:`Encoder` is used for serializing an object into an UL4ON dump.
+	An :class:`Encoder` is used for serializing an object into an UL4ON dump.
 
 	It manages the internal state required for handling backreferences and other
 	stuff.
 	"""
-	ul4attrs = {"dumps"}
+	ul4_type = ul4c.InstantiableType("ul4on", "Encoder", "An Encoder is used for serializing an object into an UL4ON dump.")
+	ul4_attrs = {"dumps"}
 
 	def __init__(self, indent:str=None):
 		"""
@@ -587,7 +598,8 @@ class Decoder:
 	It manages the internal state required for handling backreferences,
 	persistent objects and other stuff.
 	"""
-	ul4attrs = {"loads", "reset"}
+	ul4_type = ul4c.InstantiableType("ul4on", "Decoder", "A Decoder is used for deserializing an UL4ON dump.")
+	ul4_attrs = {"loads", "reset"}
 
 	def __init__(self, registry:Optional[Dict[str, Callable[..., Any]]]=None):
 		"""
@@ -900,6 +912,15 @@ class Decoder:
 		"""
 		self._persistent_objects[(object.ul4onname, object.ul4onid)] = object
 
+	def forget_persistent_object(self, object) -> None:
+		"""
+		Remove a persistent object from the cache of persistent objects.
+		"""
+		try:
+			del self._persistent_objects[(object.ul4onname, object.ul4onid)]
+		except KeyError:
+			pass
+
 	def persistent_object(self, name:str, id:str) -> Any:
 		"""
 		Return the persistent object with the type ``name`` and the id ``id``,
@@ -962,7 +983,7 @@ class Decoder:
 		self._objects[oldpos] = value
 
 
-def dumps(obj:Any, indent:Optional[str]=None) -> str:
+def dumps(obj:Any, /, indent:Optional[str]=None) -> str:
 	"""
 	Serialize ``obj`` as an UL4ON formatted string.
 	"""
@@ -971,7 +992,7 @@ def dumps(obj:Any, indent:Optional[str]=None) -> str:
 	return stream.getvalue()
 
 
-def dump(obj:Any, stream:TextIO, indent:Optional[str]=None) -> None:
+def dump(obj:Any, /, stream:TextIO, indent:Optional[str]=None) -> None:
 	"""
 	Serialize ``obj`` as an UL4ON formatted stream to ``stream``.
 
@@ -980,7 +1001,7 @@ def dump(obj:Any, stream:TextIO, indent:Optional[str]=None) -> None:
 	Encoder(indent=indent).dump(obj, stream)
 
 
-def load(stream:TextIO, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+def load(stream:TextIO, /, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``stream`` (which must be file-like object with a :meth:`read`
 	method containing an UL4ON formatted object) to a Python object.
@@ -990,7 +1011,7 @@ def load(stream:TextIO, registry:Optional[Dict[str, Callable[..., Any]]]=None) -
 	return Decoder(registry).load(stream)
 
 
-def loads(dump:str, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+def loads(dump:str, /, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``dump`` (which must be a string containing an UL4ON
 	formatted object) to a Python object.
@@ -1000,7 +1021,7 @@ def loads(dump:str, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> An
 	return Decoder(registry).loads(dump)
 
 
-def loadclob(clob, bufsize:int=1024*1024, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
+def loadclob(clob, /, bufsize:int=1024*1024, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
 	Deserialize ``clob`` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.
@@ -1032,6 +1053,3 @@ class StreamBuffer:
 			result = self.buffer + newdata[:needsize]
 			self.buffer = newdata[needsize:]
 			return result
-
-
-ul4attrs = {"loads", "dumps", "Encoder", "Decoder"}

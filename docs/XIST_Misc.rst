@@ -71,12 +71,12 @@ new version of the node, with additional white space between the elements:
 	from ll.xist.ns import html
 	node = html.html(
 		html.head(
-			html.title(u"foo"),
+			html.title("foo"),
 		),
 		html.body(
 			html.div(
-				html.h1(u"The ", html.em(u"foo"), u" page!"),
-				html.p(u"Welcome to the ", html.em(u"foo"), u" page."),
+				html.h1("The ", html.em("foo"), " page!"),
+				html.p("Welcome to the ", html.em("foo"), " page."),
 			),
 		),
 	)
@@ -85,7 +85,7 @@ new version of the node, with additional white space between the elements:
 
 This will print:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<html>
 		<head>
@@ -146,6 +146,6 @@ the processing instruction. For example, consider the following XML file:
 Parsing this file and calling :meth:`~ll.xist.xsc.Node.convert` results in the
 following:
 
-.. sourcecode:: html
+.. sourcecode:: xml
 
 	<b>5050</b>

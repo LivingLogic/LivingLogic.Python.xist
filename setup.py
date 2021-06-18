@@ -104,8 +104,8 @@ Operating System :: OS Independent
 Programming Language :: Python
 Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.6
-Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
+Programming Language :: Python :: 3.9
 Topic :: Software Development :: Libraries :: Python Modules
 
 # ansistyle
@@ -243,7 +243,7 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.65",
+	version="5.66",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -307,7 +307,7 @@ args = dict(
 		"scripts/oracycles.py",
 	],
 	install_requires=[
-		"cssutils == 1.0.2",
+		"cssutils == 2.3.0",
 	],
 	extras_require={
 		"oracle": ["cx_Oracle >= 8.0"],

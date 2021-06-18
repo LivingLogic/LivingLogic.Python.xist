@@ -8,6 +8,68 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.66
+=========================
+
+Changes to :mod:`ll.color`
+--------------------------
+
+*	The color method :meth:`abslum` has been renamed to :meth:`abslight` and
+	the method :meth:`rellum` has been renamed to :meth:`rellight`.
+
+Changes to UL4
+--------------
+
+*	UL4 functions and methods have been updated to use positional-only or
+	keyword-only arguments to match the signature of the corresponding Python
+	function/method.
+
+*	Subclasses of :class:`ll.ul4c.AST` have been renamed so that their name
+	matches the name of the corresponding class in the Java implementation.
+	(for example :class:`ll.ul4c.Add` has been renamed to
+	:class:`ll.ul4c.AddAST`)
+
+*	The UL4 function ``type()`` now returns type objects instead of simple
+	strings. To get the name of the type use the type objects ``__name__``
+	attribute, i.e. replace ``type('foo')`` with ``type('foo').__name__``.
+
+*	Naming of attributes that are used to implement UL4 functionality has been
+	made more uniform. This affects the following attributes: The methods
+	:meth:`ul4_getattr`, :meth:`ul4_setattr` and :meth:`ul4_hasattr` for
+	implementing object attribute access from UL4; the methods :meth:`ul4_call`,
+	:meth:`ul4_render` and , :meth:`ul4_renders` for making objects callable or
+	renderable from UL4; the class attribute ``ul4_attrs`` for exposing a number
+	of readonly attributes to UL4; the attributes ``ul4_context`` that is used
+	for marking a callable as needing the context as an argument in the call.
+
+*	Support for using custom tag delimiters for UL4 templates tag has been
+	removed, i.e. now the tag delimiters will always be ``<?`` and ``?>``.
+
+*	The color method :meth:`abslum` has been renamed to :meth:`abslight` and
+	the method :meth:`rellum` has been renamed to :meth:`rellight`.
+
+Changes to ``ll.misc`` and ``ll.ul4on``
+---------------------------------------
+
+*	Some function now use positional-only arguments:
+
+	*	``ll.misc.item(iterable, index, /, default=None)``
+	*	``ll.misc.first(iterable, /, default=None)``
+	*	``ll.misc.last(iterable, /, default=None)``
+	*	``ll.misc.count(iterable, /)``
+	*	``ll.misc.isfirst(iterable, /)``
+	*	``ll.misc.islast(iterable, /)``
+	*	``ll.misc.isfirstlast(iterable, /)``
+	*	``ll.misc.monthdelta.__init__(self, months=0, /)``
+	*	``ll.ul4on.dumps(obj, /, indent)``
+	*	``ll.ul4on.dump(obj, /, stream, indent)``
+	*	``ll.ul4on.load(stream, /, registry=None)``
+	*	``ll.ul4on.loads(dump, /, registry=None)``
+	*	``ll.ul4on.loadclob(clob, /, bufsize=1024*1024, registry=None)``
+
+	Update your calls accordingly.
+
+
 Migrating to version 5.58
 =========================
 
