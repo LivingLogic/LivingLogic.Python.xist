@@ -1678,6 +1678,7 @@ class sql(_SQLCommand):
 		)
 
 
+@register
 class literalsql(_SQLCommand):
 	"""
 	A :class:`!literalsql` is used for SQL that appears literally in the
