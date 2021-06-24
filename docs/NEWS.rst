@@ -8,8 +8,8 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 06/??/2021)
--------------------------------------
+Changes in 5.66.1 (released 06/24/2021)
+---------------------------------------
 
 *	When a sisyphus job logs to Sentry, flush messages after logging them
 	to make sure that they arrive even in forking mode.
