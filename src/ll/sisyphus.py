@@ -2548,6 +2548,7 @@ class SentryLogger(Logger):
 						if not isinstance(text, str):
 							text = pprint.pformat(text)
 						sentry.capture_message(text, level="warning")
+					sentry.Hub.current.flush()
 
 	def close(self, status:Status) -> bool:
 		return True
