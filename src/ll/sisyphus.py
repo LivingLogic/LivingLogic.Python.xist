@@ -617,6 +617,10 @@ class Job:
 
 		Release reported to Sentry.
 
+	.. option:: --sentry_debug <flag>
+
+		Activates/deactivates Sentry debug mode.
+
 	.. option:: -m <seconds>, --maxtime <seconds>
 
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -756,6 +760,7 @@ class Job:
 	sentry_dsn = None
 	sentry_release = None
 	sentry_environment = None
+	sentry_debug = False
 
 	identifier = None
 
@@ -1255,6 +1260,7 @@ class Job:
 		p.add_argument(      "--sentry_dsn", dest="sentry_dsn", metavar="DSN", help="Sentry DSN for logging to a Sentry server. (default: %(default)s)", default=self.sentry_dsn)
 		p.add_argument(      "--sentry_environment", dest="sentry_environment", metavar="ENVIRONMENT", help="Environment reported to Sentry. (default: %(default)s)", default=self.sentry_environment)
 		p.add_argument(      "--sentry_release", dest="sentry_release", metavar="RELEASE", help="Release reported to Sentry. (default: %(default)s)", default=self.sentry_release)
+		p.add_argument(      "--sentry_debug", dest="sentry_debug", help="Activate Sentry debug mode. (default: %(default)s)", action=misc.FlagAction, default=self.sentry_debug)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=argseconds, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -1299,6 +1305,9 @@ class Job:
 		self.mattermost_channel = ns.mattermost_channel
 		self.mattermost_token = ns.mattermost_token
 		self.sentry_dsn = ns.sentry_dsn
+		self.sentry_environment = ns.sentry_environment
+		self.sentry_release = ns.sentry_release
+		self.sentry_debug = ns.sentry_debug
 		self.identifier = ns.identifier
 		self.maxtime = ns.maxtime
 		self.fork = ns.fork
@@ -1559,6 +1568,7 @@ class Job:
 				traces_sample_rate=1.0,
 				release=self.sentry_release,
 				environment=self.sentry_environment,
+				debug=self.sentry_debug,
 			)
 			if self.identifier:
 				app_name = f"{self.projectname} {self.jobname} ({self.identifier})"
