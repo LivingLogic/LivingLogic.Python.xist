@@ -621,6 +621,9 @@ class Job:
 
 		Activates/deactivates Sentry debug mode.
 
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
 	.. option:: -m <seconds>, --maxtime <seconds>
 
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -629,34 +632,49 @@ class Job:
 		(The instance attribute will always be converted to the type
 		:class:`datetime.timedelta`)
 
-	.. option:: --fork
+	.. option:: --fork <flag>
 
 		Forks the process and does the work in the child process. The parent
 		process is responsible for monitoring the maximum runtime (this is the
 		default). In non-forking mode the single process does both the work and
 		the runtime monitoring.
 
-	.. option:: --noisykills
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+	.. option:: --noisykills <flag>
 
 		Should a message be printed/a failure email be sent when the maximum
 		runtime is exceeded?
 
-	.. option:: --exit_on_error
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+	.. option:: --exit_on_error <flag>
 
 		End job execution even in repeat mode when an exception is thrown?
 
-	.. option:: -n, --notify
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+	.. option:: -n <flag>, --notify <flag>
 
 		Should a notification be issued to the OS X Notification center?
 		(done via terminal-notifier__).
 
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
 		__ https://github.com/alloy/terminal-notifier
 
-	.. option:: -r, --repeat
+	.. option:: -r <flag>, --repeat <flag>
 
 		Should job execution be repeated indefinitely?
 
 		(This means that the job basically functions as its own cron daemon).
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
 
 	.. option:: --nextrun <seconds>
 
@@ -667,18 +685,24 @@ class Job:
 		to implement this as a method). Also :class:`datetime.datetime` is
 		supported and specifies the start date for the next job run.
 
-	.. option:: --healthcheck
+	.. option:: --healthcheck <flag>
 
 		Instead of normally executing the job, run a health check instead.
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
 
 	.. option:: --maxhealthcheckage <seconds>
 
 		If the last uneventful or successful job run is older then this number
 		of seconds, consider the job to be unhealthy.
 
-	.. option:: -f, --log2file
+	.. option:: -f <flag>, --log2file <flag>
 
 		Should a logfile be written at all?
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
 
 	.. option:: --formatlogline <format>
 
@@ -723,12 +747,16 @@ class Job:
 		This options limits the number of exceptions and errors messages that
 		will get attached to the failure email. The default is 10.
 
-	.. option:: --proctitle
+	.. option:: --proctitle <flag>
 
 		When this options is specified, the process title will be modified during
 		execution of the job, so that the :command:`ps` command shows what the
 		processes are doing. The default is ``True``. (This
 		requires :mod:`setproctitle`.)
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
 
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
