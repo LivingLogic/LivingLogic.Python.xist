@@ -11,8 +11,8 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released 06/??/2021)
 -------------------------------------
 
-*	When a sisyphus job olgs to sentry, flush messages after logging then
-	to make sure that thery arrive, even in forking mode.
+*	When a sisyphus job logs to Sentry, flush messages after logging them
+	to make sure that they arrive even in forking mode.
 
 
 Changes in 5.66 (released 06/15/2021)
