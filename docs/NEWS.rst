@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 06/?>/2021)
+-------------------------------------
+
+*	Added the options ``--sentry_environment`` and ``--sentry_release`` to
+	Sisyphus jobs.
+
+
 Changes in 5.66.1 (released 06/24/2021)
 ---------------------------------------
 

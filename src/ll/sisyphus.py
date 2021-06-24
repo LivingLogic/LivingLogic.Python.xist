@@ -609,6 +609,14 @@ class Job:
 
 			https://examplePublicKey@o0.ingest.sentry.io/0
 
+	.. option:: --sentry_environment <environment>
+
+		Environment reported to Sentry.
+
+	.. option:: --sentry_release <release>
+
+		Release reported to Sentry.
+
 	.. option:: -m <seconds>, --maxtime <seconds>
 
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -746,6 +754,8 @@ class Job:
 	mattermost_token = None
 
 	sentry_dsn = None
+	sentry_release = None
+	sentry_environment = None
 
 	identifier = None
 
@@ -1243,6 +1253,8 @@ class Job:
 		p.add_argument(      "--mattermost_channel", dest="mattermost_channel", metavar="ID", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_channel)
 		p.add_argument(      "--mattermost_token", dest="mattermost_token", metavar="AUTH", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_token)
 		p.add_argument(      "--sentry_dsn", dest="sentry_dsn", metavar="DSN", help="Sentry DSN for logging to a Sentry server. (default: %(default)s)", default=self.sentry_dsn)
+		p.add_argument(      "--sentry_environment", dest="sentry_environment", metavar="ENVIRONMENT", help="Environment reported to Sentry. (default: %(default)s)", default=self.sentry_environment)
+		p.add_argument(      "--sentry_release", dest="sentry_release", metavar="RELEASE", help="Release reported to Sentry. (default: %(default)s)", default=self.sentry_release)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=argseconds, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -1545,7 +1557,8 @@ class Job:
 			self.sentry_sdk.init(
 				self.sentry_dsn,
 				traces_sample_rate=1.0,
-				release="develop",
+				release=self.sentry_release,
+				environment=self.sentry_environment,
 			)
 			if self.identifier:
 				app_name = f"{self.projectname} {self.jobname} ({self.identifier})"
@@ -2548,7 +2561,7 @@ class SentryLogger(Logger):
 						if not isinstance(text, str):
 							text = pprint.pformat(text)
 						sentry.capture_message(text, level="warning")
-					sentry.Hub.current.flush()
+					sentry.flush()
 
 	def close(self, status:Status) -> bool:
 		return True
