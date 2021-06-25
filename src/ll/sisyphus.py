@@ -1652,9 +1652,9 @@ class Job:
 	def _finished_successful(self, result: OptStr) -> Status:
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Finishing")
-		self._write_healthfile(None)
 		# log the result
 		if self.process is not Process.PARENT:
+			self._write_healthfile(None)
 			if self._exceptioncount:
 				self.log.sisyphus.result.errors(result)
 			else:
