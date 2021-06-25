@@ -8,6 +8,15 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.67
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	The method :meth:`ll.orasql.Connection.getobject` has been renamed
+	to :meth:`ll.orasql.Connection.object_named`.
+
 Migrating to version 5.66
 =========================
 

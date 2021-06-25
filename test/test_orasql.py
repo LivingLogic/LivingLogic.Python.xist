@@ -353,7 +353,7 @@ def test_scripts_orareindex():
 def test_callprocedure():
 	if dbname:
 		db = orasql.connect(dbname)
-		proc = db.getobject("orasql_testprocedure")
+		proc = db.object_named("orasql_testprocedure")
 		result = proc(db.cursor(readlobs=True), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
@@ -369,7 +369,7 @@ def test_callprocedure():
 def test_callfunction():
 	if dbname:
 		db = orasql.connect(dbname)
-		func = db.getobject("orasql_testfunction")
+		func = db.object_named("orasql_testfunction")
 		(result, args) = func(db.cursor(readlobs=True), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result == "ABCÄÖÜ"
 		assert args.p_in == "abcäöü"
@@ -387,7 +387,7 @@ def test_callfunction():
 def test_clob_fromprocedure():
 	if dbname:
 		db = orasql.connect(dbname)
-		proc = db.getobject("orasql_testprocedure")
+		proc = db.object_named("orasql_testprocedure")
 
 		def check(sizearg):
 			result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
