@@ -17,6 +17,10 @@ Changes in HEAD (released 06/?>/2021)
 *	Sisyphus jobs now warning when the modulde :mod:`sentry_sdk` can not be
 	imported.
 
+*	For Sisyphus jobs it's now possible to log to the
+	:class:`!ll.sisyphus.EMailLogger`, :class:`!ll.sisyphus.MattermostLogger`
+	and :class:`!ll.sisyphus.SentryLogger` by using the tag ``external``.
+
 
 Changes in 5.66.1 (released 06/24/2021)
 ---------------------------------------

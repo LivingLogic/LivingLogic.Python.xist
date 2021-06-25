@@ -1671,7 +1671,7 @@ class Job:
 			strexc = misc.format_exception(exc)
 			self._write_healthfile(f"Failed with {strexc}")
 			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
-			self.log.sisyphus.email.mattermost.sentry(exc)
+			self.log.sisyphus.extenal(exc)
 			self.log.sisyphus.result.fail(f"failed with {strexc}")
 		return Status.FAILED
 
@@ -2348,7 +2348,7 @@ class EmailLogger(Logger):
 		return "<email>"
 
 	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
-		if "email" in tags:
+		if "email" in tags or "external" in tags:
 			if self.file is None:
 				filename = self.job.emailfilename()
 				try:
@@ -2505,7 +2505,7 @@ class MattermostLogger(Logger):
 		return "<mattermost>"
 
 	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
-		if "mattermost" in tags:
+		if "mattermost" in tags or "external" in tags:
 			import requests
 			if isinstance(text, BaseException):
 				message = _formattraceback(text)
@@ -2572,7 +2572,7 @@ class SentryLogger(Logger):
 		return v or "?"
 
 	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
-		if "sentry" in tags:
+		if "sentry" in tags or "external" in tags:
 			sentry = self.job.sentry_sdk
 			if sentry is not None:
 				with sentry.push_scope() as scope:
