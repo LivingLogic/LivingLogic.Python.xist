@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 06/??/2021)
+Changes in 5.67 (released 06/25/2021)
 -------------------------------------
 
 *	Added the options ``--sentry_environment``, ``--sentry_release`` and
@@ -27,8 +27,8 @@ Changes in HEAD (released 06/??/2021)
 *	The method :meth:`ll.orasql.Connection.getobject` has been renamed
 	to :meth:`ll.orasql.Connection.object_named`.
 
-*	The a method method :meth:`ll.orasql.Connection.objects_name` has been
-	been added that returns all objects with the specified name.
+*	The method method :meth:`ll.orasql.Connection.objects_name` has been
+	added that returns all database objects with the specified name.
 
 
 Changes in 5.66.1 (released 06/24/2021)
