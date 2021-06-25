@@ -14,6 +14,9 @@ Changes in HEAD (released 06/?>/2021)
 *	Added the options ``--sentry_environment``, ``--sentry_release`` and
 	``--sentry_debug`` to Sisyphus jobs.
 
+*	Sisyphus jobs now warning when the modulde :mod:`sentry_sdk` can not be
+	imported.
+
 
 Changes in 5.66.1 (released 06/24/2021)
 ---------------------------------------

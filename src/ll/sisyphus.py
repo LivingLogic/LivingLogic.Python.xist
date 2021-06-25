@@ -1589,6 +1589,7 @@ class Job:
 			try:
 				import sentry_sdk
 			except ImportError:
+				self.log.sisyphus.delay.warning("Can't log to Sentry (module sentry_sdk not available)")
 				return
 			self.sentry_sdk = sentry_sdk
 			self.sentry_sdk.init(
