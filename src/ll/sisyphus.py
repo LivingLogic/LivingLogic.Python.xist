@@ -1585,7 +1585,7 @@ class Job:
 
 	def _init_sentry(self) -> None:
 		if self.sentry_dsn is not None:
-			self.log.sisyphus.init(f"Setting up sentry")
+			self.log.sisyphus.delay.init(f"Setting up sentry")
 			try:
 				import sentry_sdk
 			except ImportError:

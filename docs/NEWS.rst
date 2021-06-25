@@ -21,6 +21,9 @@ Changes in HEAD (released 06/?>/2021)
 	:class:`!ll.sisyphus.EMailLogger`, :class:`!ll.sisyphus.MattermostLogger`
 	and :class:`!ll.sisyphus.SentryLogger` by using the tag ``external``.
 
+*	The Sispyhus log message for setting up the Sentry logging is now a
+	delayed message.
+
 
 Changes in 5.66.1 (released 06/24/2021)
 ---------------------------------------
