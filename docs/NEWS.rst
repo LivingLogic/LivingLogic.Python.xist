@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.67.1 (released 06/28/2021)
+---------------------------------------
+
+*	Fixed a typo in the tag `external` when logging exceptions in Sisyphus jobs.
+
+
 Changes in 5.67 (released 06/25/2021)
 -------------------------------------
 
