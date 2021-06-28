@@ -18,8 +18,8 @@ Changes in 5.67 (released 06/25/2021)
 	imported.
 
 *	For Sisyphus jobs it's now possible to log to the
-	:class:`!ll.sisyphus.EMailLogger`, :class:`!ll.sisyphus.MattermostLogger`
-	and :class:`!ll.sisyphus.SentryLogger` by using the tag ``external``.
+	:class:`ll.sisyphus.EMailLogger`, :class:`ll.sisyphus.MattermostLogger`
+	and :class:`ll.sisyphus.SentryLogger` by using the tag ``external``.
 
 *	The Sispyhus log message for setting up the Sentry logging is now a
 	delayed message.
