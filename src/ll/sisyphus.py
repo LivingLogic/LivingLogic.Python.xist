@@ -1671,7 +1671,7 @@ class Job:
 			strexc = misc.format_exception(exc)
 			self._write_healthfile(f"Failed with {strexc}")
 			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
-			self.log.sisyphus.extenal(exc)
+			self.log.sisyphus.external(exc)
 			self.log.sisyphus.result.fail(f"failed with {strexc}")
 		return Status.FAILED
 
