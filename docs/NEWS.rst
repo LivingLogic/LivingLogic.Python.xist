@@ -27,7 +27,7 @@ Changes in 5.67 (released 06/25/2021)
 *	The method :meth:`ll.orasql.Connection.getobject` has been renamed
 	to :meth:`ll.orasql.Connection.object_named`.
 
-*	The method method :meth:`ll.orasql.Connection.objects_name` has been
+*	The method :meth:`ll.orasql.Connection.objects_name` has been
 	added that returns all database objects with the specified name.
 
 
