@@ -387,13 +387,17 @@ a date object containing the date portion of the object is returned, so:
 prints ``2000-02-29``.
 
 
-``yearweek(day, firstweekday=0, mindaysinfirstweek=4)``
+``calendar(firstweekday=0, mindaysinfirstweek=4)``
 -------------------------------------------------------
 
-``yearweek`` returns the calendar week number of the date ``day`` and the
-calendar year it belongs to. (A day might belong to a different calender year,
-if it is in week 1 but before January 1, or if belongs to week 1 of the
-following year).
+``d.calendar()`` returns a list containing:
+
+1. the calendar year ``d`` belongs to;
+2. the calendar week number of ``d``;
+3. the weekday of ``d``
+
+(A day might belong to a different calender year, if it is in week 1 but before
+January 1, or if belongs to week 1 of the following year).
 
 ``firstweekday`` defines what a week is (i.e. which weekday is considered
 the start of the week, ``0`` is Monday and ``6`` is Sunday).
@@ -413,11 +417,11 @@ There's also the convention that the week 1 is the first complete week
 in January. For this ``mindaysinfirstweek == 7``.
 
 
-``week(day, firstweekday=0, mindaysinfirstweek=4)``
----------------------------------------------------
+``week(firstweekday=0, mindaysinfirstweek=4)``
+----------------------------------------------
 
-``week`` returns the calendar week number of the date ``day``. For more
-information see the method ``yearweek``.
+``week`` returns the calendar week number of the date for which it is called.
+For more information see the method ``calendar``.
 
 
 ``yearday()``
@@ -490,7 +494,7 @@ Color objects support the following methods:
 
 	.. sourcecode:: python
 
-		(0.2126 * r + 0.7152 * g + 0.0722 * b)/255
+		(0.2126 * r() + 0.7152 * g() + 0.0722 * b())/255
 
 ``withhue(hue)``
 	Return a new color with the HLS hue replaced by ``hue``.
@@ -514,10 +518,10 @@ Color objects support the following methods:
 	Return a new color where the HLS lightness of the original color has been
 	modified.
 
-	.If ``f`` is positive the lightness will be increased, with ``f==1``
+	If ``f`` is positive the lightness will be increased, with ``f==1``
 	giving a lightness of 1. If ``f`` is negative, the lightness will be
 	decreased with ``f==-1`` giving a lightness of 0. ``f==0`` will leave
-	the lightness unchanged.
+	the lightness unchanged. All other values return a linear interpolation.
 
 ``abslum(f)``
 	Return a new color with ``f`` added to the luminance of the original color.
@@ -528,7 +532,7 @@ Color objects support the following methods:
 		<?print c.abslum(f).lum() == c.lum() + f?>
 
 	(except for rounding errors and when the modified luminance would be smaller
-	that 0 or larger than 1).
+	than 0 or larger than 1).
 
 ``rellum(f)``
 	Return a new color with ``f`` used to modify the luminance of the original
@@ -556,4 +560,4 @@ Color objects support the following methods:
 
 	``f`` specifies the amount of inversion, with 1 returning a complete
 	inversion, and 0 returning the original color. Values between 0 and 1 return
-	an interpolation of both extreme values. (And 0.5 always returns medium grey).
+	an interpolation of both extreme values. (So 0.5 always returns medium grey).
