@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.67.2 (released 06/30/2021)
+---------------------------------------
+
+*	Fixed handling of values for the ``--define``/``--D`` option of
+	:mod:`ll.pysql`.
+
+
 Changes in 5.67.1 (released 06/28/2021)
 ---------------------------------------
 

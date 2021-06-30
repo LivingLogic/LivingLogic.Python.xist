@@ -2223,7 +2223,7 @@ class Context:
 		self.filename = None
 		self._lastlocation = None
 		self._lastcommand = None
-		self._locals = {v.key: v for v in vars} if vars else {}
+		self._locals = dict(vars) if vars else {}
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
@@ -2656,26 +2656,26 @@ def define(arg):
 		if not value:
 			return 0
 		try:
-			return int(value)
+			return (name, int(value))
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal integer value")
 	elif type == "float":
 		if not value:
-			return 0.
+			return (name, 0.)
 		try:
-			return float(value)
+			return (name, float(value))
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal float value")
 	elif type == "bool":
 		if value in ("", "0", "no", "false", "False"):
-			return False
+			return (name, False)
 		elif value in ("1", "yes", "true", "True"):
-			return True
+			return (name, True)
 		else:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal bool value")
 	elif type and type != "str":
 		raise argparse.ArgumentTypeError(f"{type!r} is not a legal type")
-	return value
+	return (name, value)
 
 
 def source_format(object):
