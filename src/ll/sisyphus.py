@@ -1502,10 +1502,10 @@ class Job:
 
 			self.process = Process.CHILD
 			self.setproctitle()
-			self._init_sentry()
 			task = self.task("child", misc.sysinfo.pid, self._run if self.repeat else None)
 			self._tasks = [task] # This replaces the task stack inherited from the parent
 			self.log.sisyphus.init.delay(f"forked worker child")
+			self._init_sentry()
 		else: # We didn't fork
 			# set a signal to kill ourselves after the maximum runtime
 			self._init_sentry()
