@@ -45,11 +45,9 @@ Commit everything up to now.
 
 Tag the release (with something like `rel-xx-yy` or `rel-xx-yy-zz`).
 
-Push the result to all repos::
+Push the resulting commit and the tag::
 
-	git push; git push --tags; git push github; git push --tags github
-
-(``github`` is ``git@github.com:LivingLogic/LivingLogic.Python.xist.git``)
+	git push; git push --tags
 
 Create the release on the external and internal download server (do this
 in the root directory)::
@@ -66,7 +64,7 @@ subdirectory) and deploy it to ``python.livinglogic.de``::
 	make clean download doc deploy
 
 As this has changed ``docs/DOWNLOAD.rst`` you need to check in the result and
-push it to all repos.
+push the resulting commit.
 
 
 Uploading the release to the cheeseshop
