@@ -8,6 +8,16 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 07/??/2021)
+-------------------------------------
+
+*	Added the following three methods to :class:`ll.orasql.Table`:
+
+	*	:meth:`ll.orasql.Table.fks` returns all foreign keys for the table;
+	*	:meth:`ll.orasql.Table.uniques` returns all unique contraints for the table;
+	*	:meth:`ll.orasql.Table.checks` returns all check contraints for the table.
+
+
 Changes in 5.67.2 (released 06/30/2021)
 ---------------------------------------
 

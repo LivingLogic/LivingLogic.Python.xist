@@ -1926,6 +1926,24 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		return misc.first(self._iterconstraints(connection, "= 'P'"), None)
 
+	def fks(self, connection=None):
+		"""
+		Return the foreign key constraints for this table.
+		"""
+		return self._iterconstraints(connection, "= 'R'")
+
+	def uniques(self, connection=None):
+		"""
+		Return the unique constraints for this table.
+		"""
+		return self._iterconstraints(connection, "= 'U'")
+
+	def checks(self, connection=None):
+		"""
+		Return the unique constraints for this table.
+		"""
+		return self._iterconstraints(connection, "= 'C'")
+
 	def references(self, connection=None):
 		connection = self.getconnection(connection)
 		# A table doesn't depend on anything ...
