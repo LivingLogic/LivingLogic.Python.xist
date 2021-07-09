@@ -1123,13 +1123,6 @@ class literalpy(_DatabaseCommand):
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} code={self.code!r} location={self.location} at {id(self):#x}>"
 
-	def globals(self, context, connection):
-		vars = {command.__name__: CommandExecutor(command, context) for command in Command.commands.values()}
-		vars["sqlexpr"] = sqlexpr
-		vars["datetime"] = datetime
-		vars["connection"] = connection
-		return vars
-
 	def execute(self, context):
 		connection = context.connections[-1] if context.connections else None
 
@@ -1137,12 +1130,12 @@ class literalpy(_DatabaseCommand):
 			self.finish(f"Skipped Python block")
 			return None
 
-		vars = self.globals(context, connection)
+		context._locals["connection"] = connection
 
 		code = self.location.source(True) if self.location is not None else self.code
 		code += "\n"
 		code = compile(code, context.filename, "exec")
-		exec(code, vars, context._locals)
+		exec(code, context._locals)
 
 		self.finish(f"Executed Python block")
 		self.count(connectstring(connection))
@@ -2223,7 +2216,7 @@ class Context:
 		self.filename = None
 		self._lastlocation = None
 		self._lastcommand = None
-		self._locals = dict(vars) if vars else {}
+
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
@@ -2233,8 +2226,16 @@ class Context:
 				break
 		else:
 			self._width = 80
+
 		if connectstring is not None:
 			self.connect(connectstring, None)
+
+		self._locals = dict(vars) if vars else {}
+		for command in Command.commands.values():
+			self._locals[command.__name__] = CommandExecutor(command, self)
+		self._locals["sqlexpr"] = sqlexpr
+		self._locals["datetime"] = datetime
+		self._locals["connection"] = self.connections[-1] if self.connections else None
 
 	def connect(self, connectstring, mode=None):
 		mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
@@ -2295,20 +2296,13 @@ class Context:
 			self.filename = oldfilename
 			os.chdir(oldcwd)
 
-	def globals(self):
-		vars = {command.__name__: CommandExecutor(command, self) for command in Command.commands.values()}
-		vars["sqlexpr"] = sqlexpr
-		vars["datetime"] = datetime
-		vars["connection"] = self.connections[-1] if self.connections else None
-		return vars
-
 	def _load(self, stream):
 		"""
 		Load a PySQL file from ``stream`` and executes the commands in the file.
 		``stream`` must be an iterable over lines that contain the PySQL
 		commands.
 		"""
-		vars = self.globals()
+		self._locals["connection"] = self.connections[-1] if self.connections else None,
 
 		def blocks():
 			# ``state`` is the state of the "parser", values have the following meaning
@@ -2391,14 +2385,14 @@ class Context:
 					CommandExecutor(literalpy, self)(source)
 				elif state == "dict":
 					code = compile(source, self._location.filename, "eval")
-					args = eval(code, vars, self._locals)
+					args = eval(code, self._locals)
 					type = args.pop("type", "procedure")
 					if type not in Command.commands:
 						raise ValueError(f"command type {type!r} unknown")
 					CommandExecutor(Command.commands[type], self)(**args)
 				else:
 					code = compile(source, self._location.filename, "exec")
-					exec(code, vars, self._locals)
+					exec(code, self._locals)
 
 	def executeall(self, *filenames):
 		"""
