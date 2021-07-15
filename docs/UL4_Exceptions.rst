@@ -13,7 +13,9 @@ Python call stack. So the exception will be e.g. a :class:`TypeError` object
 and its ``__cause__`` attribute (which is accessible as the UL4 attribute
 ``context``) specifies the immediate location inside the UL4 source code where
 the exception happened (and its ``__cause__`` is the location that called that
-one etc.). So if we have the following UL4 template::
+one etc.). So if we have the following UL4 template:
+
+.. sourcecode:: html+ul4
 
 	<?def x(i)?>
 		Print: <?print 1/i?>
@@ -23,7 +25,9 @@ one etc.). So if we have the following UL4 template::
 
 Calling the template will result in a :class:`ZeroDivisionError` exception. We
 can format a nice UL4 stacktrace (in HTML) for this exception with the
-following UL4 code::
+following UL4 code:
+
+.. sourcecode:: html+ul4
 
 	<?def frame(exc)?>
 		<?if exc.context?>

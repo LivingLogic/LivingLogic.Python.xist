@@ -14,7 +14,9 @@ The ``operator`` module contains the type ``attrgetter``. The object
 ``a``\s attribute named ``n``.  This can be used for sorting objects by their
 attributes without having to create local templates.
 
-For example ::
+For example
+
+.. sourcecode:: ul4
 
 	<?print operator.attrgetter('year')(now())()?>
 

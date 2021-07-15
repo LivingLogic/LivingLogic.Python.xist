@@ -102,11 +102,15 @@ will be used instead, i.e. ``<?print @(2000-01-31) + monthdelta(1)?>`` prints
 ===============================
 
 ``color`` returns a color object. Each argument must be an integer between
-0 and 255. Values will be clipped accordingly. For example ::
+0 and 255. Values will be clipped accordingly. For example
+
+.. sourcecode:: ul4
 
 	<?print color(0x33, 0x66, 0x99)?>
 
-prints ``#369`` and ::
+prints ``#369`` and
+
+.. sourcecode:: ul4
 
 	<?print color(0x33, 0x66, 0x99, 0xcc)?>
 

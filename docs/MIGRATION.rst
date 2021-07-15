@@ -371,11 +371,15 @@ Changes to ``rul4``
 -------------------
 
 The function ``import`` has been split into ``load`` for loading the content of
-a file and ``compile`` for compiling a string, so::
+a file and ``compile`` for compiling a string, so:
+
+.. sourcecode:: ul4
 
 	<?code template = import("/home/user/template/foo.ul4")?>
 
-has to be replaced with::
+has to be replaced with:
+
+.. sourcecode:: ul4
 
 	<?code template = compile(load("/home/user/template/foo.ul4"))?>
 
@@ -436,11 +440,15 @@ Changes to UL4
 	``--whitespace=strip``.
 
 *	Rendering an UL4 template from inside a UL4 template is now again done via
-	the ``<?render?>`` tag. So inside a template you have to replace the code::
+	the ``<?render?>`` tag. So inside a template you have to replace the code:
+
+	.. sourcecode:: ul4
 
 		<?code template.render(foo, bar)?>
 
-	with::
+	with:
+
+	.. sourcecode:: ul4
 
 		<?render template(foo, bar)?>
 
