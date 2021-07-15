@@ -415,14 +415,7 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 
 
 class HTML5Translator(html5.HTML5Translator):
-	def visit_desc_returns(self, node):
-		self.body.append(' <span class="sig-return">')
-		self.body.append('<span class="sig-return-icon">')
-		self.body.append('&#x2192;')
-		self.body.append('</span> <span class="sig-return-typehint">')
-
-	def depart_desc_returns(self, node):
-		self.body.append('</span></span>')
+	pass
 
 
 class OutputLexer(lexer.Lexer):
@@ -597,7 +590,7 @@ class PythonUL4Lexer(lexer.DelegatingLexer):
 
 
 def setup(app):
-	app.require_sphinx("3.5")
+	app.require_sphinx("4.1")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
 	app.add_lexer("output", OutputLexer)
