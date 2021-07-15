@@ -3306,7 +3306,7 @@ class BitNotAST(UnaryAST):
 @register("print")
 class PrintAST(UnaryAST):
 	"""
-	AST node for a ``<?print?>`` tag (e.g. ``<?print x?>``.
+	AST node for a ``<?print?>`` tag (e.g. ``<?print x?>``).
 
 	Attributes are:
 
@@ -3330,7 +3330,7 @@ class PrintAST(UnaryAST):
 @register("printx")
 class PrintXAST(UnaryAST):
 	"""
-	AST node for a ``<?printx?>`` tag (e.g. ``<?printx x?>``.
+	AST node for a ``<?printx?>`` tag (e.g. ``<?printx x?>``).
 
 	Attributes are:
 
