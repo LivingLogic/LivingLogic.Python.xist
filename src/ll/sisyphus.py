@@ -204,7 +204,8 @@ Delayed messages will be buffered up until the first log message that isn't
 delayed is encountered (:mod:`sisyphus`\s messages all are delayed).
 Then all buffered messages will be output. If only delayed messages are output
 during the complete job run, only the result of the job run will be output.
-If this output is ``None`` nothing will be output.
+If this output is ``None`` nothing will be output. This means that you will get
+no log entries until something "interesting" happens.
 
 
 Log files
