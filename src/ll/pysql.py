@@ -1442,18 +1442,18 @@ class file(Command):
 		in a :class:`procedure` or :class:`sql` command). These specifiers will
 		be replaced by the correct variable values.
 
-	``content``: bytes (required)
+	``content`` : bytes (required)
 		The content of the file to be created. This can also be a
 		:class:`loadbytes` command to load the content from an external file.
 
-	``mode``: integer (optional)
+	``mode`` : integer (optional)
 		The file mode for the new file. If the mode is specified, :func:`os.chmod`
 		will be called on the file.
 
-	``owner``: integer or string (optional)
+	``owner`` : integer or string (optional)
 		The owner of the file (as a user name or a uid).
 
-	``group``: integer or string (optional)
+	``group`` : integer or string (optional)
 		The owning group of the file (as a group name or a gid).
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
 		the file.
