@@ -1387,7 +1387,7 @@ class scp(Command):
 		replaced by the correct variable values. As these files will be copied via
 		the :program:`scp` program, ssh file names can be used.
 
-	``content``: bytes (required)
+	``content`` : bytes (required)
 		The content of the file to be created. This can also be a
 		:class:`loadbytes` command to load the content from an external file.
 
@@ -1527,22 +1527,22 @@ class resetsequence(_DatabaseCommand):
 	the maximum value of a field in a table. The following parameters are
 	supported:
 
-	``sequence``: string (required)
+	``sequence`` : string (required)
 		The name of the sequence to reset.
 
-	``table``: string (required)
+	``table`` : string (required)
 		The name of the table that contains the field.
 
-	``field``: string (required)
+	``field`` : string (required)
 		The name of the field in the table ``table``. The sequence will be
 		reset to a value so that fetching the next value from the sequence
 		will deliver a value that is larger than the maximum value of the field
 		``field`` in the table ``table``.
 
-	``minvalue``: integer (optional, default taken from sequence)
+	``minvalue`` : integer (optional, default taken from sequence)
 		The minimum value for the sequence.
 
-	``increment``: integer (optional, default taken from sequence)
+	``increment`` : integer (optional, default taken from sequence)
 		The increment (i.e. the step size) for the sequence.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
@@ -1620,7 +1620,7 @@ class user_exists(_DatabaseCommand):
 	The :class:`!user_exists` command returns whether a user with a specified
 	name exists in the database. It supports the following parameters:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the user to be checked for existence.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
@@ -1660,10 +1660,10 @@ class object_exists(_DatabaseCommand):
 	The :class:`!object_exists` command returns whether an object with a
 	specified name exists in the database. It supports the following parameters:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the object to be checked for existence.
 
-	``owner``: string (optional)
+	``owner`` : string (optional)
 		The owner of the object (defaults to the current user if not specified
 		or :const:`None`).
 
@@ -1714,10 +1714,10 @@ class constraint_exists(_DatabaseCommand):
 	a primary key, foreign key, unique or check constraint) with a specified name
 	exists in the database. It supports the following parameters:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the object to be checked for existence.
 
-	``owner``: string (optional)
+	``owner`` : string (optional)
 		The owner of the constraint (defaults to the current user if not specified
 		or :const:`None`).
 
@@ -1767,11 +1767,11 @@ class drop_types(_DatabaseCommand):
 
 	:class:`!drop_types` supports the following parameters:
 
-	``drop``: list of strings (optional)
+	``drop`` : list of strings (optional)
 		The types of objects to drop (value must be names for :mod:`ll.orasql`
 		object types.
 
-	``keep``: list string (required)
+	``keep`` : list string (required)
 		The types of objects to keep (value must be names for :mod:`ll.orasql`
 		object types.
 
