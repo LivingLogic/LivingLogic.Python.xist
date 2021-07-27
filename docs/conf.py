@@ -394,6 +394,7 @@ autodoc_default_options = {
 }
 
 autodoc_typehints = "signature"
+autodoc_class_signature = "separated"
 
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
