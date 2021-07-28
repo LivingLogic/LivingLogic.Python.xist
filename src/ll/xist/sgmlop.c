@@ -174,7 +174,7 @@ static PyObject *_sgmlop_new(int xml)
 	self = PyObject_GC_New(FastParserObject, &FastParser_Type);
 
 	if (self == NULL)
-	  return NULL;
+		return NULL;
 
 	self->xml = xml;
 
