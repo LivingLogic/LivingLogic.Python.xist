@@ -968,7 +968,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					goto next;
 				}
 			}
-  			entity:
+			entity:
 			if (self->handle_entityref) {
 				PyObject* res;
 				if (self->check && !self->check->entityref(self->check, b, e))
