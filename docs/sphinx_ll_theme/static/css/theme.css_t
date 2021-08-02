@@ -1817,11 +1817,10 @@ main .viewcode-block:hover .viewcode-back
 {
 	border: 1px solid #7fbbe3;
 	background: #e7f2fa;
-	font-size: 80%;
-	font-weight: 700;
-	border-radius: 4px;
-	padding: 2.4px 6px;
-	margin: auto 2px
+	font-size: 90%;
+	border-radius: 0.5rem;
+	padding: 0.1em 0.6em;
+	margin: auto 2px;
 }
 .rst-content .versionmodified{font-style:italic}
 @media screen and (max-width: 480px)
@@ -2075,8 +2074,9 @@ dt em
 	.rst-content .guilabel,
 	.rst-content .menuselection
 	{
-		border-color: #99f;
-		background: #99f4;
+		border-color: #000;
+		background: #0094;
+		color: #ddf;
 	}
 
 	a.iconpanel
