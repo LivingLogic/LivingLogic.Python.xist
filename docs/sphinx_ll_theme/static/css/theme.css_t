@@ -2067,6 +2067,13 @@ dt em
 		color: var(--fadeactive-color-fg);
 	}
 
+	.rst-content .guilabel,
+	.rst-content .menuselection
+	{
+		border-color: #99f;
+		background: #99f4;
+	}
+
 	a.iconpanel
 	{
 		border-color: #fc39;
