@@ -278,6 +278,11 @@ sub
 	bottom: -0.25em;
 }
 
+figcaption .headerlink
+{
+	padding-left: 0.5em;
+}
+
 .navigation
 {
 	border-bottom: 1px solid #ddd;
@@ -2109,7 +2114,7 @@ dt em
 		color: #ddd;
 	}
 
-	img.graphviz
+	img
 	{
 		filter: invert(80%);
 	}
