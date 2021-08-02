@@ -43,7 +43,7 @@ latex.LaTeXTranslator.visit_definition = visit_definition
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '3.5.0' # This fixed bug #6165 (``tab_width`` was ignored)
+needs_sphinx = '4.1' # This fixed bug #6165 (``tab_width`` was ignored)
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -434,7 +434,7 @@ class OutputLexer(lexer.Lexer):
 
 class UL4Lexer(lexer.RegexLexer):
 	"""
-	Generic lexer for XML (eXtensible Markup Language).
+	Generic lexer for UL4 (the Universal LivingLogic Layout Language).
 	"""
 
 	flags = re.MULTILINE | re.DOTALL | re.UNICODE
