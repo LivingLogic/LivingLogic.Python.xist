@@ -546,6 +546,10 @@ class UL4Lexer(lexer.RegexLexer):
 	}
 
 class HTMLUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in HTML.
+	"""
+
 	name = 'HTML+UL4'
 	aliases = ['html+ul4']
 	filenames = ['*.htmlul4']
@@ -555,6 +559,10 @@ class HTMLUL4Lexer(lexer.DelegatingLexer):
 
 
 class XMLUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in XML.
+	"""
+
 	name = 'XML+UL4'
 	aliases = ['xml+ul4']
 	filenames = ['*.xmlul4']
@@ -564,6 +572,10 @@ class XMLUL4Lexer(lexer.DelegatingLexer):
 
 
 class CSSUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in CSS.
+	"""
+
 	name = 'CSS+UL4'
 	aliases = ['css+ul4']
 	filenames = ['*.cssul4']
@@ -573,6 +585,10 @@ class CSSUL4Lexer(lexer.DelegatingLexer):
 
 
 class JavascriptUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in Javascript.
+	"""
+
 	name = 'Javascript+UL4'
 	aliases = ['js+ul4']
 	filenames = ['*.jsul4']
@@ -582,6 +598,10 @@ class JavascriptUL4Lexer(lexer.DelegatingLexer):
 
 
 class PythonUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in Python.
+	"""
+
 	name = 'Python+UL4'
 	aliases = ['py+ul4']
 	filenames = ['*.pyul4']
