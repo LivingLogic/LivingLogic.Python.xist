@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 07/??/2021)
+Changes in 5.68 (released 08/04/2021)
 -------------------------------------
 
 *	UL4 templates now support the ``<?ignore?>`` tag. It can be used to
