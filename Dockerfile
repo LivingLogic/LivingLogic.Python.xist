@@ -65,9 +65,7 @@ COPY . .
 RUN pip install -e .
 
 # Build PDF
-RUN cd docs && make latexpdf
-RUN mv docs/build/latex/XIST.pdf docs/XIST.pdf
-RUN cd docs && make html
+RUN cd docs && make doc
 
 ###
 ### Production stage
