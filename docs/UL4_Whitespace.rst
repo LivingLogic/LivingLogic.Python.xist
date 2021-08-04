@@ -11,7 +11,9 @@ parameter in the constructor. The possible values are:
 	The default behaviour: literal text will be output as it is.
 
 ``"strip"``
-	Linefeeds and the following indentation in literal text will be ignored::
+	Linefeeds and the following indentation in literal text will be ignored:
+
+	.. sourcecode:: pycon
 
 		>>> from ll import ul4c
 		>>> t = ul4c.Template("""
@@ -28,9 +30,13 @@ parameter in the constructor. The possible values are:
 ``"smart"``
 	If a line contains only indentation and one tag that isn't a ``print``,
 	``printx`` or ``render`` tag, the indentation and the linefeed after the tag
-	will be stripped from the text. Furthermore the additional indentation that
-	might be introduced by a ``for``, ``if``, ``elif``, ``else`` or ``def``
-	block will be ignored. So for example the output of::
+	will be stripped from the text.
+
+	Furthermore the additional indentation that might be introduced by a ``for``,
+	``if``, ``elif``, ``else`` or ``def`` block will be ignored. So for example
+	the output of:
+
+	.. sourcecode:: ul4
 
 		<?code langs = ["Python", "Java", "Javascript"]?>
 		<?if langs?>
@@ -39,7 +45,9 @@ parameter in the constructor. The possible values are:
 			<?end for?>
 		<?end if?>
 
-	will simply be::
+	will simply be
+
+	.. sourcecode:: output
 
 		Python
 		Java
@@ -52,7 +60,9 @@ parameter in the constructor. The possible values are:
 	``A``.
 
 It is also possible to specify the whitespace behaviour in the template itself
-with the ``<?whitespace?>`` tag, so::
+with the ``<?whitespace?>`` tag, so:
+
+.. sourcecode:: ul4
 
 	<?whitespace smart?>
 
