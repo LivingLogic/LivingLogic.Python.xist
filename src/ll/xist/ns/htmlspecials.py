@@ -30,7 +30,7 @@ xmlns = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
 class html(html_.html):
 	"""
 	Creates an :class:`ll.xist.ns.html.html` element and automatically sets the
-	``lang`` and ``xml:lang`` attributes to the ``converter``\s configured language.
+	``lang`` and ``xml:lang`` attributes to the ``converter``\\s configured language.
 	"""
 	xmlns = xmlns
 
