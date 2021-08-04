@@ -17,7 +17,7 @@ be prepended to all URLs that are read during parsing:
 
 	>>> from ll.xist import parse
 	>>> from ll.xist.ns import html
-	>>> node = parse.parsestring('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")
+	>>> node = parse.parsestring('<img src="eggs.png"/>', base="root:spam/index.html")
 	>>> print node.string()
 	<img src="root:spam/eggs.png" />
 
