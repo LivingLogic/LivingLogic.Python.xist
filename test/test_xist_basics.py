@@ -18,7 +18,7 @@ import pytest
 
 from ll import url
 from ll.xist import xsc, css, present, sims, xnd, xfind
-from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
+from ll.xist.ns import wml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
 import xist_common as common
 

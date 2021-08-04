@@ -19,7 +19,7 @@ import pytest
 
 from ll import url
 from ll.xist import xsc, parse, xfind
-from ll.xist.ns import xml, chars, html, xlink, ihtml, specials, ruby, doc
+from ll.xist.ns import xml, chars, html, xlink, specials, ruby, doc
 
 
 class a(xsc.Element):
@@ -220,24 +220,24 @@ def test_xmlns():
 	assert e[0].xmlns == doc.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
 
-	s = f"<a xmlns={html.xmlns!r}><a xmlns={ihtml.xmlns!r}/></a>".encode("utf-8")
-	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html, ihtml)), validate=True)
+	s = f"<a xmlns={html.xmlns!r}><a xmlns={doc.xmlns!r}/></a>".encode("utf-8")
+	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(html, doc)), validate=True)
 	assert isinstance(e[0], html.a)
-	assert isinstance(e[0][0], ihtml.a)
+	assert isinstance(e[0][0], doc.a)
 
-	s = f"<a><a xmlns={ihtml.xmlns!r}/></a>".encode("utf-8")
+	s = f"<a><a xmlns={doc.xmlns!r}/></a>".encode("utf-8")
 	with warnings.catch_warnings(record=True) as ws:
-		e  = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(ihtml)), validate=True)
+		e  = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(doc)), validate=True)
 	assert e[0].__class__ is xsc.Element
 	assert e[0].xmlname == "a"
 	assert e[0].xmlns == html.xmlns
-	assert isinstance(e[0][0], ihtml.a)
+	assert isinstance(e[0][0], doc.a)
 	assert len(ws) == 1
 	assert issubclass(ws[0].category, xsc.UndeclaredNodeWarning)
 
-	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, ihtml)), validate=True)
+	e = parse.tree(s, parse.Expat(), parse.NS(html), parse.Node(pool=xsc.Pool(html, doc)), validate=True)
 	assert isinstance(e[0], html.a)
-	assert isinstance(e[0][0], ihtml.a)
+	assert isinstance(e[0][0], doc.a)
 
 	s = f"<z xmlns={doc.xmlns!r}/>".encode("utf-8")
 	e = parse.tree(s, parse.Expat(ns=True), parse.Node(pool=xsc.Pool(doc.z)), validate=True)

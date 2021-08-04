@@ -20,6 +20,9 @@ Changes in HEAD (released 07/??/2021)
 *	Fixed scoping problems in literal Python blocks in PySQL scripts: List
 	comprehension were not able to access local variables.
 
+*	Removed the ancient XIST namespace modules :mod:`ll.xist.ns.kid` and
+	:mod:`ll.xist.ns.ihtml`.
+
 
 Changes in 5.67.2 (released 06/30/2021)
 ---------------------------------------

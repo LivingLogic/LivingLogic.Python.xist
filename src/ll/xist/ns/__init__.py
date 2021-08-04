@@ -15,10 +15,10 @@ For example the definition of HTML can be found in the module
 :mod:`ll.xist.ns.html`.
 
 Some of these namespaces can be considered target namespaces (e.g.
-:mod:`ll.xist.ns.html`, :mod:`ll.xist.ns.ihtml`, :mod:`ll.xist.ns.wml` and
-:mod:`ll.xist.ns.docbook`). The element and entity classes in these namespaces
-don't implement a convert method, i.e. they inherit the :meth:`convert` method
-from :class:`ll.xist.xsc.Element.convert`.
+:mod:`ll.xist.ns.html`, :mod:`ll.xist.ns.wml` and :mod:`ll.xist.ns.docbook`).
+The element and entity classes in these namespaces don't implement a convert
+method, i.e. they inherit the :meth:`convert` method from
+:class:`ll.xist.xsc.Element.convert`.
 
 Other namespace modules provide additional functionality through new element
 classes. Calling :meth:`ll.xist.xsc.Node.convert` on these elements might
@@ -45,7 +45,6 @@ __all__ = [
 	"form",
 	"html",
 	"htmlspecials",
-	"ihtml",
 	"jsp",
 	"metal",
 	"meta",

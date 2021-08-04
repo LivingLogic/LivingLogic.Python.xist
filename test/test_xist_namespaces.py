@@ -11,7 +11,7 @@
 
 
 from ll.xist import xsc
-from ll.xist.ns import html, xml, chars, abbr, ihtml, wml, specials, htmlspecials, form, meta, svg, fo, docbook, jsp, struts_html, struts_config, tld
+from ll.xist.ns import html, xml, chars, abbr, wml, specials, htmlspecials, form, meta, svg, fo, docbook, jsp, struts_html, struts_config, tld
 
 
 def test_variousnamespaces():
@@ -36,7 +36,6 @@ def test_variousnamespaces():
 				node.conv().bytes(prefixdefault=True)
 
 	check(html)
-	check(ihtml)
 	check(wml)
 	check(specials, specials.include, specials.filetime, specials.filesize)
 	check(form)

@@ -18,7 +18,7 @@ HTML.
 import sys, types, time as time_, string, warnings
 
 from ll.xist import xsc, sims
-from ll.xist.ns import xml, ihtml, html as html_, meta, specials
+from ll.xist.ns import xml, html as html_, meta, specials
 
 
 __docformat__ = "reStructuredText"
@@ -147,7 +147,7 @@ class autoimg(html_.img):
 	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
-		if target.xmlns in (ihtml.xmlns, html_.xmlns):
+		if target.xmlns == html_.xmlns:
 			e = target.img(self.attrs.convert(converter))
 		else:
 			raise ValueError(f"unknown conversion target {target!r}")
@@ -166,7 +166,7 @@ class autopixel(_pixelbase):
 	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
-		if target.xmlns not in (ihtml.xmlns, html_.xmlns):
+		if target.xmlns == html_.xmlns:
 			raise ValueError(f"unknown conversion target {target!r}")
 		e = target.img(self.attrs.withoutnames("color"))
 		src = self.attrs.src.convert(converter).forInput(converter.root)
