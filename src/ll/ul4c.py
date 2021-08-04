@@ -5344,17 +5344,37 @@ class Template(BlockAST):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = fr"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc)(\s*((.|\n)*?)\s*)?\?>"
+		pattern = r"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc|ignore)(\s*((.|\n)*?)\s*)?\?>"
+		# Last position
 		pos = 0
+		# Nesting level of ``<?ignore?>``/``<?end ignore?>``
+		ignore = 0
+		# Location of the last active outermost ``<?ignore?>`` block
+		last_ignore_tag_pos = None
+		last_ignore_code_pos = None
 		for match in re.finditer(pattern, source):
-			if match.start() != pos:
+			if not ignore and match.start() != pos:
 				yield TextAST(self, slice(pos, match.start()))
-			tagname = source[match.start(1):match.end(1)]
-			yield Tag(self, tagname, slice(match.start(), match.end()), slice(match.start(3), match.end(3)))
+			tagname = source[slice(*match.span(1))]
+			if tagname == "ignore":
+				if not ignore:
+					# Remember the initial ignore block so we can complain about it
+					# if it remains unclosed
+					last_ignore_tag_pos = slice(*match.span())
+					last_ignore_code_pos = slice(*match.span(3))
+				ignore += 1
+			elif ignore and tagname == "end" and match.group(3) == "ignore":
+				ignore -= 1
+			elif not ignore and tagname != "note":
+				yield Tag(self, tagname, slice(*match.span()), slice(*match.span(3)))
 			pos = match.end()
 		end = len(source)
-		if pos != end:
+		if not ignore and pos != end:
 			yield TextAST(self, slice(pos, end))
+		if ignore:
+			exc = BlockError("<?ignore?> block unclosed")
+			_decorateexception(exc, Tag(self, "ignore", last_ignore_tag_pos, last_ignore_code_pos))
+			raise exc
 
 	def _tags2lines(self, tags):
 		"""
@@ -5642,15 +5662,15 @@ class Template(BlockAST):
 					blockstack.append(block)
 				elif tag.tag == "elif":
 					if not isinstance(blockstack[-1], ConditionalBlocksAST):
-						raise BlockError("elif doesn't match and if")
+						raise BlockError("<?elif?> doesn't match any <?if?>")
 					elif isinstance(blockstack[-1].content[-1], ElseBlockAST):
-						raise BlockError("else already seen in if")
+						raise BlockError("<?else?> already seen in <?if?>")
 					blockstack[-1].newblock(ElIfBlockAST(templatestack[-1], tag.startpos, None, parseexpr(tag)))
 				elif tag.tag == "else":
 					if not isinstance(blockstack[-1], ConditionalBlocksAST):
-						raise BlockError("else doesn't match any if")
+						raise BlockError("<?else?> doesn't match any <?if?>")
 					elif isinstance(blockstack[-1].content[-1], ElseBlockAST):
-						raise BlockError("else already seen in if")
+						raise BlockError("<?else?> already seen in <?if?>")
 					blockstack[-1].newblock(ElseBlockAST(templatestack[-1], tag.startpos, None))
 				elif tag.tag == "end":
 					if len(blockstack) <= 1:
@@ -5659,23 +5679,25 @@ class Template(BlockAST):
 					if code:
 						if code == "if":
 							if not isinstance(blockstack[-1], ConditionalBlocksAST):
-								raise BlockError("endif doesn't match any if")
+								raise BlockError("<?end if?> doesn't match any <?if?>")
 						elif code == "for":
 							if not isinstance(blockstack[-1], ForBlockAST):
-								raise BlockError("endfor doesn't match any for")
+								raise BlockError("<?end for?> doesn't match any <?for?>")
 						elif code == "while":
 							if not isinstance(blockstack[-1], WhileBlockAST):
-								raise BlockError("endwhile doesn't match any while")
+								raise BlockError("<?end while?> doesn't match any <?while?>")
 						elif code == "def":
 							if not isinstance(blockstack[-1], Template):
-								raise BlockError("enddef doesn't match any def")
+								raise BlockError("<?end def?> doesn't match any <?def?>")
 							templatestack.pop()
 						elif code == "renderblock":
 							if not isinstance(blockstack[-1], RenderBlockAST):
-								raise BlockError("endrenderblock doesn't match any renderblock")
+								raise BlockError("<?end renderblock?> doesn't match any <?renderblock?>")
 						elif code == "renderblocks":
 							if not isinstance(blockstack[-1], RenderBlocksAST):
-								raise BlockError("endrenderblocks doesn't match any renderblocks")
+								raise BlockError("<?end renderblocks?> doesn't match any <?renderblocks?>")
+						elif code == "ignore":
+							raise BlockError("not in any <?ignore?> block")
 						else:
 							raise BlockError(f"illegal end value {code!r}")
 					last = blockstack.pop()
@@ -5693,14 +5715,14 @@ class Template(BlockAST):
 						if isinstance(block, (ForBlockAST, WhileBlockAST)):
 							break
 						elif isinstance(block, Template):
-							raise BlockError("break outside of for loop")
+							raise BlockError("<?break?> outside of <?for?> loop")
 					blockstack[-1].append(BreakAST(templatestack[-1], tag.startpos))
 				elif tag.tag == "continue":
 					for block in reversed(blockstack):
 						if isinstance(block, (ForBlockAST, WhileBlockAST)):
 							break
 						elif isinstance(block, Template):
-							raise BlockError("continue outside of for loop")
+							raise BlockError("<?continue?> outside of <?for?> loop")
 					blockstack[-1].append(ContinueAST(templatestack[-1], tag.startpos))
 				elif tag.tag == "def":
 					(name, signature) = parsedef(tag)

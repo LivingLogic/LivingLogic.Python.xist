@@ -11,6 +11,9 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released 07/??/2021)
 -------------------------------------
 
+*	UL4 templates now support the ``<?ignore?>`` tag. It can be used to
+	"comment out" template code. ``<?ignore?>``/``<?end ignore?>`` tags nest.
+
 *	Added the following three methods to :class:`ll.orasql.Table`:
 
 	*	:meth:`ll.orasql.Table.fks` returns all foreign keys for the table;

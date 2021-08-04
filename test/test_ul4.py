@@ -1119,7 +1119,7 @@ def test_block_errors(T):
 	with raises("block unclosed"):
 		T('<?for x in data?>').renders()
 
-	with raises("for ended by endif|endif doesn't match any if"):
+	with raises("<\\?for\\?> ended by <\\?end if\\?>|<\\?end if\\?> doesn't match any <\\?if\\?>"):
 		T('<?for x in data?><?end if?>').renders()
 
 	with raises("not in any block"):
@@ -1131,7 +1131,7 @@ def test_block_errors(T):
 	with raises("not in any block"):
 		T('<?end if?>').renders()
 
-	with raises("else doesn't match any if"):
+	with raises("<\\?else\\?> doesn't match any <\\?if\\?>"):
 		T('<?else?>').renders()
 
 	with raises("block unclosed"):
@@ -1140,14 +1140,29 @@ def test_block_errors(T):
 	with raises("block unclosed"):
 		T('<?if data?><?else?>').renders()
 
-	with raises("duplicate else in if/elif/else chain|else already seen in if"):
+	with raises("duplicate <\\?else\\?> in <\\?if\\?>/<\\?elif\\?>/<\\?else\\?> chain|<\\?else\\?> already seen in <\\?if\\?>"):
 		T('<?if data?><?else?><?else?>').renders()
 
-	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
+	with raises("<\\?elif\\?> can't follow <\\?else\\?> in <\\?if\\?>/<\\?elif\\?>/<\\?else\\?> chain|<\\?else\\?> already seen in <\\?if\\?>"):
 		T('<?if data?><?else?><?elif data?>').renders()
 
-	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
+	with raises("<\\?elif\\?> can't follow <\\?else\\?> in <\\?if\\?>/<\\?elif\\?>/<\\?else\\?> chain|<\\?else\\?> already seen in <\\?if\\?>"):
 		T('<?if data?><?elif data?><?elif data?><?else?><?elif data?>').renders()
+
+	with raises("<\\?ignore\\?> block unclosed"):
+		T('<?ignore?><?ignore?>nix<?end ignore?>').renders()
+
+	with raises("not in any block"):
+		T('<?ignore?>nix<?end ignore?><?end ignore?>').renders()
+
+
+@pytest.mark.ul4
+def test_ignore(T):
+	assert "" == T("<?ignore?>nix<?end ignore?>").renders()
+	assert "" == T("<?ignore?><?if?>nix<?end ignore?>").renders()
+	assert "" == T("<?ignore?><?if?>nix<?end?><?end for?><?end ignore?>").renders()
+	assert "" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
+	assert "doch" == T("""<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>doch<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
 
 
 @pytest.mark.ul4
