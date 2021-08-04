@@ -463,6 +463,11 @@ class UL4Lexer(lexer.RegexLexer):
 				token.String.Doc,
 			),
 			(
+				r"<\?\s*ignore\s*\?>",
+				token.Comment,
+				"ignore",
+			),
+			(
 				r"(<\?\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
 				lexer.bygroups(token.Comment.Preproc, token.Keyword, token.Text, token.Token.Name.Function),
 				"ul4",
@@ -484,6 +489,11 @@ class UL4Lexer(lexer.RegexLexer):
 			),
 			(r"[^<]+", token.Token.Other),
 			(r"<", token.Token.Other),
+		],
+		"ignore": [
+			(r"<\?\s*ignore\s*\?>", token.Comment, "ignore"),
+			(r"<\?\s*end\s+ignore\s*\?>", token.Comment, "#pop"),
+			(r".+", token.Comment),
 		],
 		"ul4": [
 			(r"\?>", token.Comment.Preproc, "#pop"),
