@@ -1162,7 +1162,7 @@ def test_ignore(T):
 	assert "" == T("<?ignore?><?if?>nix<?end ignore?>").renders()
 	assert "" == T("<?ignore?><?if?>nix<?end?><?end for?><?end ignore?>").renders()
 	assert "" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
-	assert "doch" == T("""<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>doch<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
+	assert "doch" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>doch<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
 
 
 @pytest.mark.ul4
