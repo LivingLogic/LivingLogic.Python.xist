@@ -73,7 +73,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: python.xist4c.io
+  - host: python.livinglogic.de
     http:
       paths:
       - path: /
@@ -85,8 +85,8 @@ spec:
               number: 80
   tls:
   - hosts:
-    - python.xist4c.io
-    secretName: python-xist4c-io
+    - python.livinglogic.de
+    secretName: python-livinglogic-de
 
 ---
 
