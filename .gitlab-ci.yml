@@ -22,7 +22,7 @@ deploy:
       namespace: ll-prod
   when: manual
   script:
-    - sed -i "s/CI_COMMIT_SHORT_SHA/$CI_COMMIT_SHORT_SHA/g" kubernetes-deploy.yml
-    - sed -i "s/CI_ENVIRONMENT_SLUG/$CI_ENVIRONMENT_SLUG/g" kubernetes-deploy.yml
-    - sed -i "s/CI_PROJECT_PATH_SLUG/$CI_PROJECT_PATH_SLUG/g" kubernetes-deploy.yml
-    - kubectl -n $CI_ENVIRONMENT_SLUG apply -f kubernetes-deploy.yml
+    - sed -i "s/CI_COMMIT_SHORT_SHA/$CI_COMMIT_SHORT_SHA/g" kubernetes-deployment.yml
+    - sed -i "s/CI_ENVIRONMENT_SLUG/$CI_ENVIRONMENT_SLUG/g" kubernetes-deployment.yml
+    - sed -i "s/CI_PROJECT_PATH_SLUG/$CI_PROJECT_PATH_SLUG/g" kubernetes-deployment.yml
+    - kubectl -n $CI_ENVIRONMENT_SLUG apply -f kubernetes-deployment.yml
