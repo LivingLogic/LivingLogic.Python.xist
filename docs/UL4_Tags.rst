@@ -16,7 +16,7 @@ the expression doesn't evaluate to a string it will be converted to a string
 first. The format of the string depends on the renderer, but should follow
 Python's ``str()`` output as much as possible:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<h1><?print person.lastname?>, <?print person.firstname?></h1>
 
@@ -44,7 +44,7 @@ The ``for`` tag can be used to loop over the items in a list, the characters in
 a string, the keys in a dictionary or any other iterable object. The end of the
 loop body must be marked with an ``<?end for?>`` tag:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<ul>
 		<?for person in data.persons?>
@@ -107,7 +107,7 @@ condition is true. The end of the ``if`` block must be marked with an
 
 For example we can output the person list only if there are any persons:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?if persons?>
 		<ul>
@@ -119,7 +119,7 @@ For example we can output the person list only if there are any persons:
 
 ``elif`` and ``else`` are supported too:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?if persons?>
 		<ul>
@@ -133,7 +133,7 @@ For example we can output the person list only if there are any persons:
 
 or:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?if len(persons)==0?>
 		No persons found!
@@ -324,7 +324,7 @@ The ``renderblocks`` tag is syntactic sugar for rendering a template and
 passing other templates as arguments in the call. For example if we have the
 following template:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?def page(head, body, lang="en", doctype=False)?>
 		<?if doctype?>
@@ -342,7 +342,7 @@ following template:
 
 then we can render this template in the following way:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?renderblocks page(lang="de", doctype=True)?>
 		<?def head?>
@@ -355,7 +355,7 @@ then we can render this template in the following way:
 
 This is syntactic sugar for:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?def head?>
 		<title>Foo</title>
@@ -409,7 +409,7 @@ HTML links:
 
 and then use it like this:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?renderblock a(class="extern", href="http://www.python.org/")?>
 		Link to the Python homepage

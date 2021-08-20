@@ -15,7 +15,7 @@ and its ``__cause__`` attribute (which is accessible as the UL4 attribute
 the exception happened (and its ``__cause__`` is the location that called that
 one etc.). So if we have the following UL4 template:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?def x(i)?>
 		Print: <?print 1/i?>
@@ -27,7 +27,7 @@ Calling the template will result in a :class:`ZeroDivisionError` exception. We
 can format a nice UL4 stacktrace (in HTML) for this exception with the
 following UL4 code:
 
-.. sourcecode:: html+ul4
+.. sourcecode:: xml+ul4
 
 	<?def frame(exc)?>
 		<?if exc.context?>
