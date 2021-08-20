@@ -1721,7 +1721,7 @@ main div[class^='highlight'] pre .hll
 .rst-content .toc-backref{color:#444;}
 .rst-content .align-right{float:right;margin:0px 0px 24px 24px}
 .rst-content .align-left{float:left;margin:0px 24px 24px 0px}
-.rst-content .align-center{margin:auto}
+.rst-content .align-center{text-align: center;}
 .rst-content .align-center:not(table){display:block}
 
 main dl:not(.docutils) > dt > .headerlink,

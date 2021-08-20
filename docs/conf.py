@@ -151,11 +151,12 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'livinglogic-light'
 
-
 tab_width = 3
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
+
+graphviz_output_format = "png"
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
