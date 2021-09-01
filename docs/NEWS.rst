@@ -17,8 +17,8 @@ Changes in 5.68 (released 08/04/2021)
 *	Added the following three methods to :class:`ll.orasql.Table`:
 
 	*	:meth:`ll.orasql.Table.fks` returns all foreign keys for the table;
-	*	:meth:`ll.orasql.Table.uniques` returns all unique contraints for the table;
-	*	:meth:`ll.orasql.Table.checks` returns all check contraints for the table.
+	*	:meth:`ll.orasql.Table.uniques` returns all unique constraints for the table;
+	*	:meth:`ll.orasql.Table.checks` returns all check constraints for the table.
 
 *	Fixed scoping problems in literal Python blocks in PySQL scripts: List
 	comprehension were not able to access local variables.
@@ -2569,7 +2569,7 @@ Changes in 3.20 (released 05/05/2011)
 *	:mod:`ll.orasql` now supports tables without columns.
 
 *	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
-	key contraint (or :const:`None` if the table has now primary key contraint).
+	key constraint (or :const:`None` if the table has now primary key constraint).
 
 *	A bug in the queries for :class:`Index` objects in :mod:`ll.orasql` has been
 	fixed.
@@ -2604,7 +2604,7 @@ Changes in 3.18 (released 04/08/2011)
 
 *	Fixed :exc:`ZeroDivisionError` in script :program:`uls` for empty directories.
 
-*	Added a class method :meth:`ll.orasql.Contraint.iternames` and a class method
+*	Added a class method :meth:`ll.orasql.Constraint.iternames` and a class method
 	:meth:`ll.orasql.Index.iternames` that skips those indexes that are generated
 	by constraints. With this addition :program:`uls`/:program:`ucp` now
 	list/copy constraints and indexes properly. All ``iternames`` methods now
