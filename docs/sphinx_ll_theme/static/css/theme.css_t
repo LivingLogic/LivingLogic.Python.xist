@@ -325,17 +325,14 @@ main li
 
 main dl dt
 {
+	margin: {{theme_vertical_spacing}} 0 0 0;
 	font-weight: 600;
 }
 
 main dl dt .classifier:before
 {
-	content: "(";
-}
-
-main dl dt .classifier:after
-{
-	content: ")";
+	content: ":";
+	padding-right: 0.6em;
 }
 
 main dl dt .classifier
@@ -1617,7 +1614,7 @@ aside .breadcrumbs
 {
 	border: 1px solid var(--rule-color-fg);
 	overflow-x: auto;
-	margin: 0.7em 0;
+	margin: {{theme_vertical_spacing}} 0;
 	border-radius: 0.5rem;
 	background-color: rgba(255, 255, 255, 0.66);
 }
@@ -1865,18 +1862,12 @@ table.download td:last-child
 	text-align: right;
 }
 
-main dl.class,
-main dl.function,
-main dl.method,
-main dl.classmethod,
-main dl.exception,
-main dl.attribute,
-main dl:not(.docutils) dl.class,
-main dl:not(.docutils) dl.function,
-main dl:not(.docutils) dl.method,
-main dl:not(.docutils) dl.classmethod,
-main dl:not(.docutils) dl.exception,
-main dl:not(.docutils) dl.attribute
+main > section > dl.class,
+main > section > dl.function,
+main > section > dl.method,
+main > section > dl.classmethod,
+main > section > dl.exception,
+main > section > dl.attribute
 {
 	border: 1px solid var(--rule-color-fg);
 	border-radius: 0.5rem;
@@ -1888,17 +1879,9 @@ main dl.function > dt,
 main dl.method > dt,
 main dl.classmethod > dt,
 main dl.exception > dt,
-main dl.attribute > dt,
-main dl:not(.docutils) dl.class > dt,
-main dl:not(.docutils) dl.function > dt,
-main dl:not(.docutils) dl.method > dt,
-main dl:not(.docutils) dl.classmethod > dt,
-main dl:not(.docutils) dl.exception > dt,
-main dl:not(.docutils) dl.attribute > dt
+main dl.attribute > dt
 {
-	margin: {{theme_vertical_spacing}} 0;
 	font-family: "Source Code Pro", monospace;
-	line-height: {{theme_line_height}};
 }
 
 main dt .viewcode-link
@@ -1912,17 +1895,12 @@ main dt:hover .viewcode-link
 	visibility: visible;
 }
 
-main dl.class > dd,
-main dl.function > dd,
-main dl.method > dd,
-main dl.classmethod > dd,
-main dl.exception > dd,
-main dl.attribute > dd,
-main dl:not(.docutils) dl.class > dd,
-main dl:not(.docutils) dl.function > dd,
-main dl:not(.docutils) dl.method > dd,
-main dl:not(.docutils) dl.exception > dd,
-main dl:not(.docutils) dl.attribute > dd
+main > section > dl.class > dd,
+main > section > dl.function > dd,
+main > section > dl.method > dd,
+main > section > dl.classmethod > dd,
+main > section > dl.exception > dd,
+main > section > dl.attribute > dd
 {
 	margin: {{theme_vertical_spacing}} 0;
 }
