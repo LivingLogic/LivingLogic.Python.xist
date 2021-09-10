@@ -1861,12 +1861,12 @@ table.download td:last-child
 	text-align: right;
 }
 
-main > section > dl.class,
-main > section > dl.function,
-main > section > dl.method,
-main > section > dl.classmethod,
-main > section > dl.exception,
-main > section > dl.attribute
+main dl.class,
+main dl.function,
+main dl.method,
+main dl.classmethod,
+main dl.exception,
+main dl.attribute
 {
 	border: 1px solid var(--rule-color-fg);
 	border-radius: 0.5rem;
@@ -1892,6 +1892,17 @@ main dt .viewcode-link
 main dt:hover .viewcode-link
 {
 	visibility: visible;
+}
+
+main dl dl.class,
+main dl dl.function,
+main dl dl.method,
+main dl dl.classmethod,
+main dl dl.exception,
+main dl dl.attribute
+{
+	border: 0;
+	padding: 0;
 }
 
 .wy-alert,
