@@ -3146,11 +3146,11 @@ class SliceAST(CodeAST):
 		The start index (``index1`` in the above example).
 
 	``index2`` : :class:`AST` or ``None``
-		The stop hand side (``y`` in the above example).
+		The stop index (``index2`` in the above example).
 
-	``index1`` and ``index2`` may also be :const:`None` (for missing slice indices,
-	which default to the 0 for the start index and the length of the sequence for
-	the end index).
+	``index1`` and ``index2`` may also be :const:`None` (for missing slice
+	indices, which default to 0 for the start index and the length of the
+	sequence for the stop index).
 	"""
 
 	ul4_type = Type("ul4")
