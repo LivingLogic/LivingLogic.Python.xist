@@ -2302,7 +2302,7 @@ class Context:
 		``stream`` must be an iterable over lines that contain the PySQL
 		commands.
 		"""
-		self._locals["connection"] = self.connections[-1] if self.connections else None,
+		self._locals["connection"] = self.connections[-1] if self.connections else None
 
 		def blocks():
 			# ``state`` is the state of the "parser", values have the following meaning

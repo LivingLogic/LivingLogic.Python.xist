@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.68.1 (released 09/??/2021)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.pysql` that resulted in the local variable
+	``connection`` being wrapped in a tuple.
+
+
 Changes in 5.68 (released 08/04/2021)
 -------------------------------------
 
