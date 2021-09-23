@@ -58,13 +58,16 @@ in the root directory)::
 Creating and deploying the documentation
 ----------------------------------------
 
-Recreate the documentation in ``docs/`` via (do this in the ``docs/``
-subdirectory) and deploy it to ``python.livinglogic.de``::
+Recreate the list of downloads in ``docs/`` via (do this in the ``docs/``
+subdirectory)::
 
-	make clean download doc deploy
+	make clean download
 
 As this has changed ``docs/DOWNLOAD.rst`` you need to check in the result and
 push the resulting commit.
+
+Wait for Gitlab to finish building the container image, and then click the
+"deploy" button to deploy it to ``python.livinglogic.de``.
 
 
 Uploading the release to the cheeseshop
@@ -87,8 +90,11 @@ Creating the Windows packages
 Tell the Windows people that there's a new XIST release and wait until they've
 finished their release dance.
 
-Go to the ``docs/`` subdirectory, recreate the documentation and deploy it::
+Go to the ``docs/`` subdirectory and recreate the download list::
 
-	make clean download doc deploy
+	make clean download
 
 Check in the result and push it to all repos.
+
+Wait for Gitlab to finish building the container image, and then click the
+"deploy" button to deploy it to ``python.livinglogic.de``.
