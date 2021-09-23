@@ -72,91 +72,91 @@ a line that only contains ``name(`` and end at a line that only contains ``)``.
 The following commands are available:
 
 :class:`include`
-	Includes another PySQL file;
+	Include another PySQL file;
 
 :class:`connect`
-	Connects to a database;
+	Connect to a database;
 
 :class:`disconnect`
-	Disconnects from the active database connection;
+	Disconnect from the active database connection;
 
 :class:`procedure`
-	Call a procedure in the database (and handles OUT parameter via :class:`var`
+	Call a procedure in the database (and handle OUT parameters via :class:`var`
 	objects);
 
 :class:`sql`
-	Executes an SQL statement in the database (and handles OUT parameter via
+	Execute an SQL statement in the database (and handle OUT parameter via
 	:class:`var` objects);
 
 :class:`literalsql`
-	Executes an SQL statement in the database (this is what SQL commands get
+	Execute an SQL statement in the database (this is what SQL commands get
 	converted to);
 
 :class:`commit`
-	Commits the transaction in the active database connection;
+	Commit the transaction in the active database connection;
 
 :class:`rollback`
-	Rolls back the transaction in the active database connection;
+	Roll back the transaction in the active database connection;
 
 :class:`literalpy`
-	Executes Python code (this is what literal Python blocks get converted to);
+	Execute Python code (this is what literal Python blocks get converted to);
 
 :class:`setvar`
-	Sets a variable;
+	Set a variable;
 
 :class:`unsetvar`
-	Deletes a variable;
+	Delete a variable;
 
 :class:`raiseexceptions`
 	Set the exception handling mode;
 
 :class:`pushraiseexceptions`
-	Temporarily modifies the exception handling mode;
+	Temporarily modify the exception handling mode;
 
 :class:`popraiseexceptions`
-	Reverts to the previously active exception handling mode;
+	Revert to the previously active exception handling mode;
 
 :class:`checkerrors`
-	Checks whether there are invalid database objects;
+	Check whether there are invalid database objects;
 
 :class:`scp`
-	Creates a file on a remote host via :program:`scp`;
+	Create a file on a remote host via :program:`scp`;
 
 :class:`file`
-	Creates a file on the local machine;
+	Create a file on the local machine;
 
 :class:`resetsequence`
-	Resets a database sequence to the maximum value of a field in a table;
+	Reset a database sequence to the maximum value of a field in a table;
 
 :class:`user_exists`
-	Tests whether a database user exists;
+	Test whether a database user exists;
 
 :class:`object_exists`
-	Tests whether a database object (table, package, procedure, etc.) exists;
+	Test whether a database object (table, package, procedure, etc.) exists;
 
 :class:`constraint_exists`
-	Tests whether a database constraint (primary key, foriegn key, unique or
+	Test whether a database constraint (primary key, foriegn key, unique or
 	check constraint) exists;
 
 :class:`drop_types`
-	Drops all database objects of a certain type;
+	Drop all database objects of a certain type;
 
 :class:`comment`
-	A comment
+	A comment;
 
 :class:`loadbytes`
-	Loads the binary content of a file;
+	Load the binary content of a file;
 
 :class:`loadstr`
-	Loads the text content of a file;
+	Load the text content of a file;
 
 :class:`var`
-	Marks an argument for a :class:`procedure` or :class:`sql` command as being
-	an OUT parameter (or passes the value of the variable in subsequent
+	Mark an argument for a :class:`procedure` or :class:`sql` command as being
+	an OUT parameter (or pass the value of the variable in subsequent
 	:class:`procedure`/:class:`sql` commands);
 
 :class:`env`
-	Returns the value of an environment variable.
+	Return the value of an environment variable.
 
 
 Comments
@@ -325,7 +325,7 @@ procedure and will call the procedure to insert data into the table::
 This file can then be imported into an Oracle database with the following
 command::
 
-	python -m ll.pysql data.pysql -d user/pwd@database
+	python -m ll.pysql -d user/pwd@database data.pysql
 
 This will create two sequences, two tables and two procedures. Then it will
 import two records, one by calling ``person_insert`` and one by calling
@@ -372,7 +372,7 @@ like this::
 Variables
 =========
 
-Variable objects can be used to receive out parameters of procedure calls or
+Variable objects can be used to receive OUT parameters of procedure calls or
 SQL statements. A variable object can be specified like this ``var("foo")``.
 ``"foo"`` is the "name" of the variable. When a variable object is passed
 to a procedure the first time (i.e. the variable object is uninitialized),
@@ -400,7 +400,8 @@ file like this::
 
 	loadbytes("path/to/file.png")
 
-A string can be loaded with the :class:`loadstr` command like this::
+A :class:`str` object can be loaded with the :class:`loadstr` command like
+this::
 
 	loadstr("path/to/file.txt", encoding="utf-8", errors="replace")
 
@@ -434,7 +435,7 @@ command line options:
 		``file`` (the file names and line numbers from which code gets executed),
 		``log`` (the log messages output by the commands) or ``full``
 		(source code that will be executed and the log messages output by the
-		commands)
+		commands).
 
 	``-d``, ``--database``
 		The value is an Oracle connectstring to specify the initial database
@@ -544,8 +545,8 @@ def connectstring(connection):
 class Command:
 	"""
 	The base class of all commands. A :class:`Command` object is created from a
-	function call in a PySQL file and then immediatetel the method
-	:meth:`execute` will be called to execute the command.
+	function call in a PySQL file and then immediatly the method :meth:`execute`
+	will be called to execute the command.
 
 	The only parameters in the call that is supported by all commands are the
 	following:
@@ -558,7 +559,7 @@ class Command:
 
 	``cond`` : bool (optional)
 		Specifies whether this command should be executed or not.
-		If ``cond`` is true (the default), the command will be executed,
+		If ``cond`` is :const:`True` (the default), the command will be executed,
 		else it won't.
 	"""
 
@@ -685,7 +686,8 @@ class connect(Command):
 	connection. Parameter have the following meaning:
 
 	``mode`` : string or :const:`None` (optional)
-		The connection mode: This can be either ``'sysdba'`` or :const:`None`.
+		The connection mode: This can be either ``'sysdba'`` or :const:`None`
+		(the default).
 
 	``retry`` : int (optional)
 		The number of times PySQL tries to get a database connection.
@@ -890,7 +892,7 @@ class procedure(_SQLCommand):
 			``var("foo_10")`` the value of the ``OUT`` parameter will be stored
 			under the key ``"foo_10"``. The next time ``var("foo_10")`` is
 			encountered the value stored under the key ``"foo_10"`` will be passed
-			to the procedure. The type of the variable defaults to ``int``.
+			to the procedure. The type of the variable defaults to :class:`int`.
 			If a different type is required it can be passed as the second
 			argument to :class:`var`, e.g. ``var("foo_10", str)``.
 
@@ -1914,7 +1916,7 @@ class loadstr(Command):
 	``filename`` : string (required)
 		The name of the file to be loaded. The filename is treated as being
 		relative to the directory containing the PySQL file that contains the
-		the :class:`!loadstr` command.
+		:class:`!loadstr` command.
 
 	``encoding`` : string (optional)
 		The encoding used for decoding the bytes in the file to text.
@@ -1928,7 +1930,7 @@ class loadstr(Command):
 
 	def __init__(self, filename, *, encoding=None, errors="strict", raiseexceptions=None, cond=True):
 		"""
-		Create a new :class:`loadbytes` object. 
+		Create a new :class:`loadstr` object. 
 		"""
 		super().__init__(raiseexceptions=raiseexceptions, cond=cond)
 		self.filename = filename
@@ -1968,7 +1970,7 @@ class var(Command):
 	"""
 	:class:`var` commands are used to mark procedure values that are ``OUT``
 	parameters. On first use the parameter is used as an ``OUT`` parameter and
-	PySQL will remembers the OUT value under the unique key specified in the
+	PySQL will remember the OUT value under the unique key specified in the
 	constructor. When a :class:`var` object is used a second time its value
 	will be passed to the procedure as a normal ``IN`` parameter instead.
 	The following parameters are supported:
@@ -2050,7 +2052,7 @@ class log(Command):
 	The following parameters are supported:
 
 	``objects`` : Any
-		The objects to log. String will be logged directly. For all other
+		The objects to log. Strings will be logged directly. For all other
 		objects :func:`repr` will be called.
 	"""
 
