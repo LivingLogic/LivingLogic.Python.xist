@@ -431,7 +431,7 @@ class Connection(Connection):
 
 		``readlobs`` : bool or integer
 			If ``readlobs`` is :const:`False` all cursor fetches return
-			:class:`LOBStream` objects for LOB object. If ``readlobs`` is an
+			:class:`LOBStream` objects for LOB objects. If ``readlobs`` is an
 			:class:`int` LOBs with a maximum size of ``readlobs`` will be
 			returned as :class:`bytes`/:class:`str` objects. If ``readlobs``
 			is :const:`True` all LOB values will be returned as
