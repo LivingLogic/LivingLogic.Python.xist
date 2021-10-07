@@ -342,7 +342,7 @@ This outputs:
 
 By iterating through the ``data-ul4on`` attributes in the correct order and
 feeding each UL4ON chunk to the same decoder, all objects can be recreated and
-attached to their appriopriate HTML elements.
+attached to their appropriate HTML elements.
 
 
 Incremental UL4ON and persistent objects
