@@ -166,7 +166,7 @@ Changes in 5.66 (released 06/15/2021)
 	:meth:`~ll.color.Color.hue`, :meth:`~ll.color.Color.light`,
 	:meth:`~ll.color.Color.sat`, :meth:`~ll.color.Color.withhue`,
 	:meth:`~ll.color.Color.withsat`, :meth:`~ll.color.Color.withlum`,
-	:meth:`~ll.color.Color.ablum`, :meth:`~ll.color.Color.rellum` and
+	:meth:`~ll.color.Color.abslum`, :meth:`~ll.color.Color.rellum` and
 	:meth:`~ll.color.Color.invert`. They have also been made available to UL4.
 	The color method :meth:`~ll.color.Color.combine` and the functions
 	:func:`ll.color.css` and  :func:`ll.color.mix` are now also available to UL4.
