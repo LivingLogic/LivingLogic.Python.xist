@@ -154,7 +154,7 @@ Changes in 5.66 (released 06/15/2021)
 
 *	:class:`ll.sisyphus.Task`\s constructor and the method
 	:class:`ll.sisyphus.Job.task` now take arbitrary additional keyword arguments.
-	Those wll be passed as additional breadcrumb data when logging to Sentry.
+	Those will be passed as additional breadcrumb data when logging to Sentry.
 
 *	:meth:`ll.sisyphus.Job.tasks` now takes an additional argument ``data`` that
 	is responsible for returning additional data for the task.
