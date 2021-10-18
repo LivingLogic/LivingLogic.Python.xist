@@ -3928,7 +3928,7 @@ def test_function_slice(T):
 @pytest.mark.ul4
 def test_function_urlquote(T):
 	assert "gurk" == T("<?print urlquote('gurk')?>").renders()
-	assert "%3C%3D%3E%2B%3F" == T("<?print urlquote('<=>+?')?>").renders()
+	assert "%3C%3D%3E%20%2B%20%3F" == T("<?print urlquote('<=> + ?')?>").renders()
 	assert "%7F%C3%BF%EF%BF%BF" == T("<?print urlquote('\u007f\u00ff\uffff')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
@@ -3938,7 +3938,7 @@ def test_function_urlquote(T):
 @pytest.mark.ul4
 def test_function_urlunquote(T):
 	assert "gurk" == T("<?print urlunquote('gurk')?>").renders()
-	assert "<=>+?" == T("<?print urlunquote('%3C%3D%3E%2B%3F')?>").renders()
+	assert "<=> + ?" == T("<?print urlunquote('%3C%3D%3E%20%2B%20%3F')?>").renders()
 	assert "\u007f\u00ff\uffff" == T("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
