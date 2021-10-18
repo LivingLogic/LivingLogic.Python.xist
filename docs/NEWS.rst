@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 10/??/2021)
+-------------------------------------
+
+*	The UL4 function ``urlquote()`` now uses :func:`urllib.parse.quote` instead
+	of :func:`urllib.parse.quote_plus`. This means that the pace character will
+	get encoded as ``%20`` instead of ``+``.
+
+
 Changes in 5.68.1 (released 09/23/2021)
 ---------------------------------------
 

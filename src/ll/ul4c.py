@@ -6202,11 +6202,11 @@ def _format(obj, fmt, lang=None):
 
 
 def _urlquote(string):
-	return urlparse.quote_plus(string)
+	return urlparse.quote(string)
 
 
 def _urlunquote(string):
-	return urlparse.unquote_plus(string)
+	return urlparse.unquote(string)
 
 
 def _md5(string, /):
