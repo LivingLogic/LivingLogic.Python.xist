@@ -34,7 +34,7 @@ class File:
 				version = name[pos+3:].split("-")[0]
 				version = ".".join(version)
 				self.type += f" (Python {version})"
-		elif name.endswith(".exe"):
+		elif name.endswith((".exe", ".msi")):
 			self.type = "Windows installer"
 			pos = name.rfind("py")
 			if pos >= 0:
