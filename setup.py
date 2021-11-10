@@ -303,6 +303,7 @@ args = dict(
 		"scripts/orafind.py",
 		"scripts/oracycles.py",
 	],
+	python_requires=">=3.8",
 	install_requires=[
 		"cssutils == 2.3.0",
 	],
