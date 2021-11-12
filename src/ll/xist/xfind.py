@@ -134,8 +134,8 @@ class Selector:
 	to match the selector.
 
 	Whether a node matches the selector can be specified by overwriting the
-	:meth:`__contains__` method. Selectors can be combined with various
-	operations (see methods below).
+	:meth:`~Selector.__contains__` method. Selectors can be combined with
+	various operations (see methods below).
 	"""
 
 	@misc.notimplemented
@@ -217,9 +217,9 @@ any = AnySelector()
 class IsInstanceSelector(Selector):
 	"""
 	Selector that selects all nodes that are instances of the specified type.
-	You can either create an :class:`IsInstanceSelector` object directly
+	You can either create an :class:`!IsInstanceSelector` object directly
 	or simply pass a class to a function that expects a selector (this class
-	will be automatically wrapped in an :class:`IsInstanceSelector`)::
+	will be automatically wrapped in an :class:`!IsInstanceSelector`)::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -332,7 +332,7 @@ class IsSelector(Selector):
 	Selector that selects one specific node in the tree. This can be combined
 	with other selectors via :class:`ChildCombinator` or
 	:class:`DescendantCombinator` selectors to select children of this specific
-	node. You can either create an :class:`IsSelector` directly or simply pass
+	node. You can either create an :class:`!IsSelector` directly or simply pass
 	a node to a function that expects a selector::
 
 		>>> from ll.xist import xsc, parse
@@ -742,8 +742,8 @@ class hasid(Selector):
 
 class hasclass(Selector):
 	"""
-	Selector that selects all element nodes where the ``class`` attribute contains
-	one of the specified values::
+	Selector that selects all element nodes where the ``class`` attribute
+	contains one of the specified values::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -817,14 +817,14 @@ inattr = InAttrSelector()
 
 class Combinator(Selector):
 	"""
-	A :class:`Combinator` is a selector that transforms one or combines two or
+	A :class:`!Combinator` is a selector that transforms one or combines two or
 	more other selectors in a certain way.
 	"""
 
 
 class BinaryCombinator(Combinator):
 	"""
-	A :class:`BinaryCombinator` is a combinator that combines two selector:
+	A :class:`!BinaryCombinator` is a combinator that combines two selector:
 	the left hand selector and the right hand selector.
 	"""
 	symbol = None
@@ -845,12 +845,12 @@ class BinaryCombinator(Combinator):
 
 class ChildCombinator(BinaryCombinator):
 	"""
-	A :class:`ChildCombinator` is a :class:`BinaryCombinator`. To match the
-	:class:`ChildCombinator` the node must match the right hand selector and
+	A :class:`!ChildCombinator` is a :class:`BinaryCombinator`. To match the
+	:class:`!ChildCombinator` the node must match the right hand selector and
 	its immediate parent must match the left hand selector (i.e. it works
 	similar to the ``>`` combinator in CSS or the ``/`` combinator in XPath).
 
-	:class:`ChildCombinator` objects can be created via the division operator
+	:class:`!ChildCombinator` objects can be created via the division operator
 	(``/``)::
 
 		>>> from ll.xist import xsc, parse
@@ -876,13 +876,13 @@ class ChildCombinator(BinaryCombinator):
 
 class DescendantCombinator(BinaryCombinator):
 	"""
-	A :class:`DescendantCombinator` is a :class:`BinaryCombinator`. To match the
-	:class:`DescendantCombinator` the node must match the right hand selector
+	A :class:`!DescendantCombinator` is a :class:`BinaryCombinator`. To match the
+	:class:`!DescendantCombinator` the node must match the right hand selector
 	and any of its ancestor nodes must match the left hand selector (i.e. it
 	works similar to the descendant combinator in CSS or the ``//`` combinator
 	in XPath).
 
-	:class:`DescendantCombinator` objects can be created via the floor division
+	:class:`!DescendantCombinator` objects can be created via the floor division
 	operator (``//``)::
 
 		>>> from ll.xist import xsc, parse
@@ -911,14 +911,15 @@ class DescendantCombinator(BinaryCombinator):
 
 class AdjacentSiblingCombinator(BinaryCombinator):
 	"""
-	A :class:`AdjacentSiblingCombinator` is a :class:`BinaryCombinator`.
-	To match the :class:`AdjacentSiblingCombinator` the node must match the
+	A :class:`!AdjacentSiblingCombinator` is a :class:`BinaryCombinator`.
+	To match the :class:`!AdjacentSiblingCombinator` the node must match the
 	right hand selector and the immediately preceding sibling must match the
 	left hand selector.
 
-	:class:`AdjacentSiblingCombinator` objects can be created via the
+	:class:`!AdjacentSiblingCombinator` objects can be created via the
 	multiplication operator (``*``). The following example outputs all
-	:class:`span` elements that immediately follow a :class:`form` element::
+	:class:`~ll.xist.ns.html.span` elements that immediately follow a
+	:class:`~ll.xist.ns.html.form` element::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -952,14 +953,15 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 
 class GeneralSiblingCombinator(BinaryCombinator):
 	"""
-	A :class:`GeneralSiblingCombinator` is a :class:`BinaryCombinator`.
-	To match the :class:`GeneralSiblingCombinator` the node must match the
+	A :class:`!GeneralSiblingCombinator` is a :class:`BinaryCombinator`.
+	To match the :class:`!GeneralSiblingCombinator` the node must match the
 	right hand selector and any of the preceding siblings must match the left
 	hand selector.
 
-	:class:`AdjacentSiblingCombinator` objects can be created via the
+	:class:`!AdjacentSiblingCombinator` objects can be created via the
 	exponentiation operator (``**``). The following example outputs all
-	:class:`meta` element that come after the :class:`link` elements::
+	:class:`~ll.xist.ns.html.meta` elements that come after a
+	:class:`~ll.xist.ns.html.link` elements::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -995,7 +997,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 
 class ChainedCombinator(Combinator):
 	"""
-	A :class:`ChainedCombinator` combines any number of other selectors.
+	A :class:`!ChainedCombinator` combines any number of other selectors.
 	"""
 
 	symbol = None
@@ -1016,9 +1018,9 @@ class ChainedCombinator(Combinator):
 
 class OrCombinator(ChainedCombinator):
 	"""
-	An :class:`OrCombinator` is a :class:`ChainedCombinator` where the node must
-	match at least one of the selectors to match the :class:`OrCombinator`. An
-	:class:`OrCombinator` can be created with the binary or operator (``|``)::
+	An :class:`!OrCombinator` is a :class:`ChainedCombinator` where the node must
+	match at least one of the selectors to match the :class:`!OrCombinator`. An
+	:class:`!OrCombinator` can be created with the binary or operator (``|``)::
 
 		>>> from ll.xist import xsc, parse, xfind
 		>>> from ll.xist.ns import xml, html, chars
@@ -1050,9 +1052,9 @@ class OrCombinator(ChainedCombinator):
 
 class AndCombinator(ChainedCombinator):
 	"""
-	An :class:`AndCombinator` is a :class:`ChainedCombinator` where the node
-	must match all of the combined selectors to match the :class:`AndCombinator`.
-	An :class:`AndCombinator` can be created with the binary and operator
+	An :class:`!AndCombinator` is a :class:`ChainedCombinator` where the node
+	must match all of the combined selectors to match the :class:`!AndCombinator`.
+	An :class:`!AndCombinator` can be created with the binary and operator
 	(``&``)::
 
 		>>> from ll.xist import xsc, parse, xfind
@@ -1080,9 +1082,9 @@ class AndCombinator(ChainedCombinator):
 
 class NotCombinator(Combinator):
 	"""
-	A :class:`NotCombinator` inverts the selection logic of the underlying
+	A :class:`!NotCombinator` inverts the selection logic of the underlying
 	selector, i.e. a node matches only if it does not match the underlying
-	selector. A :class:`NotCombinator` can be created with the unary inversion
+	selector. A :class:`!NotCombinator` can be created with the unary inversion
 	operator (``~``).
 
 	The following example outputs all internal scripts::
@@ -1127,9 +1129,9 @@ class NotCombinator(Combinator):
 
 class CallableSelector(Selector):
 	"""
-	A :class:`CallableSelector` is a selector that calls a user specified
+	A :class:`!CallableSelector` is a selector that calls a user specified
 	callable to select nodes. The callable gets passed the path and must return
-	a bool specifying whether this path is selected. A :class:`CallableSelector`
+	a bool specifying whether this path is selected. A :class:`!CallableSelector`
 	is created implicitely whenever a callable is passed to a method that
 	expects a selector.
 
@@ -1169,7 +1171,7 @@ class CallableSelector(Selector):
 
 class nthchild(Selector):
 	"""
-	An :class:`nthchild` object is a selector that selects every node that is
+	An :class:`!nthchild` object is a selector that selects every node that is
 	the n-th child of its parent. E.g. ``nthchild(0)`` selects every first
 	child, ``nthchild(-1)`` selects each last child. Furthermore
 	``nthchild("even")`` selects each first, third, fifth, ... child and
@@ -1198,9 +1200,9 @@ class nthchild(Selector):
 
 class nthoftype(Selector):
 	"""
-	An :class:`nthoftype` object is a selector that selects every node that is
+	An :class:`!nthoftype` object is a selector that selects every node that is
 	the n-th node of a specified type among its siblings. Similar to
-	:class:`nthchild` :class:`nthoftype` supports negative and positive indices
+	:class:`nthchild` :class:`!nthoftype` supports negative and positive indices
 	as well as ``"even"`` and ``"odd"``. Which types are checked can be passed
 	explicitly. If no types are passed the type of the node itself is used::
 
