@@ -245,9 +245,9 @@ It is possible to send an email when a job fails. For this, the options
 appropriate class attributes) have to be set. If the job terminates because of
 an exception or exceeds its maximum runtime (and the option
 :option:`--noisykills` is set) or any of the calls to :meth:`~Job.log` include
-the tag ``email``, an email will be sent. This email includes the last 10
-logging calls and the final exception (if there is any) in plain text and HTML
-format as well as as a JSON attachment.
+the tag ``email`` or ``external``, an email will be sent. This email includes
+the last 10 logging calls and the final exception (if there is any) in plain
+text and HTML format as well as as a JSON attachment.
 
 
 Mattermost
@@ -256,8 +256,9 @@ Mattermost
 It is possible to send log entries to a Mattermost_ chat channel. For this the
 options :option:`--mattermost_url`, :option:`--mattermost_channel` and
 :option:`--mattermost_token` (or the appropriate class attributes) must be
-specified. All log entries including the tag ``mattermost``, as well as
-all exceptions that abort the job will be sent to the Mattermost channel.
+specified. All log entries including the tag ``mattermost`` or ``external``,
+as well as all exceptions that abort the job will be sent to the Mattermost
+channel.
 
 .. _Mattermost: https://mattermost.com/
 
@@ -267,8 +268,8 @@ Sentry
 
 It is possible to send log entries to a Sentry_ server. For this the
 option :option:`--sentry_dsn` (or the appropriate class attribute) must be
-specified. All log entries including the tag ``sentry``, as well as
-all exceptions that abort the job will be sent to the Sentry server.
+specified. All log entries including the tag ``sentry`` or ``external``, as
+well as all exceptions that abort the job will be sent to the Sentry server.
 
 .. _Sentry: https://sentry.io/
 
@@ -545,7 +546,9 @@ class Job:
 
 		This email will only be sent if the options :option:`--fromemail`,
 		:option:`--toemail` and :option:`--smtphost` are set (and any error
-		or output to the email log occured).
+		or output to the email log occured, which only happens ehen the log entry
+		has the tag ``email`` or ``external``, or if it is an exception that
+		aborts the job run).
 
 	.. option:: --toemail <emailadress>
 
@@ -580,7 +583,7 @@ class Job:
 		A log entry will only be posted to the Mattermost chat channel if the
 		options :option:`--mattermost_url`, :option:`--mattermost_channel` and
 		:option:`--mattermost_token` are set (and the log entry has the tag
-		``mattermost``).
+		``mattermost`` or ``external`` or is an exception that aborts the job run).
 
 		Note that using this feature requires :mod:`requests`.
 
@@ -624,6 +627,10 @@ class Job:
 
 		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
 		``yes`` or ``1``)
+
+		A log entry will only be sent to Sentry if the options
+		:option:`--sentry_dsn` is are set (and the log entry has the tag
+		``sentry`` or ``external``, or is an exception that aborts the job run).
 
 	.. option:: -m <seconds>, --maxtime <seconds>
 
