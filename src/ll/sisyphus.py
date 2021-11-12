@@ -546,7 +546,7 @@ class Job:
 
 		This email will only be sent if the options :option:`--fromemail`,
 		:option:`--toemail` and :option:`--smtphost` are set (and any error
-		or output to the email log occured, which only happens ehen the log entry
+		or output to the email log occured, which only happens when the log entry
 		has the tag ``email`` or ``external``, or if it is an exception that
 		aborts the job run).
 
