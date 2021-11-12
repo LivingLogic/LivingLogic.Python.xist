@@ -8,12 +8,17 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 10/??/2021)
+Changes in HEAD (released 11/??/2021)
 -------------------------------------
 
 *	The UL4 function ``urlquote()`` now uses :func:`urllib.parse.quote` instead
-	of :func:`urllib.parse.quote_plus`. This means that the pace character will
+	of :func:`urllib.parse.quote_plus`. This means that the space character will
 	get encoded as ``%20`` instead of ``+``.
+
+*	:class:`ll.xist.xsc._Node_Meta` no longer overwrites :meth:`__or__` (since
+	in Python 3.10 this now returns a union type). Instead
+	:func:`ll.xist.xfind.selector` converts a union type into a
+	:class:`ll.xist.xfind.IsInstanceSelector`.
 
 
 Changes in 5.68.1 (released 09/23/2021)
