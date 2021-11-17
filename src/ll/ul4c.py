@@ -1263,7 +1263,7 @@ TimeDeltaType = TimeDeltaType(None, "timedelta", "A time span")
 
 
 class DictType(Type):
-	plainattrs = {"items", "values", "clear", "pop"}
+	plainattrs = {"keys", "items", "values", "clear", "pop"}
 	wrappedmethattrs = {"get", "update"}
 
 	def __call__(self, *args, **kwargs):
@@ -1670,7 +1670,7 @@ class CodeAST(AST):
 @register("const")
 class ConstAST(CodeAST):
 	"""
-	AST node for load a constant value.
+	AST node for a constant value.
 
 	Attributes are:
 
@@ -3537,7 +3537,7 @@ class EQAST(BinaryAST):
 @register("ne")
 class NEAST(BinaryAST):
 	"""
-	AST node for a binary inequalitiy comparison (e.g. ``x != y``).
+	AST node for a binary inequality comparison (e.g. ``x != y``).
 
 	Attributes are:
 
@@ -3684,8 +3684,7 @@ class NotContainsAST(BinaryAST):
 @register("add")
 class AddAST(BinaryAST):
 	"""
-	AST node for a binary addition expression that adds its two operands and
-	returns the result  (e.g. ``x + y``).
+	AST node for a binary addition expression (e.g. ``x + y``).
 
 	Attributes are:
 
@@ -3711,7 +3710,7 @@ class AddAST(BinaryAST):
 @register("sub")
 class SubAST(BinaryAST):
 	"""
-	AST node for the binary subtraction operator.
+	AST node for the binary subtraction expression (e.g. ``x - y``).
 	"""
 
 	ul4_type = Type("ul4")

@@ -20,6 +20,9 @@ Changes in HEAD (released 11/??/2021)
 	:func:`ll.xist.xfind.selector` converts a union type into a
 	:class:`ll.xist.xfind.IsInstanceSelector`.
 
+*	Added the method ``keys`` to UL4 ``dict`` objects (The method was
+	already documented).
+
 
 Changes in 5.68.1 (released 09/23/2021)
 ---------------------------------------
