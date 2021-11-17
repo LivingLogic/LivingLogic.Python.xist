@@ -101,6 +101,11 @@ def test_lum():
 	assert math.isclose(0.0722, color.css("#00f").lum())
 
 
+def test_withhue():
+	assert color.css("#f00") == color.css("#0f0").withhue(0/6)
+	assert color.css("#0f0") == color.css("#f00").withhue(2/6)
+
+
 def test_withlight():
 	assert color.white == color.black.withlight(1.0)
 	assert color.black == color.black.withlight(0.0)
@@ -131,6 +136,11 @@ def test_rellight():
 	assert color.css('#ccc') == color.white.rellight(-0.2)
 	assert color.css('#666') == color.css('#ccc').rellight(-0.5)
 	assert color.black == color.white.rellight(-1.0)
+
+
+def test_withsat():
+	assert color.css("#7f7f7f") == color.css("#0f0").withsat(0.0)
+	assert color.css("#0f0") == color.css("#0f0").withsat(1.0)
 
 
 def test_witha():

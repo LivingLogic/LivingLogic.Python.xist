@@ -4841,6 +4841,16 @@ def test_color_method_lum(T):
 
 
 @pytest.mark.ul4
+def test_color_method_withhue(T):
+	assert '#f00' == T('<?code m = #0f0.withhue?><?print m(0/6)?>').renders()
+	assert '#f00' == T('<?print #0f0.withhue(0/6)?>').renders()
+	assert '#0f0' == T('<?print #f00.withhue(2/6)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#f00' == T('<?print #0f0.withhue(hue=0)?>').renders()
+
+
+@pytest.mark.ul4
 def test_color_method_withlight(T):
 	assert '#fff' == T('<?code m = #000.withlight?><?print m(1.0)?>').renders()
 	assert '#fff' == T('<?print #000.withlight(1.0)?>').renders()
@@ -4885,6 +4895,18 @@ def test_color_method_rellight(T):
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '#fff' == T('<?print #000.rellight(f=1)?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_withsat(T):
+	# Javascript rounds differently (i.e. Python and Java return ``#7f7f7f``,
+	# but Javascript returns ``#808080``).
+	assert T('<?code m = #0f0.withsat?><?print m(0.0)?>').renders() in {'#7f7f7f', '#808080'}
+	assert T('<?print #0f0.withsat(0.0)?>').renders() in {'#7f7f7f', '#808080'}
+	assert '#0f0' == T('<?print #0f0.withsat(1.0)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert T('<?print #0f0.withsat(sat=0)?>').renders() in {'#7f7f7f', '#808080'}
 
 
 @pytest.mark.ul4
