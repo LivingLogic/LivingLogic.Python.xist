@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 11/??/2021)
+Changes in 5.69 (released 11/17/2021)
 -------------------------------------
 
 *	The UL4 function ``urlquote()`` now uses :func:`urllib.parse.quote` instead
