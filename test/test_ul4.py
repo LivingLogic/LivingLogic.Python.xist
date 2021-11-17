@@ -4724,6 +4724,15 @@ def test_method_date_datetime(T):
 
 
 @pytest.mark.ul4
+def test_method_keys(T):
+	assert "a;b;c;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for key in data.keys()?><?print key?>;<?end for?>").renders()
+	assert "a;b;c;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.keys?><?for key in m()?><?print key?>;<?end for?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print {}.keys(42)?>").renders()
+
+
+@pytest.mark.ul4
 def test_method_items(T):
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for (key, value) in data.items()?><?print key?>:<?print value?>;<?end for?>").renders()
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.items?><?for (key, value) in m()?><?print key?>:<?print value?>;<?end for?>").renders()
