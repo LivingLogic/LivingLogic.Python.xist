@@ -554,6 +554,7 @@ unknownkeywordargument = _make_exception_re(
 	"too many keyword arguments",
 	"takes no keyword arguments",
 	"got some positional-only arguments passed as keyword arguments",
+	"'[a-zA-Z_][a-zA-Z0-9_]*' is an invalid keyword argument for [a-zA-Z_][a-zA-Z0-9_]*\\(\\)",
 )
 
 missingkeywordargument = _make_exception_re(
@@ -2468,7 +2469,7 @@ def test_function_int(T):
 	with raises(argumentmismatchmessage):
 		T("<?print int(1, 2, 3)?>").renders()
 
-	with raises("int\\(\\) argument must be a string, a bytes-like object or a number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported|Can't convert null to int!"):
+	with raises("int\\(\\) argument must be a string, a bytes-like object or a (real )?number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported|Can't convert null to int!"):
 		T("<?print int(data)?>").renders(data=None)
 
 	with raises("invalid literal for int|NumberFormatException"):
@@ -2499,7 +2500,7 @@ def test_function_float(T):
 	with raises(argumentmismatchmessage):
 		T("<?print float(1, 2, 3)?>").renders()
 
-	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported|Can't convert null to float!"):
+	with raises("float\\(\\) argument must be a string or a (real )?number|float\\(null\\) not supported|Can't convert null to float!"):
 		t.renders(data=None)
 
 	with raises(unknownkeywordargument):
