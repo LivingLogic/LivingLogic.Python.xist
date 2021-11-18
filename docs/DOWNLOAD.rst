@@ -23,9 +23,9 @@ File                                                                            
 `ll-xist-5.69.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.tar.gz>`_                                                         Source                          731K
 `ll-xist-5.69.win-amd64-py3.10.msi <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.win-amd64-py3.10.msi>`_                             Windows installer (Python 3.10) 1332K
 `ll-xist-5.69.win32-py3.10.msi <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.win32-py3.10.msi>`_                                     Windows installer (Python 3.10) 1280K
-`ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl>`_ Mac wheel (Python 3.1.0)        554K
-`ll_xist-5.69-cp310-cp310-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-win32.whl>`_                           Windows wheel (Python 3.1.0)    553K
-`ll_xist-5.69-cp310-cp310-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-win_amd64.whl>`_                   Windows wheel (Python 3.1.0)    556K
+`ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl>`_ Mac wheel (Python 3.10)         554K
+`ll_xist-5.69-cp310-cp310-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-win32.whl>`_                           Windows wheel (Python 3.10)     553K
+`ll_xist-5.69-cp310-cp310-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-win_amd64.whl>`_                   Windows wheel (Python 3.10)     556K
 `ll_xist-5.69-cp38-cp38-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp38-cp38-win32.whl>`_                               Windows wheel (Python 3.8)      553K
 `ll_xist-5.69-cp38-cp38-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp38-cp38-win_amd64.whl>`_                       Windows wheel (Python 3.8)      556K
 `ll_xist-5.69-cp39-cp39-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp39-cp39-win32.whl>`_                               Windows wheel (Python 3.9)      553K
@@ -46,8 +46,8 @@ File                                                                            
 `ll-xist-5.68.1.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.68.1.tar.gz>`_                                                     Source                          730K
 `ll-xist-5.68.1.win-amd64-py3.10.msi <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.68.1.win-amd64-py3.10.msi>`_                         Windows installer (Python 3.10) 1332K
 `ll-xist-5.68.1.win32-py3.10.msi <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.68.1.win32-py3.10.msi>`_                                 Windows installer (Python 3.10) 1280K
-`ll_xist-5.68.1-cp310-cp310-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp310-cp310-win32.whl>`_                       Windows wheel (Python 3.1.0)    553K
-`ll_xist-5.68.1-cp310-cp310-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp310-cp310-win_amd64.whl>`_               Windows wheel (Python 3.1.0)    555K
+`ll_xist-5.68.1-cp310-cp310-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp310-cp310-win32.whl>`_                       Windows wheel (Python 3.10)     553K
+`ll_xist-5.68.1-cp310-cp310-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp310-cp310-win_amd64.whl>`_               Windows wheel (Python 3.10)     555K
 `ll_xist-5.68.1-cp36-cp36m-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp36-cp36m-win32.whl>`_                         Windows wheel (Python 3.6)      556K
 `ll_xist-5.68.1-cp36-cp36m-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp36-cp36m-win_amd64.whl>`_                 Windows wheel (Python 3.6)      559K
 `ll_xist-5.68.1-cp37-cp37m-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.68.1-cp37-cp37m-win32.whl>`_                         Windows wheel (Python 3.7)      553K

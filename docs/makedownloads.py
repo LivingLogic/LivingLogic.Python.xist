@@ -32,7 +32,7 @@ class File:
 			pos = name.find("-cp")
 			if pos >= 0:
 				version = name[pos+3:].split("-")[0]
-				version = ".".join(version)
+				version = f"{version[0]}.{version[1:]}"
 				self.type += f" (Python {version})"
 		elif name.endswith((".exe", ".msi")):
 			self.type = "Windows installer"
