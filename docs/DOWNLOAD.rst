@@ -17,12 +17,20 @@ You can download XIST from the Cheeseshop_, go directly to the
 
 .. rst-class:: download
 
-========================================================================================================================================================= ======================== ====
-File                                                                                                                                                      Type                     Size
-========================================================================================================================================================= ======================== ====
-`ll-xist-5.69.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.tar.gz>`_                                                         Source                   731K
-`ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl>`_ Mac wheel (Python 3.1.0) 554K
-========================================================================================================================================================= ======================== ====
+========================================================================================================================================================= =============================== =====
+File                                                                                                                                                      Type                            Size
+========================================================================================================================================================= =============================== =====
+`ll-xist-5.69.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.tar.gz>`_                                                         Source                          731K
+`ll-xist-5.69.win-amd64-py3.10.msi <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.win-amd64-py3.10.msi>`_                             Windows installer (Python 3.10) 1332K
+`ll-xist-5.69.win32-py3.10.msi <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.69.win32-py3.10.msi>`_                                     Windows installer (Python 3.10) 1280K
+`ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-macosx_11_0_x86_64.whl>`_ Mac wheel (Python 3.1.0)        554K
+`ll_xist-5.69-cp310-cp310-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-win32.whl>`_                           Windows wheel (Python 3.1.0)    553K
+`ll_xist-5.69-cp310-cp310-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp310-cp310-win_amd64.whl>`_                   Windows wheel (Python 3.1.0)    556K
+`ll_xist-5.69-cp38-cp38-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp38-cp38-win32.whl>`_                               Windows wheel (Python 3.8)      553K
+`ll_xist-5.69-cp38-cp38-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp38-cp38-win_amd64.whl>`_                       Windows wheel (Python 3.8)      556K
+`ll_xist-5.69-cp39-cp39-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp39-cp39-win32.whl>`_                               Windows wheel (Python 3.9)      553K
+`ll_xist-5.69-cp39-cp39-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.69-cp39-cp39-win_amd64.whl>`_                       Windows wheel (Python 3.9)      556K
+========================================================================================================================================================= =============================== =====
 
 
 5.68.1 (released 09/23/2021)
