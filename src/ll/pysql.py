@@ -1773,7 +1773,7 @@ class drop_types(_DatabaseCommand):
 		The types of objects to drop (value must be names for :mod:`ll.orasql`
 		object types.
 
-	``keep`` : list string (required)
+	``keep`` : list of strings (optional)
 		The types of objects to keep (value must be names for :mod:`ll.orasql`
 		object types.
 
