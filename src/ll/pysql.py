@@ -2597,6 +2597,13 @@ class Context:
 		if connectstring is not None:
 			self.handlers.append(Handler.from_connectstring(connectstring))
 
+		self._locals = dict(vars) if vars else {}
+		for command in Command.commands.values():
+			self._locals[command.__name__] = CommandExecutor(command, self)
+		self._locals["sqlexpr"] = sqlexpr
+		self._locals["datetime"] = datetime
+		self._locals["connection"] = self.handlers[-1].connection if self.handlers else None
+
 	def log(self, command, *objects):
 		if self.verbose in {"log", "full"}:
 			now = datetime.datetime.now()
@@ -2633,7 +2640,7 @@ class Context:
 		``stream`` must be an iterable over lines that contain the PySQL
 		commands.
 		"""
-		self._locals["connection"] = self.connections[-1] if self.connections else None
+		self._locals["connection"] = self.handlers[-1].connection if self.handlers else None
 
 		def blocks():
 			# ``state`` is the state of the "parser", values have the following meaning
