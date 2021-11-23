@@ -28,7 +28,9 @@ Functions
 =======================
 
 ``isundefined(foo)`` returns ``True`` if ``foo`` is ``Undefined``, else
-``False`` is returned::
+``False`` is returned:
+
+.. sourcecode:: ul4
 
 	data is <?if isundefined(data)?>undefined<?else?>defined<?end if?>!
 
@@ -37,7 +39,9 @@ Functions
 =====================
 
 ``isdefined(foo)`` returns ``False`` if ``foo`` is ``Undefined``, else
-``True`` is returned::
+``True`` is returned:
+
+.. sourcecode:: ul4
 
 	data is <?if isdefined(data)?>defined<?else?>undefined<?end if?>!
 
@@ -46,7 +50,9 @@ Functions
 ==================
 
 ``isnone(foo)`` returns ``True`` if ``foo`` is ``None``, else ``False`` is
-returned::
+returned:
+
+.. sourcecode:: ul4
 
 	data is <?if isnone(data)?>None<?else?>something else<?end if?>!
 
@@ -149,7 +155,9 @@ is returned.
 
 ``istemplate(obj, type)`` returns ``True`` if ``obj`` is a instance of the
 type ``type``. ``type`` must be a type object. For type objects see
-:ref:`UL4_Types`. For example ::
+:ref:`UL4_Types`. For example
+
+.. sourcecode:: ul4
 
 	<?print isinstance("gurk", str)?>
 
@@ -183,8 +191,19 @@ specific to the type of ``value``).
 
 The third (optional) argument ``lang`` is the target language.
 
-So for example ``format(@(2000-02-29), "%a, %d. %b. %Y", "de")`` outputs
-``Di, 29. Feb. 2000`` and ``format(42, "08b")`` outputs ``00101010``.
+So for example
+
+.. sourcecode:: ul4
+
+	<?print format(@(2000-02-29), "%a, %d. %b. %Y", "de")?>
+
+outputs ``Di, 29. Feb. 2000`` and
+
+.. sourcecode:: ul4
+
+	<?print format(42, "08b")?>
+
+outputs ``00101010``.
 
 UL4 tries to follow Pythons convention for the format string specification,
 so for more information see the documentation for Pythons :func:`format`
@@ -292,13 +311,17 @@ true. Otherwise ``False`` is returns. If ``foo`` is empty ``True`` is returned.
 Enumerates the items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and for each item in the original iterable returns a two
 item list containing the item position and the item itself. For example the
-following code::
+following code:
+
+.. sourcecode:: ul4
 
 	<?for (i, c) in enumerate("foo")?>
 		(<?print c?>=<?print i?>)
 	<?end for?>
 
-prints::
+prints
+
+.. sourcecode:: output
 
 	(f=0)(o=1)(o=2)
 
@@ -308,7 +331,9 @@ prints::
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the first
-and/or last in the iterable. For example the following code::
+and/or last in the iterable. For example the following code:
+
+.. sourcecode:: ul4
 
 	<?for (first, last, c) in isfirstlast("foo")?>
 		<?if first?>[<?end if?>
@@ -316,7 +341,9 @@ and/or last in the iterable. For example the following code::
 		<?if last?>]<?end if?>
 	<?end for?>
 
-prints::
+prints
+
+.. sourcecode:: output
 
 	[(f)(o)(o)]
 
@@ -326,14 +353,18 @@ prints::
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the first
-in the iterable. For example the following code::
+in the iterable. For example the following code:
+
+.. sourcecode:: ul4
 
 	<?for (first, c) in isfirst("foo")?>
 		<?if first?>[<?end if?>
 		(<?print c?>)
 	<?end for?>
 
-prints::
+prints
+
+.. sourcecode:: output
 
 	[(f)(o)(o)
 
@@ -343,14 +374,18 @@ prints::
 
 Iterates through items of the argument (which must be iterable, i.e. a string,
 a list or dictionary) and gives information about whether the item is the last
-in the iterable. For example the following code::
+in the iterable. For example the following code:
+
+.. sourcecode:: ul4
 
 	<?for (last, c) in islast("foo")?>
 		(<?print c?>)
 		<?if last?>]<?end if?>
 	<?end for?>
 
-prints::
+prints
+
+.. sourcecode:: output
 
 	(f)(o)(o)]
 
@@ -361,7 +396,9 @@ prints::
 This function is a combination of ``enumerate`` and ``isfirstlast``. It iterates
 through items of the argument (which must be iterable, i.e. a string, a list
 or dictionary) and gives information about whether the item is the first
-and/or last in the iterable and its position. For example the following code::
+and/or last in the iterable and its position. For example the following code:
+
+.. sourcecode:: ul4
 
 	<?for (index, first, last, c) in enumfl("foo")?>
 		<?if first?>[<?end if?>
@@ -369,7 +406,9 @@ and/or last in the iterable and its position. For example the following code::
 		<?if last?>]<?end if?>
 	<?end for?>
 
-prints::
+prints
+
+.. sourcecode:: output
 
 	[(f=0)(o=1)(o=2)]
 
@@ -395,11 +434,15 @@ to ``None``) is returned.
 
 ``xmlescape`` takes a string as an argument. It returns a new string where the
 characters ``&``, ``<``, ``>``, ``'`` and ``"`` have been replaced with the
-appropriate XML entity or character reference. For example::
+appropriate XML entity or character reference. For example:
+
+.. sourcecode:: ul4
 
 	<?print xmlescape("<'foo' & 'bar'>")?>
 
-prints::
+prints
+
+.. sourcecode:: html
 
 	&lt;&#39;foo&#39; &amp; ;&#39;bar&#39&gt;
 
@@ -444,11 +487,15 @@ output ``5050``.
 ``sorted(iterable, /, key=None, reverse=False)``
 ================================================
 
-``sorted`` returns a sorted list with the items from its argument. For example::
+``sorted`` returns a sorted list with the items from its argument. For example:
+
+.. sourcecode:: ul4
 
 	<?for c in sorted('abracadabra')?><?print c?><?end for?>
 
-prints::
+prints
+
+.. sourcecode:: output
 
 	aaaaabbcdrr
 
@@ -505,11 +552,15 @@ For example ``<?print bin(42)?>`` outputs ``0b101010``.
 ``range`` returns an object that can be iterated and will produce consecutive
 integers up to the specified argument. With two arguments the first is the start
 value and the second is the stop value. With three arguments the third one is
-the step size (which can be negative). For example the following template::
+the step size (which can be negative). For example the following template:
+
+.. sourcecode:: ul4
 
 	<?for i in range(4, 10, 2)?>(<?print i?>)<?end for?>
 
-outputs::
+prints
+
+.. sourcecode:: output
 
 	(4)(6)(8)
 
@@ -524,7 +575,9 @@ outputs::
 *	four arguments, the red, green, blue and alpha values.
 
 Arguments are treated as values from 0 to 1 and will be clipped accordingly. For
-example::
+example:
+
+.. sourcecode:: ul4
 
 	<?print rgb(1, 1, 1)?>
 
@@ -574,22 +627,30 @@ when ``r`` is the random value, ``(r-start) % step`` will always be ``0``).
 ====================
 
 ``urlquote`` escaped special characters for including the output in URLs. For
-example::
+example:
+
+.. sourcecode:: ul4
 
 	<?print urlquote("/\xff")?>
 
-outputs::
+prints
+
+.. sourcecode:: output
 
 	%2F%C3%BF
 
 ``urlunquote(string)``
 ======================
 
-``urlunquote`` is the inverse function to ``urlquote``. So::
+``urlunquote`` is the inverse function to ``urlquote``. So:
+
+.. sourcecode:: ul4
 
 	<?print urlunquote("%2F%C3%BC")?>
 
-outputs::
+prints
+
+.. sourcecode:: output
 
 	/ü
 

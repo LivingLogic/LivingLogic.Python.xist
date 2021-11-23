@@ -431,7 +431,7 @@ class Connection(Connection):
 
 		``readlobs`` : bool or integer
 			If ``readlobs`` is :const:`False` all cursor fetches return
-			:class:`LOBStream` objects for LOB object. If ``readlobs`` is an
+			:class:`LOBStream` objects for LOB objects. If ``readlobs`` is an
 			:class:`int` LOBs with a maximum size of ``readlobs`` will be
 			returned as :class:`bytes`/:class:`str` objects. If ``readlobs``
 			is :const:`True` all LOB values will be returned as
@@ -688,11 +688,15 @@ class Connection(Connection):
 				return cls(rec.object_name, rec.owner, self)
 		raise SQLNoSuchObjectError(name, owner)
 
-	def getobject(self, name, owner=None):
+	def objects_named(self, name, owner=None):
 		"""
-		Return the object named ``name`` from the schema. If ``owner`` is
+		Return all objects named ``name`` from the schema. If ``owner`` is
 		:const:`None` the current schema is queried, else the specified one is
 		used. ``name`` and ``owner`` are treated case insensitively.
+
+		There might be multiple object with the same name, if these names only
+		differ in casing. Also there *will* be multiple object with the same name
+		for packages and package bodies.
 		"""
 		if isinstance(name, str):
 			name = str(name)
@@ -744,16 +748,35 @@ class Connection(Connection):
 			"""
 			cursor.execute(query, object_name=name, owner=owner)
 
-		rec = cursor.fetchone()
-		if rec is not None:
+		for rec in cursor:
 			type = rec.object_type.lower()
 			try:
 				cls = SchemaObject.name2type[type]
 			except KeyError:
 				raise TypeError(f"type {type} not supported")
 			else:
-				return cls(rec.object_name, rec.owner, self)
-		raise SQLNoSuchObjectError(name, owner)
+				yield cls(rec.object_name, rec.owner, self)
+
+	def object_named(self, name, owner=None):
+		"""
+		Return the object named ``name`` from the schema. If ``owner`` is
+		:const:`None` the current schema is queried, else the specified one is
+		used. ``name`` and ``owner`` are treated case insensitively.
+
+		If there are multiple objects with the same name, which one gets returned
+		is undefined.
+
+		If there is no such object an :exc:`SQLNoSuchObjectError` exception will
+		be raised.
+		"""
+		result = misc.first(self.objects_named(name, owner))
+		if result is None:
+			raise SQLNoSuchObjectError(name, owner)
+		return result
+
+	# For backwards compatibility
+	def getobject(self, name, owner=None):
+		return object_named(self, name, owner=None)
 
 
 def connect(*args, **kwargs):
@@ -1902,6 +1925,24 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		table has no primary key constraint).
 		"""
 		return misc.first(self._iterconstraints(connection, "= 'P'"), None)
+
+	def fks(self, connection=None):
+		"""
+		Return the foreign key constraints for this table.
+		"""
+		return self._iterconstraints(connection, "= 'R'")
+
+	def uniques(self, connection=None):
+		"""
+		Return the unique constraints for this table.
+		"""
+		return self._iterconstraints(connection, "= 'U'")
+
+	def checks(self, connection=None):
+		"""
+		Return the unique constraints for this table.
+		"""
+		return self._iterconstraints(connection, "= 'C'")
 
 	def references(self, connection=None):
 		connection = self.getconnection(connection)

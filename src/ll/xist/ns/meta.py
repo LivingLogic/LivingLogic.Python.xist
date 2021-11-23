@@ -17,7 +17,7 @@ when converted.
 
 
 from ll.xist import xsc, sims
-from ll.xist.ns import ihtml, html
+from ll.xist.ns import html
 
 
 __docformat__ = "reStructuredText"
@@ -45,7 +45,7 @@ class contenttype(html.meta):
 
 	def convert(self, converter):
 		target = converter.target
-		if target.xmlns in (ihtml.xmlns, html.xmlns):
+		if target.xmlns == html.xmlns:
 			e = target.meta(
 				self.attrs.withoutnames("mimetype"),
 				http_equiv="Content-Type",

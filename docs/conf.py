@@ -43,7 +43,7 @@ latex.LaTeXTranslator.visit_definition = visit_definition
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '3.5.0' # This fixed bug #6165 (``tab_width`` was ignored)
+needs_sphinx = '4.1' # This fixed bug #6165 (``tab_width`` was ignored)
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -151,11 +151,12 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'livinglogic-light'
 
-
 tab_width = 3
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
+
+graphviz_output_format = "png"
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
@@ -375,8 +376,8 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-	'python': ('https://docs.python.org/3.6', None),
-	'requests': ('https://requests.kennethreitz.org/en/master/', None),
+	'python': ('https://docs.python.org/3.8', None),
+	'requests': ('https://docs.python-requests.org/en/master/', None),
 	'cx_Oracle': ('https://cx-oracle.readthedocs.io/en/latest/', None),
 	'psycopg2': ('https://www.psycopg.org/docs/', None),
 	'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
@@ -397,6 +398,7 @@ autodoc_default_options = {
 }
 
 autodoc_typehints = "signature"
+autodoc_class_signature = "separated"
 
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
@@ -418,14 +420,7 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
 
 
 class HTML5Translator(html5.HTML5Translator):
-	def visit_desc_returns(self, node):
-		self.body.append(' <span class="sig-return">')
-		self.body.append('<span class="sig-return-icon">')
-		self.body.append('&#x2192;')
-		self.body.append('</span> <span class="sig-return-typehint">')
-
-	def depart_desc_returns(self, node):
-		self.body.append('</span></span>')
+	pass
 
 
 class OutputLexer(lexer.Lexer):
@@ -443,7 +438,7 @@ class OutputLexer(lexer.Lexer):
 
 class UL4Lexer(lexer.RegexLexer):
 	"""
-	Generic lexer for XML (eXtensible Markup Language).
+	Generic lexer for UL4 (the Universal LivingLogic Layout Language).
 	"""
 
 	flags = re.MULTILINE | re.DOTALL | re.UNICODE
@@ -472,6 +467,11 @@ class UL4Lexer(lexer.RegexLexer):
 				token.String.Doc,
 			),
 			(
+				r"<\?\s*ignore\s*\?>",
+				token.Comment,
+				"ignore",
+			),
+			(
 				r"(<\?\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
 				lexer.bygroups(token.Comment.Preproc, token.Keyword, token.Text, token.Token.Name.Function),
 				"ul4",
@@ -493,6 +493,11 @@ class UL4Lexer(lexer.RegexLexer):
 			),
 			(r"[^<]+", token.Token.Other),
 			(r"<", token.Token.Other),
+		],
+		"ignore": [
+			(r"<\?\s*ignore\s*\?>", token.Comment, "ignore"),
+			(r"<\?\s*end\s+ignore\s*\?>", token.Comment, "#pop"),
+			(r".+", token.Comment),
 		],
 		"ul4": [
 			(r"\?>", token.Comment.Preproc, "#pop"),
@@ -555,6 +560,10 @@ class UL4Lexer(lexer.RegexLexer):
 	}
 
 class HTMLUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in HTML.
+	"""
+
 	name = 'HTML+UL4'
 	aliases = ['html+ul4']
 	filenames = ['*.htmlul4']
@@ -564,6 +573,10 @@ class HTMLUL4Lexer(lexer.DelegatingLexer):
 
 
 class XMLUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in XML.
+	"""
+
 	name = 'XML+UL4'
 	aliases = ['xml+ul4']
 	filenames = ['*.xmlul4']
@@ -573,6 +586,10 @@ class XMLUL4Lexer(lexer.DelegatingLexer):
 
 
 class CSSUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in CSS.
+	"""
+
 	name = 'CSS+UL4'
 	aliases = ['css+ul4']
 	filenames = ['*.cssul4']
@@ -582,6 +599,10 @@ class CSSUL4Lexer(lexer.DelegatingLexer):
 
 
 class JavascriptUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in Javascript.
+	"""
+
 	name = 'Javascript+UL4'
 	aliases = ['js+ul4']
 	filenames = ['*.jsul4']
@@ -591,6 +612,10 @@ class JavascriptUL4Lexer(lexer.DelegatingLexer):
 
 
 class PythonUL4Lexer(lexer.DelegatingLexer):
+	"""
+	Lexer for UL4 embedded in Python.
+	"""
+
 	name = 'Python+UL4'
 	aliases = ['py+ul4']
 	filenames = ['*.pyul4']
@@ -600,7 +625,7 @@ class PythonUL4Lexer(lexer.DelegatingLexer):
 
 
 def setup(app):
-	app.require_sphinx("3.5")
+	app.require_sphinx("4.1")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
 	app.add_lexer("output", OutputLexer)

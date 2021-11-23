@@ -30,6 +30,22 @@
 		<link rel="canonical" href="{{ theme_canonical_url }}{{ pagename }}.html"/>
 	{% endif %}
 
+	{# CSS #}
+	<link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+	<link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
+
+	{%- for css in css_files %}
+		{%- if css|attr("rel") %}
+			<link rel="{{ css.rel }}" href="{{ pathto(css.filename, 1)|e }}" type="text/css"{% if css.title is not none %} title="{{ css.title|e }}"{% endif %}{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
+		{%- else %}
+			<link rel="stylesheet" href="{{ pathto(css, 1)|e }}" type="text/css"{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
+		{%- endif %}
+	{%- endfor %}
+
+	{%- for cssfile in extra_css_files %}
+		<link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
+	{%- endfor %}
+
 	{# JAVASCRIPTS #}
 	<script type="text/javascript" src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
 	{%- if not embedded %}
@@ -64,22 +80,6 @@
 				href="{{ pathto('_static/opensearch.xml', 1) }}"/>
 		{%- endif %}
 	{%- endif %}
-
-	{# CSS #}
-	<link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
-	<link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
-
-	{%- for css in css_files %}
-		{%- if css|attr("rel") %}
-			<link rel="{{ css.rel }}" href="{{ pathto(css.filename, 1)|e }}" type="text/css"{% if css.title is not none %} title="{{ css.title|e }}"{% endif %}{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
-		{%- else %}
-			<link rel="stylesheet" href="{{ pathto(css, 1)|e }}" type="text/css"{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
-		{%- endif %}
-	{%- endfor %}
-
-	{%- for cssfile in extra_css_files %}
-		<link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
-	{%- endfor %}
 
 	{%- block linktags %}
 		{%- if hasdoc('about') %}

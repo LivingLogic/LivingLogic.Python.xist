@@ -20,7 +20,9 @@ languages.
 In the template source any text surrounded by ``<?`` and ``?>`` is a "template
 tag". The first word inside the tag is the tag type. It defines what the tag
 does. For example ``<?print foo?>`` is a print tag (it prints the value of the
-variable ``foo``). A complete example template looks like this::
+variable ``foo``). A complete example template looks like this:
+
+.. sourcecode:: xml+ul4
 
 	<?if data?>
 		<ul>

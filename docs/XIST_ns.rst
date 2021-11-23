@@ -10,7 +10,6 @@
 
    XIST_ns_html
    XIST_ns_xml
-   XIST_ns_ihtml
    XIST_ns_docbook
    XIST_ns_svg
    XIST_ns_abbr
@@ -23,7 +22,6 @@
    XIST_ns_specials
    XIST_ns_htmlspecials
    XIST_ns_doc
-   XIST_ns_kid
    XIST_ns_detox
    XIST_ns_toxic
    XIST_ns_rng

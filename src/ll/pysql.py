@@ -84,33 +84,40 @@ a line that only contains ``name(`` and end at a line that only contains ``)``.
 The following commands are available:
 
 :class:`include`
-	Includes another PySQL file;
+	Include another PySQL file;
 
 :class:`connect`
-	Connects to a database;
+	Connect to a database;
 
 :class:`disconnect`
-	Disconnects from the active database connection;
+	Disconnect from the active database connection;
 
 :class:`procedure`
-	Call a procedure in the database (and handles OUT parameter via :class:`var`
+	Call a procedure in the database (and handle OUT parameters via :class:`var`
 	objects);
 
 :class:`sql`
-	Executes an SQL statement in the database (and handles OUT parameter via
+	Execute an SQL statement in the database (and handle OUT parameter via
 	:class:`var` objects);
 
+:class:`literalsql`
+	Execute an SQL statement in the database (this is what SQL commands get
+	converted to);
+
 :class:`commit`
-	Commits the transaction in the active database connection;
+	Commit the transaction in the active database connection;
 
 :class:`rollback`
-	Rolls back the transaction in the active database connection;
+	Roll back the transaction in the active database connection;
+
+:class:`literalpy`
+	Execute Python code (this is what literal Python blocks get converted to);
 
 :class:`setvar`
-	Sets a variable;
+	Set a variable;
 
 :class:`unsetvar`
-	Deletes a variable;
+	Delete a variable;
 
 :class:`raise_exceptions`
 	Set the exception handling mode;
@@ -125,47 +132,47 @@ The following commands are available:
 	Checks whether there are invalid database objects;
 
 :class:`scp`
-	Creates a file on a remote host via :program:`scp`;
+	Create a file on a remote host via :program:`scp`;
 
 :class:`file`
-	Creates a file on the local machine;
+	Create a file on the local machine;
 
 :class:`reset_sequence`
 	Resets a database sequence to the maximum value of a field in a table;
 
 :class:`user_exists`
-	Tests whether a database user exists;
+	Test whether a database user exists;
 
 :class:`schema_exists`
 	Tests whether a database schema exists (which is the same as a user for
 	Oracle);
 
 :class:`object_exists`
-	Tests whether a database object (table, package, procedure, etc.) exists;
+	Test whether a database object (table, package, procedure, etc.) exists;
 
 :class:`constraint_exists`
-	Tests whether a database constraint (primary key, foreign key, unique or
+	Test whether a database constraint (primary key, foriegn key, unique or
 	check constraint) exists;
 
 :class:`drop_types`
-	Drops all database objects of a certain type;
+	Drop all database objects of a certain type;
 
 :class:`comment`
-	A comment
+	A comment;
 
 :class:`loadbytes`
-	Loads the binary content of a file;
+	Load the binary content of a file;
 
 :class:`loadstr`
-	Loads the text content of a file;
+	Load the text content of a file;
 
 :class:`var`
-	Marks an argument for a :class:`procedure` or :class:`sql` command as being
-	an OUT parameter (or passes the value of the variable in subsequent
+	Mark an argument for a :class:`procedure` or :class:`sql` command as being
+	an OUT parameter (or pass the value of the variable in subsequent
 	:class:`procedure`/:class:`sql` commands);
 
 :class:`env`
-	Returns the value of an environment variable.
+	Return the value of an environment variable.
 
 
 Comments
@@ -334,7 +341,7 @@ procedure and will call the procedure to insert data into the table::
 This file can then be imported into an Oracle database with the following
 command::
 
-	python -m ll.pysql data.pysql -d oracle:user/pwd@database
+	python -m ll.pysql -d user/pwd@database data.pysql
 
 This will create two sequences, two tables and two procedures. Then it will
 import two records, one by calling ``person_insert`` and one by calling
@@ -418,7 +425,8 @@ file like this::
 
 	loadbytes("path/to/file.png")
 
-A string can be loaded with the :class:`loadstr` command like this::
+A :class:`str` object can be loaded with the :class:`loadstr` command like
+this::
 
 	loadstr("path/to/file.txt", encoding="utf-8", errors="replace")
 
@@ -453,7 +461,7 @@ command line options:
 		``file`` (the file names and line numbers from which code gets executed),
 		``log`` (the log messages output by the commands) or ``full``
 		(source code that will be executed and the log messages output by the
-		commands)
+		commands).
 
 	``-d``, ``--database``
 		The initial database connection that will be used before any additional
@@ -1377,8 +1385,8 @@ class PostgresHandler(DBHandler):
 class Command:
 	"""
 	The base class of all commands. A :class:`Command` object is created from a
-	function call in a PySQL file and then immediatetel the method
-	:meth:`execute` will be called to execute the command.
+	function call in a PySQL file and then immediatly the method :meth:`execute`
+	will be called to execute the command.
 
 	The only parameters in the call that is supported by all commands are the
 	following:
@@ -1391,7 +1399,7 @@ class Command:
 
 	``cond`` : bool (optional)
 		Specifies whether this command should be executed or not.
-		If ``cond`` is true (the default), the command will be executed,
+		If ``cond`` is :const:`True` (the default), the command will be executed,
 		else it won't.
 	"""
 
@@ -1510,7 +1518,8 @@ class connect(Command):
 	connection. Parameter have the following meaning:
 
 	``mode`` : string or :const:`None` (optional)
-		The connection mode: This can be either ``'sysdba'`` or :const:`None`.
+		The connection mode: This can be either ``'sysdba'`` or :const:`None`
+		(the default).
 
 	``retry`` : int (optional)
 		The number of times PySQL tries to get a database connection.
@@ -1609,7 +1618,7 @@ class procedure(_SQLCommand):
 			``var("foo_10")`` the value of the ``OUT`` parameter will be stored
 			under the key ``"foo_10"``. The next time ``var("foo_10")`` is
 			encountered the value stored under the key ``"foo_10"`` will be passed
-			to the procedure. The type of the variable defaults to ``int``.
+			to the procedure. The type of the variable defaults to :class:`int`.
 			If a different type is required it can be passed as the second
 			argument to :class:`var`, e.g. ``var("foo_10", str)``.
 
@@ -1959,7 +1968,7 @@ class scp(Command):
 		replaced by the correct variable values. As these files will be copied via
 		the :program:`scp` program, ssh file names can be used.
 
-	``content``: bytes (required)
+	``content`` : bytes (required)
 		The content of the file to be created. This can also be a
 		:class:`loadbytes` command to load the content from an external file.
 
@@ -1995,18 +2004,18 @@ class file(Command):
 		in a :class:`procedure` or :class:`sql` command). These specifiers will
 		be replaced by the correct variable values.
 
-	``content``: bytes (required)
+	``content`` : bytes (required)
 		The content of the file to be created. This can also be a
 		:class:`loadbytes` command to load the content from an external file.
 
-	``mode``: integer (optional)
+	``mode`` : integer (optional)
 		The file mode for the new file. If the mode is specified, :func:`os.chmod`
 		will be called on the file.
 
-	``owner``: integer or string (optional)
+	``owner`` : integer or string (optional)
 		The owner of the file (as a user name or a uid).
 
-	``group``: integer or string (optional)
+	``group`` : integer or string (optional)
 		The owning group of the file (as a group name or a gid).
 		If ``owner`` or ``group`` is given, :func:`os.chown` will be called on
 		the file.
@@ -2044,17 +2053,23 @@ class reset_sequence(_DatabaseCommand):
 	the maximum value of a field in a table. The following parameters are
 	supported:
 
-	``sequence``: string (required)
+	``sequence`` : string (required)
 		The name of the sequence to reset.
 
-	``table``: string (required)
+	``table`` : string (required)
 		The name of the table that contains the field.
 
-	``field``: string (required)
+	``field`` : string (required)
 		The name of the field in the table ``table``. The sequence will be
 		reset to a value so that fetching the next value from the sequence
 		will deliver a value that is larger than the maximum value of the field
 		``field`` in the table ``table``.
+
+	``minvalue`` : integer (optional, default taken from sequence)
+		The minimum value for the sequence.
+
+	``increment`` : integer (optional, default taken from sequence)
+		The increment (i.e. the step size) for the sequence.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
@@ -2086,7 +2101,7 @@ class user_exists(_DatabaseCommand):
 	The :class:`!user_exists` command returns whether a user with a specified
 	name exists in the database. It supports the following parameters:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the user to be checked for existence.
 
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
@@ -2138,10 +2153,10 @@ class object_exists(_DatabaseCommand):
 	The :class:`!object_exists` command returns whether an object with a
 	specified name exists in the database. It supports the following parameters:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the object to be checked for existence.
 
-	``owner``: string (optional)
+	``owner`` : string (optional)
 		The owner of the object (defaults to the current user if not specified
 		or :const:`None`).
 
@@ -2174,10 +2189,10 @@ class constraint_exists(_DatabaseCommand):
 	a primary key, foreign key, unique or check constraint) with a specified name
 	exists in the database. It supports the following parameters:
 
-	``name``: string (required)
+	``name`` : string (required)
 		The name of the object to be checked for existence.
 
-	``owner``: string (optional)
+	``owner`` : string (optional)
 		The owner of the constraint (defaults to the current user if not specified
 		or :const:`None`).
 
@@ -2209,11 +2224,11 @@ class drop_types(_DatabaseCommand):
 
 	:class:`!drop_types` supports the following parameters:
 
-	``drop``: list of strings (optional)
+	``drop`` : list of strings (optional)
 		The types of objects to drop (value must be names for :mod:`ll.orasql`
 		object types.
 
-	``keep``: list string (required)
+	``keep`` : list of strings (optional)
 		The types of objects to keep (value must be names for :mod:`ll.orasql`
 		object types.
 
@@ -2299,7 +2314,7 @@ class loadstr(Command):
 	``filename`` : string (required)
 		The name of the file to be loaded. The filename is treated as being
 		relative to the directory containing the PySQL file that contains the
-		the :class:`!loadstr` command.
+		:class:`!loadstr` command.
 
 	``encoding`` : string (optional)
 		The encoding used for decoding the bytes in the file to text.
@@ -2313,7 +2328,7 @@ class loadstr(Command):
 
 	def __init__(self, filename, *, encoding=None, errors="strict", raise_exceptions=None, cond=True):
 		"""
-		Create a new :class:`loadbytes` object. 
+		Create a new :class:`loadstr` object. 
 		"""
 		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 		self.filename = filename
@@ -2413,7 +2428,7 @@ class log(Command):
 	The following parameters are supported:
 
 	``objects`` : Any
-		The objects to log. String will be logged directly. For all other
+		The objects to log. Strings will be logged directly. For all other
 		objects :func:`repr` will be called.
 	"""
 
@@ -2568,7 +2583,7 @@ class Context:
 		self.filename = None
 		self._lastlocation = None
 		self._lastcommand = None
-		self._locals = vars or {}
+
 		for fd in range(3):
 			try:
 				self._width = os.get_terminal_size(fd)[0]
@@ -2578,6 +2593,7 @@ class Context:
 				break
 		else:
 			self._width = 80
+
 		if connectstring is not None:
 			self.handlers.append(Handler.from_connectstring(connectstring))
 
@@ -2611,23 +2627,13 @@ class Context:
 			self.filename = oldfilename
 			os.chdir(oldcwd)
 
-	def globals(self):
-		vars = {command.__name__: CommandExecutor(command, self) for command in Command.commands.values()}
-		vars["sqlexpr"] = sqlexpr
-		vars["datetime"] = datetime
-		vars["connection"] = self.handlers[-1].connection
-		vars["DB_TYPE_CLOB"] = cx_Oracle.DB_TYPE_CLOB if cx_Oracle is not None else None
-		vars["DB_TYPE_NCLOB"] = cx_Oracle.DB_TYPE_NCLOB if cx_Oracle is not None else None
-		vars["DB_TYPE_BLOB"] = cx_Oracle.DB_TYPE_BLOB if cx_Oracle is not None else None
-		return vars
-
 	def _load(self, stream):
 		"""
 		Load a PySQL file from ``stream`` and executes the commands in the file.
 		``stream`` must be an iterable over lines that contain the PySQL
 		commands.
 		"""
-		vars = self.globals()
+		self._locals["connection"] = self.connections[-1] if self.connections else None
 
 		def blocks():
 			# ``state`` is the state of the "parser", values have the following meaning
@@ -2715,14 +2721,14 @@ class Context:
 					CommandExecutor(literalpy, self)(source)
 				elif state == "dict":
 					code = compile(source, str(self._location.filename), "eval")
-					args = eval(code, vars, self._locals)
+					args = eval(code, self._locals)
 					type = args.pop("type", "procedure")
 					if type not in Command.commands:
 						raise ValueError(f"command type {type!r} unknown")
 					CommandExecutor(Command.commands[type], self)(**args)
 				else:
 					code = compile(source, str(self._location.filename), "exec")
-					exec(code, vars, self._locals)
+					exec(code, self._locals)
 
 	def executeall(self, *filenames):
 		"""
@@ -2991,15 +2997,13 @@ def define(arg):
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal integer value")
 	elif type == "float":
 		if not value:
-			return (name, None)
+			return (name, 0.)
 		try:
 			return (name, float(value))
 		except ValueError:
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal float value")
 	elif type == "bool":
-		if not value:
-			return (name, None)
-		elif value in ("0", "no", "false", "False"):
+		if value in ("", "0", "no", "false", "False"):
 			return (name, False)
 		elif value in ("1", "yes", "true", "True"):
 			return (name, True)
@@ -3007,7 +3011,7 @@ def define(arg):
 			raise argparse.ArgumentTypeError(f"{value!r} is not a legal bool value")
 	elif type and type != "str":
 		raise argparse.ArgumentTypeError(f"{type!r} is not a legal type")
-	return (name, value or None)
+	return (name, value)
 
 
 def source_format(object):

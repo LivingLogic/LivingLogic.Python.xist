@@ -21,7 +21,7 @@ from ll import ul4c
 
 from typing import *
 OptStr = Optional[str]
-Number = Union[int, str]
+Number = Union[int, float]
 
 
 __docformat__ = "reStructuredText"

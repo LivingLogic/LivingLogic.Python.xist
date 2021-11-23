@@ -1,0 +1,5 @@
+cx_Oracle
+ll-xist
+CherryPy
+Sphinx
+pygll

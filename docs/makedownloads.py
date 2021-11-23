@@ -32,9 +32,9 @@ class File:
 			pos = name.find("-cp")
 			if pos >= 0:
 				version = name[pos+3:].split("-")[0]
-				version = ".".join(version)
+				version = f"{version[0]}.{version[1:]}"
 				self.type += f" (Python {version})"
-		elif name.endswith(".exe"):
+		elif name.endswith((".exe", ".msi")):
 			self.type = "Windows installer"
 			pos = name.rfind("py")
 			if pos >= 0:
@@ -48,7 +48,7 @@ class File:
 			self.type = None
 		self.size = url_.size()
 		# Use the official http download URL (instead of the ssh one)
-		self.url = url.URL(f"http://python.livinglogic.de/download/xist/{self.url.file}")
+		self.url = url.URL(f"http://python-downloads.livinglogic.de/download/xist/{self.url.file}")
 
 	def restfile(self):
 		return f"`{self.url.file} <{self.url}>`_"
@@ -62,7 +62,7 @@ class Version:
 	def __init__(self, version, date):
 		self.version = version
 		self.date = datetime.datetime.strptime(date, "%m/%d/%Y")
-		u = url.URL("ssh://livpython@python.livinglogic.de/~/public_downloads/xist/")
+		u = url.URL("ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/")
 		files = u/u.files(f"*-{version}[-.][twpzc]*")
 		self.files = [File(f) for f in sorted(files, key=str)]
 
@@ -93,6 +93,13 @@ class Version:
 
 with url.Context():
 	versions = [
+		Version("5.69", "11/17/2021"),
+		Version("5.68.1", "09/23/2021"),
+		Version("5.68", "08/04/2021"),
+		Version("5.67.2", "06/30/2021"),
+		Version("5.67.1", "06/28/2021"),
+		Version("5.67", "06/25/2021"),
+		Version("5.66.1", "06/24/2021"),
 		Version("5.66", "06/15/2021"),
 		Version("5.65", "01/13/2021"),
 		Version("5.64", "10/30/2020"),

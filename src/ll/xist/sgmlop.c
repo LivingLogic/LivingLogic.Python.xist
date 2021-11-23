@@ -174,7 +174,7 @@ static PyObject *_sgmlop_new(int xml)
 	self = PyObject_GC_New(FastParserObject, &FastParser_Type);
 
 	if (self == NULL)
-	  return NULL;
+		return NULL;
 
 	self->xml = xml;
 
@@ -968,7 +968,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					goto next;
 				}
 			}
-  			entity:
+			entity:
 			if (self->handle_entityref) {
 				PyObject* res;
 				if (self->check && !self->check->entityref(self->check, b, e))

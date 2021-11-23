@@ -47,6 +47,91 @@ Changes in HEAD (released ??/??/2021)
 	simply pass the local variable instead.
 
 
+Changes in 5.69 (released 11/17/2021)
+-------------------------------------
+
+*	The UL4 function ``urlquote()`` now uses :func:`urllib.parse.quote` instead
+	of :func:`urllib.parse.quote_plus`. This means that the space character will
+	get encoded as ``%20`` instead of ``+``.
+
+*	:class:`ll.xist.xsc._Node_Meta` no longer overwrites :meth:`__or__` (since
+	in Python 3.10 this now returns a union type). Instead
+	:func:`ll.xist.xfind.selector` converts a union type into a
+	:class:`ll.xist.xfind.IsInstanceSelector`.
+
+*	Added the method ``keys`` to UL4 ``dict`` objects (The method was
+	already documented).
+
+
+Changes in 5.68.1 (released 09/23/2021)
+---------------------------------------
+
+*	Fixed a bug in :mod:`ll.pysql` that resulted in the local variable
+	``connection`` being wrapped in a tuple.
+
+
+Changes in 5.68 (released 08/04/2021)
+-------------------------------------
+
+*	UL4 templates now support the ``<?ignore?>`` tag. It can be used to
+	"comment out" template code. ``<?ignore?>``/``<?end ignore?>`` tags nest.
+
+*	Added the following three methods to :class:`ll.orasql.Table`:
+
+	*	:meth:`ll.orasql.Table.fks` returns all foreign keys for the table;
+	*	:meth:`ll.orasql.Table.uniques` returns all unique constraints for the table;
+	*	:meth:`ll.orasql.Table.checks` returns all check constraints for the table.
+
+*	Fixed scoping problems in literal Python blocks in PySQL scripts: List
+	comprehension were not able to access local variables.
+
+*	Removed the ancient XIST namespace modules :mod:`ll.xist.ns.kid` and
+	:mod:`ll.xist.ns.ihtml`.
+
+
+Changes in 5.67.2 (released 06/30/2021)
+---------------------------------------
+
+*	Fixed handling of values for the ``--define``/``--D`` option of
+	:mod:`ll.pysql`.
+
+
+Changes in 5.67.1 (released 06/28/2021)
+---------------------------------------
+
+*	Fixed a typo in the tag ``external`` when logging exceptions in Sisyphus jobs.
+
+
+Changes in 5.67 (released 06/25/2021)
+-------------------------------------
+
+*	Added the options ``--sentry_environment``, ``--sentry_release`` and
+	``--sentry_debug`` to Sisyphus jobs.
+
+*	Sisyphus jobs now warning when the modulde :mod:`sentry_sdk` can not be
+	imported.
+
+*	For Sisyphus jobs it's now possible to log to the
+	:class:`ll.sisyphus.EMailLogger`, :class:`ll.sisyphus.MattermostLogger`
+	and :class:`ll.sisyphus.SentryLogger` by using the tag ``external``.
+
+*	The Sispyhus log message for setting up the Sentry logging is now a
+	delayed message.
+
+*	The method :meth:`ll.orasql.Connection.getobject` has been renamed
+	to :meth:`ll.orasql.Connection.object_named`.
+
+*	The method :meth:`ll.orasql.Connection.objects_name` has been
+	added that returns all database objects with the specified name.
+
+
+Changes in 5.66.1 (released 06/24/2021)
+---------------------------------------
+
+*	When a sisyphus job logs to Sentry, flush messages after logging them
+	to make sure that they arrive even in forking mode.
+
+
 Changes in 5.66 (released 06/15/2021)
 -------------------------------------
 
@@ -124,7 +209,7 @@ Changes in 5.66 (released 06/15/2021)
 
 *	:class:`ll.sisyphus.Task`\s constructor and the method
 	:class:`ll.sisyphus.Job.task` now take arbitrary additional keyword arguments.
-	Those wll be passed as additional breadcrumb data when logging to Sentry.
+	Those will be passed as additional breadcrumb data when logging to Sentry.
 
 *	:meth:`ll.sisyphus.Job.tasks` now takes an additional argument ``data`` that
 	is responsible for returning additional data for the task.
@@ -136,7 +221,7 @@ Changes in 5.66 (released 06/15/2021)
 	:meth:`~ll.color.Color.hue`, :meth:`~ll.color.Color.light`,
 	:meth:`~ll.color.Color.sat`, :meth:`~ll.color.Color.withhue`,
 	:meth:`~ll.color.Color.withsat`, :meth:`~ll.color.Color.withlum`,
-	:meth:`~ll.color.Color.ablum`, :meth:`~ll.color.Color.rellum` and
+	:meth:`~ll.color.Color.abslum`, :meth:`~ll.color.Color.rellum` and
 	:meth:`~ll.color.Color.invert`. They have also been made available to UL4.
 	The color method :meth:`~ll.color.Color.combine` and the functions
 	:func:`ll.color.css` and  :func:`ll.color.mix` are now also available to UL4.
@@ -2546,7 +2631,7 @@ Changes in 3.20 (released 05/05/2011)
 *	:mod:`ll.orasql` now supports tables without columns.
 
 *	:class:`ll.orasql.Table` has a new method :meth:`pk` that returns the primary
-	key contraint (or :const:`None` if the table has now primary key contraint).
+	key constraint (or :const:`None` if the table has now primary key constraint).
 
 *	A bug in the queries for :class:`Index` objects in :mod:`ll.orasql` has been
 	fixed.
@@ -2581,7 +2666,7 @@ Changes in 3.18 (released 04/08/2011)
 
 *	Fixed :exc:`ZeroDivisionError` in script :program:`uls` for empty directories.
 
-*	Added a class method :meth:`ll.orasql.Contraint.iternames` and a class method
+*	Added a class method :meth:`ll.orasql.Constraint.iternames` and a class method
 	:meth:`ll.orasql.Index.iternames` that skips those indexes that are generated
 	by constraints. With this addition :program:`uls`/:program:`ucp` now
 	list/copy constraints and indexes properly. All ``iternames`` methods now

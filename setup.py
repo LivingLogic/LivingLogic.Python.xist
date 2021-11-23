@@ -6,10 +6,7 @@
 
 import os, re
 
-try:
-	import setuptools as tools
-except ImportError:
-	from distutils import core as tools
+import setuptools
 
 
 havecython = False
@@ -243,7 +240,7 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.66",
+	version="5.69",
 	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
@@ -257,10 +254,10 @@ args = dict(
 	packages=["antlr3", "ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts", "ll.orasql", "ll.orasql.scripts"],
 	package_data={"ll.xist": ["data/px/*.gif"]},
 	ext_modules=[
-		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
-		tools.Extension("ll._misc", ["src/ll/_misc.c"]),
-		tools.Extension("ll._xml_codec", ["src/ll/_xml_codec.c", "src/ll/_xml_codec_include1.c", "src/ll/_xml_codec_include2.c"]),
-		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"]),
+		setuptools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
+		setuptools.Extension("ll._misc", ["src/ll/_misc.c"]),
+		setuptools.Extension("ll._xml_codec", ["src/ll/_xml_codec.c", "src/ll/_xml_codec_include1.c", "src/ll/_xml_codec_include2.c"]),
+		setuptools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"]),
 	],
 	entry_points=dict(
 		console_scripts=[
@@ -306,6 +303,7 @@ args = dict(
 		"scripts/orafind.py",
 		"scripts/oracycles.py",
 	],
+	python_requires=">=3.8",
 	install_requires=[
 		"cssutils == 2.3.0",
 	],
@@ -321,13 +319,13 @@ args = dict(
 if havecython:
 	args["cmdclass"] = {"build_ext": build_ext}
 	args["ext_modules"].extend([
-		tools.Extension("ll.xist.xsc", ["src/ll/xist/xsc.py"]),
-		tools.Extension("ll.xist.parse", ["src/ll/xist/parse.py"]),
-		tools.Extension("ll.url", ["src/ll/url.py"]),
-		# tools.Extension("ll.ul4c", ["src/ll/ul4c.py"]),
-		tools.Extension("ll.misc", ["src/ll/misc.py"]),
-		# tools.Extension("ll.ul4on", ["src/ll/ul4on.py"]),
+		setuptools.Extension("ll.xist.xsc", ["src/ll/xist/xsc.py"]),
+		setuptools.Extension("ll.xist.parse", ["src/ll/xist/parse.py"]),
+		setuptools.Extension("ll.url", ["src/ll/url.py"]),
+		# setuptools.Extension("ll.ul4c", ["src/ll/ul4c.py"]),
+		setuptools.Extension("ll.misc", ["src/ll/misc.py"]),
+		# setuptools.Extension("ll.ul4on", ["src/ll/ul4on.py"]),
 	])
 
 if __name__ == "__main__":
-	tools.setup(**args)
+	setuptools.setup(**args)

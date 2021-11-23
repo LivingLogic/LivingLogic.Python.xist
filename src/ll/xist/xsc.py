@@ -1018,10 +1018,6 @@ class _Node_Meta(type):
 		from ll.xist import xfind
 		return xfind.IsInstanceSelector(self) & other
 
-	def __or__(self, other):
-		from ll.xist import xfind
-		return xfind.IsInstanceSelector(self) | other
-
 	def __getitem__(self, index):
 		from ll.xist import xfind
 		return xfind.IsInstanceSelector(self)[index]

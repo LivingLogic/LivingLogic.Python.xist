@@ -554,6 +554,7 @@ unknownkeywordargument = _make_exception_re(
 	"too many keyword arguments",
 	"takes no keyword arguments",
 	"got some positional-only arguments passed as keyword arguments",
+	"'[a-zA-Z_][a-zA-Z0-9_]*' is an invalid keyword argument for [a-zA-Z_][a-zA-Z0-9_]*\\(\\)",
 )
 
 missingkeywordargument = _make_exception_re(
@@ -1119,7 +1120,7 @@ def test_block_errors(T):
 	with raises("block unclosed"):
 		T('<?for x in data?>').renders()
 
-	with raises("for ended by endif|endif doesn't match any if"):
+	with raises("<\\?for\\?> ended by <\\?end if\\?>|<\\?end if\\?> doesn't match any <\\?if\\?>"):
 		T('<?for x in data?><?end if?>').renders()
 
 	with raises("not in any block"):
@@ -1131,7 +1132,7 @@ def test_block_errors(T):
 	with raises("not in any block"):
 		T('<?end if?>').renders()
 
-	with raises("else doesn't match any if"):
+	with raises("<\\?else\\?> doesn't match any <\\?if\\?>"):
 		T('<?else?>').renders()
 
 	with raises("block unclosed"):
@@ -1140,14 +1141,29 @@ def test_block_errors(T):
 	with raises("block unclosed"):
 		T('<?if data?><?else?>').renders()
 
-	with raises("duplicate else in if/elif/else chain|else already seen in if"):
+	with raises("duplicate <\\?else\\?> in <\\?if\\?>/<\\?elif\\?>/<\\?else\\?> chain|<\\?else\\?> already seen in <\\?if\\?>"):
 		T('<?if data?><?else?><?else?>').renders()
 
-	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
+	with raises("<\\?elif\\?> can't follow <\\?else\\?> in <\\?if\\?>/<\\?elif\\?>/<\\?else\\?> chain|<\\?else\\?> already seen in <\\?if\\?>"):
 		T('<?if data?><?else?><?elif data?>').renders()
 
-	with raises("elif can't follow else in if/elif/else chain|else already seen in if"):
+	with raises("<\\?elif\\?> can't follow <\\?else\\?> in <\\?if\\?>/<\\?elif\\?>/<\\?else\\?> chain|<\\?else\\?> already seen in <\\?if\\?>"):
 		T('<?if data?><?elif data?><?elif data?><?else?><?elif data?>').renders()
+
+	with raises("<\\?ignore\\?> block unclosed"):
+		T('<?ignore?><?ignore?>nix<?end ignore?>').renders()
+
+	with raises("not in any block"):
+		T('<?ignore?>nix<?end ignore?><?end ignore?>').renders()
+
+
+@pytest.mark.ul4
+def test_ignore(T):
+	assert "" == T("<?ignore?>nix<?end ignore?>").renders()
+	assert "" == T("<?ignore?><?if?>nix<?end ignore?>").renders()
+	assert "" == T("<?ignore?><?if?>nix<?end?><?end for?><?end ignore?>").renders()
+	assert "" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
+	assert "doch" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>doch<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
 
 
 @pytest.mark.ul4
@@ -2453,7 +2469,7 @@ def test_function_int(T):
 	with raises(argumentmismatchmessage):
 		T("<?print int(1, 2, 3)?>").renders()
 
-	with raises("int\\(\\) argument must be a string, a bytes-like object or a number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported|Can't convert null to int!"):
+	with raises("int\\(\\) argument must be a string, a bytes-like object or a (real )?number, not|int\\(\\) argument must be a string or a number|int\\(null\\) not supported|Can't convert null to int!"):
 		T("<?print int(data)?>").renders(data=None)
 
 	with raises("invalid literal for int|NumberFormatException"):
@@ -2484,7 +2500,7 @@ def test_function_float(T):
 	with raises(argumentmismatchmessage):
 		T("<?print float(1, 2, 3)?>").renders()
 
-	with raises("float\\(\\) argument must be a string or a number|float\\(null\\) not supported|Can't convert null to float!"):
+	with raises("float\\(\\) argument must be a string or a (real )?number|float\\(null\\) not supported|Can't convert null to float!"):
 		t.renders(data=None)
 
 	with raises(unknownkeywordargument):
@@ -3913,7 +3929,7 @@ def test_function_slice(T):
 @pytest.mark.ul4
 def test_function_urlquote(T):
 	assert "gurk" == T("<?print urlquote('gurk')?>").renders()
-	assert "%3C%3D%3E%2B%3F" == T("<?print urlquote('<=>+?')?>").renders()
+	assert "%3C%3D%3E%20%2B%20%3F" == T("<?print urlquote('<=> + ?')?>").renders()
 	assert "%7F%C3%BF%EF%BF%BF" == T("<?print urlquote('\u007f\u00ff\uffff')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
@@ -3923,7 +3939,7 @@ def test_function_urlquote(T):
 @pytest.mark.ul4
 def test_function_urlunquote(T):
 	assert "gurk" == T("<?print urlunquote('gurk')?>").renders()
-	assert "<=>+?" == T("<?print urlunquote('%3C%3D%3E%2B%3F')?>").renders()
+	assert "<=> + ?" == T("<?print urlunquote('%3C%3D%3E%20%2B%20%3F')?>").renders()
 	assert "\u007f\u00ff\uffff" == T("<?print urlunquote('%7F%C3%BF%EF%BF%BF')?>").renders()
 
 	# Make sure that the parameters have the same name in all implementations
@@ -4343,13 +4359,13 @@ def test_function_dir(T):
 	set() == t(data=True)
 	set() == t(data=42)
 	set() == t(data=42.5)
-	{"day", "hour", "isoformat", "microsecond", "mimeformat", "minute", "month", "second", "week", "weekday", "year", "yearday"} == t(data=datetime.datetime.now())
-	{'a', 'abslum', 'b', 'g', 'hls', 'hlsa', 'hsv', 'hsva', 'lum', 'r', 'rellum', 'witha', 'withlum'} == t(data=color.red)
-	{'append', 'count', 'find', 'insert', 'pop', 'rfind'} == t(data=[1, 2, 3])
-	{'add', 'clear'} == t(data={1, 2, 3})
-	{'clear', 'get', 'items', 'update', 'values'} == t(data={"a": 17, "b": 23})
+	assert {"calendar", "date", "day", "hour", "isoformat", "microsecond", "mimeformat", "minute", "month", "second", "week", "weekday", "year", "yearday"} == t(data=datetime.datetime.now())
+	assert {"a", "abslight", "abslum", "b", "combine", "g", "hls", "hlsa", "hsv", "hsva", "hue", "invert", "light", "lum", "r", "rellight", "rellum", "sat", "witha", "withhue", "withlight", "withlum", "withsat"} == t(data=color.red)
+	assert {"append", "count", "find", "insert", "pop", "rfind"} == t(data=[1, 2, 3])
+	assert {"add", "clear"} == t(data={1, 2, 3})
+	assert {"clear", "get", "items", "keys", "pop", "update", "values"} == t(data={"a": 17, "b": 23})
 	if T in (TemplatePython, TemplatePythonDump, TemplatePythonDumpS):
-		{'x', 'y'} == t(data=Point(17, 23))
+		assert {'x', 'y'} == t(data=Point(17, 23))
 
 	all = [
 		None,
@@ -4709,6 +4725,15 @@ def test_method_date_datetime(T):
 
 
 @pytest.mark.ul4
+def test_method_keys(T):
+	assert "a;b;c;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for key in data.keys()?><?print key?>;<?end for?>").renders()
+	assert "a;b;c;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.keys?><?for key in m()?><?print key?>;<?end for?>").renders()
+
+	with raises(argumentmismatchmessage):
+		T("<?print {}.keys(42)?>").renders()
+
+
+@pytest.mark.ul4
 def test_method_items(T):
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?for (key, value) in data.items()?><?print key?>:<?print value?>;<?end for?>").renders()
 	assert "a:42;b:17;c:23;" == T("<?code data = {'a': 42, 'b': 17, 'c': 23}?><?code m = data.items?><?for (key, value) in m()?><?print key?>:<?print value?>;<?end for?>").renders()
@@ -4826,6 +4851,16 @@ def test_color_method_lum(T):
 
 
 @pytest.mark.ul4
+def test_color_method_withhue(T):
+	assert '#f00' == T('<?code m = #0f0.withhue?><?print m(0/6)?>').renders()
+	assert '#f00' == T('<?print #0f0.withhue(0/6)?>').renders()
+	assert '#0f0' == T('<?print #f00.withhue(2/6)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert '#f00' == T('<?print #0f0.withhue(hue=0)?>').renders()
+
+
+@pytest.mark.ul4
 def test_color_method_withlight(T):
 	assert '#fff' == T('<?code m = #000.withlight?><?print m(1.0)?>').renders()
 	assert '#fff' == T('<?print #000.withlight(1.0)?>').renders()
@@ -4870,6 +4905,18 @@ def test_color_method_rellight(T):
 
 	# Make sure that the parameters have the same name in all implementations
 	assert '#fff' == T('<?print #000.rellight(f=1)?>').renders()
+
+
+@pytest.mark.ul4
+def test_color_method_withsat(T):
+	# Javascript rounds differently (i.e. Python and Java return ``#7f7f7f``,
+	# but Javascript returns ``#808080``).
+	assert T('<?code m = #0f0.withsat?><?print m(0.0)?>').renders() in {'#7f7f7f', '#808080'}
+	assert T('<?print #0f0.withsat(0.0)?>').renders() in {'#7f7f7f', '#808080'}
+	assert '#0f0' == T('<?print #0f0.withsat(1.0)?>').renders()
+
+	# Make sure that the parameters have the same name in all implementations
+	assert T('<?print #0f0.withsat(sat=0)?>').renders() in {'#7f7f7f', '#808080'}
 
 
 @pytest.mark.ul4

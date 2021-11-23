@@ -45,11 +45,9 @@ Commit everything up to now.
 
 Tag the release (with something like `rel-xx-yy` or `rel-xx-yy-zz`).
 
-Push the result to all repos::
+Push the resulting commit and the tag::
 
-	git push; git push --tags; git push github; git push --tags github
-
-(``github`` is ``git@github.com:LivingLogic/LivingLogic.Python.xist.git``)
+	git push; git push --tags
 
 Create the release on the external and internal download server (do this
 in the root directory)::
@@ -60,13 +58,16 @@ in the root directory)::
 Creating and deploying the documentation
 ----------------------------------------
 
-Recreate the documentation in ``docs/`` via (do this in the ``docs/``
-subdirectory) and deploy it to ``python.livinglogic.de``::
+Recreate the list of downloads in ``docs/`` via (do this in the ``docs/``
+subdirectory)::
 
-	make clean download doc deploy
+	make clean download
 
 As this has changed ``docs/DOWNLOAD.rst`` you need to check in the result and
-push it to all repos.
+push the resulting commit.
+
+Wait for Gitlab to finish building the container image, and then click the
+"deploy" button to deploy it to ``python.livinglogic.de``.
 
 
 Uploading the release to the cheeseshop
@@ -89,8 +90,11 @@ Creating the Windows packages
 Tell the Windows people that there's a new XIST release and wait until they've
 finished their release dance.
 
-Go to the ``docs/`` subdirectory, recreate the documentation and deploy it::
+Go to the ``docs/`` subdirectory and recreate the download list::
 
-	make clean download doc deploy
+	make clean download
 
 Check in the result and push it to all repos.
+
+Wait for Gitlab to finish building the container image, and then click the
+"deploy" button to deploy it to ``python.livinglogic.de``.

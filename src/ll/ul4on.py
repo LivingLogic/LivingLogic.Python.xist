@@ -157,7 +157,7 @@ the class with the UL4ON serialization machinery::
 
 This script outputs:
 
-.. sourcecode:: console
+.. sourcecode:: output
 
 	Dump: O S'com.example.person' S'John' S'Doe' )
 	Loaded: <Person firstname='John' lastname='Doe'>
@@ -258,7 +258,7 @@ For our example class it could be used like this::
 
 This outputs:
 
-.. sourcecode:: console
+.. sourcecode:: output
 
 	Loaded: <Person firstname='John' lastname=None>
 
@@ -280,7 +280,7 @@ An example for encoding::
 
 This prints:
 
-.. sourcecode:: console
+.. sourcecode:: output
 
 	S'spam'
 	^0
@@ -296,7 +296,7 @@ An example for decoding::
 
 This prints:
 
-.. sourcecode:: console
+.. sourcecode:: output
 
 	spam
 	spam
@@ -342,7 +342,7 @@ This outputs:
 
 By iterating through the ``data-ul4on`` attributes in the correct order and
 feeding each UL4ON chunk to the same decoder, all objects can be recreated and
-attached to their appriopriate HTML elements.
+attached to their appropriate HTML elements.
 
 
 Incremental UL4ON and persistent objects

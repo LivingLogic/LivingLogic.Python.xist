@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.gitlab.com/env: CI_ENVIRONMENT_SLUG
+    app.gitlab.com/app: CI_PROJECT_PATH_SLUG
+  labels:
+    app: xist
+    app.kubernetes.io/instance: xist
+  name: xist
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xist
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: xist
+      annotations:
+        app.gitlab.com/env: CI_ENVIRONMENT_SLUG
+        app.gitlab.com/app: CI_PROJECT_PATH_SLUG
+    spec:
+      containers:
+      - image: r.ll0.eu/livinglogic/xist:CI_COMMIT_SHORT_SHA
+        imagePullPolicy: Always
+        name: xist
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 2
+          successThreshold: 2
+          timeoutSeconds: 2
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "1"
+        ports:
+        - containerPort: 80
+          protocol: TCP
+      restartPolicy: Always
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: python.livinglogic.de
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-live
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: python.livinglogic.de
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: xist
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - python.livinglogic.de
+    secretName: python-livinglogic-de
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: xist
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: xist

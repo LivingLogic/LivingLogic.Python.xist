@@ -14,7 +14,9 @@ Python statements. In some spots it also borrows Javascript semantics.
 The ``print`` tag outputs the value of a variable or any other expression. If
 the expression doesn't evaluate to a string it will be converted to a string
 first. The format of the string depends on the renderer, but should follow
-Python's ``str()`` output as much as possible::
+Python's ``str()`` output as much as possible:
+
+.. sourcecode:: xml+ul4
 
 	<h1><?print person.lastname?>, <?print person.firstname?></h1>
 
@@ -40,7 +42,9 @@ character or entity references for XML or HTML output.
 
 The ``for`` tag can be used to loop over the items in a list, the characters in
 a string, the keys in a dictionary or any other iterable object. The end of the
-loop body must be marked with an ``<?end for?>`` tag::
+loop body must be marked with an ``<?end for?>`` tag:
+
+.. sourcecode:: xml+ul4
 
 	<ul>
 		<?for person in data.persons?>
@@ -48,13 +52,17 @@ loop body must be marked with an ``<?end for?>`` tag::
 		<?end for?>
 	</ul>
 
-In ``for`` loops variable unpacking is supported, so you can do the following::
+In ``for`` loops variable unpacking is supported, so you can do the following:
+
+.. sourcecode:: ul4
 
 	<?for (key, value) in dict.items()?>
 
 if ``dict`` is a dictionary.
 
-This unpacking can be arbitrarily nested, i.e. the following is possible too::
+This unpacking can be arbitrarily nested, i.e. the following is possible too:
+
+.. sourcecode:: ul4
 
 	<?for (i, (key, value)) in enumerate(dict.items())?>
 
@@ -97,7 +105,9 @@ condition is true. The end of the ``if`` block must be marked with an
 *	``Undefined`` is false.
 *	Anything else is true.
 
-For example we can output the person list only if there are any persons::
+For example we can output the person list only if there are any persons:
+
+.. sourcecode:: xml+ul4
 
 	<?if persons?>
 		<ul>
@@ -107,7 +117,9 @@ For example we can output the person list only if there are any persons::
 		</ul>
 	<?end if?>
 
-``elif`` and ``else`` are supported too::
+``elif`` and ``else`` are supported too:
+
+.. sourcecode:: xml+ul4
 
 	<?if persons?>
 		<ul>
@@ -119,7 +131,9 @@ For example we can output the person list only if there are any persons::
 		<p>No persons found!</p>
 	<?end if?>
 
-or::
+or:
+
+.. sourcecode:: xml+ul4
 
 	<?if len(persons)==0?>
 		No persons found!
@@ -162,7 +176,9 @@ supported:
 *	``^=`` (Does bitwise "exclusive-or" operation and replaces the variable
 	value with the result)
 
-For example the following template will output ``40``::
+For example the following template will output ``40``:
+
+.. sourcecode:: ul4
 
 	<?code x = 17?>
 	<?code x += 23?>
@@ -177,7 +193,9 @@ For example the following template will output ``40``::
 ==============
 
 The ``render`` tag allows one template to call other templates. The following
-Python code demonstrates this::
+Python code demonstrates this:
+
+.. sourcecode:: python
 
 	from ll import ul4c
 
@@ -202,7 +220,9 @@ Python code demonstrates this::
 
 	print(tmpl1.renders(itemtmpl=tmpl2, data=data))
 
-This will output::
+This will output:
+
+.. sourcecode:: html
 
 	<ul>
 	<li>Python</li>
@@ -225,7 +245,9 @@ name ``item``.
 
 The ``renderx`` tag works similar to the ``render`` tag, except that the output
 of the template called will be XML escaped (like ``printx`` does). The following
-Python code demonstrates this::
+Python code demonstrates this:
+
+.. sourcecode:: python
 
 	from ll import ul4c
 
@@ -237,7 +259,9 @@ Python code demonstrates this::
 
 	print(tmpl1.renders(tmpl=tmpl2))
 
-This will output::
+This will output:
+
+.. sourcecode:: html
 
 	&lt;&amp;&gt;
 
@@ -248,7 +272,9 @@ This will output::
 ``<?def?>``
 ===========
 
-The ``def`` tag defines a new template as a variable. Usage looks like this::
+The ``def`` tag defines a new template as a variable. Usage looks like this:
+
+.. sourcecode:: ul4
 
 	<?def quote?>
 		"<?print text?>"
@@ -256,13 +282,17 @@ The ``def`` tag defines a new template as a variable. Usage looks like this::
 
 This defines a local variable ``quote`` that is a template object. This template
 can be rendered like any other template that has been passed to the outermost
-template::
+template:
+
+.. sourcecode:: ul4
 
 	<?render quote(text="foo")?>
 
 It's also possible to include a signature in the definition of the template.
 This makes it possible to define default values for template variables and to
-call templates with positional arguments::
+call templates with positional arguments:
+
+.. sourcecode:: ul4
 
 	<?def quote(text='foo')?>
 		"<?print text?>"
@@ -271,7 +301,9 @@ call templates with positional arguments::
 
 This will output ``"foo" and "bar"``.
 
-``*`` and ``**`` arguments are also supported::
+``*`` and ``**`` arguments are also supported:
+
+.. sourcecode:: ul4
 
 	<?def weightedsum(*args)?>
 		<?print sum(i*arg for (i, arg) in enumerate(args, 1))?>
@@ -290,7 +322,9 @@ This will print ``189`` (i.e. ``1 * 17 + 2 * 23 + 3 * 42``).
 
 The ``renderblocks`` tag is syntactic sugar for rendering a template and
 passing other templates as arguments in the call. For example if we have the
-following template::
+following template:
+
+.. sourcecode:: xml+ul4
 
 	<?def page(head, body, lang="en", doctype=False)?>
 		<?if doctype?>
@@ -306,7 +340,9 @@ following template::
 		</html>
 	<?end def?>
 
-then we can render this template in the following way::
+then we can render this template in the following way:
+
+.. sourcecode:: xml+ul4
 
 	<?renderblocks page(lang="de", doctype=True)?>
 		<?def head?>
@@ -317,7 +353,9 @@ then we can render this template in the following way::
 		<?end def?>
 	<?end renderblocks?>
 
-This is syntactic sugar for::
+This is syntactic sugar for:
+
+.. sourcecode:: xml+ul4
 
 	<?def head?>
 		<title>Foo</title>
@@ -327,7 +365,9 @@ This is syntactic sugar for::
 	<?end def?>
 	<?render page(lang="de", doctype=True, head=head, body=body)?>
 
-In both cases the output will be::
+In both cases the output will be:
+
+.. sourcecode:: html
 
 	<!DOCTYPE html>
 	<html lang="de">
@@ -357,7 +397,9 @@ The ``renderblock`` is a special version of ``renderblocks``. The complete
 content of the ``renderblock`` block will be wrapped in a signatureless template
 named ``content`` and this template will be passed as the keyword argument
 ``content`` to the render call. With this we can define a generic template for
-HTML links::
+HTML links:
+
+.. sourcecode:: ul4
 
 	<?def a(content, **attrs)?>
 		<a<?for (an, av) in attrs.items()?> <?print an?>="<?printx av?>"<?end for?>>
@@ -365,13 +407,17 @@ HTML links::
 		</a>
 	<?end def?>
 
-and then use it like this::
+and then use it like this:
+
+.. sourcecode:: xml+ul4
 
 	<?renderblock a(class="extern", href="http://www.python.org/")?>
 		Link to the Python homepage
 	<?end renderblock?>
 
-The output will be::
+The output will be:
+
+.. sourcecode:: html
 
 	<a class="extern" href="http://www.python.org/">
 		Link to the Python homepage
@@ -396,7 +442,9 @@ called as a function. For more info see :ref:`UL4_TemplatesAsFunctions`.
 
 The ``ul4`` tag can be used to specify a name and a signature for the template
 itself. This overwrites the name and signature specified in the
-:class:`ul4c.Template` constructor::
+:class:`ul4c.Template` constructor:
+
+.. sourcecode:: python
 
 	>>> from ll import ul4c
 	>>> t = ul4c.Template("<?ul4 foo(x)?><?print x?>")
@@ -413,7 +461,8 @@ itself. This overwrites the name and signature specified in the
 ``<?note?>``
 ============
 
-A ``note`` tag is a comment, i.e. the content of the tag will be completely
+A ``note`` tag is a comment and can be used to explain the template code.
+When the template gets executed, the content of the tag will be completely
 ignored.
 
 .. hint::
@@ -424,7 +473,9 @@ ignored.
 ===========
 
 A ``doc`` tag contains the documentation of the template itself. The content
-of the ``<?doc?>`` tag is available as the ``doc`` attribute::
+of the ``<?doc?>`` tag is available as the ``doc`` attribute:
+
+.. sourcecode:: python
 
 	>>> from ll import ul4c
 	>>> t = ul4c.Template("<?doc foo?><?print x?>")
@@ -439,7 +490,9 @@ a local template, it is the documentation for the local template. If multiple
 be ignored.
 
 Note that the template name, documentation and signature are accessible inside
-the templates themselves, i.e. ::
+the templates themselves, i.e.:
+
+.. sourcecode:: ul4
 
 	<?def f(x=17, y=23)?>
 		<?doc return the sum of x and y?>
@@ -449,7 +502,9 @@ the templates themselves, i.e. ::
 	<?print f.doc?>
 	<?print f.signature?>
 
-will output ::
+will output:
+
+.. sourcecode:: output
 
 	f
 	return the sum of x and y
@@ -458,6 +513,36 @@ will output ::
 .. hint::
 	A ``<?doc?>`` tag has no corresponding AST nodes. Its content will set the
 	``doc`` property of the template instead.
+
+
+``<?ignore?>``
+==============
+
+An ``ignore`` tag can be used to "comment out" template code, so that the
+code will never be executed. ``<?ignore?>`` and ``<?end ignore?>`` tags nest,
+so code that already contains ``<?ignore?>`` and ``<?end ignore?>`` tags
+can be ignored by added additional ``<?ignore?>`` and ``<?end ignore?>`` tags
+around it.
+
+It is not required that the content between the ``<?ignore?>`` and
+``<?end ignore?>`` tag is proper UL4 code.
+
+For example the follow template won't output anything:
+
+.. sourcecode:: ul4
+
+	<?ignore?>
+		<?for i in range(20)?>
+			<?print i?>
+		<?end for?>
+		<?ignore?>
+			<?note Unfinished if?>
+			<?if 42?>
+		<?end ignore?>
+	<?end ignore?>
+
+.. hint::
+	An ``<?ignore?>`` tag has no corresponding AST nodes.
 
 
 ``<?whitespace?>``

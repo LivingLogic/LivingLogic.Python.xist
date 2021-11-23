@@ -14,16 +14,22 @@ Generator expressions
 UL4 supports generator expressions with look like list comprehensions without
 the square brackets. Generator expression do not create lists in memory but
 instead return an iterable that can be iterated once. Function and methods
-that require an iterable argument can directly consume such iterables::
+that require an iterable argument can directly consume such iterables:
+
+.. sourcecode:: ul4
 
 	<?print ", ".join("(" + c + ")" for c in "gurk")?>
 
-will output::
+will output
+
+.. sourcecode:: output
 
 	(g), (u), (r), (k)
 
 Outside of function/method arguments (or when more that one argument is passed)
-parentheses are required around generator expressions::
+parentheses are required around generator expressions:
+
+.. sourcecode:: ul4
 
 	<?code ge = ("(" + c + ")" for c in "gurk")?>
 	<?print ", ".join(ge)?>
@@ -57,11 +63,19 @@ or list, a special "undefined" object is returned.
 Slices are also supported (for list and string objects). As in Python one or
 both of the indexes may be missing to start at the first or end after the last
 character/item. Negative indexes are relative to the end. Indexes that are out
-of bounds are simply clipped:
+of bounds are simply clipped, so
 
-*	``<?print "Hello, World!"[7:-1]?>`` prints ``World``.
+.. sourcecode:: ul4
 
-*	``<?print "Hello, World!"[:-8]?>`` prints ``Hello``.
+	<?print "Hello, World!"[7:-1]?>
+
+prints ``World`` and 
+
+.. sourcecode:: ul4
+
+	<?print "Hello, World!"[:-8]?>
+
+prints ``Hello``.
 
 .. hint::
 	Index/slice access is implemented by :class:`ll.ul4c.ItemAST`.
@@ -93,25 +107,35 @@ Parameter values can also be passed via keyword arguments, i.e.
 ``date(day=9, month=10, year=2014)``.
 
 Furthermore Python's ``*`` and ``**`` syntax is supported for passing additional
-positional or keyword arguments. For example::
+positional or keyword arguments. For example:
+
+.. sourcecode:: ul4
 
 	<?code args = [2014, 10, 9, 17, 29]?>
 	<?code d = date(*args)?>
 
-is the same as::
+is the same as:
+
+.. sourcecode:: ul4
 
 	<?code d = date(2014, 10, 9, 17, 29)?>
 
-The same can also be done with a keyword dictionary and the ``**`` syntax::
+The same can also be done with a keyword dictionary and the ``**`` syntax:
+
+.. sourcecode:: ul4
 
 	<?code kwargs = {"day": 9, "month": 10, "year": 2014, "hour": 17: "minute": 29}?>
 	<?code d = date(**kwargs)?>
 
-Of course it's also possible to mix argument passing mechanics::
+Of course it's also possible to mix argument passing mechanics:
+
+.. sourcecode:: ul4
 
 	<?code d = date(2014, *[10, 9], **{"hour": 17, "minute": 29})?>
 
-or::
+or
+
+.. sourcecode:: ul4
 
 	<?code d = date(2014, month=10, day=9, **{'hour': 17, 'minute': 29})?>
 
@@ -122,9 +146,11 @@ A list of builtin functions can be found in :ref:`UL4_functions`.
 
 .. hint::
 	This documentation uses Python's `/` and `*` notation to specify
-	positional-only and keyword-only arguments. So ::
+	positional-only and keyword-only arguments. So
 
-		f(x, /, y, *, z)
+	.. sourcecode:: ul4
+
+		<?ul4 f(x, /, y, *, z)?>
 
 	means that the function `f` accepts the parameter ``x`` only when passed by
 	position, `y` can be passed either by position or by keyword and `z` will
@@ -142,12 +168,16 @@ Arithmetic negation
 -------------------
 
 The unary operator ``-`` inverts the sign of its operand, which must be an
-integer, float of boolean value::
+integer, float of boolean value:
+
+.. sourcecode:: ul4
 
 	<?code x = 42?><?print -x?>
 
 prints ``-42``. For ``-`` boolean values are treated as the numbers ``0`` and
-``1``, i.e.::
+``1``, i.e.:
+
+.. sourcecode:: ul4
 
 	<?code x = True?><?print -x?>
 
@@ -412,7 +442,9 @@ The binary operator ``or`` returns whether any of its operands is true. Like
 ``and`` evaluation is short-circuited and one of the operands is returned.
 
 For example, the following code will output the ``data.title`` object if it's
-true, else ``data.id`` will be output::
+true, else ``data.id`` will be output:
+
+.. sourcecode:: ul4
 
 	<?printx data.title or data.id?>
 

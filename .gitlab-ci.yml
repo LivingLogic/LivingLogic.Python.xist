@@ -1,0 +1,28 @@
+# Official docker image.
+image: docker:latest
+
+# Use CI/CD group variables (Group Settings > CI/CD -> Variables)
+variables:
+  PUBLIC_IMAGE: $CI_PROJECT_NAME
+
+build:
+  stage: build
+  script:
+    - docker build --pull --label org.opencontainers.image.revision=$CI_COMMIT_SHORT_SHA -t $PUBLIC_REGISTRY/$PUBLIC_NAMESPACE/$PUBLIC_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $PUBLIC_REGISTRY/$PUBLIC_NAMESPACE/$PUBLIC_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push "$PUBLIC_REGISTRY/$PUBLIC_NAMESPACE/$PUBLIC_IMAGE:latest"
+
+deploy:
+  stage: deploy
+  image: r.ll0.eu/livinglogic/kubectl:latest
+  environment:
+    name: ll-prod
+    url: https://python.livinglogic.de
+    kubernetes:
+      namespace: ll-prod
+  when: manual
+  script:
+    - sed -i "s/CI_COMMIT_SHORT_SHA/$CI_COMMIT_SHORT_SHA/g" kubernetes-deployment.yml
+    - sed -i "s/CI_ENVIRONMENT_SLUG/$CI_ENVIRONMENT_SLUG/g" kubernetes-deployment.yml
+    - sed -i "s/CI_PROJECT_PATH_SLUG/$CI_PROJECT_PATH_SLUG/g" kubernetes-deployment.yml
+    - kubectl -n $CI_ENVIRONMENT_SLUG apply -f kubernetes-deployment.yml

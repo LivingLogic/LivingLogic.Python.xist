@@ -204,7 +204,8 @@ Delayed messages will be buffered up until the first log message that isn't
 delayed is encountered (:mod:`sisyphus`\s messages all are delayed).
 Then all buffered messages will be output. If only delayed messages are output
 during the complete job run, only the result of the job run will be output.
-If this output is ``None`` nothing will be output.
+If this output is ``None`` nothing will be output. This means that you will get
+no log entries until something "interesting" happens.
 
 
 Log files
@@ -244,9 +245,9 @@ It is possible to send an email when a job fails. For this, the options
 appropriate class attributes) have to be set. If the job terminates because of
 an exception or exceeds its maximum runtime (and the option
 :option:`--noisykills` is set) or any of the calls to :meth:`~Job.log` include
-the tag ``email``, an email will be sent. This email includes the last 10
-logging calls and the final exception (if there is any) in plain text and HTML
-format as well as as a JSON attachment.
+the tag ``email`` or ``external``, an email will be sent. This email includes
+the last 10 logging calls and the final exception (if there is any) in plain
+text and HTML format as well as as a JSON attachment.
 
 
 Mattermost
@@ -255,8 +256,9 @@ Mattermost
 It is possible to send log entries to a Mattermost_ chat channel. For this the
 options :option:`--mattermost_url`, :option:`--mattermost_channel` and
 :option:`--mattermost_token` (or the appropriate class attributes) must be
-specified. All log entries including the tag ``mattermost``, as well as
-all exceptions that abort the job will be sent to the Mattermost channel.
+specified. All log entries including the tag ``mattermost`` or ``external``,
+as well as all exceptions that abort the job will be sent to the Mattermost
+channel.
 
 .. _Mattermost: https://mattermost.com/
 
@@ -266,8 +268,8 @@ Sentry
 
 It is possible to send log entries to a Sentry_ server. For this the
 option :option:`--sentry_dsn` (or the appropriate class attribute) must be
-specified. All log entries including the tag ``sentry``, as well as
-all exceptions that abort the job will be sent to the Sentry server.
+specified. All log entries including the tag ``sentry`` or ``external``, as
+well as all exceptions that abort the job will be sent to the Sentry server.
 
 .. _Sentry: https://sentry.io/
 
@@ -544,7 +546,9 @@ class Job:
 
 		This email will only be sent if the options :option:`--fromemail`,
 		:option:`--toemail` and :option:`--smtphost` are set (and any error
-		or output to the email log occured).
+		or output to the email log occured, which only happens when the log entry
+		has the tag ``email`` or ``external``, or if it is an exception that
+		aborts the job run).
 
 	.. option:: --toemail <emailadress>
 
@@ -579,7 +583,7 @@ class Job:
 		A log entry will only be posted to the Mattermost chat channel if the
 		options :option:`--mattermost_url`, :option:`--mattermost_channel` and
 		:option:`--mattermost_token` are set (and the log entry has the tag
-		``mattermost``).
+		``mattermost`` or ``external`` or is an exception that aborts the job run).
 
 		Note that using this feature requires :mod:`requests`.
 
@@ -609,6 +613,25 @@ class Job:
 
 			https://examplePublicKey@o0.ingest.sentry.io/0
 
+	.. option:: --sentry_environment <environment>
+
+		Environment reported to Sentry.
+
+	.. option:: --sentry_release <release>
+
+		Release reported to Sentry.
+
+	.. option:: --sentry_debug <flag>
+
+		Activates/deactivates Sentry debug mode.
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+		A log entry will only be sent to Sentry if the options
+		:option:`--sentry_dsn` is are set (and the log entry has the tag
+		``sentry`` or ``external``, or is an exception that aborts the job run).
+
 	.. option:: -m <seconds>, --maxtime <seconds>
 
 		Maximum allowed runtime for the job (as the number of seconds). If the job
@@ -617,34 +640,49 @@ class Job:
 		(The instance attribute will always be converted to the type
 		:class:`datetime.timedelta`)
 
-	.. option:: --fork
+	.. option:: --fork <flag>
 
 		Forks the process and does the work in the child process. The parent
 		process is responsible for monitoring the maximum runtime (this is the
 		default). In non-forking mode the single process does both the work and
 		the runtime monitoring.
 
-	.. option:: --noisykills
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+	.. option:: --noisykills <flag>
 
 		Should a message be printed/a failure email be sent when the maximum
 		runtime is exceeded?
 
-	.. option:: --exit_on_error
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+	.. option:: --exit_on_error <flag>
 
 		End job execution even in repeat mode when an exception is thrown?
 
-	.. option:: -n, --notify
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
+	.. option:: -n <flag>, --notify <flag>
 
 		Should a notification be issued to the OS X Notification center?
 		(done via terminal-notifier__).
 
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
 		__ https://github.com/alloy/terminal-notifier
 
-	.. option:: -r, --repeat
+	.. option:: -r <flag>, --repeat <flag>
 
 		Should job execution be repeated indefinitely?
 
 		(This means that the job basically functions as its own cron daemon).
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
 
 	.. option:: --nextrun <seconds>
 
@@ -655,18 +693,24 @@ class Job:
 		to implement this as a method). Also :class:`datetime.datetime` is
 		supported and specifies the start date for the next job run.
 
-	.. option:: --healthcheck
+	.. option:: --healthcheck <flag>
 
 		Instead of normally executing the job, run a health check instead.
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
 
 	.. option:: --maxhealthcheckage <seconds>
 
 		If the last uneventful or successful job run is older then this number
 		of seconds, consider the job to be unhealthy.
 
-	.. option:: -f, --log2file
+	.. option:: -f <flag>, --log2file <flag>
 
 		Should a logfile be written at all?
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
 
 	.. option:: --formatlogline <format>
 
@@ -711,12 +755,16 @@ class Job:
 		This options limits the number of exceptions and errors messages that
 		will get attached to the failure email. The default is 10.
 
-	.. option:: --proctitle
+	.. option:: --proctitle <flag>
 
 		When this options is specified, the process title will be modified during
 		execution of the job, so that the :command:`ps` command shows what the
 		processes are doing. The default is ``True``. (This
 		requires :mod:`setproctitle`.)
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
 
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
@@ -746,6 +794,9 @@ class Job:
 	mattermost_token = None
 
 	sentry_dsn = None
+	sentry_release = None
+	sentry_environment = None
+	sentry_debug = False
 
 	identifier = None
 
@@ -1243,6 +1294,9 @@ class Job:
 		p.add_argument(      "--mattermost_channel", dest="mattermost_channel", metavar="ID", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_channel)
 		p.add_argument(      "--mattermost_token", dest="mattermost_token", metavar="AUTH", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_token)
 		p.add_argument(      "--sentry_dsn", dest="sentry_dsn", metavar="DSN", help="Sentry DSN for logging to a Sentry server. (default: %(default)s)", default=self.sentry_dsn)
+		p.add_argument(      "--sentry_environment", dest="sentry_environment", metavar="ENVIRONMENT", help="Environment reported to Sentry. (default: %(default)s)", default=self.sentry_environment)
+		p.add_argument(      "--sentry_release", dest="sentry_release", metavar="RELEASE", help="Release reported to Sentry. (default: %(default)s)", default=self.sentry_release)
+		p.add_argument(      "--sentry_debug", dest="sentry_debug", help="Activate Sentry debug mode. (default: %(default)s)", action=misc.FlagAction, default=self.sentry_debug)
 		p.add_argument(      "--identifier", dest="identifier", metavar="IDENTIFIER", help="Additional identifier that will be added to the failure report mail (default: %(default)s)", default=self.identifier)
 		p.add_argument("-m", "--maxtime", dest="maxtime", metavar="SECONDS", help="Maximum number of seconds the job is allowed to run (default: %(default)s)", type=argseconds, default=self.maxtime)
 		p.add_argument(      "--fork", dest="fork", help="Fork the process and do the work in the child process? (default: %(default)s)", action=misc.FlagAction, default=self.fork)
@@ -1287,6 +1341,9 @@ class Job:
 		self.mattermost_channel = ns.mattermost_channel
 		self.mattermost_token = ns.mattermost_token
 		self.sentry_dsn = ns.sentry_dsn
+		self.sentry_environment = ns.sentry_environment
+		self.sentry_release = ns.sentry_release
+		self.sentry_debug = ns.sentry_debug
 		self.identifier = ns.identifier
 		self.maxtime = ns.maxtime
 		self.fork = ns.fork
@@ -1453,10 +1510,10 @@ class Job:
 
 			self.process = Process.CHILD
 			self.setproctitle()
-			self._init_sentry()
 			task = self.task("child", misc.sysinfo.pid, self._run if self.repeat else None)
 			self._tasks = [task] # This replaces the task stack inherited from the parent
 			self.log.sisyphus.init.delay(f"forked worker child")
+			self._init_sentry()
 		else: # We didn't fork
 			# set a signal to kill ourselves after the maximum runtime
 			self._init_sentry()
@@ -1536,16 +1593,19 @@ class Job:
 
 	def _init_sentry(self) -> None:
 		if self.sentry_dsn is not None:
-			self.log.sisyphus.init(f"Setting up sentry")
+			self.log.sisyphus.delay.init(f"Setting up sentry")
 			try:
 				import sentry_sdk
 			except ImportError:
+				self.log.sisyphus.delay.warning("Can't log to Sentry (module sentry_sdk not available)")
 				return
 			self.sentry_sdk = sentry_sdk
 			self.sentry_sdk.init(
 				self.sentry_dsn,
 				traces_sample_rate=1.0,
-				release="develop",
+				release=self.sentry_release,
+				environment=self.sentry_environment,
+				debug=self.sentry_debug,
 			)
 			if self.identifier:
 				app_name = f"{self.projectname} {self.jobname} ({self.identifier})"
@@ -1600,9 +1660,9 @@ class Job:
 	def _finished_successful(self, result: OptStr) -> Status:
 		self.endtime = datetime.datetime.now()
 		self.setproctitle("Finishing")
-		self._write_healthfile(None)
 		# log the result
 		if self.process is not Process.PARENT:
+			self._write_healthfile(None)
 			if self._exceptioncount:
 				self.log.sisyphus.result.errors(result)
 			else:
@@ -1619,7 +1679,7 @@ class Job:
 			strexc = misc.format_exception(exc)
 			self._write_healthfile(f"Failed with {strexc}")
 			# log the error to the logfile, as we assume that :meth:`execute` didn't do it
-			self.log.sisyphus.email.mattermost.sentry(exc)
+			self.log.sisyphus.external(exc)
 			self.log.sisyphus.result.fail(f"failed with {strexc}")
 		return Status.FAILED
 
@@ -2296,7 +2356,7 @@ class EmailLogger(Logger):
 		return "<email>"
 
 	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
-		if "email" in tags:
+		if "email" in tags or "external" in tags:
 			if self.file is None:
 				filename = self.job.emailfilename()
 				try:
@@ -2453,7 +2513,7 @@ class MattermostLogger(Logger):
 		return "<mattermost>"
 
 	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
-		if "mattermost" in tags:
+		if "mattermost" in tags or "external" in tags:
 			import requests
 			if isinstance(text, BaseException):
 				message = _formattraceback(text)
@@ -2520,7 +2580,7 @@ class SentryLogger(Logger):
 		return v or "?"
 
 	def log(self, timestamp:datetime.datetime, tags:Tags, tasks:List[Task], text:str) -> None:
-		if "sentry" in tags:
+		if "sentry" in tags or "external" in tags:
 			sentry = self.job.sentry_sdk
 			if sentry is not None:
 				with sentry.push_scope() as scope:
@@ -2548,6 +2608,7 @@ class SentryLogger(Logger):
 						if not isinstance(text, str):
 							text = pprint.pformat(text)
 						sentry.capture_message(text, level="warning")
+					sentry.flush()
 
 	def close(self, status:Status) -> bool:
 		return True
