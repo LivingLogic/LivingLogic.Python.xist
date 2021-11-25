@@ -1492,6 +1492,8 @@ class CallableObject(CommentedObject):
 		sql += f"language {r.lanname}\n"
 		if r.provolatile == "i":
 			sql += f"immutable\n"
+		elif r.provolatile == "s":
+			sql += f"stable\n"
 		sql += f"as ${self.type}$\n"
 		sql += f"{r.prosrc.strip()}\n"
 		sql += f"${self.type}$\n"
