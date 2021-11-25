@@ -1474,7 +1474,6 @@ class CallableObject(CommentedObject):
 			pro=True,
 			lan=True,
 		)
-		print(sql, self.names)
 		c.execute(sql, self.names)
 		r = c.fetchone()
 		if r is None:
