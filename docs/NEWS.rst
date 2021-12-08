@@ -19,7 +19,7 @@ Changes in HEAD (released ??/??/2021)
 
 	This will create a Postgres database connection via::
 
-		psycopg2.connect(
+		psycopg.connect(
 			"host=localhost dbname=test user=me password=secret",
 			cursor_factory=extras.DictCursor
 		)

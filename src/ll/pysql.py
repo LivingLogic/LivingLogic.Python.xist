@@ -445,7 +445,7 @@ Command line usage
 ==================
 
 ``pysql.py`` has no external dependencies except for :mod:`cx_Oracle`
-(for Oracle) or :mod:`psycopg2` (for Postgres) and can be used as a script for
+(for Oracle) or :mod:`psycopg` (for Postgres) and can be used as a script for
 importing a PySQL file into the database (However some commands require
 :mod:`ll.orasql` for an Oracle database). As a script it supports the following
 command line options:
@@ -468,7 +468,7 @@ command line options:
 		:class:`connect` commands.
 
 		For Postgres the value must start with ``postgres:`` the rest of the
-		value will be passed to :func:`psycopg2.connect` as a positional
+		value will be passed to :func:`psycopg.connect` as a positional
 		argument. For example::
 
 			postgres:host=localhost dbname=test user=me password=secret
@@ -553,9 +553,9 @@ except ImportError:
 	orasql = None
 
 try:
-	import psycopg2
+	import psycopg
 except ImportError:
-	psycopg2 = None
+	psycopg = None
 
 __docformat__ = "reStructuredText"
 
@@ -621,8 +621,8 @@ class Handler:
 		if connectstring is None:
 			return Handler()
 		elif connectstring.startswith("postgres:"):
-			from psycopg2 import extras
-			connection = psycopg2.connect(connectstring[9:], cursor_factory=extras.DictCursor)
+			from psycopg import extras
+			connection = psycopg.connect(connectstring[9:], cursor_factory=extras.DictCursor)
 			return PostgresHandler(connection)
 		else:
 			if connectstring.startswith("oracle:"):
@@ -1359,7 +1359,7 @@ class PostgresHandler(DBHandler):
 		keys = {}
 		try:
 			result = cursor.fetchone()
-		except psycopg2.ProgrammingError as exc:
+		except psycopg.ProgrammingError as exc:
 			# The procedure call might not have had any out parameters
 			if exc.args != ("no results to fetch",):
 				# some other problem -> report it

@@ -33,8 +33,8 @@ __ https://www.postgresql.org/
 
 import datetime, collections, errno
 
-import psycopg2
-from psycopg2 import extras, extensions, errors
+import psycopg
+from psycopg import extras, extensions, errors
 
 from ll import misc, url as url_
 
@@ -472,7 +472,7 @@ class Cursor(extras.NamedTupleCursor):
 
 
 def connect(dsn=None, connection_factory=Connection, cursor_factory=Cursor, **kwargs):
-	return psycopg2.connect(dsn=dsn, connection_factory=connection_factory, cursor_factory=cursor_factory, **kwargs)
+	return psycopg.connect(dsn=dsn, connection_factory=connection_factory, cursor_factory=cursor_factory, **kwargs)
 
 
 ###

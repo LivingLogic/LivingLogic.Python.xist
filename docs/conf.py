@@ -379,7 +379,7 @@ intersphinx_mapping = {
 	'python': ('https://docs.python.org/3.8', None),
 	'requests': ('https://docs.python-requests.org/en/master/', None),
 	'cx_Oracle': ('https://cx-oracle.readthedocs.io/en/latest/', None),
-	'psycopg2': ('https://www.psycopg.org/docs/', None),
+	'psycopg': ('https://www.psycopg.org/docs/', None),
 	'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
 }
 
