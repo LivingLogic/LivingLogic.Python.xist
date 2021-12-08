@@ -621,8 +621,8 @@ class Handler:
 		if connectstring is None:
 			return Handler()
 		elif connectstring.startswith("postgres:"):
-			from psycopg import extras
-			connection = psycopg.connect(connectstring[9:], cursor_factory=extras.DictCursor)
+			from psycopg import rows
+			connection = psycopg.connect(connectstring[9:], row_factory=rows.dict_row)
 			return PostgresHandler(connection)
 		else:
 			if connectstring.startswith("oracle:"):
