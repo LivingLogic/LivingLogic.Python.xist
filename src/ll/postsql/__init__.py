@@ -32,9 +32,10 @@ __ https://www.postgresql.org/
 """
 
 import datetime, collections, errno
+from collections import abc
 
 import psycopg
-from psycopg import extras, extensions, errors
+from psycopg import rows, errors
 
 from ll import misc, url as url_
 
@@ -43,6 +44,13 @@ __docformat__ = "reStructuredText"
 
 
 bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0) # timestamp for Postgres "directories"
+
+
+###
+### Typing stuff
+###
+
+from typing import *
 
 
 ###
@@ -344,13 +352,74 @@ def _conquery(*fields, contype=None, nsp=False, rel=False, con=False):
 ### :mod:ll.postsql` version of connections and cursors
 ###
 
-class Connection(extensions.connection):
+class Connection(psycopg.Connection):
 	def __repr__(self):
-		status = "closed" if self.closed else "open"
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} dsn={self.dsn!r} {status} at {id(self):#x}>"
+		parts = []
+		parts.append(f"dsn={self.dsn!r}")
+		parts.append(f"state={self.state}")
+		parts.append(f"status={self.info.status.name}")
+		parts.append(f"transaction_status={self.info.transaction_status.name}")
+		parts.append(f"server_version={self.server_version}")
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {' '.join(parts)} at {id(self):#x}>"
 
 	def __str__(self):
 		return repr(self)
+
+	def _repr_pretty_(self, p, cycle):
+		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
+		suffix = ">"
+
+		if cycle:
+			p.text(f"{prefix} ... {suffix}")
+		else:
+			with p.group(4, prefix, suffix):
+				p.breakable()
+				p.text(f"dsn={self.dsn!r}")
+
+				p.breakable()
+				p.text(f"state={self.state}")
+
+				p.breakable()
+				p.text(f"status={self.info.status.name}")
+
+				p.breakable()
+				p.text(f"transaction_status={self.info.transaction_status.name}")
+
+				p.breakable()
+				p.text(f"server_version={self.server_version!r}")
+
+				p.breakable()
+				p.text(f"encoding={self.info.encoding!r}")
+
+				if self.info.error_message:
+					p.breakable()
+					p.text(f"error_message={self.info.error_message!r}")
+
+				p.breakable()
+				p.text(f"at {id(self):#x}")
+
+	@property
+	def dsn(self):
+		return self.info.dsn
+
+	@property
+	def state(self):
+		if self.broken:
+			return  "BROKEN"
+		elif self.closed:
+			return  "CLOSED"
+		else:
+			return  "OPEN"
+
+	@property
+	def server_version(self):
+		sv = self.info.server_version
+		if sv >= 100000:
+			sv = str(sv)
+			return f"{sv[:2]}.{sv[-2:].lstrip('0')}"
+		else:
+			sv = str(sv)
+			return f"{sv[:2]}.{sv[2:-2].lstrip('0')}.{sv[-2:].lstrip('0')}"
 
 	def schemas(self):
 		c = self.cursor()
@@ -465,14 +534,117 @@ class Connection(extensions.connection):
 		raise NotImplementedError
 
 
-class Cursor(extras.NamedTupleCursor):
+# class Cursor(extras.NamedTupleCursor):
+# 	def __repr__(self):
+# 		status = "closed" if self.closed else "open"
+# 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} dsn={self.connection.dsn!r} query={self.query!r} {status} at {id(self):#x}>"
+
+
+class Record(tuple, abc.Mapping):
+	"""
+	A :class:`Record` is a subclass of :class:`tuple` that is used for storing
+	results of database fetches and procedure and function calls. Both item and
+	attribute access (i.e. :meth:`__getitem__` and :meth:`__getattr__`) are
+	available. Field names are case insensitive.
+	"""
+
+	def __new__(cls, index2name, name2index, values):
+		record = tuple.__new__(cls, values)
+		record._index2name = index2name
+		record._name2index = name2index
+		return record
+
+	def __getitem__(self, arg):
+		if isinstance(arg, str):
+			arg = self._name2index[arg.lower()]
+		return tuple.__getitem__(self, arg)
+
+	def __getattr__(self, name):
+		try:
+			index = self._name2index[name.lower()]
+		except KeyError:
+			raise AttributeError(f"{self.__class__.__module__}.{self.__class__.__qualname__} object has no attribute {name!r}")
+		return tuple.__getitem__(self, index)
+
+	def ul4_getattr(self, name):
+		return getattr(self, name)
+
+	def ul4_hasattr(self, name):
+		return name.lower() in self._name2index
+
+	def get(self, name, default=None):
+		"""
+		Return the value for the field named ``name``. If this field doesn't
+		exist in ``self``, return ``default`` instead.
+		"""
+		try:
+			index = self._name2index[name.lower()]
+		except KeyError:
+			return default
+		return tuple.__getitem__(self, index)
+
+	def __contains__(self, name):
+		return name.lower() in self._name2index
+
+	def keys(self):
+		"""
+		Return an iterator over field names.
+		"""
+		return iter(self._index2name)
+
+	def items(self):
+		"""
+		Return an iterator over (field name, field value) tuples.
+		"""
+		for (index, key) in enumerate(self._index2name):
+			yield (key, tuple.__getitem__(self, index))
+
+	def replace(self, **kwargs):
+		"""
+		Return a new :class:`Record` with the same fields as ``self``, except
+		for those fields given new values by whichever keyword arguments are
+		specified.
+		"""
+		values = list(self)
+		for (key, value) in kwargs.items():
+			values[self._name2index[key.lower()]] = value
+		return self.__class__(self._index2name, self._name2index, values)
+
 	def __repr__(self):
-		status = "closed" if self.closed else "open"
-		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} dsn={self.connection.dsn!r} query={self.query!r} {status} at {id(self):#x}>"
+		items = ", ".join(f"{key}={value!r}" for (key, value) in self.items())
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} {items} at {id(self):#x}>"
+
+	def _repr_pretty_(self, p, cycle):
+		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
+		suffix = f"at {id(self):#x}"
+
+		if cycle:
+			p.text(f"{prefix} ... {suffix}>")
+		else:
+			with p.group(4, prefix, ">"):
+				for (key, value) in self.items():
+					p.breakable()
+					p.text(f"{key}=")
+					p.pretty(value)
+				p.breakable()
+				p.text(suffix)
 
 
-def connect(dsn=None, connection_factory=Connection, cursor_factory=Cursor, **kwargs):
-	return psycopg.connect(dsn=dsn, connection_factory=connection_factory, cursor_factory=cursor_factory, **kwargs)
+class DictRowFactory:
+	def __init__(self, cursor: psycopg.Cursor[Dict[str, Any]]):
+		self.index2name = []
+		self.name2index = {}
+		for (i, col) in enumerate(cursor.description):
+			colname = col.name.lower()
+			self.index2name.append(colname)
+			self.name2index[colname] = i
+
+	def __call__(self, values: Sequence[Any]) -> Record:
+		return Record(self.index2name, self.name2index, values)
+
+
+def connect(conninfo, **kwargs):
+	return Connection.connect(conninfo, row_factory=DictRowFactory, **kwargs)
 
 
 ###
