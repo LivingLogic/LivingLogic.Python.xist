@@ -750,12 +750,10 @@ class Handler:
 			self.finish(f"Skipped Python block")
 			return None
 
-		vars = context.globals()
-
 		code = command.location.source() if command.location is not None else command.code
 		code += "\n"
 		code = compile(code, context.filename, "exec")
-		exec(code, vars, context._locals)
+		exec(code, context._locals)
 
 		command.finish(f"Executed Python block")
 		command.count(self.connectstring())
