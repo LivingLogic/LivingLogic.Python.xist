@@ -630,21 +630,25 @@ class Record(tuple, abc.Mapping):
 				p.text(suffix)
 
 
-class DictRowFactory:
+class RecordFactory:
 	def __init__(self, cursor: psycopg.Cursor[Dict[str, Any]]):
-		self.index2name = []
-		self.name2index = {}
-		for (i, col) in enumerate(cursor.description):
-			colname = col.name.lower()
-			self.index2name.append(colname)
-			self.name2index[colname] = i
+		if cursor.description is None:
+			self.index2name = None
+			self.name2index = None
+		else:
+			self.index2name = []
+			self.name2index = {}
+			for (i, col) in enumerate(cursor.description):
+				colname = col.name.lower()
+				self.index2name.append(colname)
+				self.name2index[colname] = i
 
 	def __call__(self, values: Sequence[Any]) -> Record:
 		return Record(self.index2name, self.name2index, values)
 
 
 def connect(conninfo, **kwargs):
-	return Connection.connect(conninfo, row_factory=DictRowFactory, **kwargs)
+	return Connection.connect(conninfo, row_factory=RecordFactory, **kwargs)
 
 
 ###
