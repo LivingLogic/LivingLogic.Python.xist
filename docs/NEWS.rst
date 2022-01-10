@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released ??/??/2021)
+Changes in HEAD (released ??/??/2022)
 -------------------------------------
 
 *	:mod:`ll.pysql` now supports Postgres. To connect to a Postgres database
@@ -45,6 +45,12 @@ Changes in HEAD (released ??/??/2021)
 
 	If you want to pass the variable's value instead as a simple IN parameter,
 	simply pass the local variable instead.
+
+*	Fixed a bug in the PySQL command :class:`~ll.pysql.commit`: Removed the
+	useless argument ``sql``.
+
+*	Fixed a bug in the method :meth:`ll.orasql.Connection.getobject` (which we
+	only keep for backwards compatibility).
 
 
 Changes in 5.69 (released 11/17/2021)

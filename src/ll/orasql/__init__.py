@@ -776,7 +776,7 @@ class Connection(Connection):
 
 	# For backwards compatibility
 	def getobject(self, name, owner=None):
-		return object_named(self, name, owner=None)
+		return self.object_named(name, owner=None)
 
 
 def connect(*args, **kwargs):

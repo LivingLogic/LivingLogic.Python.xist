@@ -1724,7 +1724,7 @@ class commit(_SQLCommand):
 	For the rest of the parameters see the base class :class:`_DatabaseCommand`.
 	"""
 
-	def __init__(self, sql, *, raise_exceptions=None, cond=True):
+	def __init__(self, *, raise_exceptions=None, cond=True):
 		super().__init__(raise_exceptions=raise_exceptions, cond=cond)
 
 	def __repr__(self):
