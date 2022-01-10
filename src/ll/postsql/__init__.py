@@ -236,7 +236,7 @@ def _relquery(*fields, relkind, nsp=False, rel=False, internal=False):
 	return str(sql)
 
 
-def _proquery(*fields, prokind, nsp=False, pro=False, lan=False):
+def _proquery(*fields, prokind, nsp=False, pro=False, lan=False, internal=False):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -253,11 +253,13 @@ def _proquery(*fields, prokind, nsp=False, pro=False, lan=False):
 		else:
 			sql.orderby("p.proname")
 	else:
-		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").orderby("n.nspname", "p.proname")
+		sql.orderby("n.nspname", "p.proname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
-def _indquery(*fields, nsp=False, rel=False, ind=False):
+def _indquery(*fields, nsp=False, rel=False, ind=False, internal=False):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -276,7 +278,9 @@ def _indquery(*fields, nsp=False, rel=False, ind=False):
 		else:
 			sql.orderby("c.relname")
 	else:
-		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "c.relname")
+		sql.orderby("n.nspname", "c.relname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
@@ -311,7 +315,7 @@ def _attquery(*fields, relkind, nsp=False, rel=False, att=False, internal=False)
 	print(str(sql))
 	return str(sql)
 
-def _tgquery(*fields, nsp=False, rel=False, tg=False):
+def _tgquery(*fields, nsp=False, rel=False, tg=False, internal=False):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -332,11 +336,13 @@ def _tgquery(*fields, nsp=False, rel=False, tg=False):
 		else:
 			sql.orderby("c.relname", "t.tgname")
 	else:
-		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").orderby("n.nspname", "c.relname", "t.tgname")
+		sql.orderby("n.nspname", "c.relname", "t.tgname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
-def _conquery(*fields, contype=None, nsp=False, rel=False, con=False):
+def _conquery(*fields, contype=None, nsp=False, rel=False, con=False, internal=False):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -353,7 +359,9 @@ def _conquery(*fields, contype=None, nsp=False, rel=False, con=False):
 		else:
 			sql.orderby("c.conname")
 	else:
-		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").orderby("n.nspname", "c.conname")
+		sql.orderby("n.nspname", "c.conname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
@@ -430,109 +438,109 @@ class Connection(psycopg.Connection):
 			sv = str(sv)
 			return f"{sv[:2]}.{sv[2:-2].lstrip('0')}.{sv[-2:].lstrip('0')}"
 
-	def schemas(self):
+	def schemas(self, internal=False):
 		c = self.cursor()
-		c.execute(_schemaquery("nspname"))
+		c.execute(_schemaquery("nspname", internal=internal))
 		for r in c:
 			yield Schema(r.nspname, self)
 
-	def domains(self):
+	def domains(self, internal=False):
 		c = self.cursor()
-		c.execute(_domainquery("n.nspname || '.' || t.typname as name"))
+		c.execute(_domainquery("n.nspname || '.' || t.typname as name", internal=internal))
 		for r in c:
 			yield Domain(r.name, c.connection)
 
-	def tables(self):
+	def tables(self, internal=False):
 		c = self.cursor()
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="r"))
+		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="r", internal=internal))
 		for r in c:
 			yield Table(r.name, self)
 
-	def table_columns(self):
+	def table_columns(self, internal=False):
 		c = self.cursor()
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='r'))
+		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='r', internal=internal))
 		for r in c:
 			yield Table.Column(r.name, c.connection)
 
-	def indexes(self):
+	def indexes(self, internal=False):
 		c = self.cursor()
-		c.execute(_indquery("n.nspname || '.' || c.relname as name"))
+		c.execute(_indquery("n.nspname || '.' || c.relname as name", internal=internal))
 		for r in c:
 			yield Index(r.name, self)
 
-	def triggers(self):
+	def triggers(self, internal=False):
 		c = self.cursor()
-		c.execute(_tgquery("n.nspname || '.' || c.relname || '.' || t.tgname as name"))
+		c.execute(_tgquery("n.nspname || '.' || c.relname || '.' || t.tgname as name", internal=internal))
 		for r in c:
 			yield Trigger(r.name, c.connection)
 
-	def pks(self):
+	def pks(self, internal=False):
 		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="p"))
+		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="p", internal=internal))
 		for r in c:
 			yield PrimaryKey(r.name, c.connection)
 
-	def fks(self):
+	def fks(self, internal=False):
 		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="f"))
+		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="f", internal=internal))
 		for r in c:
 			yield ForeignKey(r.name, c.connection)
 
-	def unique_constraints(self):
+	def unique_constraints(self, internal=False):
 		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="u"))
+		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="u", internal=internal))
 		for r in c:
 			yield ForeignKey(r.name, c.connection)
 
-	def check_constraints(self):
+	def check_constraints(self, internal=False):
 		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="c"))
+		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="c", internal=internal))
 		for r in c:
 			yield CheckConstraint(r.name, c.connection)
 
-	def constraints(self):
+	def constraints(self, internal=False):
 		c = self.cursor()
-		c.execute(_conquery("c.contype", "n.nspname || '.' || c.conname as name"))
+		c.execute(_conquery("c.contype", "n.nspname || '.' || c.conname as name", internal=internal))
 		for r in c:
 			type = Constraint.types[r.contype]
 			yield type(r.name, c.connection)
 
-	def views(self):
+	def views(self, internal=False):
 		c = self.cursor()
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="v"))
+		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="v", internal=internal))
 		for r in c:
 			yield View(r.name, self)
 
-	def view_columns(self):
+	def view_columns(self, internal=False):
 		c = self.cursor()
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='v'))
+		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='v', internal=internal))
 		for r in c:
 			yield View.Column(r.name, c.connection)
 
-	def sequences(self):
+	def sequences(self, internal=False):
 		c = self.cursor()
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="S"))
+		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="S", internal=internal))
 		for r in c:
 			yield Sequence(r.name, self)
 
-	def callables(self):
+	def callables(self, internal=False):
 		c = self.cursor()
-		c.execute(_proquery("p.prokind", "n.nspname || '.' || p.proname as name", prokind="in ('f', 'p')"))
+		c.execute(_proquery("p.prokind", "n.nspname || '.' || p.proname as name", prokind="in ('f', 'p')", internal=internal))
 		for r in c:
 			if r.prokind == "f":
 				yield Function(r.name, self)
 			else:
 				yield Procedure(r.name, self)
 
-	def procedures(self):
+	def procedures(self, internal=False):
 		c = self.cursor()
-		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'p'"))
+		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'p'", internal=internal))
 		for r in c:
 			yield Procedure(r.name, self)
 
-	def functions(self):
+	def functions(self, internal=False):
 		c = self.cursor()
-		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'f'"))
+		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'f'", internal=internal))
 		for r in c:
 			yield Function(r.name, self)
 
