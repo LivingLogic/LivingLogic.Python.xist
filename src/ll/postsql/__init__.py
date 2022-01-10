@@ -102,43 +102,43 @@ class _SQL:
 	"""
 	Helper class for constructing SQL queries.
 	"""
-	def __init__(self, s=None, f=None, j=None, lj=None, w=None, o=None):
+	def __init__(self, select=None, from_=None, join=None, leftjoin=None, where=None, orderby=None):
 		self.selects = []
 		self.froms = []
 		self.joins = []
 		self.leftjoins = []
 		self.wheres = []
 		self.orderbys = []
-		if s is not None:
-			if isinstance(s, str):
-				self.selects.append(s)
+		if select is not None:
+			if isinstance(select, str):
+				self.selects.append(select)
 			else:
-				self.selects.extend(s)
-		if f is not None:
-			if isinstance(f, str):
-				self.froms.append(f)
+				self.selects.extend(select)
+		if from_ is not None:
+			if isinstance(from_, str):
+				self.froms.append(from_)
 			else:
-				self.froms.extend(f)
-		if j is not None:
-			if isinstance(j, str):
-				self.joins.append(j)
+				self.froms.extend(from_)
+		if join is not None:
+			if isinstance(join, str):
+				self.joins.append(join)
 			else:
-				self.joins.extend(j)
-		if lj is not None:
-			if isinstance(lj, str):
-				self.leftjoins.append(lj)
+				self.joins.extend(join)
+		if leftjoin is not None:
+			if isinstance(leftjoin, str):
+				self.leftjoins.append(leftjoin)
 			else:
-				self.leftjoins.extend(lj)
-		if w is not None:
-			if isinstance(w, str):
-				self.wheres.append(w)
+				self.leftjoins.extend(leftjoin)
+		if where is not None:
+			if isinstance(where, str):
+				self.wheres.append(where)
 			else:
-				self.wheres.extend(w)
-		if o is not None:
-			if isinstance(o, str):
-				self.orderbys.append(o)
+				self.wheres.extend(where)
+		if orderby is not None:
+			if isinstance(orderby, str):
+				self.orderbys.append(orderby)
 			else:
-				self.orderbys.extend(o)
+				self.orderbys.extend(orderby)
 
 	def __str__(self):
 		selects = ", ".join(self.selects)
@@ -157,194 +157,203 @@ class _SQL:
 			orderbys = f" order by {orderbys}"
 		return f"select {selects} from {froms}{joins}{leftjoins}{wheres}{orderbys}"
 
-	def s(self, *expressions):
+	def select(self, *expressions):
 		self.selects.extend(expressions)
 		return self
 
-	def f(self, *froms):
+	def from_(self, *froms):
 		self.froms.extend(froms)
 		return self
 
-	def j(self, *joins):
+	def join(self, *joins):
 		self.joins.extend(joins)
 		return self
 
-	def lj(self, *joins):
+	def leftjoin(self, *joins):
 		self.leftjoins.extend(joins)
 		return self
 
-	def w(self, *wheres):
+	def where(self, *wheres):
 		self.wheres.extend(wheres)
 		return self
 
-	def o(self, *orderbys):
+	def orderby(self, *orderbys):
 		self.orderbys.extend(orderbys)
 		return self
 
 
-def _schemaquery(*fields, nsp=False):
+def _schemaquery(*fields, nsp=False, internal=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n"
+		select=fields,
+		from_="pg_catalog.pg_namespace n"
 	)
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname")
+		sql.orderby("n.nspname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
-def _domainquery(*fields, nsp=False, domain=False):
+def _domainquery(*fields, nsp=False, domain=False, internal=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j="pg_catalog.pg_type t on n.oid = t.typnamespace",
-		w="t.typtype = 'd'",
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join="pg_catalog.pg_type t on n.oid = t.typnamespace",
+		where="t.typtype = 'd'",
 	)
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if domain:
-			sql.w("t.typname = %s")
+			sql.where("t.typname = %s")
 		else:
-			sql.o("t.typname")
+			sql.orderby("t.typname")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "t.typname")
+		sql.orderby("n.nspname", "t.typname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
-def _relquery(*fields, relkind, nsp=False, rel=False):
+def _relquery(*fields, relkind, nsp=False, rel=False, internal=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j="pg_catalog.pg_class r on n.oid = r.relnamespace",
-		w=(f"r.relkind = '{relkind}'", ),
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join="pg_catalog.pg_class r on n.oid = r.relnamespace",
+		where=(f"r.relkind = '{relkind}'", ),
 	)
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if rel:
-			sql.w("r.relname = %s")
+			sql.where("r.relname = %s")
 		else:
-			sql.o("r.relname")
+			sql.orderby("r.relname")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "r.relname")
+		sql.orderby("n.nspname", "r.relname")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
 def _proquery(*fields, prokind, nsp=False, pro=False, lan=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j="pg_catalog.pg_proc p on n.oid = p.pronamespace",
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join="pg_catalog.pg_proc p on n.oid = p.pronamespace",
 	)
 	if lan:
-		sql.j("pg_catalog.pg_language l on p.prolang = l.oid")
+		sql.join("pg_catalog.pg_language l on p.prolang = l.oid")
 	if prokind is not None:
-		sql.w(f"p.prokind {prokind}")
+		sql.where(f"p.prokind {prokind}")
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if pro:
-			sql.w("p.proname = %s")
+			sql.where("p.proname = %s")
 		else:
-			sql.o("p.proname")
+			sql.orderby("p.proname")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "p.proname")
+		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").orderby("n.nspname", "p.proname")
 	return str(sql)
 
 
 def _indquery(*fields, nsp=False, rel=False, ind=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j=(
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join=(
 			"pg_catalog.pg_class c on n.oid = c.relnamespace",
 			"pg_catalog.pg_index i on c.oid = i.indexrelid",
 		),
-		w="not i.indisprimary",
+		where="not i.indisprimary",
 	)
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if rel:
-			sql.j("pg_catalog.pg_class ct on i.indrelid = ct.oid").w("ct.relname = %s").o("c.relname")
+			sql.join("pg_catalog.pg_class ct on i.indrelid = ct.oid").w("ct.relname = %s").orderby("c.relname")
 		elif ind:
-			sql.w("c.relname = %s")
+			sql.where("c.relname = %s")
 		else:
-			sql.o("c.relname")
+			sql.orderby("c.relname")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "c.relname")
+		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "c.relname")
 	return str(sql)
 
 
-def _attquery(*fields, relkind, nsp=False, rel=False, att=False):
+def _attquery(*fields, relkind, nsp=False, rel=False, att=False, internal=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j=(
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join=(
 			"pg_catalog.pg_class c on n.oid = c.relnamespace",
 			"pg_catalog.pg_attribute a on c.oid = a.attrelid",
 		),
-		w=(
+		where=(
 			"a.attnum > 0",
 			"not a.attisdropped",
 			f"c.relkind = '{relkind}'"
 		)
 	)
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if rel:
-			sql.w("c.relname = %s")
+			sql.where("c.relname = %s")
 			if att:
-				sql.w("a.attname = %s")
+				sql.where("a.attname = %s")
 			else:
-				sql.o("a.attnum")
+				sql.orderby("a.attnum")
 		else:
-			sql.o("c.relname", "a.attnum")
+			sql.orderby("c.relname", "a.attnum")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "c.relname", "a.attnum")
+		sql.orderby("n.nspname", "c.relname", "a.attnum")
+		if not internal:
+			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
+	print(str(sql))
 	return str(sql)
 
 def _tgquery(*fields, nsp=False, rel=False, tg=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j=(
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join=(
 			"pg_catalog.pg_class c on n.oid = c.relnamespace",
 			"pg_catalog.pg_trigger t on c.oid = t.tgrelid",
 		),
-		w="not t.tgisinternal"
+		where="not t.tgisinternal"
 	)
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if rel:
-			sql.w("c.relname = %s")
+			sql.where("c.relname = %s")
 			if tg:
-				sql.w("t.tgname = %s")
+				sql.where("t.tgname = %s")
 			else:
-				sql.o("t.tgname")
+				sql.orderby("t.tgname")
 		else:
-			sql.o("c.relname", "t.tgname")
+			sql.orderby("c.relname", "t.tgname")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "c.relname", "t.tgname")
+		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").orderby("n.nspname", "c.relname", "t.tgname")
 	return str(sql)
 
 
 def _conquery(*fields, contype=None, nsp=False, rel=False, con=False):
 	sql = _SQL(
-		s=fields,
-		f="pg_catalog.pg_namespace n",
-		j="pg_catalog.pg_constraint c on c.connamespace = n.oid"
+		select=fields,
+		from_="pg_catalog.pg_namespace n",
+		join="pg_catalog.pg_constraint c on c.connamespace = n.oid"
 	)
 	if contype is not None:
-		sql.w(f"contype = '{contype}'")
+		sql.where(f"contype = '{contype}'")
 	if nsp:
-		sql.w("n.nspname = %s")
+		sql.where("n.nspname = %s")
 		if rel:
-			sql.w("c.relname = %s")
+			sql.where("c.relname = %s")
 		elif con:
-			sql.w("c.conname = %s")
+			sql.where("c.conname = %s")
 		else:
-			sql.o("c.conname")
+			sql.orderby("c.conname")
 	else:
-		sql.w("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").o("n.nspname", "c.conname")
+		sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'").orderby("n.nspname", "c.conname")
 	return str(sql)
 
 
