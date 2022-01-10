@@ -8,11 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.69.1 (released 12/13/2021)
----------------------------------------
+Changes in HEAD (released 01/??/2022)
+-------------------------------------
 
 *	Fixed a bug in the PySQL command :class:`~ll.pysql.commit`: Removed the
 	useless argument ``sql``.
+
+*	Fixed a bug in the method :meth:`ll.orasql.Connection.getobject` (which we
+	only keep for backwards compatibility).
 
 
 Changes in 5.69 (released 11/17/2021)
