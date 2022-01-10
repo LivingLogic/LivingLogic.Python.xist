@@ -819,13 +819,17 @@ class Schema(CommentedObject):
 		def _query(self, cursor):
 			cursor.execute(_schemaquery("obj_description(oid, 'pg_namespace') as comment", nsp=True), self.names)
 
-	def oid(self, connection=None):
+	def _oid(self, connection=None):
 		c = self.getcursor(connection)
 		c.execute(_schemaquery("oid", nsp=True), self.names)
 		r = c.fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
+		return r
+
+	def oid(self, connection=None):
+		return self._oid(connection).oid
+
+	def exists(self, connection=None):
+		return self._oid(connection) is not None
 
 	def domains(self, connection=None):
 		c = self.getcursor(connection)
@@ -962,13 +966,11 @@ class Domain(CommentedObject):
 		def _query(self, cursor):
 			cursor.execute(_domainquery("obj_description(t.oid, 'pg_type') as comment", nsp=True, domain=True), self.names)
 
-	def oid(self, connection=None):
+	def _oid(self, connection=None):
 		c = self.getcursor(connection)
 		c.execute(_domainquery("t.oid", nsp=True, domain=True), self.names)
 		r = c.fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
+		return r
 
 	def createsql(self, connection=None):
 		c = self.getcursor(connection)
@@ -986,14 +988,51 @@ class ColumnObject(CommentedObject):
 		def _query(self, cursor):
 			cursor.execute(_attquery("col_description(c.oid, a.attnum) as comment", relkind=self.relkind, nsp=True, rel=True, att=True), self.names)
 
+	def _info(self, connection):
+		c = self.getcursor(connection)
+		c.execute(f"""
+			select
+				a.attnotnull,
+				pg_catalog.format_type(a.atttypid, a.atttypmod) as column_type,
+				case
+					when d.adrelid is not null then pg_catalog.pg_get_expr(d.adbin, d.adrelid)
+					else null
+				end as default_value
+			from
+				pg_catalog.pg_namespace n,
+				pg_catalog.pg_class c
+			join
+				pg_catalog.pg_attribute a on c.oid = a.attrelid and a.attnum > 0 and not a.attisdropped
+			left outer join
+				pg_catalog.pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum and a.atthasdef
+			where
+				n.oid = c.relnamespace and
+				c.relkind = '{self.relkind}' and
+				n.nspname = %s and 
+				c.relname = %s and
+				a.attname = %s
+			order by
+				attnum
+		""", self.names)
+		return c.fetchone()
+
 	def datatype(self, connection=None):
-		raise NotImplementedError
+		r = self._info(connection)
+		if r is None:
+			raise SQLObjectNotFoundError(self)
+		return r.column_type
 
 	def default(self, connection=None):
-		raise NotImplementedError
+		r = self._info(connection)
+		if r is None:
+			raise SQLObjectNotFoundError(self)
+		return r.default_value
 
 	def nullable(self, connection=None):
-		raise NotImplementedError
+		r = self._info(connection)
+		if r is None:
+			raise SQLObjectNotFoundError(self)
+		return not r.attnotnull
 
 
 class Table(CommentedObject):
@@ -1018,37 +1057,10 @@ class Table(CommentedObject):
 			relkind = "r"
 
 		def table(self, connection=None):
-			raise NotImplementedError
+			return Table(self.name.rpartition(".")[0], self.getconnection(connection))
 
 		def addsql(self, connection=None, exists_ok=False):
-			c = self.getcursor(connection)
-			c.execute("""
-				select
-					a.attnotnull,
-					pg_catalog.format_type(a.atttypid, a.atttypmod) as column_type,
-					case
-						when d.adrelid is not null then pg_catalog.pg_get_expr(d.adbin, d.adrelid)
-						else null
-					end as default_value
-				from
-					pg_catalog.pg_namespace n,
-					pg_catalog.pg_class c
-				join
-					pg_catalog.pg_attribute a on c.oid = a.attrelid and a.attnum > 0 and not a.attisdropped
-				left outer join
-					pg_catalog.pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum and a.atthasdef
-				where
-					n.oid = c.relnamespace and
-					c.relkind = 'r' and
-					n.nspname = %s and 
-					c.relname = %s and
-					a.attname = %s
-				order by
-					attnum
-			""", self.names)
-			r = c.fetchone()
-			if r is None:
-				raise SQLObjectNotFoundError(self)
+			r = self._info(connection)
 			sql = f"alter table {self.names[0]}.{self.names[1]} add column"
 			if exists_ok:
 				sql += " if not exists"
@@ -1068,13 +1080,11 @@ class Table(CommentedObject):
 			sql += ";"
 			return sql
 
-	def oid(self, connection=None):
+	def _oid(self, connection=None):
 		c = self.getcursor(connection)
 		c.execute(_relquery("r.oid", relkind="r", nsp=True, rel=True), self.names)
 		r = c.fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
+		return r
 
 	def columns(self, connection=None):
 		c = self.getcursor(connection)
@@ -1237,13 +1247,11 @@ class Index(CommentedObject):
 		def _query(self, cursor):
 			cursor.execute(_indquery("obj_description(c.oid, 'pg_class') as comment", nsp=True, ind=True), self.names)
 
-	def oid(self, connection=None):
+	def _oid(self, connection=None):
 		c = self.getcursor(connection)
 		c.execute(_indquery("c.oid", nsp=True, ind=True), self.names)
 		r = c.fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
+		return r
 
 	def createsql(self, connection=None, exists_ok=False):
 		c = self.getcursor(connection)
@@ -1339,7 +1347,6 @@ class Trigger(CommentedObject):
 			raise SQLObjectNotFoundError(self)
 		return f"{r.trigger_def};"
 
-
 	def dropsql(self, connection=None, missing_ok=False, cascade=False):
 		sql = "drop trigger"
 		if missing_ok:
@@ -1373,13 +1380,11 @@ class Constraint(CommentedObject):
 		def _sql(self, record, comment):
 			return self._makesql(f"constraint {self.names[1]} on {self.names[0]}.{record.relname}", comment)
 
-	def oid(self, connection=None):
+	def _oid(self, connection=None):
 		c = self.getcursor(connection)
 		c.execute(_conquery("c.oid", contype=self.contype, nsp=True, con=True), self.names)
 		r = c.fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
+		return r
 
 	def createsql(self, connection=None):
 		c = self.getcursor(connection)
@@ -1530,15 +1535,13 @@ class View(CommentedObject):
 			relkind = "v"
 
 		def view(self, connection=None):
-			raise NotImplementedError
+			return View(self.name.rpartition(".")[0], self.getconnection(connection))
 
-	def oid(self, connection=None):
+	def _oid(self, connection=None):
 		c = self.getcursor(connection)
 		c.execute(_relquery("r.oid", relkind="v", nsp=True, rel=True), self.names)
 		r = c.fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
+		return r
 
 	def columns(self, connection=None):
 		c = self.getcursor(connection)
