@@ -422,11 +422,11 @@ class Connection(psycopg.Connection):
 	@property
 	def state(self):
 		if self.broken:
-			return  "BROKEN"
+			return "BROKEN"
 		elif self.closed:
-			return  "CLOSED"
+			return "CLOSED"
 		else:
-			return  "OPEN"
+			return "OPEN"
 
 	@property
 	def server_version(self):
