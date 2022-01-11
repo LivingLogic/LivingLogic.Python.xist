@@ -791,7 +791,7 @@ class Object:
 	def exists(self, connection=None):
 		raise NotImplementedError
 
-	def references(self, connection=None, done=None):
+	def references(self, connection=None):
 		"""
 		Objects directly used by ``self``.
 
@@ -800,7 +800,8 @@ class Object:
 		the connection from which ``self`` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 		"""
-		raise NotImplementedError
+		if False:
+			yield None
 
 	def referencesall(self, connection=None, done=None):
 		"""
@@ -824,10 +825,17 @@ class Object:
 
 		For the meaning of ``connection`` see :meth:`references`.
 		"""
-		raise NotImplementedError
+		if False:
+			yield None
 
 	def referencedbyall(self, connection=None, done=None):
-		raise NotImplementedError
+		if done is None:
+			done = set()
+		if self not in done:
+			done.add(self)
+			for obj in self.referencedby(connection):
+				yield from obj.referencedbyall(connection, done)
+			yield self
 
 
 class CommentObject(Object):
@@ -867,9 +875,11 @@ class CommentObject(Object):
 			sql += f" {sqlstr(comment)};"
 		return sql
 
-	def referencedby(self, connection=None, done=None):
-		if False:
-			yield None
+	def object(self, connection=None):
+		return self.Object(self.name, self.getconnection(connection))
+
+	def references(self, connection=None):
+		yield self.object(connection)
 
 
 class CommentedObject(Object):
@@ -882,6 +892,9 @@ class CommentedObject(Object):
 			sql += " if exists"
 		sql += f" {self.name};"
 		return sql
+
+	def references(self, connection=None):
+		yield Schema(self.names.schema, self.getconnection(connection))
 
 
 class Schema(CommentedObject):
@@ -973,8 +986,30 @@ class Schema(CommentedObject):
 		else:
 			return None
 
+	def referencedby(self, connection=None):
+		def allobjects():
+			yield from self.domains(connection)
+			yield from self.tables(connection)
+			yield from self.views(connection)
+			yield from self.sequences(connection)
+			yield from self.procedures(connection)
+			yield from self.functions(connection)
 
-class Domain(CommentedObject):
+		yield from allobjects()
+
+
+Schema.Comment.Object = Schema
+
+
+class CommentedSchemaObject(CommentedObject):
+	def schema(self, connection=None):
+		return Schema(self.names.schema, connection or self.connection)
+
+	def references(self, connection=None):
+		yield self.schema(connection)
+
+
+class Domain(CommentedSchemaObject):
 	type = "domain"
 	names = collections.namedtuple("DomainNames", ["schema", "domain"])
 
@@ -1007,8 +1042,10 @@ class Domain(CommentedObject):
 		notnull = " not null" if r.typnotnull else ""
 		return f"create domain {self.name} {r.domain_def}{notnull};"
 
+Domain.Comment.Object = Domain
 
-class ColumnObject(CommentedObject):
+
+class ColumnObject(CommentedSchemaObject):
 	class Comment(CommentObject):
 		def _query(self, cursor):
 			cursor.execute(_attquery("col_description(c.oid, a.attnum) as comment", relkind=self.relkind, nsp=True, rel=True, att=True), self.names)
@@ -1033,7 +1070,7 @@ class ColumnObject(CommentedObject):
 			where
 				n.oid = c.relnamespace and
 				c.relkind = '{self.relkind}' and
-				n.nspname = %s and 
+				n.nspname = %s and
 				c.relname = %s and
 				a.attname = %s
 			order by
@@ -1060,7 +1097,7 @@ class ColumnObject(CommentedObject):
 		return not r.attnotnull
 
 
-class Table(CommentedObject):
+class Table(CommentedSchemaObject):
 	type = "table"
 	names = collections.namedtuple("TableNames", ["schema", "table"])
 
@@ -1089,6 +1126,9 @@ class Table(CommentedObject):
 
 		def table(self, connection=None):
 			return Table(self.name.rpartition(".")[0], self.getconnection(connection))
+
+		def references(self, connection=None):
+			yield self.table(connection)
 
 		def addsql(self, connection=None, exists_ok=False):
 			r = self._info(connection)
@@ -1216,8 +1256,23 @@ class Table(CommentedObject):
 	def ismview(self, connection=None):
 		raise NotImplementedError
 
+	def referencedby(self, connection=None):
+		def allobjects():
+			yield from self.indexes(connection)
+			yield from self.triggers(connection)
+			pk = self.pk(connection)
+			if pk is not None:
+				yield pk
+			yield from self.fks(connection)
+			yield from self.unique_constraints(connection)
+			yield from self.check_constraints(connection)
 
-class Index(CommentedObject):
+		yield from allobjects()
+
+Table.Comment.Object = Table
+
+
+class Index(CommentedSchemaObject):
 	type = "index"
 	names = collections.namedtuple("IndexNames", ["schema", "index"])
 
@@ -1290,8 +1345,10 @@ class Index(CommentedObject):
 	def columns(self, connection=None):
 		raise NotImplementedError
 
+Index.Comment.Object = Index
 
-class Trigger(CommentedObject):
+
+class Trigger(CommentedSchemaObject):
 	type = "trigger"
 	names = collections.namedtuple("TriggerNames", ["schema", "table", "trigger"])
 
@@ -1338,8 +1395,10 @@ class Trigger(CommentedObject):
 		sql += ";"
 		return sql
 
+Trigger.Comment.Object = Trigger
 
-class Constraint(CommentedObject):
+
+class Constraint(CommentedSchemaObject):
 	class Comment(CommentObject):
 		def _query(self, cursor):
 			cursor.execute(f"""
@@ -1430,6 +1489,7 @@ class Constraint(CommentedObject):
 		c = self.getcursor(connection)
 		raise NotImplementedError
 
+
 class PrimaryKey(Constraint):
 	type = "primary key"
 	names = collections.namedtuple("PrimaryKeyNames", ["schema", "pk"])
@@ -1442,6 +1502,8 @@ class PrimaryKey(Constraint):
 
 	def columns(self, connection=None):
 		raise NotImplementedError
+
+PrimaryKey.Comment.Object = PrimaryKey
 
 
 class ForeignKey(Constraint):
@@ -1460,6 +1522,8 @@ class ForeignKey(Constraint):
 	def refconstraint(self, connection=None):
 		raise NotImplementedError
 
+ForeignKey.Comment.Object = ForeignKey
+
 
 class UniqueConstraint(Constraint):
 	type = "unique constraint"
@@ -1474,6 +1538,8 @@ class UniqueConstraint(Constraint):
 	def columns(self, connection=None):
 		raise NotImplementedError
 
+UniqueConstraint.Comment.Object = UniqueConstraint
+
 
 class CheckConstraint(Constraint):
 	type = "check constraint"
@@ -1485,6 +1551,8 @@ class CheckConstraint(Constraint):
 		names = collections.namedtuple("CheckConstraintCommentNames", ["schema", "constraint"])
 		contype = "c"
 
+CheckConstraint.Comment.Object = CheckConstraint
+
 
 Constraint.types = dict(
 	p=PrimaryKey,
@@ -1494,7 +1562,7 @@ Constraint.types = dict(
 )
 
 
-class View(CommentedObject):
+class View(CommentedSchemaObject):
 	type = "view"
 	names = collections.namedtuple("ViewNames", ["schema", "view"])
 
@@ -1517,6 +1585,9 @@ class View(CommentedObject):
 
 		def view(self, connection=None):
 			return View(self.name.rpartition(".")[0], self.getconnection(connection))
+
+		def references(self, connection=None):
+			yield self.view(connection)
 
 	def _oid(self, connection=None):
 		c = self.getcursor(connection)
@@ -1542,6 +1613,8 @@ class View(CommentedObject):
 		r = c.fetchone()
 		return f"create or replace view {self.name}\nas\n{r.view_def};"
 
+View.Comment.Object = View
+
 
 class MaterializedView(View):
 	type = "materialized view"
@@ -1551,8 +1624,10 @@ class MaterializedView(View):
 		type = "materialized view comment"
 		names = collections.namedtuple("MaterializedViewCommentNames", ["schema", "materializedview"])
 
+MaterializedView.Comment.Object = MaterializedView
 
-class Sequence(CommentedObject):
+
+class Sequence(CommentedSchemaObject):
 	type = "sequence"
 	names = collections.namedtuple("SequenceNames", ["schema", "sequence"])
 
@@ -1624,8 +1699,10 @@ class Sequence(CommentedObject):
 		sql += ";"
 		return sql
 
+Sequence.Comment.Object = Sequence
 
-class CallableObject(CommentedObject):
+
+class CallableObject(CommentedSchemaObject):
 	class Comment(CommentObject):
 		def _query(self, cursor):
 			cursor.execute(_proquery("obj_description(p.oid, 'pg_proc') as comment", prokind=f"= '{self.prokind}'", nsp=True, pro=True), self.names)
@@ -1687,6 +1764,8 @@ class Procedure(CallableObject):
 		names = collections.namedtuple("ProcedureCommentNames", ["schema", "procedure"])
 		prokind = "p"
 
+Procedure.Comment.Object = Procedure
+
 
 class Function(CallableObject):
 	type = "function"
@@ -1697,6 +1776,8 @@ class Function(CallableObject):
 		type = "function comment"
 		names = collections.namedtuple("FunctionCommentNames", ["schema", "function"])
 		prokind = "f"
+
+Function.Comment.Object = Function
 
 
 CallableObject.types = dict(
