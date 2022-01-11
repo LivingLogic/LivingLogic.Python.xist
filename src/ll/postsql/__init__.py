@@ -109,6 +109,7 @@ class _SQL:
 		self.leftjoins = []
 		self.wheres = []
 		self.orderbys = []
+		self.params = []
 		if select is not None:
 			if isinstance(select, str):
 				self.selects.append(select)
@@ -149,13 +150,23 @@ class _SQL:
 		leftjoins = ", ".join(f"left outer join {j}" for j in self.leftjoins)
 		if leftjoins:
 			leftjoins = f" {leftjoins}"
-		wheres = " and ".join(self.wheres)
-		if wheres:
+		if self.wheres:
+			if len(self.wheres) > 1:
+				wheres = " and ".join(f"({w})" for w in self.wheres)
+			else:
+				wheres = self.wheres[0]
 			wheres = f" where {wheres}"
+		else:
+			wheres = ""
 		orderbys = ", ".join(self.orderbys)
 		if orderbys:
 			orderbys = f" order by {orderbys}"
 		return f"select {selects} from {froms}{joins}{leftjoins}{wheres}{orderbys}"
+
+	def execute(self, cursor):
+		print(f"{self}: {self.params}")
+		cursor.execute(str(self), tuple(self.params))
+		return cursor
 
 	def select(self, *expressions):
 		self.selects.extend(expressions)
@@ -181,62 +192,86 @@ class _SQL:
 		self.orderbys.extend(orderbys)
 		return self
 
+	def param(self, *params):
+		self.params.extend(params)
+		return self
 
-def _schemaquery(*fields, nsp=False, internal=False):
+
+def _where_nsp_internal(sql, internal):
+	if internal is not None:
+		if internal:
+			sql.where("n.nspname like 'pg_%%' or n.nspname = 'information_schema'")
+		else:
+			sql.where("n.nspname not like 'pg_%%'", "n.nspname != 'information_schema'")
+
+
+def _where(sql, fieldname, fieldvalue, orderby=None):
+	if fieldvalue is not None:
+		if isinstance(fieldvalue, str):
+			sql.where(f"{fieldname} = %s").param(fieldvalue)
+			return
+		else:
+			sql.where(f"{fieldname} = any(%s)").param(fieldvalue)
+	sql.orderby(orderby or fieldname)
+
+
+def _where_domain(sql, domain):
+	if domain is not None:
+		if isinstance(domain, str):
+			sql.where("t.typname = %s").param(domain)
+			return
+		else:
+			sql.where("t.typname = any(%s)").param(domain)
+	sql.orderby("t.typname")
+
+
+def _where_rel(sql, rel):
+	if rel is not None:
+		if isinstance(rel, str):
+			sql.where("r.relname = %s").param(rel)
+			return
+		else:
+			sql.where("r.relname = any(%s)").param(rel)
+	sql.orderby("r.relname")
+
+
+def _schemaquery(*fields, nsp=None, internal=False):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n"
 	)
-	if nsp:
-		sql.where("n.nspname = %s")
-	else:
-		sql.orderby("n.nspname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	return sql
 
 
-def _domainquery(*fields, nsp=False, domain=False, internal=False):
+def _domainquery(*fields, nsp=None, domain=None, internal=False):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
 		join="pg_catalog.pg_type t on n.oid = t.typnamespace",
 		where="t.typtype = 'd'",
 	)
-	if nsp:
-		sql.where("n.nspname = %s")
-		if domain:
-			sql.where("t.typname = %s")
-		else:
-			sql.orderby("t.typname")
-	else:
-		sql.orderby("n.nspname", "t.typname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	_where(sql, "t.typname", domain)
+	return sql
 
 
-def _relquery(*fields, relkind, nsp=False, rel=False, internal=False):
+def _relquery(*fields, relkind, nsp=None, rel=None, internal=None):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
 		join="pg_catalog.pg_class r on n.oid = r.relnamespace",
 		where=(f"r.relkind = '{relkind}'", ),
 	)
-	if nsp:
-		sql.where("n.nspname = %s")
-		if rel:
-			sql.where("r.relname = %s")
-		else:
-			sql.orderby("r.relname")
-	else:
-		sql.orderby("n.nspname", "r.relname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	_where(sql, "r.relname", rel)
+	return sql
 
 
-def _proquery(*fields, prokind, nsp=False, pro=False, lan=False, internal=False):
+def _proquery(*fields, prokind, nsp=None, pro=None, lan=False, internal=None):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -246,20 +281,13 @@ def _proquery(*fields, prokind, nsp=False, pro=False, lan=False, internal=False)
 		sql.join("pg_catalog.pg_language l on p.prolang = l.oid")
 	if prokind is not None:
 		sql.where(f"p.prokind {prokind}")
-	if nsp:
-		sql.where("n.nspname = %s")
-		if pro:
-			sql.where("p.proname = %s")
-		else:
-			sql.orderby("p.proname")
-	else:
-		sql.orderby("n.nspname", "p.proname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	_where(sql, "p.proname", pro)
+	return sql
 
 
-def _indquery(*fields, nsp=False, rel=False, ind=False, internal=False):
+def _indquery(*fields, nsp=None, rel=None, ind=None, internal=None):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -269,22 +297,16 @@ def _indquery(*fields, nsp=False, rel=False, ind=False, internal=False):
 		),
 		where="not i.indisprimary",
 	)
-	if nsp:
-		sql.where("n.nspname = %s")
-		if rel:
-			sql.join("pg_catalog.pg_class ct on i.indrelid = ct.oid").w("ct.relname = %s").orderby("c.relname")
-		elif ind:
-			sql.where("c.relname = %s")
-		else:
-			sql.orderby("c.relname")
-	else:
-		sql.orderby("n.nspname", "c.relname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	if rel is not None:
+		sql.join("pg_catalog.pg_class ct on i.indrelid = ct.oid")
+		_where(sql, "ct.relname", rel)
+	_where(sql, "c.relname", ind)
+	return sql
 
 
-def _attquery(*fields, relkind, nsp=False, rel=False, att=False, internal=False):
+def _attquery(*fields, relkind, nsp=None, rel=None, att=None, internal=None):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -298,24 +320,14 @@ def _attquery(*fields, relkind, nsp=False, rel=False, att=False, internal=False)
 			f"c.relkind = '{relkind}'"
 		)
 	)
-	if nsp:
-		sql.where("n.nspname = %s")
-		if rel:
-			sql.where("c.relname = %s")
-			if att:
-				sql.where("a.attname = %s")
-			else:
-				sql.orderby("a.attnum")
-		else:
-			sql.orderby("c.relname", "a.attnum")
-	else:
-		sql.orderby("n.nspname", "c.relname", "a.attnum")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	print(str(sql))
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	_where(sql, "c.relname", rel)
+	_where(sql, "a.attname", att, "a.attnum")
+	return sql
 
-def _tgquery(*fields, nsp=False, rel=False, tg=False, internal=False):
+
+def _tgquery(*fields, nsp=False, rel=False, tg=False, internal=None):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -337,12 +349,15 @@ def _tgquery(*fields, nsp=False, rel=False, tg=False, internal=False):
 			sql.orderby("c.relname", "t.tgname")
 	else:
 		sql.orderby("n.nspname", "c.relname", "t.tgname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
+		if internal is not None:
+			if internal:
+				sql.where("n.nspname like 'pg_%' or n.nspname = 'information_schema'")
+			else:
+				sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
 	return str(sql)
 
 
-def _conquery(*fields, contype=None, nsp=False, rel=False, con=False, internal=False):
+def _conquery(*fields, contype=None, nsp=None, rel=None, con=None, internal=None):
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
@@ -350,19 +365,13 @@ def _conquery(*fields, contype=None, nsp=False, rel=False, con=False, internal=F
 	)
 	if contype is not None:
 		sql.where(f"contype = '{contype}'")
-	if nsp:
-		sql.where("n.nspname = %s")
-		if rel:
-			sql.where("c.relname = %s")
-		elif con:
-			sql.where("c.conname = %s")
-		else:
-			sql.orderby("c.conname")
-	else:
-		sql.orderby("n.nspname", "c.conname")
-		if not internal:
-			sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	if rel is not None:
+		sql.join("pg_catalog.pg_class r on c.conrelid = r.oid")
+		_where(sql, "r.relname", rel)
+	_where(sql, "c.conname", con)
+	return sql
 
 
 ###
@@ -438,123 +447,204 @@ class Connection(psycopg.Connection):
 			sv = str(sv)
 			return f"{sv[:2]}.{sv[2:-2].lstrip('0')}.{sv[-2:].lstrip('0')}"
 
-	def schemas(self, internal=False):
-		c = self.cursor()
-		c.execute(_schemaquery("nspname", internal=internal))
-		for r in c:
+	def schemas(self, cursor=None, schema=None, internal=False):
+		query = _schemaquery(
+			"nspname",
+			nsp=schema,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield Schema(r.nspname, self)
 
-	def domains(self, internal=False):
-		c = self.cursor()
-		c.execute(_domainquery("n.nspname || '.' || t.typname as name", internal=internal))
-		for r in c:
-			yield Domain(r.name, c.connection)
+	def domains(self, cursor=None, schema=None, name=None, internal=False):
+		query = _domainquery(
+			"n.nspname || '.' || t.typname as name",
+			nsp=schema,
+			domain=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield Domain(r.name, self)
 
-	def tables(self, internal=False):
-		c = self.cursor()
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="r", internal=internal))
-		for r in c:
+	def tables(self, cursor=None, schema=None, name=None, internal=False):
+		query = _relquery(
+			"n.nspname || '.' || r.relname as name",
+			relkind="r",
+			nsp=schema,
+			rel=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield Table(r.name, self)
 
-	def table_columns(self, internal=False):
-		c = self.cursor()
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='r', internal=internal))
-		for r in c:
-			yield Table.Column(r.name, c.connection)
+	def table_columns(self, cursor=None, schema=None, tablename=None, columnname=None, internal=False):
+		query = _attquery(
+			"n.nspname || '.' || c.relname || '.' || a.attname as name",
+			relkind='r',
+			nsp=schema,
+			rel=tablename,
+			att=columnname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield Table.Column(r.name, self)
 
-	def indexes(self, internal=False):
-		c = self.cursor()
-		c.execute(_indquery("n.nspname || '.' || c.relname as name", internal=internal))
-		for r in c:
+	def indexes(self, cursor=None, schema=None, tablename=None, indexname=None, internal=False):
+		query = _indquery(
+			"n.nspname || '.' || c.relname as name",
+			nsp=schema,
+			rel=tablename,
+			ind=indexname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield Index(r.name, self)
 
-	def triggers(self, internal=False):
-		c = self.cursor()
-		c.execute(_tgquery("n.nspname || '.' || c.relname || '.' || t.tgname as name", internal=internal))
-		for r in c:
-			yield Trigger(r.name, c.connection)
+	def triggers(self, cursor=None, schema=None, tablename=None, triggername=None, internal=False):
+		query = _tgquery(
+			"n.nspname || '.' || c.relname || '.' || t.tgname as name",
+			nsp=schema,
+			rel=tablename,
+			tg=triggername,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield Trigger(r.name, self)
 
-	def pks(self, internal=False):
-		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="p", internal=internal))
-		for r in c:
-			yield PrimaryKey(r.name, c.connection)
+	def pks(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
+		query = _conquery(
+			"n.nspname || '.' || c.conname as name",
+			contype="p",
+			nsp=schema,
+			rel=tablename,
+			con=conname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield PrimaryKey(r.name, self)
 
-	def fks(self, internal=False):
-		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="f", internal=internal))
-		for r in c:
-			yield ForeignKey(r.name, c.connection)
+	def fks(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
+		query = _conquery(
+			"n.nspname || '.' || c.conname as name",
+			contype="f",
+			nsp=schema,
+			rel=tablename,
+			con=conname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield ForeignKey(r.name, self)
 
-	def unique_constraints(self, internal=False):
-		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="u", internal=internal))
-		for r in c:
-			yield ForeignKey(r.name, c.connection)
+	def unique_constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
+		query = _conquery(
+			"n.nspname || '.' || c.conname as name",
+			contype="u",
+			nsp=schema,
+			rel=tablename,
+			con=conname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield ForeignKey(r.name, self)
 
-	def check_constraints(self, internal=False):
-		c = self.cursor()
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="c", internal=internal))
-		for r in c:
-			yield CheckConstraint(r.name, c.connection)
+	def check_constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
+		query = _conquery(
+			"n.nspname || '.' || c.conname as name",
+			contype="c",
+			nsp=schema,
+			rel=tablename,
+			con=conname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield CheckConstraint(r.name, self)
 
-	def constraints(self, internal=False):
-		c = self.cursor()
-		c.execute(_conquery("c.contype", "n.nspname || '.' || c.conname as name", internal=internal))
-		for r in c:
+	def constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
+		query = _conquery(
+			"c.contype",
+			"n.nspname || '.' || c.conname as name",
+			nsp=schema,
+			rel=tablename,
+			con=conname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			type = Constraint.types[r.contype]
-			yield type(r.name, c.connection)
+			yield type(r.name, self)
 
-	def views(self, internal=False):
-		c = self.cursor()
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="v", internal=internal))
-		for r in c:
+	def views(self, cursor=None, schema=None, name=None, internal=False):
+		query = _relquery(
+			"n.nspname || '.' || r.relname as name",
+			relkind="v",
+			nsp=schema,
+			rel=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield View(r.name, self)
 
-	def view_columns(self, internal=False):
-		c = self.cursor()
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='v', internal=internal))
-		for r in c:
-			yield View.Column(r.name, c.connection)
+	def view_columns(self, cursor=None, schema=None, viewname=None, columnname=None, internal=False):
+		query = _attquery(
+			"n.nspname || '.' || c.relname || '.' || a.attname as name",
+			relkind="v",
+			nsp=schema,
+			rel=viewname,
+			att=columnname,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			yield View.Column(r.name, self)
 
-	def sequences(self, internal=False):
-		c = self.cursor()
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="S", internal=internal))
-		for r in c:
+	def sequences(self, cursor=None, schema=None, name=None, internal=False):
+		query = _relquery(
+			"n.nspname || '.' || r.relname as name",
+			relkind="S",
+			nsp=schema,
+			rel=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield Sequence(r.name, self)
 
-	def callables(self, internal=False):
-		c = self.cursor()
-		c.execute(_proquery("p.prokind", "n.nspname || '.' || p.proname as name", prokind="in ('f', 'p')", internal=internal))
-		for r in c:
-			if r.prokind == "f":
-				yield Function(r.name, self)
-			else:
-				yield Procedure(r.name, self)
+	def callables(self, cursor=None, schema=None, name=None, internal=False):
+		query = _proquery(
+			"p.prokind", "n.nspname || '.' || p.proname as name",
+			prokind="in ('f', 'p')",
+			nsp=schema,
+			pro=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
+			type = CallableObject.types[r.prokind]
+			yield type(r.name, self)
 
-	def procedures(self, internal=False):
-		c = self.cursor()
-		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'p'", internal=internal))
-		for r in c:
+	def procedures(self, cursor=None, schema=None, name=None, internal=False):
+		query = _proquery(
+			"n.nspname || '.' || p.proname as name",
+			prokind="= 'p'",
+			nsp=schema,
+			pro=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield Procedure(r.name, self)
 
-	def functions(self, internal=False):
-		c = self.cursor()
-		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'f'", internal=internal))
-		for r in c:
+	def functions(self, cursor=None, schema=None, name=None, internal=False):
+		query = _proquery(
+			"n.nspname || '.' || p.proname as name",
+			prokind="= 'f'",
+			nsp=schema,
+			pro=name,
+			internal=internal,
+		)
+		for r in query.execute(cursor or self.getcursor()):
 			yield Function(r.name, self)
 
 	def objects(self):
 		raise NotImplementedError
 
-	def getobject(self, name):
+	def object_named(self, name):
 		raise NotImplementedError
-
-
-# class Cursor(extras.NamedTupleCursor):
-# 	def __repr__(self):
-# 		status = "closed" if self.closed else "open"
-# 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} dsn={self.connection.dsn!r} query={self.query!r} {status} at {id(self):#x}>"
 
 
 class Record(tuple, abc.Mapping):
@@ -675,7 +765,7 @@ def connect(conninfo, **kwargs):
 class ObjectMeta(type):
 	def __new__(mcl, name, bases, dict):
 		cls = type.__new__(mcl, name, bases, dict)
-		if "names" in dict:
+		if "names" in dict and isinstance(dict["names"], str):
 			names = cls.__qualname__.replace(".", "")
 			cls.names = collections.namedtuple(f"{names}Names", dict["names"].split("."))
 		return cls
@@ -686,6 +776,15 @@ class Object(metaclass=ObjectMeta):
 		self.name = name
 		self.names = self.__class__.names._make(name.split("."))
 		self.connection = connection
+
+	def oid(self, connection=None):
+		r = self._oid(connection)
+		if r is None:
+			raise SQLObjectNotFoundError(self)
+		return r.oid
+
+	def exists(self, connection=None):
+		return self._oid(connection) is not None
 
 	def __repr__(self):
 		if self.connection is None:
@@ -817,24 +916,20 @@ class Schema(CommentedObject):
 		names = "schema"
 
 		def _query(self, cursor):
-			cursor.execute(_schemaquery("obj_description(oid, 'pg_namespace') as comment", nsp=True), self.names)
+			query = _schemaquery("obj_description(oid, 'pg_namespace') as comment", nsp=self.names[0])
+			query.execute(cursor)
 
 	def _oid(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_schemaquery("oid", nsp=True), self.names)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		_schemaquery("oid", nsp=self.names[0]).execute(cursor)
+		r = cursor.fetchone()
 		return r
 
-	def oid(self, connection=None):
-		return self._oid(connection).oid
-
-	def exists(self, connection=None):
-		return self._oid(connection) is not None
-
 	def domains(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_domainquery("n.nspname || '.' || t.typname as name", nsp=True), self.names)
-		for r in c:
+		cursor = self.getcursor(connection)
+		query = _domainquery("n.nspname || '.' || t.typname as name", nsp=self.names[0])
+		query.execute(cursor)
+		for r in cursor:
 			yield Domain(r.name, c.connection)
 
 	def tables(self, connection=None):
@@ -964,12 +1059,18 @@ class Domain(CommentedObject):
 		names = "schema.domain"
 
 		def _query(self, cursor):
-			cursor.execute(_domainquery("obj_description(t.oid, 'pg_type') as comment", nsp=True, domain=True), self.names)
+			query = _domainquery(
+				"obj_description(t.oid, 'pg_type') as comment",
+				nsp=self.names.schema,
+				domain=self.names.domain
+			)
+			query.execute(cursor)
 
 	def _oid(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_domainquery("t.oid", nsp=True, domain=True), self.names)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		query = _domainquery("t.oid", nsp=self.names.schema, domain=self.names.domain)
+		query.execute(cursor)
+		r = cursor.fetchone()
 		return r
 
 	def createsql(self, connection=None):
@@ -1044,7 +1145,13 @@ class Table(CommentedObject):
 		names = "schema.table"
 
 		def _query(self, cursor):
-			cursor.execute(_relquery("obj_description(r.oid, 'pg_class') as comment", relkind="r", nsp=True, rel=True), self.names)
+			query = _relquery(
+				"obj_description(r.oid, 'pg_class') as comment",
+				relkind="r",
+				nsp=self.names.schema,
+				rel=self.names.table,
+			)
+			query.execute(cursor)
 
 	class Column(ColumnObject):
 		type = "table column"
@@ -1061,10 +1168,10 @@ class Table(CommentedObject):
 
 		def addsql(self, connection=None, exists_ok=False):
 			r = self._info(connection)
-			sql = f"alter table {self.names[0]}.{self.names[1]} add column"
+			sql = f"alter table {self.names.schema}.{self.names.table} add column"
 			if exists_ok:
 				sql += " if not exists"
-			sql += f" {self.names[2]} {r.column_type}"
+			sql += f" {self.names.column} {r.column_type}"
 			if r.attnotnull:
 				sql += " not null"
 			sql += ";"
@@ -1074,23 +1181,34 @@ class Table(CommentedObject):
 			sql = f"alter table {self.names.schema}.{self.names.table} drop column"
 			if missing_ok:
 				sql += " if exists"
-			sql += f" {self.names[2]}"
+			sql += f" {self.names.column}"
 			if cascade:
 				sql += " cascade"
 			sql += ";"
 			return sql
 
 	def _oid(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_relquery("r.oid", relkind="r", nsp=True, rel=True), self.names)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		query = _relquery(
+			"r.oid",
+			relkind="r",
+			nsp=self.names.schema,
+			rel=self.names.table,
+		)
+		query.execute(cursor)
+		r = cursor.fetchone()
 		return r
 
 	def columns(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='r', nsp=True, rel=True), self.names)
-		for r in c:
-			yield self.Column(r.name, c.connection)
+		cursor = self.getcursor(connection)
+		query = _attquery(
+			"n.nspname || '.' || c.relname || '.' || a.attname as name",
+			relkind="r",
+			nsp=self.names.schema,
+			rel=self.names.table,
+		)
+		for r in query.execute(cursor):
+			yield self.Column(r.name, cursor.connection)
 
 	def indexes(self, connection=None):
 		c = self.getcursor(connection)
@@ -1381,9 +1499,9 @@ class Constraint(CommentedObject):
 			return self._makesql(f"constraint {self.names[1]} on {self.names[0]}.{record.relname}", comment)
 
 	def _oid(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_conquery("c.oid", contype=self.contype, nsp=True, con=True), self.names)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		query = _conquery("c.oid", contype=self.contype, nsp=self.names[0], con=self.names[1])
+		r = cursor.execute(cursor).fetchone()
 		return r
 
 	def createsql(self, connection=None):
@@ -1716,3 +1834,9 @@ class Function(CallableObject):
 		type = "function comment"
 		names = "schema.function"
 		prokind = "f"
+
+
+CallableObject.types = dict(
+	f=Function,
+	p=Procedure,
+)
