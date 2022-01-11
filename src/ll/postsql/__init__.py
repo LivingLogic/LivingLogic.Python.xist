@@ -164,7 +164,6 @@ class _SQL:
 		return f"select {selects} from {froms}{joins}{leftjoins}{wheres}{orderbys}"
 
 	def execute(self, cursor):
-		print(f"{self}: {self.params}")
 		cursor.execute(str(self), tuple(self.params))
 		return cursor
 
