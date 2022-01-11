@@ -903,105 +903,52 @@ class Schema(CommentedObject):
 		return r
 
 	def domains(self, connection=None):
-		cursor = self.getcursor(connection)
-		query = _domainquery("n.nspname || '.' || t.typname as name", nsp=self.names[0])
-		query.execute(cursor)
-		for r in cursor:
-			yield Domain(r.name, c.connection)
+		return self.getconnection(connection).domains(schema=self.names.schema)
 
 	def tables(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="r", nsp=True), self.names)
-		for r in c:
-			yield Table(r.name, c.connection)
+		return self.getconnection(connection).tables(schema=self.names.schema)
 
 	def table_columns(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='r', nsp=True), self.names)
-		for r in c:
-			yield Table.Column(r.name, c.connection)
+		return self.getconnection(connection).table_columns(schema=self.names.schema)
 
 	def indexes(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_indquery("n.nspname || '.' || c.relname as name", nsp=True), self.names)
-		for r in c:
-			yield Index(r.name, c.connection)
+		return self.getconnection(connection).indexes(schema=self.names.schema)
 
 	def triggers(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_tgquery("n.nspname || '.' || c.relname || '.' || t.tgname as name", nsp=True), self.names)
-		for r in c:
-			yield Trigger(r.name, c.connection)
+		return self.getconnection(connection).triggers(schema=self.names.schema)
 
 	def pks(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="p", nsp=True), self.names)
-		for r in c:
-			yield PrimaryKey(r.name, c.connection)
+		return self.getconnection(connection).pks(schema=self.names.schema)
 
 	def fks(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="f", nsp=True), self.names)
-		for r in c:
-			yield ForeignKey(r.name, c.connection)
+		return self.getconnection(connection).fks(schema=self.names.schema)
 
 	def unique_constraints(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="u", nsp=True), self.names)
-		for r in c:
-			yield UniqueConstraint(r.name, c.connection)
+		return self.getconnection(connection).unique_constraints(schema=self.names.schema)
 
 	def check_constraints(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_conquery("n.nspname || '.' || c.conname as name", contype="c", nsp=True), self.names)
-		for r in c:
-			yield CheckConstraint(r.name, c.connection)
+		return self.getconnection(connection).check_constraints(schema=self.names.schema)
 
 	def constraints(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_conquery("c.contype", "n.nspname || '.' || c.conname as name", nsp=True), self.names)
-		for r in c:
-			type = Constraint.types[r.contype]
-			yield type(r.name, c.connection)
+		return self.getconnection(connection).constraints(schema=self.names.schema)
 
 	def views(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="v", nsp=True), self.names)
-		for r in c:
-			yield View(r.name, c.connection)
+		return self.getconnection(connection).views(schema=self.names.schema)
 
 	def view_columns(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='v', nsp=True), self.names)
-		for r in c:
-			yield View.Column(r.name, c.connection)
+		return self.getconnection(connection).view_columns(schema=self.names.schema)
 
 	def sequences(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_relquery("n.nspname || '.' || r.relname as name", relkind="S", nsp=True), self.names)
-		for r in c:
-			yield Sequence(r.name, c.connection)
+		return self.getconnection(connection).sequences(schema=self.names.schema)
 
 	def callables(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_proquery("p.prokind", "n.nspname || '.' || p.proname as name", prokind="in ('f', 'p')", nsp=True), self.names)
-		for r in c:
-			if r.prokind == "f":
-				yield Function(r.name, c.connection)
-			else:
-				yield Procedure(r.name, c.connection)
+		return self.getconnection(connection).callables(schema=self.names.schema)
 
 	def procedures(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'p'", nsp=True), self.names)
-		for r in c:
-			yield Procedure(r.name, c.connection)
+		return self.getconnection(connection).procedures(schema=self.names.schema)
 
 	def functions(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_proquery("n.nspname || '.' || p.proname as name", prokind="= 'f'", nsp=True), self.names)
-		for r in c:
-			yield Function(r.name, c.connection)
+		return self.getconnection(connection).functions(schema=self.names.schema)
 
 	def createsql(self, connection=None, exists_ok=False):
 		if self.name != "public":
