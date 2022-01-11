@@ -1124,27 +1124,16 @@ class Table(CommentedObject):
 		return r
 
 	def columns(self, connection=None):
-		cursor = self.getcursor(connection)
-		query = _attquery(
-			"n.nspname || '.' || c.relname || '.' || a.attname as name",
-			relkind="r",
-			nsp=self.names.schema,
-			rel=self.names.table,
-		)
-		for r in query.execute(cursor):
-			yield self.Column(r.name, cursor.connection)
+		connection = self.getconnection(connection)
+		return connection.table_columns(schema=self.names.schema, tablename=self.names.table)
 
 	def indexes(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_indquery("n.nspname || '.' || c.relname as name", nsp=True, rel=True), self.names)
-		for r in c:
-			yield Index(r.name, c.connection)
+		connection = self.getconnection(connection)
+		return connection.indexes(schema=self.names.schema, tablename=self.names.table)
 
 	def triggers(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_tgquery("n.nspname || '.' || c.relname || '.' || t.tgname as name", nsp=True, rel=True), self.names)
-		for r in c:
-			yield Trigger(r.name, c.connection)
+		connection = self.getconnection(connection)
+		return connection.triggers(schema=self.names.schema, tablename=self.names.table)
 
 	def pk(self, connection=None):
 		c = self.getcursor(connection)
@@ -1165,75 +1154,25 @@ class Table(CommentedObject):
 			return PrimaryKey(f"{self.names.schema}.{r.conname}", c.connection)
 
 	def fks(self, connection=None):
-		c = self.getcursor(connection)
-		oid = self.oid(c.connection)
-
-		c.execute("""
-			select
-				c.conname
-			from
-				pg_catalog.pg_constraint c
-			where
-				conrelid=%s and
-				contype = 'f'
-		""", [oid])
-		for r in c:
-			yield ForeignKey(f"{self.names.schema}.{r.conname}", c.connection)
+		connection = self.getconnection(connection)
+		return connection.fks(schema=self.names.schema, tablename=self.names.table)
 
 	def unique_constraints(self, connection=None):
-		c = self.getcursor(connection)
-		oid = self.oid(c.connection)
-
-		c.execute("""
-			select
-				c.conname
-			from
-				pg_catalog.pg_constraint c
-			where
-				conrelid=%s and
-				contype = 'u'
-		""", [oid])
-		for r in c:
-			yield UniqueConstraint(f"{self.names.schema}.{r.conname}", c.connection)
+		connection = self.getconnection(connection)
+		return connection.unique_constraints(schema=self.names.schema, tablename=self.names.table)
 
 	def check_constraints(self, connection=None):
-		c = self.getcursor(connection)
-		oid = self.oid(c.connection)
-
-		c.execute("""
-			select
-				c.conname
-			from
-				pg_catalog.pg_constraint c
-			where
-				conrelid=%s and
-				contype = 'c'
-		""", [oid])
-		for r in c:
-			yield CheckConstraint(f"{self.names.schema}.{r.conname}", c.connection)
+		connection = self.getconnection(connection)
+		return connection.check_constraints(schema=self.names.schema, tablename=self.names.table)
 
 	def constraints(self, connection=None):
-		c = self.getcursor(connection)
-		oid = self.oid(c.connection)
-
-		c.execute("""
-			select
-				c.contype,
-				c.conname
-			from
-				pg_catalog.pg_constraint c
-			where
-				conrelid=%s
-		""", [oid])
-		for r in c:
-			type = Constraint.types[r.contype]
-			yield type(f"{self.names.schema}.{r.conname}", c.connection)
+		connection = self.getconnection(connection)
+		return connection.constraints(schema=self.names.schema, tablename=self.names.table)
 
 	def records(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(f"select * from {self.name};")
-		for r in c:
-			yield r
+		cursor = self.getcursor(connection)
+		cursor.execute(f"select * from {self.name};")
+		yield from cursor
 
 	def createsql(self, connection=None):
 		c = self.getcursor(connection)
