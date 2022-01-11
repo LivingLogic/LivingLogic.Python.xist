@@ -336,24 +336,11 @@ def _tgquery(*fields, nsp=False, rel=False, tg=False, internal=None):
 		),
 		where="not t.tgisinternal"
 	)
-	if nsp:
-		sql.where("n.nspname = %s")
-		if rel:
-			sql.where("c.relname = %s")
-			if tg:
-				sql.where("t.tgname = %s")
-			else:
-				sql.orderby("t.tgname")
-		else:
-			sql.orderby("c.relname", "t.tgname")
-	else:
-		sql.orderby("n.nspname", "c.relname", "t.tgname")
-		if internal is not None:
-			if internal:
-				sql.where("n.nspname like 'pg_%' or n.nspname = 'information_schema'")
-			else:
-				sql.where("n.nspname not like 'pg_%'", "n.nspname != 'information_schema'")
-	return str(sql)
+	_where_nsp_internal(sql, internal)
+	_where(sql, "n.nspname", nsp)
+	_where(sql, "c.relname", rel)
+	_where(sql, "t.tgname", tg)
+	return sql
 
 
 def _conquery(*fields, contype=None, nsp=None, rel=None, con=None, internal=None):
