@@ -748,16 +748,7 @@ def connect(conninfo, **kwargs):
 ### Classes for all types of objects in a Postgres database
 ###
 
-class ObjectMeta(type):
-	def __new__(mcl, name, bases, dict):
-		cls = type.__new__(mcl, name, bases, dict)
-		if "names" in dict and isinstance(dict["names"], str):
-			names = cls.__qualname__.replace(".", "")
-			cls.names = collections.namedtuple(f"{names}Names", dict["names"].split("."))
-		return cls
-
-
-class Object(metaclass=ObjectMeta):
+class Object:
 	def __init__(self, name, connection=None):
 		self.name = name
 		self.names = self.__class__.names._make(name.split("."))
@@ -895,11 +886,11 @@ class CommentedObject(Object):
 
 class Schema(CommentedObject):
 	type = "schema"
-	names = "schema"
+	names = collections.namedtuple("SchemaNames", ["schema"])
 
 	class Comment(CommentObject):
 		type = "schema"
-		names = "schema"
+		names = collections.namedtuple("SchemaCommentNames", ["schema"])
 
 		def _query(self, cursor):
 			query = _schemaquery("obj_description(oid, 'pg_namespace') as comment", nsp=self.names[0])
@@ -1038,11 +1029,11 @@ class Schema(CommentedObject):
 
 class Domain(CommentedObject):
 	type = "domain"
-	names = "schema.domain"
+	names = collections.namedtuple("DomainNames", ["schema", "domain"])
 
 	class Comment(CommentObject):
 		type = "domain"
-		names = "schema.domain"
+		names = collections.namedtuple("DomainCommentNames", ["schema", "domain"])
 
 		def _query(self, cursor):
 			query = _domainquery(
@@ -1124,11 +1115,11 @@ class ColumnObject(CommentedObject):
 
 class Table(CommentedObject):
 	type = "table"
-	names = "schema.table"
+	names = collections.namedtuple("TableNames", ["schema", "table"])
 
 	class Comment(CommentObject):
 		type = "table comment"
-		names = "schema.table"
+		names = collections.namedtuple("TableCommentNames", ["schema", "table"])
 
 		def _query(self, cursor):
 			query = _relquery(
@@ -1141,12 +1132,12 @@ class Table(CommentedObject):
 
 	class Column(ColumnObject):
 		type = "table column"
-		names = "schema.table.column"
+		names = collections.namedtuple("TableColumnNames", ["schema", "table", "column"])
 		relkind = "r"
 
 		class Comment(ColumnObject.Comment):
 			type = "table column comment"
-			names = "schema.table.column"
+			names = collections.namedtuple("TableColumnCommentNames", ["schema", "table", "column"])
 			relkind = "r"
 
 		def table(self, connection=None):
@@ -1342,11 +1333,11 @@ class Table(CommentedObject):
 
 class Index(CommentedObject):
 	type = "index"
-	names = "schema.index"
+	names = collections.namedtuple("IndexNames", ["schema", "index"])
 
 	class Comment(CommentObject):
 		type = "index comment"
-		names = "schema.index"
+		names = collections.namedtuple("IndexCommentNames", ["schema", "index"])
 
 		def _query(self, cursor):
 			cursor.execute(_indquery("obj_description(c.oid, 'pg_class') as comment", nsp=True, ind=True), self.names)
@@ -1416,11 +1407,11 @@ class Index(CommentedObject):
 
 class Trigger(CommentedObject):
 	type = "trigger"
-	names = "schema.table.trigger"
+	names = collections.namedtuple("TriggerNames", ["schema", "table", "trigger"])
 
 	class Comment(CommentObject):
 		type = "trigger comment"
-		names = "schema.table.trigger"
+		names = collections.namedtuple("TriggerCommentNames", ["schema", "table", "trigger"])
 
 		def _sql(self, record, comment):
 			return self._makesql(f"trigger {self.names.trigger} on {self.names.schema}.{self.names.table}", comment)
@@ -1555,12 +1546,12 @@ class Constraint(CommentedObject):
 
 class PrimaryKey(Constraint):
 	type = "primary key"
-	names = "schema.pk"
+	names = collections.namedtuple("PrimaryKeyNames", ["schema", "pk"])
 	contype = "p"
 
 	class Comment(Constraint.Comment):
 		type = "primary key comment"
-		names = "schema.pk"
+		names = collections.namedtuple("PrimaryKeyCommentNames", ["schema", "pk"])
 		contype = "p"
 
 	def columns(self, connection=None):
@@ -1569,12 +1560,12 @@ class PrimaryKey(Constraint):
 
 class ForeignKey(Constraint):
 	type = "foreign key"
-	names = "schema.fk"
+	names = collections.namedtuple("ForeignKeyNames", ["schema", "fk"])
 	contype = "f"
 
 	class Comment(Constraint.Comment):
 		type = "foreign key comment"
-		names = "schema.fk"
+		names = collections.namedtuple("ForeignKeyCommentNames", ["schema", "fk"])
 		contype = "f"
 
 	def columns(self, connection=None):
@@ -1586,12 +1577,12 @@ class ForeignKey(Constraint):
 
 class UniqueConstraint(Constraint):
 	type = "unique constraint"
-	names = "schema.constraint"
+	names = collections.namedtuple("UniqueConstraintNames", ["schema", "constraint"])
 	contype = "u"
 
 	class Comment(Constraint.Comment):
 		type = "unique constraint comment"
-		names = "schema.constraint"
+		names = collections.namedtuple("UniqueConstraintCommentNames", ["schema", "constraint"])
 		contype = "u"
 
 	def columns(self, connection=None):
@@ -1600,12 +1591,12 @@ class UniqueConstraint(Constraint):
 
 class CheckConstraint(Constraint):
 	type = "check constraint"
-	names = "schema.constraint"
+	names = collections.namedtuple("CheckConstraintNames", ["schema", "constraint"])
 	contype = "c"
 
 	class Comment(Constraint.Comment):
 		type = "check constraint comment"
-		names = "schema.constraint"
+		names = collections.namedtuple("CheckConstraintCommentNames", ["schema", "constraint"])
 		contype = "c"
 
 
@@ -1619,23 +1610,23 @@ Constraint.types = dict(
 
 class View(CommentedObject):
 	type = "view"
-	names = "schema.view"
+	names = collections.namedtuple("ViewNames", ["schema", "view"])
 
 	class Comment(CommentObject):
 		type = "view comment"
-		names = "schema.view"
+		names = collections.namedtuple("ViewCommentNames", ["schema", "view"])
 
 		def _query(self, cursor):
 			cursor.execute(_relquery("obj_description(r.oid, 'pg_class') as comment", relkind="v", nsp=True, rel=True), self.names)
 
 	class Column(ColumnObject):
 		type = "view column"
-		names = "schema.view.column"
+		names = collections.namedtuple("ViewColumnNames", ["schema", "view", "column"])
 		relkind = "v"
 
 		class Comment(ColumnObject.Comment):
 			type = "view column comment"
-			names = "schema.view.column"
+			names = collections.namedtuple("ViewColumnCommentNames", ["schema", "view", "column"])
 			relkind = "v"
 
 		def view(self, connection=None):
@@ -1668,16 +1659,16 @@ class View(CommentedObject):
 
 class MaterializedView(View):
 	type = "materialized view"
-	names = "schema.materializedview"
+	names = collections.namedtuple("MaterializedViewNames", ["schema", "materializedview"])
 
 	class Comment(CommentObject):
 		type = "materialized view comment"
-		names = "schema.materializedview"
+		names = collections.namedtuple("MaterializedViewCommentNames", ["schema", "materializedview"])
 
 
 class Sequence(CommentedObject):
 	type = "sequence"
-	names = "schema.sequence"
+	names = collections.namedtuple("SequenceNames", ["schema", "sequence"])
 
 	seqtypes = dict(
 		int2=(-(1<<15), (1<<15)-1, "smallint"),
@@ -1688,7 +1679,7 @@ class Sequence(CommentedObject):
 
 	class Comment(CommentObject):
 		type = "sequence comment"
-		names = "schema.sequence"
+		names = collections.namedtuple("SequenceCommentNames", ["schema", "sequence"])
 
 		def _query(self, cursor):
 			cursor.execute(_relquery("obj_description(r.oid, 'pg_class') as comment", relkind="S", nsp=True, rel=True), self.names)
@@ -1802,23 +1793,23 @@ class CallableObject(CommentedObject):
 
 class Procedure(CallableObject):
 	type = "procedure"
-	names = "schema.procedure"
+	names = collections.namedtuple("ProcedureNames", ["schema", "procedure"])
 	prokind = "p"
 
 	class Comment(CallableObject.Comment):
 		type = "procedure comment"
-		names = "schema.procedure"
+		names = collections.namedtuple("ProcedureCommentNames", ["schema", "procedure"])
 		prokind = "p"
 
 
 class Function(CallableObject):
 	type = "function"
-	names = "schema.function"
+	names = collections.namedtuple("FunctionNames", ["schema", "function"])
 	prokind = "f"
 
 	class Comment(CallableObject.Comment):
 		type = "function comment"
-		names = "schema.function"
+		names = collections.namedtuple("FunctionCommentNames", ["schema", "function"])
 		prokind = "f"
 
 
