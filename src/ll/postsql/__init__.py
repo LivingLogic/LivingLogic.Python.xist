@@ -439,7 +439,7 @@ class Connection(psycopg.Connection):
 			nsp=schema,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Schema(r.nspname, self)
 
 	def domains(self, cursor=None, schema=None, name=None, internal=False):
@@ -449,7 +449,7 @@ class Connection(psycopg.Connection):
 			domain=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Domain(r.name, self)
 
 	def tables(self, cursor=None, schema=None, name=None, internal=False):
@@ -460,7 +460,7 @@ class Connection(psycopg.Connection):
 			rel=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Table(r.name, self)
 
 	def table_columns(self, cursor=None, schema=None, tablename=None, columnname=None, internal=False):
@@ -472,7 +472,7 @@ class Connection(psycopg.Connection):
 			att=columnname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Table.Column(r.name, self)
 
 	def indexes(self, cursor=None, schema=None, tablename=None, indexname=None, internal=False):
@@ -483,7 +483,7 @@ class Connection(psycopg.Connection):
 			ind=indexname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Index(r.name, self)
 
 	def triggers(self, cursor=None, schema=None, tablename=None, triggername=None, internal=False):
@@ -494,7 +494,7 @@ class Connection(psycopg.Connection):
 			tg=triggername,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Trigger(r.name, self)
 
 	def pks(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
@@ -506,7 +506,7 @@ class Connection(psycopg.Connection):
 			con=conname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield PrimaryKey(r.name, self)
 
 	def fks(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
@@ -518,7 +518,7 @@ class Connection(psycopg.Connection):
 			con=conname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield ForeignKey(r.name, self)
 
 	def unique_constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
@@ -530,7 +530,7 @@ class Connection(psycopg.Connection):
 			con=conname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield ForeignKey(r.name, self)
 
 	def check_constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
@@ -542,7 +542,7 @@ class Connection(psycopg.Connection):
 			con=conname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield CheckConstraint(r.name, self)
 
 	def constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
@@ -554,7 +554,7 @@ class Connection(psycopg.Connection):
 			con=conname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			type = Constraint.types[r.contype]
 			yield type(r.name, self)
 
@@ -566,7 +566,7 @@ class Connection(psycopg.Connection):
 			rel=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield View(r.name, self)
 
 	def view_columns(self, cursor=None, schema=None, viewname=None, columnname=None, internal=False):
@@ -578,7 +578,7 @@ class Connection(psycopg.Connection):
 			att=columnname,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield View.Column(r.name, self)
 
 	def sequences(self, cursor=None, schema=None, name=None, internal=False):
@@ -589,7 +589,7 @@ class Connection(psycopg.Connection):
 			rel=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Sequence(r.name, self)
 
 	def callables(self, cursor=None, schema=None, name=None, internal=False):
@@ -600,7 +600,7 @@ class Connection(psycopg.Connection):
 			pro=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			type = CallableObject.types[r.prokind]
 			yield type(r.name, self)
 
@@ -612,7 +612,7 @@ class Connection(psycopg.Connection):
 			pro=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Procedure(r.name, self)
 
 	def functions(self, cursor=None, schema=None, name=None, internal=False):
@@ -623,7 +623,7 @@ class Connection(psycopg.Connection):
 			pro=name,
 			internal=internal,
 		)
-		for r in query.execute(cursor or self.getcursor()):
+		for r in query.execute(cursor or self.cursor()):
 			yield Function(r.name, self)
 
 	def objects(self):
