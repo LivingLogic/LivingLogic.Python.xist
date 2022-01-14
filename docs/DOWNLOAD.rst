@@ -5108,5 +5108,5 @@ Older versions of some modules were distributed seperately before XIST 3.2
 download those packages you have to hunt around in the
 `HTTP download directory`_.
 
-.. _HTTP download directory: http://python.livinglogic.de/download/
+.. _HTTP download directory: http://python-downloads.livinglogic.de/download/
 .. _Cheeseshop: http://cheeseshop.python.org/pypi/ll-xist
