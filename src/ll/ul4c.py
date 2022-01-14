@@ -1944,7 +1944,7 @@ class PositionalArgumentAST(CodeAST):
 class KeywordArgumentAST(CodeAST):
 	"""
 	AST node for a keyword argument in a :class:`CallAST` (e.g. the ``x=y``
-	in the function call``f(x=y)``).
+	in the function call ``f(x=y)``).
 
 	Attributes are:
 
@@ -2756,10 +2756,10 @@ class IfBlockAST(BlockAST):
 
 	Attributes are:
 
-	``condition`` : class:`AST`
+	``condition`` : :class:`AST`
 		The condition in the ``<?if?>`` block.
 
-	``content`` : :class:`list` of `:class:`AST` objects
+	``content`` : :class:`list` of :class:`AST` objects
 		The content of the ``<?if?>`` block.
 	"""
 
@@ -2808,10 +2808,10 @@ class ElIfBlockAST(BlockAST):
 
 	Attributes are:
 
-	``condition`` : class:`AST`
+	``condition`` : :class:`AST`
 		The condition in the ``<?elif?>`` block.
 
-	``content`` : :class:`list` of `:class:`AST` objects
+	``content`` : :class:`list` of :class:`AST` objects
 		The content of the ``<?elif?>`` block.
 	"""
 
@@ -2860,7 +2860,7 @@ class ElseBlockAST(BlockAST):
 
 	Attributes are:
 
-	``content`` : :class:`list` of `:class:`AST` objects
+	``content`` : :class:`list` of :class:`AST` objects
 		The content of the ``<?else?>`` block.
 	"""
 
