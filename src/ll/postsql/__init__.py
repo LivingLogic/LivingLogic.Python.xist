@@ -179,7 +179,7 @@ class _SQL:
 		self.joins.extend(joins)
 		return self
 
-	def leftjoin(self, *joins):
+	def left_outer_join(self, *joins):
 		self.leftjoins.extend(joins)
 		return self
 
@@ -187,7 +187,7 @@ class _SQL:
 		self.wheres.extend(wheres)
 		return self
 
-	def orderby(self, *orderbys):
+	def order_by(self, *orderbys):
 		self.orderbys.extend(orderbys)
 		return self
 
@@ -211,7 +211,7 @@ def _where(sql, fieldname, fieldvalue, orderby=None):
 			return
 		else:
 			sql.where(f"{fieldname} = any(%s)").param(fieldvalue)
-	sql.orderby(orderby or fieldname)
+	sql.order_by(orderby or fieldname)
 
 
 def _where_domain(sql, domain):
@@ -221,7 +221,7 @@ def _where_domain(sql, domain):
 			return
 		else:
 			sql.where("t.typname = any(%s)").param(domain)
-	sql.orderby("t.typname")
+	sql.order_by("t.typname")
 
 
 def _where_rel(sql, rel):
@@ -231,7 +231,7 @@ def _where_rel(sql, rel):
 			return
 		else:
 			sql.where("r.relname = any(%s)").param(rel)
-	sql.orderby("r.relname")
+	sql.order_by("r.relname")
 
 
 def _schemaquery(*fields, nsp=None, internal=False):
@@ -466,7 +466,7 @@ class Connection(psycopg.Connection):
 	def table_columns(self, cursor=None, schema=None, tablename=None, columnname=None, internal=False):
 		query = _attquery(
 			"n.nspname || '.' || c.relname || '.' || a.attname as name",
-			relkind='r',
+			relkind="r",
 			nsp=schema,
 			rel=tablename,
 			att=columnname,
@@ -627,7 +627,9 @@ class Connection(psycopg.Connection):
 			yield Function(r.name, self)
 
 	def objects(self):
-		raise NotImplementedError
+		for schema in self.schemas():
+			yield schema
+			yield from schema.referencedbyall()
 
 	def object_named(self, name):
 		raise NotImplementedError
@@ -748,20 +750,14 @@ def connect(conninfo, **kwargs):
 ### Classes for all types of objects in a Postgres database
 ###
 
+ID = collections.namedtuple("ID", ["type", "object", "index"], defaults=[None], module="ll.postsql")
+
+
 class Object:
 	def __init__(self, name, connection=None):
 		self.name = name
 		self.names = self.__class__.names._make(name.split("."))
 		self.connection = connection
-
-	def oid(self, connection=None):
-		r = self._oid(connection)
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.oid
-
-	def exists(self, connection=None):
-		return self._oid(connection) is not None
 
 	def __repr__(self):
 		if self.connection is None:
@@ -788,9 +784,6 @@ class Object:
 	def getcursor(self, connection):
 		return self.getconnection(connection).cursor()
 
-	def exists(self, connection=None):
-		raise NotImplementedError
-
 	def references(self, connection=None):
 		"""
 		Objects directly used by ``self``.
@@ -813,11 +806,11 @@ class Object:
 		"""
 		if done is None:
 			done = set()
-		if self not in done:
-			done.add(self)
-			for obj in self.references(connection):
+		for obj in self.references(connection):
+			if obj not in done:
+				done.add(obj)
+				yield obj
 				yield from obj.referencesall(connection, done)
-			yield self
 
 	def referencedby(self, connection=None):
 		"""
@@ -831,34 +824,42 @@ class Object:
 	def referencedbyall(self, connection=None, done=None):
 		if done is None:
 			done = set()
-		if self not in done:
-			done.add(self)
-			for obj in self.referencedby(connection):
+		for obj in self.referencedby(connection):
+			if obj not in done:
+				done.add(obj)
+				yield obj
 				yield from obj.referencedbyall(connection, done)
-			yield self
 
 
 class CommentObject(Object):
+	def identify(self, connection=None):
+		cursor = self.getcursor(connection)
+		self.object()._identify(cursor)
+		r = cursor.fetchone()
+		if r is None:
+			raise SQLObjectNotFoundError(self)
+		return self.id(*r)
+
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
-		r = self._query(c)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		self._query(cursor)
+		r = cursor.fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 		return self._sql(r, r.comment)
 
 	def dropsql(self, connection=None):
-		c = self.getcursor(connection)
-		r = self._query(c)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		self._query(cursor)
+		r = cursor.fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 		return self._sql(r, None)
 
 	def exists(self, connection=None):
-		c = self.getcursor(connection)
-		r = self._query(c)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		self._query(cursor)
+		r = cursor.fetchone()
 		return r is not None
 
 	def _sql(self, record, comment):
@@ -886,6 +887,20 @@ class CommentedObject(Object):
 	def comment(self, connection=None):
 		return self.Comment(self.name, connection or self.connection)
 
+	def identify(self, connection=None):
+		cursor = self.getcursor(connection)
+		self._identify(cursor)
+		r = cursor.fetchone()
+		if r is None:
+			raise SQLObjectNotFoundError(self)
+		return self.id(*r)
+
+	def exists(self, connection=None):
+		cursor = self.getcursor(connection)
+		self._identify(cursor)
+		r = cursor.fetchone()
+		return r is not None
+
 	def dropsql(self, connection=None, missing_ok=False):
 		sql = f"drop {self.type}"
 		if missing_ok:
@@ -893,27 +908,26 @@ class CommentedObject(Object):
 		sql += f" {self.name};"
 		return sql
 
-	def references(self, connection=None):
-		yield Schema(self.names.schema, self.getconnection(connection))
+	def referencedby(self, connection=None):
+		yield self.Comment(self.name, self.getconnection(connection))
 
 
 class Schema(CommentedObject):
 	type = "schema"
 	names = collections.namedtuple("SchemaNames", ["schema"])
+	id = collections.namedtuple("SchemaID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "schema"
 		names = collections.namedtuple("SchemaCommentNames", ["schema"])
+		id = collections.namedtuple("SchemaCommentID", ["type", "object"])
 
 		def _query(self, cursor):
 			query = _schemaquery("obj_description(oid, 'pg_namespace') as comment", nsp=self.names[0])
 			query.execute(cursor)
 
-	def _oid(self, connection=None):
-		cursor = self.getcursor(connection)
-		_schemaquery("oid", nsp=self.names[0]).execute(cursor)
-		r = cursor.fetchone()
-		return r
+	def _identify(self, cursor):
+		_schemaquery("'pg_namespace'::regclass::int", "oid", nsp=self.names[0]).execute(cursor)
 
 	def domains(self, connection=None):
 		return self.getconnection(connection).domains(schema=self.names.schema)
@@ -987,15 +1001,13 @@ class Schema(CommentedObject):
 			return None
 
 	def referencedby(self, connection=None):
-		def allobjects():
-			yield from self.domains(connection)
-			yield from self.tables(connection)
-			yield from self.views(connection)
-			yield from self.sequences(connection)
-			yield from self.procedures(connection)
-			yield from self.functions(connection)
-
-		yield from allobjects()
+		yield from super().referencedby(connection)
+		yield from self.domains(connection)
+		yield from self.tables(connection)
+		yield from self.views(connection)
+		yield from self.sequences(connection)
+		yield from self.procedures(connection)
+		yield from self.functions(connection)
 
 
 Schema.Comment.Object = Schema
@@ -1012,10 +1024,12 @@ class CommentedSchemaObject(CommentedObject):
 class Domain(CommentedSchemaObject):
 	type = "domain"
 	names = collections.namedtuple("DomainNames", ["schema", "domain"])
+	id = collections.namedtuple("DomainID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "domain"
 		names = collections.namedtuple("DomainCommentNames", ["schema", "domain"])
+		id = collections.namedtuple("DomainCommentID", ["type", "object"])
 
 		def _query(self, cursor):
 			query = _domainquery(
@@ -1025,18 +1039,26 @@ class Domain(CommentedSchemaObject):
 			)
 			query.execute(cursor)
 
-	def _oid(self, connection=None):
-		cursor = self.getcursor(connection)
-		query = _domainquery("t.oid", nsp=self.names.schema, domain=self.names.domain)
+	def _identify(self, cursor):
+		query = _domainquery(
+			"'pg_type'::regclass::int",
+			"t.oid",
+			nsp=self.names.schema,
+			domain=self.names.domain,
+		)
 		query.execute(cursor)
-		r = cursor.fetchone()
-		return r
 
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_domainquery("typnotnull", "pg_catalog.format_type(typbasetype, typtypmod) as domain_def", nsp=True, domain=True), self.names)
+		cursor = self.getcursor(connection)
+		query = _domainquery(
+			"typnotnull",
+			"pg_catalog.format_type(typbasetype, typtypmod) as domain_def",
+			nsp=self.names.schema,
+			domain=self.names.domain,
+		)
+		query.execute(cursor)
 
-		r = c.fetchone()
+		r = cursor.fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 		notnull = " not null" if r.typnotnull else ""
@@ -1048,11 +1070,30 @@ Domain.Comment.Object = Domain
 class ColumnObject(CommentedSchemaObject):
 	class Comment(CommentObject):
 		def _query(self, cursor):
-			cursor.execute(_attquery("col_description(c.oid, a.attnum) as comment", relkind=self.relkind, nsp=True, rel=True, att=True), self.names)
+			query = _attquery(
+				"col_description(c.oid, a.attnum) as comment",
+				relkind=self.relkind,
+				nsp=self.names.schema,
+				rel=self.names[1], # Might be "table" or "view"
+				att=self.names.column,
+			)
+			query.execute(cursor)
+
+	def _identify(self, cursor):
+		query = _attquery(
+			"'pg_class'::regclass::int",
+			"c.oid",
+			"a.attnum",
+			relkind=self.relkind,
+			nsp=self.names.schema,
+			rel=self.names[1], # Might be "table" or "view"
+			att=self.names.column,
+		)
+		query.execute(cursor)
 
 	def _info(self, connection):
-		c = self.getcursor(connection)
-		c.execute(f"""
+		cursor = self.getcursor(connection)
+		cursor.execute(f"""
 			select
 				a.attnotnull,
 				pg_catalog.format_type(a.atttypid, a.atttypmod) as column_type,
@@ -1076,7 +1117,7 @@ class ColumnObject(CommentedSchemaObject):
 			order by
 				attnum
 		""", self.names)
-		return c.fetchone()
+		return cursor.fetchone()
 
 	def datatype(self, connection=None):
 		r = self._info(connection)
@@ -1100,10 +1141,12 @@ class ColumnObject(CommentedSchemaObject):
 class Table(CommentedSchemaObject):
 	type = "table"
 	names = collections.namedtuple("TableNames", ["schema", "table"])
+	id = collections.namedtuple("TableID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "table comment"
 		names = collections.namedtuple("TableCommentNames", ["schema", "table"])
+		id = collections.namedtuple("TableCommentID", ["type", "object"])
 
 		def _query(self, cursor):
 			query = _relquery(
@@ -1117,6 +1160,7 @@ class Table(CommentedSchemaObject):
 	class Column(ColumnObject):
 		type = "table column"
 		names = collections.namedtuple("TableColumnNames", ["schema", "table", "column"])
+		id = collections.namedtuple("TableColumnID", ["type", "object", "index"])
 		relkind = "r"
 
 		class Comment(ColumnObject.Comment):
@@ -1151,17 +1195,15 @@ class Table(CommentedSchemaObject):
 			sql += ";"
 			return sql
 
-	def _oid(self, connection=None):
-		cursor = self.getcursor(connection)
+	def _identify(self, cursor):
 		query = _relquery(
+			"'pg_class'::regclass::int",
 			"r.oid",
 			relkind="r",
 			nsp=self.names.schema,
 			rel=self.names.table,
 		)
 		query.execute(cursor)
-		r = cursor.fetchone()
-		return r
 
 	def columns(self, connection=None):
 		connection = self.getconnection(connection)
@@ -1176,9 +1218,9 @@ class Table(CommentedSchemaObject):
 		return connection.triggers(schema=self.names.schema, tablename=self.names.table)
 
 	def pk(self, connection=None):
-		c = self.getcursor(connection)
-		oid = self.oid(c.connection)
-		c.execute("""
+		cursor = self.getcursor(connection)
+		oid = self.identify(cursor.connection)[1]
+		cursor.execute("""
 			select
 				c.conname
 			from
@@ -1187,11 +1229,11 @@ class Table(CommentedSchemaObject):
 				conrelid = %s and
 				contype = 'p'
 		""", [oid])
-		r = c.fetchone()
+		r = cursor.fetchone()
 		if r is None:
 			return None
 		else:
-			return PrimaryKey(f"{self.names.schema}.{r.conname}", c.connection)
+			return PrimaryKey(f"{self.names.schema}.{r.conname}", cursor.connection)
 
 	def fks(self, connection=None):
 		connection = self.getconnection(connection)
@@ -1215,34 +1257,32 @@ class Table(CommentedSchemaObject):
 		yield from cursor
 
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
+		cursor = self.getcursor(connection)
 
-		oid = self.oid(c.connection)
-		c.execute("""
-			select
-				a.attname,
-				a.attnum,
-				a.attnotnull,
-				pg_catalog.format_type(a.atttypid, a.atttypmod) as column_type,
+		oid = self.identify(cursor.connection)[1]
+		query = (_SQL()
+			.select("a.attname")
+			.select("a.attnum")
+			.select("a.attnotnull")
+			.select("pg_catalog.format_type(a.atttypid, a.atttypmod) as column_type")
+			.select("""
 				case
 					when d.adrelid is not null then pg_catalog.pg_get_expr(d.adbin, d.adrelid)
 					else null
 				end as default_value
-			from
-				pg_catalog.pg_class c
-			join
-				pg_catalog.pg_attribute a on c.oid = a.attrelid and a.attnum > 0 and not a.attisdropped
-			left outer join
-				pg_catalog.pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum and a.atthasdef
-			where
-				c.oid = %s
-			order by
-				attnum
-		""", [oid])
+			""")
+			.from_("pg_catalog.pg_class c")
+			.join("pg_catalog.pg_attribute a on c.oid = a.attrelid and a.attnum > 0 and not a.attisdropped")
+			.left_outer_join("pg_catalog.pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum and a.atthasdef")
+			.order_by("attnum")
+			.where("c.oid = %s").param(oid)
+		)
+
+		query.execute(cursor)
 
 		sql = f"create table {self.name}\n"
 		sql += f"(\n"
-		for (last, column) in misc.islast(c):
+		for (last, column) in misc.islast(cursor):
 			column_term = "" if last else ","
 			notnull = " not null" if column.attnotnull else ""
 			default = f" default {column.default_value}" if column.default_value is not None else ""
@@ -1257,55 +1297,59 @@ class Table(CommentedSchemaObject):
 		raise NotImplementedError
 
 	def referencedby(self, connection=None):
-		def allobjects():
-			yield from self.indexes(connection)
-			yield from self.triggers(connection)
-			pk = self.pk(connection)
-			if pk is not None:
-				yield pk
-			yield from self.fks(connection)
-			yield from self.unique_constraints(connection)
-			yield from self.check_constraints(connection)
-
-		yield from allobjects()
+		yield from super().referencedby(connection)
+		yield from self.indexes(connection)
+		yield from self.triggers(connection)
+		pk = self.pk(connection)
+		if pk is not None:
+			yield pk
+		yield from self.fks(connection)
+		yield from self.unique_constraints(connection)
+		yield from self.check_constraints(connection)
 
 Table.Comment.Object = Table
+Table.Column.Comment.Object = Table.Column
 
 
 class Index(CommentedSchemaObject):
 	type = "index"
 	names = collections.namedtuple("IndexNames", ["schema", "index"])
+	id = collections.namedtuple("IndexID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "index comment"
 		names = collections.namedtuple("IndexCommentNames", ["schema", "index"])
+		id = collections.namedtuple("IndexCommentID", ["type", "object"])
 
 		def _query(self, cursor):
-			cursor.execute(_indquery("obj_description(c.oid, 'pg_class') as comment", nsp=True, ind=True), self.names)
+			query = _indquery(
+				"obj_description(c.oid, 'pg_class') as comment",
+				nsp=self.names.schema,
+				ind=self.names.index,
+			)
+			query.execute(cursor)
 
-	def _oid(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_indquery("c.oid", nsp=True, ind=True), self.names)
-		r = c.fetchone()
-		return r
+	def _identify(self, cursor):
+		query = _indquery(
+			"'pg_class'::regclass::int",
+			"c.oid",
+			nsp=self.names.schema,
+			ind=self.names.index,
+		)
+		query.execute(cursor)
 
 	def createsql(self, connection=None, exists_ok=False):
-		c = self.getcursor(connection)
-		c.execute("""
-			select
-				pg_catalog.pg_get_indexdef(i.indexrelid) as index_def
-			from
-				pg_catalog.pg_namespace n,
-				pg_catalog.pg_class c,
-				pg_catalog.pg_index i
-			where
-				n.oid = c.relnamespace and
-				c.oid = i.indexrelid and
-				n.nspname = %s and
-				c.relname = %s and
-				not i.indisprimary
-		""", self.names)
-		sql = c.fetchone().index_def
+		cursor = self.getcursor(connection)
+		query = (_SQL()
+			.select("pg_catalog.pg_get_indexdef(i.indexrelid) as index_def")
+			.from_("pg_catalog.pg_namespace n")
+			.join("pg_catalog.pg_class c on n.oid = c.relnamespace")
+			.join("pg_catalog.pg_index i on c.oid = i.indexrelid")
+			.where("n.nspname = %s").param(self.names.schema)
+			.where("c.relname = %s").param(self.names.index)
+			.where("not i.indisprimary")
+		)
+		sql = query.execute(cursor).fetchone().index_def
 		(prefix, sql) = sql.split(None, 1)
 		if prefix.lower() != "create":
 			raise ValueError(f"Can't parse index {self.name}")
@@ -1351,20 +1395,38 @@ Index.Comment.Object = Index
 class Trigger(CommentedSchemaObject):
 	type = "trigger"
 	names = collections.namedtuple("TriggerNames", ["schema", "table", "trigger"])
+	id = collections.namedtuple("TriggerID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "trigger comment"
 		names = collections.namedtuple("TriggerCommentNames", ["schema", "table", "trigger"])
+		id = collections.namedtuple("TriggerCommentID", ["type", "object"])
 
 		def _sql(self, record, comment):
 			return self._makesql(f"trigger {self.names.trigger} on {self.names.schema}.{self.names.table}", comment)
 
 		def _query(self, cursor):
-			cursor.execute(_tgquery("obj_description(t.oid) as comment", nsp=True, rel=True, tg=True), self.names)
+			query = _tgquery(
+				"obj_description(t.oid) as comment",
+				nsp=self.names.schema,
+				rel=self.names.table,
+				tg=self.names.trigger,
+			)
+			query.execute(cursor)
+
+	def _identify(self, cursor):
+		query = _tgquery(
+			"'pg_trigger'::regclass::int",
+			"t.oid",
+			nsp=self.names.schema,
+			rel=self.names.table,
+			tg=self.names.trigger,
+		)
+		query.execute(cursor)
 
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute("""
+		cursor = self.getcursor(connection)
+		cursor.execute("""
 			select
 				pg_get_triggerdef(t.oid, true) as trigger_def
 			from
@@ -1380,7 +1442,7 @@ class Trigger(CommentedSchemaObject):
 				not t.tgisinternal
 		""", self.names)
 
-		r = c.fetchone()
+		r = cursor.fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 		return f"{r.trigger_def};"
@@ -1389,11 +1451,17 @@ class Trigger(CommentedSchemaObject):
 		sql = "drop trigger"
 		if missing_ok:
 			sql += " if exists"
-		sql += f" {self.names.trigger} on {self.names.table}.{self.names.schema}"
+		sql += f" {self.names.trigger} on {self.names.schema}.{self.names.table}"
 		if cascade:
 			sql += " cascade"
 		sql += ";"
 		return sql
+
+	def table(self, connection=None):
+		return Table(self.name.rpartition(".")[0], self.getconnection(connection))
+
+	def references(self, connection=None):
+		yield self.table(connection)
 
 Trigger.Comment.Object = Trigger
 
@@ -1420,15 +1488,19 @@ class Constraint(CommentedSchemaObject):
 		def _sql(self, record, comment):
 			return self._makesql(f"constraint {self.names[1]} on {self.names[0]}.{record.relname}", comment)
 
-	def _oid(self, connection=None):
-		cursor = self.getcursor(connection)
-		query = _conquery("c.oid", contype=self.contype, nsp=self.names[0], con=self.names[1])
-		r = cursor.execute(cursor).fetchone()
-		return r
+	def _identify(self, cursor):
+		query = _conquery(
+			"'pg_constraint'::regclass::int",
+			"c.oid",
+			contype=self.contype,
+			nsp=self.names.schema,
+			con=self.names[1]
+		)
+		query.execute(cursor)
 
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(f"""
+		cursor = self.getcursor(connection)
+		cursor.execute(f"""
 			select
 				r.relname,
 				pg_catalog.pg_get_constraintdef(c.oid, true) as constraint_def
@@ -1443,61 +1515,66 @@ class Constraint(CommentedSchemaObject):
 				c.conname = %s and
 				c.contype = '{self.contype}'
 		""", self.names)
-		r = c.fetchone()
+		r = cursor.fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 		return f"alter table {self.names[0]}.{r.relname} add constraint {self.names[1]} {r.constraint_def};"
 
-	def dropsql(self, connection=None, missing_ok=False):
-		c = self.getcursor(connection)
-		c.execute(f"""
-			select
-				r.relname
-			from
-				pg_catalog.pg_namespace n,
-				pg_catalog.pg_constraint c,
-				pg_catalog.pg_class r
-			where
-				n.oid = c.connamespace and
-				c.conrelid = r.oid and
-				n.nspname = %s and
-				c.conname = %s and
-				c.contype = '{self.contype}'
-		""", self.names)
-		r = c.fetchone()
+	def _tablename(self, connection):
+		cursor = self.getcursor(connection)
+		query = (_SQL()
+			.select("r.relname")
+			.from_("pg_catalog.pg_namespace n")
+			.join("pg_catalog.pg_constraint c on n.oid = c.connamespace")
+			.join("pg_catalog.pg_class r on c.conrelid = r.oid")
+			.where("n.nspname = %s").param(self.names.schema)
+			.where("c.conname = %s").param(self.names[1])
+			.where(f"c.contype = '{self.contype}'")
+		)
+		r = query.execute(cursor).fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
-		sql = f"alter table {self.names[0]}.{r.relname} drop constraint"
+		return r.relname
+
+	def dropsql(self, connection=None, missing_ok=False):
+		tablename = self._tablename(connection)
+		sql = f"alter table {self.names.schema}.{tablename} drop constraint"
 		if missing_ok:
 			sql += " if exists"
 		sql += f" {self.names[1]};"
 		return sql
 
 	def enablesql(self, connection=None):
-		c = self.getcursor(connection)
+		cursor = self.getcursor(connection)
 		raise NotImplementedError
 
 	def disablesql(self, connection=None):
-		c = self.getcursor(connection)
+		cursor = self.getcursor(connection)
 		raise NotImplementedError
 
 	def isenabled(self, connection=None):
-		c = self.getcursor(connection)
+		cursor = self.getcursor(connection)
 		raise NotImplementedError
 
 	def table(self, connection=None):
-		c = self.getcursor(connection)
-		raise NotImplementedError
+		connection = self.getconnection(connection)
+		tablename = self._tablename(connection)
+		return Table(f"{self.names.schema}.{tablename}", connection)
+
+	def references(self, connection=None):
+		yield self.table(connection)
 
 
 class PrimaryKey(Constraint):
 	type = "primary key"
 	names = collections.namedtuple("PrimaryKeyNames", ["schema", "pk"])
+	id = collections.namedtuple("PrimaryKeyID", ["type", "object"])
 	contype = "p"
 
 	class Comment(Constraint.Comment):
 		type = "primary key comment"
 		names = collections.namedtuple("PrimaryKeyCommentNames", ["schema", "pk"])
+		id = collections.namedtuple("PrimaryKeyCommentID", ["type", "object"])
 		contype = "p"
 
 	def columns(self, connection=None):
@@ -1509,11 +1586,13 @@ PrimaryKey.Comment.Object = PrimaryKey
 class ForeignKey(Constraint):
 	type = "foreign key"
 	names = collections.namedtuple("ForeignKeyNames", ["schema", "fk"])
+	id = collections.namedtuple("ForeignKeyID", ["type", "object"])
 	contype = "f"
 
 	class Comment(Constraint.Comment):
 		type = "foreign key comment"
 		names = collections.namedtuple("ForeignKeyCommentNames", ["schema", "fk"])
+		id = collections.namedtuple("ForeignKeyCommentID", ["type", "object"])
 		contype = "f"
 
 	def columns(self, connection=None):
@@ -1528,11 +1607,13 @@ ForeignKey.Comment.Object = ForeignKey
 class UniqueConstraint(Constraint):
 	type = "unique constraint"
 	names = collections.namedtuple("UniqueConstraintNames", ["schema", "constraint"])
+	id = collections.namedtuple("UniqueConstraintID", ["type", "object"])
 	contype = "u"
 
 	class Comment(Constraint.Comment):
 		type = "unique constraint comment"
 		names = collections.namedtuple("UniqueConstraintCommentNames", ["schema", "constraint"])
+		id = collections.namedtuple("UniqueConstraintCommentID", ["type", "object"])
 		contype = "u"
 
 	def columns(self, connection=None):
@@ -1544,11 +1625,13 @@ UniqueConstraint.Comment.Object = UniqueConstraint
 class CheckConstraint(Constraint):
 	type = "check constraint"
 	names = collections.namedtuple("CheckConstraintNames", ["schema", "constraint"])
+	id = collections.namedtuple("CheckConstraintID", ["type", "object"])
 	contype = "c"
 
 	class Comment(Constraint.Comment):
 		type = "check constraint comment"
 		names = collections.namedtuple("CheckConstraintCommentNames", ["schema", "constraint"])
+		id = collections.namedtuple("CheckConstraintCommentID", ["type", "object"])
 		contype = "c"
 
 CheckConstraint.Comment.Object = CheckConstraint
@@ -1565,22 +1648,32 @@ Constraint.types = dict(
 class View(CommentedSchemaObject):
 	type = "view"
 	names = collections.namedtuple("ViewNames", ["schema", "view"])
+	id = collections.namedtuple("ViewID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "view comment"
 		names = collections.namedtuple("ViewCommentNames", ["schema", "view"])
+		id = collections.namedtuple("ViewCommentID", ["type", "object"])
 
 		def _query(self, cursor):
-			cursor.execute(_relquery("obj_description(r.oid, 'pg_class') as comment", relkind="v", nsp=True, rel=True), self.names)
+			query = _relquery(
+				"obj_description(r.oid, 'pg_class') as comment",
+				relkind="v",
+				nsp=self.names.schema,
+				rel=self.names.view,
+			)
+			query.execute(cursor)
 
 	class Column(ColumnObject):
 		type = "view column"
 		names = collections.namedtuple("ViewColumnNames", ["schema", "view", "column"])
+		id = collections.namedtuple("ViewColumnID", ["type", "object", "index"])
 		relkind = "v"
 
 		class Comment(ColumnObject.Comment):
 			type = "view column comment"
 			names = collections.namedtuple("ViewColumnCommentNames", ["schema", "view", "column"])
+			id = collections.namedtuple("ViewColumnCommentID", ["type", "object", "index"])
 			relkind = "v"
 
 		def view(self, connection=None):
@@ -1589,40 +1682,67 @@ class View(CommentedSchemaObject):
 		def references(self, connection=None):
 			yield self.view(connection)
 
-	def _oid(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_relquery("r.oid", relkind="v", nsp=True, rel=True), self.names)
-		r = c.fetchone()
-		return r
+	def _identify(self, cursor):
+		query = _relquery(
+			"'pg_class'::regclass::int",
+			"r.oid",
+			relkind="v",
+			nsp=self.names.schema,
+			rel=self.names.view,
+		)
+		query.execute(cursor)
 
 	def columns(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_attquery("n.nspname || '.' || c.relname || '.' || a.attname as name", relkind='v', nsp=True, rel=True), self.names)
-		for r in c:
+		query = _attquery(
+			"n.nspname || '.' || c.relname || '.' || a.attname as name",
+			relkind="v",
+			nsp=self.names.schema,
+			rel=self.names.view,
+		)
+		for r in query.execute(self.getcursor(connection)):
 			yield self.Column(r.name, c.connection)
 
 	def records(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(f"select * from {self.name};")
-		for r in c:
-			yield r
+		cursor = self.getcursor(connection)
+		cursor.execute(f"select * from {self.name};")
+		yield from cursor
 
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
-		c.execute(_relquery("pg_catalog.pg_get_viewdef(r.oid) as view_def", relkind="v", nsp=True, rel=True), self.names)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		query = _relquery(
+			"pg_catalog.pg_get_viewdef(r.oid) as view_def",
+			relkind="v",
+			nsp=self.names.schema,
+			rel=self.names.view,
+		)
+		query.execute(cursor)
+		r = cursor.fetchone()
 		return f"create or replace view {self.name}\nas\n{r.view_def};"
 
 View.Comment.Object = View
+View.Column.Comment.Object = View.Column
 
 
 class MaterializedView(View):
 	type = "materialized view"
 	names = collections.namedtuple("MaterializedViewNames", ["schema", "materializedview"])
+	id = collections.namedtuple("MaterializedViewID", ["type", "object"])
 
 	class Comment(CommentObject):
 		type = "materialized view comment"
 		names = collections.namedtuple("MaterializedViewCommentNames", ["schema", "materializedview"])
+		id = collections.namedtuple("MaterializedViewCommentID", ["type", "object"])
+
+	def _identify(self, cursor):
+		query = _relquery(
+			"'pg_class'::relclass::int",
+			"r.oid",
+			relkind="m",
+			nsp=self.names.schema,
+			rel=self.names.view,
+		)
+		query.execute(cursor)
+
 
 MaterializedView.Comment.Object = MaterializedView
 
@@ -1630,6 +1750,7 @@ MaterializedView.Comment.Object = MaterializedView
 class Sequence(CommentedSchemaObject):
 	type = "sequence"
 	names = collections.namedtuple("SequenceNames", ["schema", "sequence"])
+	id = collections.namedtuple("SequenceID", ["type", "object"])
 
 	seqtypes = dict(
 		int2=(-(1<<15), (1<<15)-1, "smallint"),
@@ -1641,30 +1762,45 @@ class Sequence(CommentedSchemaObject):
 	class Comment(CommentObject):
 		type = "sequence comment"
 		names = collections.namedtuple("SequenceCommentNames", ["schema", "sequence"])
+		id = collections.namedtuple("SequenceCommentID", ["type", "object"])
 
 		def _query(self, cursor):
-			cursor.execute(_relquery("obj_description(r.oid, 'pg_class') as comment", relkind="S", nsp=True, rel=True), self.names)
+			query = _relquery(
+				"obj_description(r.oid, 'pg_class') as comment",
+				relkind="S",
+				nsp=self.names.schema,
+				rel=self.names.sequence,
+			)
+			query.execute(cursor)
+
+	def _identify(self, cursor):
+		query = (_SQL()
+			.select("'pg_class'::regclass::int")
+			.select("t.oid")
+			.from_("pg_catalog.pg_namespace n")
+			.join("pg_catalog.pg_class c on n.oid = c.relnamespace")
+			.join("pg_catalog.pg_sequence s on c.oid = s.seqrelid")
+			.join("pg_catalog.pg_type t on c.oid = s.seqrelid and s.seqtypid = t.oid")
+			.where("c.relkind = 'S'")
+			.where("n.nspname = %s").param(self.names.schema)
+			.where("c.relname = %s").param(self.names.sequence)
+		)
+		query.execute(cursor)
 
 	def createsql(self, connection=None, exists_ok=False):
-		c = self.getcursor(connection)
-		c.execute("""
-			select
-				s.*,
-				t.typname
-			from
-				pg_catalog.pg_namespace n,
-				pg_catalog.pg_class c,
-				pg_catalog.pg_sequence s,
-				pg_catalog.pg_type t
-			where
-				n.oid = c.relnamespace and
-				c.oid = s.seqrelid and
-				s.seqtypid = t.oid and
-				c.relkind = 'S' and
-				n.nspname = %s and
-				c.relname = %s
-		""", self.names)
-		r = c.fetchone()
+		cursor = self.getcursor(connection)
+		query = (_SQL()
+			.select("s.*")
+			.select("t.typname")
+			.from_("pg_catalog.pg_namespace n")
+			.join("pg_catalog.pg_class c on n.oid = c.relnamespace")
+			.join("pg_catalog.pg_sequence s on c.oid = s.seqrelid")
+			.join("pg_catalog.pg_type t on c.oid = s.seqrelid and s.seqtypid = t.oid")
+			.where("c.relkind = 'S'")
+			.where("n.nspname = %s").param(self.names.schema)
+			.where("c.relname = %s").param(self.names.sequence)
+		)
+		r = query.execute(cursor).fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 		sql = f"create sequence"
@@ -1705,7 +1841,13 @@ Sequence.Comment.Object = Sequence
 class CallableObject(CommentedSchemaObject):
 	class Comment(CommentObject):
 		def _query(self, cursor):
-			cursor.execute(_proquery("obj_description(p.oid, 'pg_proc') as comment", prokind=f"= '{self.prokind}'", nsp=True, pro=True), self.names)
+			query = _proquery(
+				"obj_description(p.oid, 'pg_proc') as comment",
+				prokind=f"= '{self.prokind}'",
+				nsp=self.names.schema,
+				pro=self.names[-1], # might be "procedure" or "function"
+			)
+			query.execute(cursor)
 
 	def arguments(self, connection=None):
 		raise NotImplementedError
@@ -1713,9 +1855,19 @@ class CallableObject(CommentedSchemaObject):
 	def __call__(self, cursor, *args, **kwargs):
 		raise NotImplementedError
 
+	def _identify(self, cursor):
+		query = _proquery(
+			"'pg_proc'::regclass::int",
+			"p.oid",
+			prokind=f"= '{self.prokind}'",
+			nsp=self.names.schema,
+			pro=self.names[-1], # might be "procedure" or "function"
+		)
+		query.execute(cursor)
+
 	def createsql(self, connection=None):
-		c = self.getcursor(connection)
-		sql = _proquery(
+		cursor = self.getcursor(connection)
+		query = _proquery(
 			"p.prokind",
 			"p.proname",
 			"l.lanname",
@@ -1724,12 +1876,11 @@ class CallableObject(CommentedSchemaObject):
 			"pg_catalog.pg_get_function_arguments(p.oid) as args_def",
 			"pg_catalog.pg_get_function_result(p.oid) as return_def",
 			prokind=f"= '{self.prokind}'",
-			nsp=True,
-			pro=True,
+			nsp=self.names.schema,
+			pro=self.names[-1], # might be "procedure" or "function"
 			lan=True,
 		)
-		c.execute(sql, self.names)
-		r = c.fetchone()
+		r = query.execute(cursor).fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
 
@@ -1757,11 +1908,13 @@ class CallableObject(CommentedSchemaObject):
 class Procedure(CallableObject):
 	type = "procedure"
 	names = collections.namedtuple("ProcedureNames", ["schema", "procedure"])
+	id = collections.namedtuple("ProcedureID", ["type", "object"])
 	prokind = "p"
 
 	class Comment(CallableObject.Comment):
 		type = "procedure comment"
 		names = collections.namedtuple("ProcedureCommentNames", ["schema", "procedure"])
+		id = collections.namedtuple("ProcedureCommentID", ["type", "object"])
 		prokind = "p"
 
 Procedure.Comment.Object = Procedure
@@ -1770,11 +1923,13 @@ Procedure.Comment.Object = Procedure
 class Function(CallableObject):
 	type = "function"
 	names = collections.namedtuple("FunctionNames", ["schema", "function"])
+	id = collections.namedtuple("FunctionID", ["type", "object"])
 	prokind = "f"
 
 	class Comment(CallableObject.Comment):
 		type = "function comment"
 		names = collections.namedtuple("FunctionCommentNames", ["schema", "function"])
+		id = collections.namedtuple("FunctionCommentID", ["type", "object"])
 		prokind = "f"
 
 Function.Comment.Object = Function
