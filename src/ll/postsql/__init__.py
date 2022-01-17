@@ -883,6 +883,8 @@ class Object:
 		"""
 		connection = self.getconnection(connection)
 		id = self.identify(connection)
+		if len(id) == 2:
+			id = id + (0,)
 		cursor = connection.cursor()
 		cursor.execute("""
 			select distinct
@@ -900,6 +902,7 @@ class Object:
 			where
 				d.refclassid=%s and
 				d.refobjid=%s and
+				d.refobjsubid=%s and
 				d.classid != 'pg_rewrite'::regclass and
 				d.deptype = ANY('{n,a}') and
 				(t.typtype is null or t.typtype = 'd') and
@@ -1258,6 +1261,7 @@ class Table(CommentedSchemaObject):
 		class Comment(ColumnObject.Comment):
 			type = "table column comment"
 			names = collections.namedtuple("TableColumnCommentNames", ["schema", "table", "column"])
+			id = collections.namedtuple("TableColumnCommentID", ["type", "object", "index"])
 			relkind = "r"
 
 		def table(self, connection=None):
