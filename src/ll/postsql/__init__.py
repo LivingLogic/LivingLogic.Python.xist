@@ -63,6 +63,11 @@ class SQLObjectNotFoundError(IOError):
 		self.obj = obj
 
 
+class SQLTypeUnknownError(TypeError):
+	def __init__(self, type):
+		super().__init__(f"Database type {type!r} unknown")
+
+
 ###
 ### Helper classes and functions
 ###
@@ -347,15 +352,16 @@ def _conquery(*fields, contype=None, nsp=None, rel=None, con=None, internal=None
 	sql = _SQL(
 		select=fields,
 		from_="pg_catalog.pg_namespace n",
-		join="pg_catalog.pg_constraint c on c.connamespace = n.oid"
+		join=(
+			"pg_catalog.pg_constraint c on c.connamespace = n.oid",
+			"pg_catalog.pg_class r on c.conrelid = r.oid",
+		)
 	)
 	if contype is not None:
 		sql.where(f"contype = '{contype}'")
 	_where_nsp_internal(sql, internal)
 	_where(sql, "n.nspname", nsp)
-	if rel is not None:
-		sql.join("pg_catalog.pg_class r on c.conrelid = r.oid")
-		_where(sql, "r.relname", rel)
+	_where(sql, "r.relname", rel)
 	_where(sql, "c.conname", con)
 	return sql
 
@@ -627,9 +633,36 @@ class Connection(psycopg.Connection):
 			yield Function(r.name, self)
 
 	def objects(self):
+		done = set()
 		for schema in self.schemas():
 			yield schema
 			yield from schema.referencedbyall()
+
+	def object_from_identity(self, type, name, args, typtype, contype):
+		if type == "schema":
+			return Schema(".".join(name), self)
+		elif type == "table":
+			return Table(".".join(name), self)
+		elif type == "table constraint" and contype in "pfuc":
+			type = Constraint.types[contype]
+			return type(".".join(name), self)
+		elif type == "table column":
+			return Table.Column(".".join(name), self)
+		elif type == "view":
+			return View(".".join(name), self)
+		elif type == "view column":
+			return View.Column(".".join(name), self)
+		elif type == "trigger":
+			return Trigger(".".join(name), self)
+		elif type == "index":
+			return Index(".".join(name), self)
+		elif type == "sequence":
+			return Sequence(".".join(name), self)
+		elif type == "type" and typtype == "d":
+			return Domain(".".join(name), self)
+		else:
+			print(type, name, args)
+			raise SQLTypeUnknownError(type)
 
 	def object_named(self, name):
 		raise NotImplementedError
@@ -793,8 +826,38 @@ class Object:
 		the connection from which ``self`` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 		"""
-		if False:
-			yield None
+		connection = self.getconnection(connection)
+		id = self.identify(connection)
+		if len(id) == 2:
+			id = id + (0,)
+		cursor = connection.cursor()
+		cursor.execute("""
+			select distinct
+				(pg_identify_object_as_address(d.refclassid, d.refobjid, d.refobjsubid)).*,
+				t.typtype,
+				c.contype
+			from
+				pg_catalog.pg_depend d
+			left outer join
+				pg_catalog.pg_type t on d.refclassid = 'pg_type'::regclass and t.oid = d.refobjid and d.refobjsubid = 0
+			left outer join
+				pg_catalog.pg_constraint c on d.refclassid = 'pg_constraint'::regclass and c.oid = d.refobjid and d.refobjsubid = 0
+			left outer join
+				pg_catalog.pg_class r on d.refclassid = 'pg_class'::regclass and r.oid = d.refobjid and d.refobjsubid = 0
+			where
+				d.classid=%s and
+				d.objid=%s and
+				d.objsubid=%s and
+				d.refclassid != 'pg_rewrite'::regclass and
+				d.deptype = ANY('{n,a}') and
+				(t.typtype is null or t.typtype = 'd') and
+				(r.relkind is null or r.relkind != 't')
+		""", id)
+		for r in cursor:
+			try:
+				yield connection.object_from_identity(*r)
+			except SQLTypeUnknownError as exc:
+				pass # Ignore unknown types
 
 	def referencesall(self, connection=None, done=None):
 		"""
@@ -818,8 +881,35 @@ class Object:
 
 		For the meaning of ``connection`` see :meth:`references`.
 		"""
-		if False:
-			yield None
+		connection = self.getconnection(connection)
+		id = self.identify(connection)
+		cursor = connection.cursor()
+		cursor.execute("""
+			select distinct
+				(pg_identify_object_as_address(d.classid, d.objid, d.objsubid)).*,
+				t.typtype,
+				c.contype
+			from
+				pg_catalog.pg_depend d
+			left outer join
+				pg_catalog.pg_type t on d.classid = 'pg_type'::regclass and t.oid = d.objid and d.objsubid = 0
+			left outer join
+				pg_catalog.pg_constraint c on d.classid = 'pg_constraint'::regclass and c.oid = d.objid and d.objsubid = 0
+			left outer join
+				pg_catalog.pg_class r on d.classid = 'pg_class'::regclass and r.oid = d.objid and d.objsubid = 0
+			where
+				d.refclassid=%s and
+				d.refobjid=%s and
+				d.classid != 'pg_rewrite'::regclass and
+				d.deptype = ANY('{n,a}') and
+				(t.typtype is null or t.typtype = 'd') and
+				(r.relkind is null or r.relkind != 't')
+		""", id)
+		for r in cursor:
+			try:
+				yield connection.object_from_identity(*r)
+			except SQLTypeUnknownError as exc:
+				pass # Ignore unknown types
 
 	def referencedbyall(self, connection=None, done=None):
 		if done is None:
@@ -909,7 +999,9 @@ class CommentedObject(Object):
 		return sql
 
 	def referencedby(self, connection=None):
-		yield self.Comment(self.name, self.getconnection(connection))
+		connection = self.getconnection(connection)
+		yield self.Comment(self.name, connection)
+		yield from super().referencedby(connection)
 
 
 class Schema(CommentedObject):
@@ -1000,7 +1092,7 @@ class Schema(CommentedObject):
 		else:
 			return None
 
-	def referencedby(self, connection=None):
+	def ________________________referencedby(self, connection=None):
 		yield from super().referencedby(connection)
 		yield from self.domains(connection)
 		yield from self.tables(connection)
@@ -1017,7 +1109,7 @@ class CommentedSchemaObject(CommentedObject):
 	def schema(self, connection=None):
 		return Schema(self.names.schema, connection or self.connection)
 
-	def references(self, connection=None):
+	def ______references(self, connection=None):
 		yield self.schema(connection)
 
 
@@ -1171,7 +1263,7 @@ class Table(CommentedSchemaObject):
 		def table(self, connection=None):
 			return Table(self.name.rpartition(".")[0], self.getconnection(connection))
 
-		def references(self, connection=None):
+		def ____________references(self, connection=None):
 			yield self.table(connection)
 
 		def addsql(self, connection=None, exists_ok=False):
@@ -1296,7 +1388,7 @@ class Table(CommentedSchemaObject):
 	def ismview(self, connection=None):
 		raise NotImplementedError
 
-	def referencedby(self, connection=None):
+	def _____referencedby(self, connection=None):
 		yield from super().referencedby(connection)
 		yield from self.indexes(connection)
 		yield from self.triggers(connection)
@@ -1460,7 +1552,7 @@ class Trigger(CommentedSchemaObject):
 	def table(self, connection=None):
 		return Table(self.name.rpartition(".")[0], self.getconnection(connection))
 
-	def references(self, connection=None):
+	def ____________references(self, connection=None):
 		yield self.table(connection)
 
 Trigger.Comment.Object = Trigger
@@ -1471,7 +1563,6 @@ class Constraint(CommentedSchemaObject):
 		def _query(self, cursor):
 			cursor.execute(f"""
 			select
-				r.relname,
 				obj_description(c.oid) as comment
 			from
 				pg_catalog.pg_namespace n,
@@ -1481,12 +1572,13 @@ class Constraint(CommentedSchemaObject):
 				n.oid = c.connamespace and
 				c.conrelid = r.oid and
 				n.nspname = %s and
+				r.relname = %s and
 				c.conname = %s and
 				c.contype = '{self.contype}'
 			""", self.names)
 
 		def _sql(self, record, comment):
-			return self._makesql(f"constraint {self.names[1]} on {self.names[0]}.{record.relname}", comment)
+			return self._makesql(f"constraint {self.names[2]} on {self.names.schema}.{self.names.table}", comment)
 
 	def _identify(self, cursor):
 		query = _conquery(
@@ -1494,7 +1586,8 @@ class Constraint(CommentedSchemaObject):
 			"c.oid",
 			contype=self.contype,
 			nsp=self.names.schema,
-			con=self.names[1]
+			rel=self.names.table,
+			con=self.names[2],
 		)
 		query.execute(cursor)
 
@@ -1502,7 +1595,6 @@ class Constraint(CommentedSchemaObject):
 		cursor = self.getcursor(connection)
 		cursor.execute(f"""
 			select
-				r.relname,
 				pg_catalog.pg_get_constraintdef(c.oid, true) as constraint_def
 			from
 				pg_catalog.pg_namespace n,
@@ -1512,36 +1604,20 @@ class Constraint(CommentedSchemaObject):
 				n.oid = c.connamespace and
 				c.conrelid = r.oid and
 				n.nspname = %s and
+				r.relname = %s and
 				c.conname = %s and
 				c.contype = '{self.contype}'
 		""", self.names)
 		r = cursor.fetchone()
 		if r is None:
 			raise SQLObjectNotFoundError(self)
-		return f"alter table {self.names[0]}.{r.relname} add constraint {self.names[1]} {r.constraint_def};"
-
-	def _tablename(self, connection):
-		cursor = self.getcursor(connection)
-		query = (_SQL()
-			.select("r.relname")
-			.from_("pg_catalog.pg_namespace n")
-			.join("pg_catalog.pg_constraint c on n.oid = c.connamespace")
-			.join("pg_catalog.pg_class r on c.conrelid = r.oid")
-			.where("n.nspname = %s").param(self.names.schema)
-			.where("c.conname = %s").param(self.names[1])
-			.where(f"c.contype = '{self.contype}'")
-		)
-		r = query.execute(cursor).fetchone()
-		if r is None:
-			raise SQLObjectNotFoundError(self)
-		return r.relname
+		return f"alter table {self.names.schema}.{self.names.table} add constraint {self.names[2]} {r.constraint_def};"
 
 	def dropsql(self, connection=None, missing_ok=False):
-		tablename = self._tablename(connection)
-		sql = f"alter table {self.names.schema}.{tablename} drop constraint"
+		sql = f"alter table {self.names.schema}.{self.names.table} drop constraint"
 		if missing_ok:
 			sql += " if exists"
-		sql += f" {self.names[1]};"
+		sql += f" {self.names[2]};"
 		return sql
 
 	def enablesql(self, connection=None):
@@ -1557,23 +1633,21 @@ class Constraint(CommentedSchemaObject):
 		raise NotImplementedError
 
 	def table(self, connection=None):
-		connection = self.getconnection(connection)
-		tablename = self._tablename(connection)
-		return Table(f"{self.names.schema}.{tablename}", connection)
+		return Table(f"{self.names.schema}.{self.names.table}", connection)
 
-	def references(self, connection=None):
+	def _________________references(self, connection=None):
 		yield self.table(connection)
 
 
 class PrimaryKey(Constraint):
 	type = "primary key"
-	names = collections.namedtuple("PrimaryKeyNames", ["schema", "pk"])
+	names = collections.namedtuple("PrimaryKeyNames", ["schema", "table", "pk"])
 	id = collections.namedtuple("PrimaryKeyID", ["type", "object"])
 	contype = "p"
 
 	class Comment(Constraint.Comment):
 		type = "primary key comment"
-		names = collections.namedtuple("PrimaryKeyCommentNames", ["schema", "pk"])
+		names = collections.namedtuple("PrimaryKeyCommentNames", ["schema", "table", "pk"])
 		id = collections.namedtuple("PrimaryKeyCommentID", ["type", "object"])
 		contype = "p"
 
@@ -1585,13 +1659,13 @@ PrimaryKey.Comment.Object = PrimaryKey
 
 class ForeignKey(Constraint):
 	type = "foreign key"
-	names = collections.namedtuple("ForeignKeyNames", ["schema", "fk"])
+	names = collections.namedtuple("ForeignKeyNames", ["schema", "table", "fk"])
 	id = collections.namedtuple("ForeignKeyID", ["type", "object"])
 	contype = "f"
 
 	class Comment(Constraint.Comment):
 		type = "foreign key comment"
-		names = collections.namedtuple("ForeignKeyCommentNames", ["schema", "fk"])
+		names = collections.namedtuple("ForeignKeyCommentNames", ["schema", "table", "fk"])
 		id = collections.namedtuple("ForeignKeyCommentID", ["type", "object"])
 		contype = "f"
 
@@ -1606,13 +1680,13 @@ ForeignKey.Comment.Object = ForeignKey
 
 class UniqueConstraint(Constraint):
 	type = "unique constraint"
-	names = collections.namedtuple("UniqueConstraintNames", ["schema", "constraint"])
+	names = collections.namedtuple("UniqueConstraintNames", ["schema", "table", "constraint"])
 	id = collections.namedtuple("UniqueConstraintID", ["type", "object"])
 	contype = "u"
 
 	class Comment(Constraint.Comment):
 		type = "unique constraint comment"
-		names = collections.namedtuple("UniqueConstraintCommentNames", ["schema", "constraint"])
+		names = collections.namedtuple("UniqueConstraintCommentNames", ["schema", "table", "constraint"])
 		id = collections.namedtuple("UniqueConstraintCommentID", ["type", "object"])
 		contype = "u"
 
@@ -1624,13 +1698,13 @@ UniqueConstraint.Comment.Object = UniqueConstraint
 
 class CheckConstraint(Constraint):
 	type = "check constraint"
-	names = collections.namedtuple("CheckConstraintNames", ["schema", "constraint"])
+	names = collections.namedtuple("CheckConstraintNames", ["schema", "table", "constraint"])
 	id = collections.namedtuple("CheckConstraintID", ["type", "object"])
 	contype = "c"
 
 	class Comment(Constraint.Comment):
 		type = "check constraint comment"
-		names = collections.namedtuple("CheckConstraintCommentNames", ["schema", "constraint"])
+		names = collections.namedtuple("CheckConstraintCommentNames", ["schema", "table", "constraint"])
 		id = collections.namedtuple("CheckConstraintCommentID", ["type", "object"])
 		contype = "c"
 
@@ -1679,7 +1753,7 @@ class View(CommentedSchemaObject):
 		def view(self, connection=None):
 			return View(self.name.rpartition(".")[0], self.getconnection(connection))
 
-		def references(self, connection=None):
+		def ________________references(self, connection=None):
 			yield self.view(connection)
 
 	def _identify(self, cursor):
