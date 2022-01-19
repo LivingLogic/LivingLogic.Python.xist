@@ -48,7 +48,7 @@ loop body must be marked with an ``<?end for?>`` tag:
 
 	<ul>
 		<?for person in data.persons?>
-			<li><?print person.lastname?>, <?person.firstname?></li>
+			<li><?print person.lastname?>, <?print person.firstname?></li>
 		<?end for?>
 	</ul>
 
@@ -112,7 +112,7 @@ For example we can output the person list only if there are any persons:
 	<?if persons?>
 		<ul>
 			<?for person in persons?>
-				<li><?print person.lastname?>, <?person.firstname?></li>
+				<li><?print person.lastname?>, <?print person.firstname?></li>
 			<?end for?>
 		</ul>
 	<?end if?>
@@ -124,7 +124,7 @@ For example we can output the person list only if there are any persons:
 	<?if persons?>
 		<ul>
 			<?for person in persons?>
-				<li><?print person.lastname?>, <?person.firstname?></li>
+				<li><?print person.lastname?>, <?print person.firstname?></li>
 			<?end for?>
 		</ul>
 	<?else?>
