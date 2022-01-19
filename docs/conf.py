@@ -420,19 +420,6 @@ class HTML5Translator(html5.HTML5Translator):
 	pass
 
 
-class OutputLexer(lexer.Lexer):
-	"""
-	Simple lexer that highlights everything as output.
-	"""
-	name = 'Text output'
-	aliases = ['output']
-	filenames = ['*.txt']
-	mimetypes = ['text/plain']
-
-	def get_tokens_unprocessed(self, text):
-		yield 0, token.Generic.Output, text
-
-
 class UL4Lexer(lexer.RegexLexer):
 	"""
 	Generic lexer for UL4 (the Universal LivingLogic Layout Language).
@@ -625,7 +612,6 @@ def setup(app):
 	app.require_sphinx("4.1")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
-	app.add_lexer("output", OutputLexer)
 	app.add_lexer("ul4", UL4Lexer)
 	app.add_lexer("html+ul4", HTMLUL4Lexer)
 	app.add_lexer("xml+ul4", XMLUL4Lexer)
