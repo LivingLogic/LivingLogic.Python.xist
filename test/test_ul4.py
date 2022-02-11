@@ -1919,6 +1919,9 @@ def test_getitem(T):
 	with raises(indexmessage):
 		T("<?print x[-5]?>").renders(x=list("gurk"))
 
+	assert "z" == T("<?print x['y']?>").renders(x={"y": "z"})
+	assert "z" == T("<?print x[None]?>").renders(x={None: "z"})
+
 
 @pytest.mark.ul4
 def test_setitem(T):
