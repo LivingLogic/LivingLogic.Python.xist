@@ -680,20 +680,20 @@ class Decoder:
 			delimiter = self.stream.read(1)
 			if not delimiter:
 				raise EOFError()
-			buffer = []
+			buffer = io.StringIO()
 			while True:
 				c = self.stream.read(1)
 				if not c:
 					raise EOFError()
 				if c == delimiter:
-					value = "".join(buffer).encode("ascii", "backslashreplace").decode("unicode_escape")
+					value = buffer.getvalue().encode("ascii", "backslashreplace").decode("unicode_escape")
 					break
-				buffer.append(c)
+				buffer.write(c)
 				if c == "\\":
 					c2 = self.stream.read(1)
 					if not c2:
 						raise EOFError()
-					buffer.append(c2)
+					buffer.write(c2)
 			if typecode == "S":
 				self._loading(value)
 		elif typecode in "cC":
