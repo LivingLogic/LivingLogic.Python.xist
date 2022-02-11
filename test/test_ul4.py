@@ -1977,7 +1977,8 @@ def test_nested(T):
 	sc = "4"
 	sv = "x"
 	n = 4
-	# when using 8 Java will output "An irrecoverable stack overflow has occurred"
+	# when using 8, older Java version will output:
+	# "An irrecoverable stack overflow has occurred"
 	depth = 7
 	for i in range(depth):
 		sc = f"({sc})+({sc})"
