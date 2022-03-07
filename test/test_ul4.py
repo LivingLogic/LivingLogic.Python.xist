@@ -2666,19 +2666,19 @@ def test_function_enumfl(T):
 	assert "" == t1.renders(data="")
 	assert "[(f=42)(o=43)(o=44)]" == t2.renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=4.2)
 
 	with raises(argumentmismatchmessage):
@@ -2708,19 +2708,19 @@ def test_function_isfirstlast(T):
 	with raises(unknownkeywordargument):
 		T("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=4.2)
 
 
@@ -2741,19 +2741,19 @@ def test_function_isfirst(T):
 	with raises(unknownkeywordargument):
 		T("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>").renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=4.2)
 
 
@@ -2775,19 +2775,19 @@ def test_function_islast(T):
 	with raises(unknownkeywordargument):
 		T("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=4.2)
 
 
