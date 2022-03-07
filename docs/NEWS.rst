@@ -17,6 +17,10 @@ Changes in HEAD (released 01/??/2022)
 *	Fixed a bug in the method :meth:`ll.orasql.Connection.getobject` (which we
 	only keep for backwards compatibility).
 
+*	Fixed a bug in parsing UL4 source code: UL4 would treat a tag name that
+	starts with a valid prefix as a valid tag name, although it shouldn't
+	(i.e. it treated ``<?printe?>`` and ``<?print e?>``).
+
 
 Changes in 5.69 (released 11/17/2021)
 -------------------------------------

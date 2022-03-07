@@ -5343,7 +5343,7 @@ class Template(BlockAST):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = r"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc|ignore)(\s*((.|\n)*?)\s*)?\?>"
+		pattern = r"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc|ignore)\b(\s*((.|\n)*?)\s*)?\?>"
 		# Last position
 		pos = 0
 		# Nesting level of ``<?ignore?>``/``<?end ignore?>``
