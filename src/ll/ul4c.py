@@ -380,6 +380,10 @@ class Context:
 				CallAST=CallAST.ul4_type,
 				RenderAST=RenderAST.ul4_type,
 				RenderXAST=RenderXAST.ul4_type,
+				RenderOrPrintAST=RenderOrPrintAST.ul4_type,
+				RenderOrPrintXAST=RenderOrPrintXAST.ul4_type,
+				RenderXOrPrintAST=RenderXOrPrintAST.ul4_type,
+				RenderXOrPrintXAST=RenderXOrPrintXAST.ul4_type,
 				RenderBlockAST=RenderBlockAST.ul4_type,
 				RenderBlocksAST=RenderBlocksAST.ul4_type,
 				SignatureAST=SignatureAST.ul4_type,
@@ -1508,11 +1512,11 @@ class AST:
 
 		For most nodes this is a normal function that returns the result of
 		evaluating the node. (For these nodes the class attribute ``output``
-		is false.). For nodes that produce output (like literal text,
-		:class:`PrintAST`, :class:`PrintXAST` or :class:`RenderAST`) it is a
+		is ``False``.). For nodes that produce output (like literal text,
+		:class:`PrintAST`, :class:`PrintXAST` or :class:`RenderAST` etc.) it is a
 		generator which yields the text output of the node. For blocks (which
 		might contain nodes which produce output) this is also a generator.
-		(For these nodes the class attribute ``output`` is true.)
+		(For these nodes the class attribute ``output`` is ``True``.)
 		"""
 		pass
 
@@ -4457,7 +4461,8 @@ class CallAST(CodeAST):
 	Attributes are:
 
 	``obj`` : :class:`AST`
-		The object to be called (``f`` in the above example);
+		The object to be called (``f`` in the above example) (or rendered/printed
+		in the subclass :class:`RenderAST` and its subclasses);
 
 	``args`` : :class:`list`
 		The arguments to the call as a :class:`list` of :class:`PositionalArgumentAST`,
@@ -4540,15 +4545,7 @@ class RenderAST(CallAST):
 	"""
 	AST node for rendering a template (e.g. ``<?render t(x)?>``.
 
-	Attributes are:
-
-	``obj`` : :class:`AST`
-		The object to be rendered (``t`` in the above example);
-
-	``args`` : :class:`list`
-		The arguments to the call as a :class:`list` of
-		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
-		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects.
+	For a list of attribute see :class:`CallAST`.
 	"""
 
 	ul4_type = Type("ul4")
@@ -4586,21 +4583,49 @@ class RenderAST(CallAST):
 		return (obj, args, kwargs)
 
 	def _renderobject(self, context, obj, args, kwargs):
+		if self.indent is not None:
+			context.indents.append(self.indent.text)
+		needscontext = getattr(obj, "ul4_context", False)
+		if needscontext:
+			yield from obj(context, *args, **kwargs)
+		else:
+			yield from obj(*args, **kwargs)
+		if self.indent is not None:
+			context.indents.pop()
+
+	def _renderxobject(self, context, obj, args, kwargs):
+		context.escapes.append(_xmlescape)
+		try:
+			yield from self._renderobject(context, obj, args, kwargs)
+		finally:
+			context.escapes.pop()
+
+	def _dontprintobject(self, context, obj):
+		if 0:
+			yield None
+		from ll import misc
+		raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
+
+	def _printobject(self, context, obj):
+		if self.indent:
+			yield self.indent
+		yield context.output(_str(obj))
+
+	def _printxobject(self, context, obj):
+		if self.indent:
+			yield self.indent
+		yield context.output(_xmlescape(obj))
+
+	_real_renderobject = _renderobject
+	_real_printobject = _dontprintobject
+
+	def _render(self, context, obj, args, kwargs):
 		try:
 			ul4_render = getattr(obj, "ul4_render", None)
 			if callable(ul4_render):
-				if self.indent is not None:
-					context.indents.append(self.indent.text)
-				needscontext = getattr(ul4_render, "ul4_context", False)
-				if needscontext:
-					yield from ul4_render(context, *args, **kwargs)
-				else:
-					yield from ul4_render(*args, **kwargs)
-				if self.indent is not None:
-					context.indents.pop()
+				yield from self._real_renderobject(context, ul4_render, args, kwargs)
 			else:
-				from ll import misc
-				raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
+				yield from self._real_printobject(context, obj)
 		except Exception as exc:
 			if inspect.ismethod(obj):
 				_decorateexception(exc, self, obj.__self__)
@@ -4609,8 +4634,10 @@ class RenderAST(CallAST):
 			raise
 
 	def eval(self, context):
+		# We always evaluate the arguments, even if the object turns out
+		# to not be renderable afterwards
 		(obj, args, kwargs) = self._evalobjargs(context)
-		yield from self._renderobject(context, obj, args, kwargs)
+		yield from self._render(context, obj, args, kwargs)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -4642,25 +4669,86 @@ class RenderXAST(RenderAST):
 	AST node for rendering a template and XML-escaping the output
 	(e.g. ``<?renderx t(x)?>``.
 
-	Attributes are:
-
-	``obj`` : :class:`AST`
-		The object to be rendered (``t`` in the above example);
-
-	``args`` : :class:`list`
-		The arguments to the call as a :class:`list` of
-		:class:`PositionalArgumentAST`, :class:`KeywordArgumentAST`,
-		:class:`UnpackListArgumentAST` or :class:`UnpackDictArgumentAST` objects.
+	For a list of attribute see :class:`CallAST`.
 	"""
 
 	ul4_type = Type("ul4")
 
-	def eval(self, context):
-		context.escapes.append(_xmlescape)
-		try:
-			yield from RenderAST.eval(self, context)
-		finally:
-			context.escapes.pop()
+	_real_renderobject = RenderAST._renderxobject
+
+
+@register("render_or_print")
+class RenderOrPrintAST(RenderAST):
+	"""
+	AST node for rendering a template or printing an object.
+
+	.. sourcecode:: html+ul4
+
+		<?render_or_print t(x)?>
+
+	is equivalent to
+
+	.. sourcecode:: html+ul4
+
+		<?if istemplate(t)?>
+			<?render t(x)?>
+		<?else?>
+			<?print t?>
+		<?end if?>
+
+	except that even if ``t`` is not renderable, all argument in the call
+	will be evaluated.
+
+	For a list of attribute see :class:`CallAST`.
+	"""
+
+	ul4_type = Type("ul4")
+
+	_real_printobject = RenderAST._printobject
+
+
+@register("render_or_printx")
+class RenderOrPrintXAST(RenderAST):
+	"""
+	AST node for rendering a template or printing an object
+	(e.g. ``<?render_or_printx t(x)?>``.
+
+	For a list of attribute see :class:`CallAST`.
+	"""
+
+	ul4_type = Type("ul4")
+
+	_real_printobject = RenderAST._printxobject
+
+
+@register("renderx_or_print")
+class RenderXOrPrintAST(RenderAST):
+	"""
+	AST node for rendering a template or printing an object
+	(e.g. ``<?renderx_or_print t(x)?>``.
+
+	For a list of attribute see :class:`CallAST`.
+	"""
+
+	ul4_type = Type("ul4")
+
+	_real_renderobject = RenderAST._renderxobject
+	_real_printobject = RenderAST._printobject
+
+
+@register("renderx_or_printx")
+class RenderXOrPrintXAST(RenderAST):
+	"""
+	AST node for rendering a template or printing an object
+	(e.g. ``<?renderx_or_printx t(x)?>``.
+
+	For a list of attribute see :class:`CallAST`.
+	"""
+
+	ul4_type = Type("ul4")
+
+	_real_renderobject = RenderAST._renderxobject
+	_real_printobject = RenderAST._printxobject
 
 
 @register("renderblock")
@@ -4723,7 +4811,7 @@ class RenderBlockAST(RenderAST):
 			raise TypeError(f"multiple values for keyword argument 'content'")
 		kwargs["content"] = TemplateClosure(self.content, context, None)
 
-		yield from self._renderobject(context, obj, args, kwargs)
+		yield from self._render(context, obj, args, kwargs)
 
 	def _str(self):
 		yield self.type
@@ -4839,7 +4927,7 @@ class RenderBlocksAST(RenderAST):
 		# Open a new chained variable dict, so we can collect all variables defined inside the block
 		with context.chainvars():
 			# Evaluate the block content and ignore output
-			# (Note that we're not a subclass of :class:`Block`, but have the correct attributes)
+			# (Note that we're not a subclass of :class:`BlockAST`, but have the correct attributes)
 			for output in BlockAST.eval(self, context):
 				pass
 
@@ -4852,7 +4940,7 @@ class RenderBlocksAST(RenderAST):
 			# Copy variables from the block into the keyword arguments (but only the outermost map from the chain)
 			kwargs.update(vars)
 
-		yield from self._renderobject(context, obj, args, kwargs)
+		yield from self._render(context, obj, args, kwargs)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -5343,7 +5431,7 @@ class Template(BlockAST):
 		for each tag or non-tag text. It will be called by :meth:`_compile`
 		internally.
 		"""
-		pattern = r"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|note|doc|ignore)\b(\s*((.|\n)*?)\s*)?\?>"
+		pattern = r"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|renderx_or_printx|render_or_printx|renderx_or_print|render_or_print|note|doc|ignore)\b(\s*((.|\n)*?)\s*)?\?>"
 		# Last position
 		pos = 0
 		# Nesting level of ``<?ignore?>``/``<?end ignore?>``
@@ -5490,7 +5578,7 @@ class Template(BlockAST):
 		newlines = []
 		for (i, line) in enumerate(lines):
 			linelen = len(line)
-			if 2 <= linelen <= 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and (linelen == 2 or isinstance(line[2], LineEndAST)):
+			if 2 <= linelen <= 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx", "render_or_print", "render_or_printx", "renderx_or_print", "renderx_or_printx") and (linelen == 2 or isinstance(line[2], LineEndAST)):
 				tag = line[1]
 				# Tags closing a block
 				if tag.tag in ("elif", "else", "end"):
@@ -5532,12 +5620,12 @@ class Template(BlockAST):
 		for line in lines:
 			if len(line) == 2 and isinstance(line[0], IndentAST) and isinstance(line[1], LineEndAST):
 				del line[0]
-			elif len(line) == 2 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx"):
+			elif len(line) == 2 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx", "render_or_print", "render_or_printx", "renderx_or_print", "renderx_or_printx"):
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx") and isinstance(line[2], LineEndAST):
+			elif len(line) == 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag not in ("print", "printx", "render", "renderx", "render_or_print", "render_or_printx", "renderx_or_print", "renderx_or_printx") and isinstance(line[2], LineEndAST):
 				del line[2]
 				del line[0]
-			elif len(line) == 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag in ("render", "renderx") and isinstance(line[2], LineEndAST):
+			elif len(line) == 3 and isinstance(line[0], IndentAST) and isinstance(line[1], Tag) and line[1].tag in ("render", "renderx", "render_or_print", "render_or_printx", "renderx_or_print", "renderx_or_printx") and isinstance(line[2], LineEndAST):
 				del line[2]
 
 		# Step 5: Yield the individual :class:`Tag`/:class:`TextAST` objects
@@ -5592,7 +5680,16 @@ class Template(BlockAST):
 			call = self._parser(tag, "render call required").expression()
 			if not isinstance(call, CallAST):
 				raise TypeError("render call required")
-			tags = dict(render=RenderAST, renderx=RenderXAST, renderblock=RenderBlockAST, renderblocks=RenderBlocksAST)
+			tags = dict(
+				render=RenderAST,
+				renderx=RenderXAST,
+				renderblock=RenderBlockAST,
+				renderblocks=RenderBlocksAST,
+				render_or_print=RenderOrPrintAST,
+				render_or_printx=RenderOrPrintXAST,
+				renderx_or_print=RenderXOrPrintAST,
+				renderx_or_printx=RenderXOrPrintXAST,
+			)
 			render = tags[tag.tag](template=tag.template, startpos=tag.startpos, obj=call.obj)
 			render.args = call.args
 			if tag.tag == "renderblock":
@@ -5738,7 +5835,7 @@ class Template(BlockAST):
 					blockstack.append(block)
 				elif tag.tag == "return":
 					blockstack[-1].append(ReturnAST(templatestack[-1], tag.startpos, parseexpr(tag)))
-				elif tag.tag in {"render", "renderx", "renderblock", "renderblocks"}:
+				elif tag.tag in {"render", "renderx", "renderblock", "renderblocks", "render_or_print", "render_or_printx", "renderx_or_print", "renderx_or_printx"}:
 					render = parserender(tag)
 					# Find innermost block
 					innerblock = blockstack[-1]

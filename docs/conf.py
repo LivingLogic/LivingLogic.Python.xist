@@ -479,7 +479,7 @@ class UL4Lexer(RegexLexer):
 			),
 			(
 				# The rest of the supported tags
-				r"(<\?)(\s*)(printx|print|for|if|elif|else|while|code|renderblocks?|render)\b",
+				r"(<\?)(\s*)(printx|print|for|if|elif|else|while|code|renderblocks?|renderx?|renderx?_or_printx?)\b",
 				bygroups(Comment.Preproc, Text.Whitespace, Keyword),
 				"ul4", # Switch to "expression" mode
 			),

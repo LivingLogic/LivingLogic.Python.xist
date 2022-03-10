@@ -21,6 +21,10 @@ Changes in HEAD (released 01/??/2022)
 	starts with a valid prefix as a valid tag name, although it shouldn't
 	(i.e. it treated ``<?printe?>`` as ``<?print e?>``).
 
+*	Added new UL4 AST classes: :class:`~ll.ul4c.RenderOrPrintAST`,
+	:class:`~ll.ul4c.RenderOrPrintXAST`, :class:`~ll.ul4c.RenderXOrPrintAST` and
+	:class:`~ll.ul4c.RenderXOrPrintXAST`.
+
 
 Changes in 5.69 (released 11/17/2021)
 -------------------------------------

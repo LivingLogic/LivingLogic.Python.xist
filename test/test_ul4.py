@@ -549,7 +549,7 @@ duplicatekeywordargument = _make_exception_re(
 unknownkeywordargument = _make_exception_re(
 	# Python
 	"got an unexpected keyword argument",
-	"doesn't support an argument named",
+	"[a-zA-Z_][a-zA-Z0-9_]*\\(\\) doesn't support an argument named '[a-zA-Z_][a-zA-Z0-9_]*'",
 	"an argument named [a-zA-Z_][a-zA-Z0-9_]* isn't supported",
 	"too many keyword arguments",
 	"takes no keyword arguments",
@@ -5632,6 +5632,26 @@ def test_renderx(T):
 	t = ul4c.Template("<?print prefix?><?print data?><?print suffix?>")
 
 	assert "&lt;f&gt;&lt;&amp;&gt;&lt;o&gt;&lt;&amp;&gt;&lt;o&gt;" == T('<?for c in data?><?renderx t(data=c, prefix="<", suffix=">")?><?end for?>').renders(t=t, data='f&o&o')
+
+
+@pytest.mark.ul4
+def test_render_or_print(T):
+	assert "<&><&>" == T("<?def x?><&><?end def?><?render_or_print x()?><?render_or_print '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_render_or_printx(T):
+	assert "<&>&lt;&amp;&gt;" == T("<?def x?><&><?end def?><?render_or_printx x()?><?render_or_printx '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_renderx_or_print(T):
+	assert "&lt;&amp;&gt;<&>" == T("<?def x?><&><?end def?><?renderx_or_print x()?><?renderx_or_print '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_renderx_or_printx(T):
+	assert "&lt;&amp;&gt;&lt;&amp;&gt;" == T("<?def x?><&><?end def?><?renderx_or_printx x()?><?renderx_or_printx '<&>'()?>").renders()
 
 
 @pytest.mark.ul4
