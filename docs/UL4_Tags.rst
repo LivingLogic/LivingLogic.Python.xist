@@ -300,7 +300,7 @@ if ``foo`` isn't renderable, so for example:
 will fail with::
 
 	<?render_or_print 'foo'(None+None)?>
-	                        ‴‴‴‴‴‴‴‴‴
+	                        ~~~~~~~~~
 	TypeError: unsupported operand type(s) for +: 'NoneType' and 'NoneType'
 
 .. hint::
