@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 01/??/2022)
+Changes in 5.70 (released 03/11/2022)
 -------------------------------------
 
 *	Fixed a bug in the PySQL command :class:`~ll.pysql.commit`: Removed the
