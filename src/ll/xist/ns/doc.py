@@ -153,9 +153,7 @@ def _namekey(obj, name):
 
 
 def _codeheader(thing, name, type):
-	# FullArgSpec(args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations)
 	spec = inspect.getfullargspec(thing)
-	# kwonlyargs, kwonlydefaults
 	sig = xsc.Frag()
 	offset = len(spec.args)
 	if spec.defaults is not None:
