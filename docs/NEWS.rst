@@ -8,6 +8,22 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in ???? (released ??/??/2022)
+-------------------------------------
+
+*	:class:`ll.xist.xfind.Selector` now implements the reflected operators too.
+	This reenables certain argument combinations after
+	:meth:`ll.xist.xsc._Node_Meta.__or__` was dropped in version 5.69.
+
+*	:class:`ll.xist.xfind.NotCombinator` now converts its argument to a
+	:class:`~ll.xist.xfind.Selector` object, instead of expecting it to already
+	be one.
+
+*	However, some XFind expressions are still invalid, e.g. ``~html.h1`` will not
+	work. Use ``~xfind.IsInstanceSelector(html.h1)``, ``~xfind.selector(html.h1)``
+	or ``xfind.NotCombinator(html.h1)``.
+
+
 Changes in 5.70 (released 03/11/2022)
 -------------------------------------
 
