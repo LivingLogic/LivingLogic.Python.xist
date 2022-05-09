@@ -248,7 +248,6 @@ def explain(thing, name=None, format=None, context=[]):
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		(args, varargs, varkw, defaults) = inspect.getargspec(thing.__func__)
 		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.__self__.__class__.__name__ + thing.__name__):
