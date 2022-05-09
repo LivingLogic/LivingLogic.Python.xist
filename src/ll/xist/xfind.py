@@ -152,12 +152,26 @@ class Selector:
 		"""
 		return ChildCombinator(self, selector(other))
 
+	def __rtruediv__(self, other):
+		"""
+		Create a :class:`ChildCombinator` with ``other`` as the left hand
+		selector and ``self`` as the right hand selector.
+		"""
+		return ChildCombinator(selector(other), self)
+
 	def __floordiv__(self, other):
 		"""
 		Create a :class:`DescendantCombinator` with ``self`` as the left hand
 		selector and ``other`` as the right hand selector.
 		"""
 		return DescendantCombinator(self, selector(other))
+
+	def __rfloordiv__(self, other):
+		"""
+		Create a :class:`DescendantCombinator` with ``other`` as the left hand
+		selector and ``self`` as the right hand selector.
+		"""
+		return DescendantCombinator(selector(other), self)
 
 	def __mul__(self, other):
 		"""
@@ -166,6 +180,13 @@ class Selector:
 		"""
 		return AdjacentSiblingCombinator(self, selector(other))
 
+	def __rmul__(self, other):
+		"""
+		Create an :class:`AdjacentSiblingCombinator` with ``other`` as the left
+		hand selector and ``self`` as the right hand selector.
+		"""
+		return AdjacentSiblingCombinator(selector(other), self)
+
 	def __pow__(self, other):
 		"""
 		Create a :class:`GeneralSiblingCombinator` with ``self`` as the left
@@ -173,17 +194,36 @@ class Selector:
 		"""
 		return GeneralSiblingCombinator(self, selector(other))
 
+	def __rpow__(self, other):
+		"""
+		Create a :class:`GeneralSiblingCombinator` with ``other`` as the left
+		hand selector and ``self`` as the right hand selector.
+		"""
+		return GeneralSiblingCombinator(selector(other), self)
+
 	def __and__(self, other):
 		"""
 		Create an :class:`AndCombinator` from ``self`` and ``other``.
 		"""
 		return AndCombinator(self, selector(other))
 
+	def __rand__(self, other):
+		"""
+		Create an :class:`AndCombinator` from ``other`` and ``self``.
+		"""
+		return AndCombinator(selector(other), self)
+
 	def __or__(self, other):
 		"""
 		Create an :class:`OrCombinator` from ``self`` and ``other``.
 		"""
 		return OrCombinator(self, selector(other))
+
+	def __ror__(self, other):
+		"""
+		Create an :class:`OrCombinator` from ``other`` and ``self``.
+		"""
+		return OrCombinator(selector(other), self)
 
 	def __invert__(self):
 		"""
