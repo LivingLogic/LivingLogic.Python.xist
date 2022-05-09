@@ -83,7 +83,7 @@ def test_isinstance():
 	check(list(node.walknodes(html.h1 | html.h2)))
 	check(list(node.walknodes(html.h1, html.h2)))
 	check(list(node.walknodes(html.h1, html.h2, ~xfind.any)))
-	check(list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img))))
+	check(list(node.walknodes(xsc.Element & ~xfind.selector(xsc.Text | html.p | html.div | html.em | html.img))))
 
 
 def test_element():
