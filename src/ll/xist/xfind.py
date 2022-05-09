@@ -1154,8 +1154,8 @@ class NotCombinator(Combinator):
 		<script>window.jQuery || document.write('&lt;script src="/static/js/libs/jquery-1.8.2.min.js"&gt;&lt;\\/script&gt;')</script>
 	"""
 
-	def __init__(self, selector):
-		self.selector = selector
+	def __init__(self, selector_):
+		self.selector = selector(selector_)
 
 	def __contains__(self, path):
 		return path not in self.selector
