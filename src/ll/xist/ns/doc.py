@@ -37,6 +37,24 @@ def _getmodulename(thing):
 
 
 def getdoc(thing, format):
+	"""
+	Return the docstring for ``thing``, as an XIST node using this namespace module.
+
+	``format`` specifies how to treat the docstring:
+
+	``"plaintext"
+		Treat to docstring as text. This returns a single :class:`~ll.xist.xsc.Text`
+		node.
+
+	``"restructuredtext"``.
+		This interprets the docstring as ReST source and converts it to use
+		this namespace.
+
+	``"xist"``
+		This treats the docstring as XML, which will be parsed using this
+		namespace as the default namespace.
+	"""
+
 	if thing.__doc__ is None:
 		return xsc.Null
 
@@ -199,6 +217,8 @@ def explain(thing, name=None, format=None, context=[]):
 	i.e. a list of names of objects into which ``thing`` is nested. This
 	means the first entry will always be the module name, and the other entries
 	will be class names.
+
+	For the meaning for ``format`` see, :func:`getdoc`.
 	"""
 
 	def _append(all, obj, varname):
