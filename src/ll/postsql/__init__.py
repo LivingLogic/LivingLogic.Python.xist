@@ -1970,7 +1970,8 @@ class CallableObject(CommentedSchemaObject):
 				comma = "" if last else ","
 				sql += f"\t{arg}{comma}\n"
 			sql += ")\n"
-		sql += f"{r.return_def}\n"
+		if r.return_def is not None:
+			sql += f"{r.return_def}\n"
 		sql += f"language {r.lanname}\n"
 		if r.provolatile == "i":
 			sql += f"immutable\n"
