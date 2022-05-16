@@ -8,7 +8,6 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-<<<<<<< HEAD
 Changes in HEAD (released ??/??/2022)
 -------------------------------------
 
