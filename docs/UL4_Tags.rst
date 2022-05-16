@@ -48,7 +48,7 @@ loop body must be marked with an ``<?end for?>`` tag:
 
 	<ul>
 		<?for person in data.persons?>
-			<li><?print person.lastname?>, <?person.firstname?></li>
+			<li><?print person.lastname?>, <?print person.firstname?></li>
 		<?end for?>
 	</ul>
 
@@ -112,7 +112,7 @@ For example we can output the person list only if there are any persons:
 	<?if persons?>
 		<ul>
 			<?for person in persons?>
-				<li><?print person.lastname?>, <?person.firstname?></li>
+				<li><?print person.lastname?>, <?print person.firstname?></li>
 			<?end for?>
 		</ul>
 	<?end if?>
@@ -124,7 +124,7 @@ For example we can output the person list only if there are any persons:
 	<?if persons?>
 		<ul>
 			<?for person in persons?>
-				<li><?print person.lastname?>, <?person.firstname?></li>
+				<li><?print person.lastname?>, <?print person.firstname?></li>
 			<?end for?>
 		</ul>
 	<?else?>
@@ -267,6 +267,81 @@ This will output:
 
 .. hint::
 	The ``<?renderx?>`` tag is implemented by :class:`ll.ul4c.RenderXAST`.
+
+
+``<?render_or_print?>``
+=======================
+
+The ``render_or_print`` tag combines the functionality of the ``render`` and
+the ``print`` tag, so for example
+
+.. sourcecode:: ul4
+
+	<?render_or_print foo(bar)?>
+
+is more or less equivalent to
+
+.. sourcecode:: ul4
+
+	<?if istemplate(foo)?>
+		<?render foo(bar)?>
+	<?else?>
+		<?print foo?>
+	<?end if?>
+
+i.e. if ``foo`` is renderable, it will be rendered, otherwise it will be
+printed. Furthermore the arguments to the call will always be evaluated even
+if ``foo`` isn't renderable, so for example:
+
+.. sourcecode:: ul4
+
+	<?render_or_print 'foo'(None+None)?>
+
+will fail with::
+
+	<?render_or_print 'foo'(None+None)?>
+	                        ~~~~~~~~~
+	TypeError: unsupported operand type(s) for +: 'NoneType' and 'NoneType'
+
+.. hint::
+	The ``<?render_or_print?>`` tag is implemented by
+	:class:`ll.ul4c.RenderOrPrintAST`.
+
+
+``<?render_or_printx?>``
+========================
+
+The ``render_or_printx`` tag is similar to ``render_or_print`` except that
+the object will be output via ``<?printx?>`` instead of ``<?print?>`` if
+it isn't renderable.
+
+.. hint::
+	The ``<?render_or_printx?>`` tag is implemented by
+	:class:`ll.ul4c.RenderOrPrintXAST`.
+
+
+``<?renderx_or_print?>``
+========================
+
+The ``renderx_or_print`` tag is similar to ``render_or_print`` except that
+the object will be rendered via ``<?renderx?>`` instead of ``<?render?>`` if
+it is renderable.
+
+.. hint::
+	The ``<?renderx_or_print?>`` tag is implemented by
+	:class:`ll.ul4c.RenderXOrPrintAST`.
+
+
+``<?renderx_or_printx?>``
+=========================
+
+The ``renderx_or_printx`` tag is similar to ``renderx_or_print`` except that
+the object will be output via ``<?printx?>`` instead of ``<?print?>`` if
+it isn't renderable.
+
+.. hint::
+	The ``<?renderx_or_printx?>`` tag is implemented by
+	:class:`ll.ul4c.RenderXOrPrintXAST`.
 
 
 ``<?def?>``

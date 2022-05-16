@@ -18,8 +18,11 @@ import os
 import types
 import re
 
-from pygments import lexer, token
-from pygments.lexers import web, python
+from pygments.lexer import RegexLexer, DelegatingLexer, bygroups, words, include
+from pygments.token import Comment, Text, Keyword, String, Number, Literal, \
+	Name, Other, Operator
+from pygments.lexers.web import HtmlLexer, XmlLexer, CssLexer, JavascriptLexer
+from pygments.lexers.python import PythonLexer
 
 from sphinx.writers import latex, html5
 
@@ -423,25 +426,14 @@ class HTML5Translator(html5.HTML5Translator):
 	pass
 
 
-class OutputLexer(lexer.Lexer):
+class UL4Lexer(RegexLexer):
 	"""
-	Simple lexer that highlights everything as output.
-	"""
-	name = 'Text output'
-	aliases = ['output']
-	filenames = ['*.txt']
-	mimetypes = ['text/plain']
+	Generic lexer for UL4.
 
-	def get_tokens_unprocessed(self, text):
-		yield 0, token.Generic.Output, text
-
-
-class UL4Lexer(lexer.RegexLexer):
-	"""
-	Generic lexer for UL4 (the Universal LivingLogic Layout Language).
+	.. versionadded:: 2.12
 	"""
 
-	flags = re.MULTILINE | re.DOTALL | re.UNICODE
+	flags = re.MULTILINE | re.DOTALL
 
 	name = 'UL4'
 	aliases = ['ul4']
@@ -450,116 +442,168 @@ class UL4Lexer(lexer.RegexLexer):
 	tokens = {
 		"root": [
 			(
+				# Template header without name:
+				# ``<?ul4?>``
 				r"(<\?)(\s*)(ul4)(\s*)(\?>)",
-				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword, token.Text, token.Comment.Preproc),
+				bygroups(Comment.Preproc, Text.Whitespace, Keyword, Text.Whitespace, Comment.Preproc),
 			),
 			(
+				# Template header with name (potentially followed by the signature):
+				# ``<?ul4 foo(bar=42)?>``
 				r"(<\?)(\s*)(ul4)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
-				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword, token.Text, token.Token.Name.Function),
-				"ul4",
+				bygroups(Comment.Preproc, Text.Whitespace, Keyword, Text.Whitespace, Name.Function),
+				"ul4", # Switch to "expression" mode
 			),
 			(
+				# Comment:
+				# ``<?note foobar?>``
 				r"<\?\s*note\s+.*?\?>",
-				token.Comment,
+				Comment,
 			),
 			(
+				# Template documentation:
+				# ``<?doc foobar?>``
 				r"<\?\s*doc\s+.*?\?>",
-				token.String.Doc,
+				String.Doc,
 			),
 			(
+				# ``<?ignore?>`` tag for commenting out code:
+				# ``<?ignore?>...<?end ignore?>``
 				r"<\?\s*ignore\s*\?>",
-				token.Comment,
-				"ignore",
+				Comment,
+				"ignore", # Switch to "ignore" mode
 			),
 			(
-				r"(<\?\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
-				lexer.bygroups(token.Comment.Preproc, token.Keyword, token.Text, token.Token.Name.Function),
-				"ul4",
+				# ``<?def?>`` tag for defining local templates
+				# ``<?def foo(bar=42)?>...<?end def?>``
+				r"(<\?)(\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?\b",
+				bygroups(Comment.Preproc, Text.Whitespace, Keyword, Text.Whitespace, Name.Function),
+				"ul4", # Switch to "expression" mode
 			),
 			(
-				r"(<\?)(\s*)(printx|print|for|if|elif|else|while|code|renderblocks?|render)\b",
-				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
-				"ul4",
+				# The rest of the supported tags
+				r"(<\?)(\s*)(printx|print|for|if|elif|else|while|code|renderblocks?|renderx?|renderx?_or_printx?)\b",
+				bygroups(Comment.Preproc, Text.Whitespace, Keyword),
+				"ul4", # Switch to "expression" mode
 			),
 			(
+				# ``<?end?>`` tag for ending ``<?def?>``, ``<?for?>``,
+				# ``<?if?>``, ``<?while?>``, ``<?renderblock?>`` and
+				# ``<?renderblocks?>`` blocks.
 				r"(<\?)(\s*)(end)\b",
-				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
-				"end",
+				bygroups(Comment.Preproc, Text.Whitespace, Keyword),
+				"end", # Switch to "end tag" mode
 			),
 			(
+				# ``<?whitespace?>`` tag for configuring whitespace handlng
 				r"(<\?)(\s*)(whitespace)\b",
-				lexer.bygroups(token.Comment.Preproc, token.Text, token.Keyword),
-				"whitespace",
+				bygroups(Comment.Preproc, Text.Whitespace, Keyword),
+				"whitespace", # Switch to "whitespace" mode
 			),
-			(r"[^<]+", token.Token.Other),
-			(r"<", token.Token.Other),
+			# Plain text
+			(r"[^<]+", Other),
+			(r"<", Other),
 		],
+		# Ignore mode ignores everything upto the matching ``<?end ignore?>`` tag
 		"ignore": [
-			(r"<\?\s*ignore\s*\?>", token.Comment, "ignore"),
-			(r"<\?\s*end\s+ignore\s*\?>", token.Comment, "#pop"),
-			(r".+", token.Comment),
+			# Nested ``<?ignore?>`` tag
+			(r"<\?\s*ignore\s*\?>", Comment, "#push"),
+			# ``<?end ignore?>`` tag
+			(r"<\?\s*end\s+ignore\s*\?>", Comment, "#pop"),
+			# Everything else
+			(r"[^<]+", Comment),
+			(r".", Comment),
 		],
+		# UL4 expressions
 		"ul4": [
-			(r"\?>", token.Comment.Preproc, "#pop"),
-			("'''", token.String, "string13"),
-			('""""', token.String, "string23"),
-			("'", token.String, "string1"),
-			('"', token.String, "string2"),
-			(r"\d+\.\d*([eE][+-]?\d+)?", token.Number.Float),
-			(r"\.\d+([eE][+-]?\d+)?", token.Number.Float),
-			(r"\d+[eE][+-]?\d+", token.Number.Float),
-			(r"0[bB][01]+", token.Number.Bin),
-			(r"0[oO][0-7]+", token.Number.Oct),
-			(r"0[xX][0-9a-fA-F]+", token.Number.Hex),
-			(r"@\(\d\d\d\d-\d\d-\d\d(T(\d\d:\d\d(:\d\d(\.\d{6})?)?)?)?\)", token.Literal.Date),
-			(r"#[0-9a-fA-F]{8}", token.Literal.Color),
-			(r"#[0-9a-fA-F]{6}", token.Literal.Color),
-			(r"#[0-9a-fA-F]{3,4}", token.Literal.Color),
-			(r"\d+", token.Number.Integer),
-			(r"//|==|=|>=|<=|<<|>>|\+=|-=|\*=|/=|//=|<<=|>>=|&=|\|=|^=|[\[\]{},:*/().~%&|<>^+-]", token.Token.Operator),
-			(lexer.words(("for", "in", "if", "else", "not", "is", "and", "or"), suffix=r"\b"), token.Keyword),
-			(lexer.words(("None", "False", "True"), suffix=r"\b"), token.Keyword.Constant),
-			(r"[a-zA-Z_][a-zA-Z0-9_]*", token.Name),
-			(r"\s+", token.Text),
+			# End the tag
+			(r"\?>", Comment.Preproc, "#pop"),
+			# Start triple quoted string constant
+			("'''", String, "string13"),
+			('"""', String, "string23"),
+			# Start single quoted string constant
+			("'", String, "string1"),
+			('"', String, "string2"),
+			# Floating point number
+			(r"\d+\.\d*([eE][+-]?\d+)?", Number.Float),
+			(r"\.\d+([eE][+-]?\d+)?", Number.Float),
+			(r"\d+[eE][+-]?\d+", Number.Float),
+			# Binary integer: ``0b101010``
+			(r"0[bB][01]+", Number.Bin),
+			# Octal integer: ``0o52``
+			(r"0[oO][0-7]+", Number.Oct),
+			# Hexadecimal integer: ``0x2a``
+			(r"0[xX][0-9a-fA-F]+", Number.Hex),
+			# Date or datetime: ``@(2000-02-29)``/``@(2000-02-29T12:34:56.987654)``
+			(r"@\(\d\d\d\d-\d\d-\d\d(T(\d\d:\d\d(:\d\d(\.\d{6})?)?)?)?\)", Literal.Date),
+			# Color: ``#fff``, ``#fff8f0`` etc.
+			(r"#[0-9a-fA-F]{8}", Literal.Color),
+			(r"#[0-9a-fA-F]{6}", Literal.Color),
+			(r"#[0-9a-fA-F]{3,4}", Literal.Color),
+			# Decimal integer: ``42``
+			(r"\d+", Number.Integer),
+			# Operators
+			(r"//|==|!=|>=|<=|<<|>>|\+=|-=|\*=|/=|//=|<<=|>>=|&=|\|=|^=|=|[\[\]{},:*/().~%&|<>^+-]", Operator),
+			# Keywords
+			(words(("for", "in", "if", "else", "not", "is", "and", "or"), suffix=r"\b"), Keyword),
+			# Builtin constants
+			(words(("None", "False", "True"), suffix=r"\b"), Keyword.Constant),
+			# Variable names
+			(r"[a-zA-Z_][a-zA-Z0-9_]*", Name),
+			# Whitespace
+			(r"\s+", Text.Whitespace),
 		],
+		# ``<?end ...?>`` tag for closing the last open block
 		"end": [
-			(r"\?>", token.Comment.Preproc, "#pop"),
-			(lexer.words(("for", "if", "def", "renderblock", "renderblocks"), suffix=r"\b"), token.Keyword),
-			(r"\s+", token.Text),
-			(r".", token.Error),
+			(r"\?>", Comment.Preproc, "#pop"),
+			(words(("for", "if", "def", "while", "renderblock", "renderblocks"), suffix=r"\b"), Keyword),
+			(r"\s+", Text),
 		],
+		# Content of the ``<?whitespace ...?>`` tag:
+		# ``keep``, ``string`` or ``smart``
 		"whitespace": [
-			(r"\?>", token.Comment.Preproc, "#pop"),
-			(lexer.words(("keep", "strip", "smart"), suffix=r"\b"), token.Comment.Preproc),
-			(r"\s+", token.Text),
-			(r".", token.Error),
+			(r"\?>", Comment.Preproc, "#pop"),
+			(words(("keep", "strip", "smart"), suffix=r"\b"), Comment.Preproc),
+			(r"\s+", Text.Whitespace),
 		],
-		"string": [
-			("\\\\['\"abtnfr]", token.String.Escape),
-			(r"\\x[0-9a-fA-F]{2}", token.String.Escape),
-			(r"\\u[0-9a-fA-F]{4}", token.String.Escape),
-			(r"\\U[0-9a-fA-F]{8}", token.String.Escape),
-			(r".", token.String),
+		# Inside a string constant
+		"stringescapes": [
+			(r"""\\[\\'"abtnfr]""", String.Escape),
+			(r"\\x[0-9a-fA-F]{2}", String.Escape),
+			(r"\\u[0-9a-fA-F]{4}", String.Escape),
+			(r"\\U[0-9a-fA-F]{8}", String.Escape),
 		],
+		# Inside a triple quoted string started with ``'''``
 		"string13": [
-			(r"'''", token.String, "#pop"),
-			lexer.include("string"),
+			(r"'''", String, "#pop"),
+			include("stringescapes"),
+			(r"[^\\']+", String),
+			(r'.', String),
 		],
+		# Inside a triple quoted string started with ``"""``
 		"string23": [
-			(r'"""', token.String, "#pop"),
-			lexer.include("string"),
+			(r'"""', String, "#pop"),
+			include("stringescapes"),
+			(r'[^\\"]+', String),
+			(r'.', String),
 		],
+		# Inside a single quoted string started with ``'``
 		"string1": [
-			(r"'", token.String, "#pop"),
-			lexer.include("string"),
+			(r"'", String, "#pop"),
+			include("stringescapes"),
+			(r"[^\\']+", String),
+			(r'.', String),
 		],
+		# Inside a single quoted string started with ``"``
 		"string2": [
-			(r'"', token.String, "#pop"),
-			lexer.include("string"),
+			(r'"', String, "#pop"),
+			include("stringescapes"),
+			(r'[^\\"]+', String),
+			(r'.', String),
 		],
 	}
 
-class HTMLUL4Lexer(lexer.DelegatingLexer):
+class HTMLUL4Lexer(DelegatingLexer):
 	"""
 	Lexer for UL4 embedded in HTML.
 	"""
@@ -569,10 +613,10 @@ class HTMLUL4Lexer(lexer.DelegatingLexer):
 	filenames = ['*.htmlul4']
 
 	def __init__(self, **options):
-		super().__init__(web.HtmlLexer, UL4Lexer, **options)
+		super().__init__(HtmlLexer, UL4Lexer, **options)
 
 
-class XMLUL4Lexer(lexer.DelegatingLexer):
+class XMLUL4Lexer(DelegatingLexer):
 	"""
 	Lexer for UL4 embedded in XML.
 	"""
@@ -582,10 +626,10 @@ class XMLUL4Lexer(lexer.DelegatingLexer):
 	filenames = ['*.xmlul4']
 
 	def __init__(self, **options):
-		super().__init__(web.XmlLexer, UL4Lexer, **options)
+		super().__init__(XmlLexer, UL4Lexer, **options)
 
 
-class CSSUL4Lexer(lexer.DelegatingLexer):
+class CSSUL4Lexer(DelegatingLexer):
 	"""
 	Lexer for UL4 embedded in CSS.
 	"""
@@ -595,10 +639,10 @@ class CSSUL4Lexer(lexer.DelegatingLexer):
 	filenames = ['*.cssul4']
 
 	def __init__(self, **options):
-		super().__init__(web.CssLexer, UL4Lexer, **options)
+		super().__init__(CssLexer, UL4Lexer, **options)
 
 
-class JavascriptUL4Lexer(lexer.DelegatingLexer):
+class JavascriptUL4Lexer(DelegatingLexer):
 	"""
 	Lexer for UL4 embedded in Javascript.
 	"""
@@ -608,10 +652,10 @@ class JavascriptUL4Lexer(lexer.DelegatingLexer):
 	filenames = ['*.jsul4']
 
 	def __init__(self, **options):
-		super().__init__(web.JavascriptLexer, UL4Lexer, **options)
+		super().__init__(JavascriptLexer, UL4Lexer, **options)
 
 
-class PythonUL4Lexer(lexer.DelegatingLexer):
+class PythonUL4Lexer(DelegatingLexer):
 	"""
 	Lexer for UL4 embedded in Python.
 	"""
@@ -621,14 +665,13 @@ class PythonUL4Lexer(lexer.DelegatingLexer):
 	filenames = ['*.pyul4']
 
 	def __init__(self, **options):
-		super().__init__(python.PythonLexer, UL4Lexer, **options)
+		super().__init__(PythonLexer, UL4Lexer, **options)
 
 
 def setup(app):
 	app.require_sphinx("4.1")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
-	app.add_lexer("output", OutputLexer)
 	app.add_lexer("ul4", UL4Lexer)
 	app.add_lexer("html+ul4", HTMLUL4Lexer)
 	app.add_lexer("xml+ul4", XMLUL4Lexer)

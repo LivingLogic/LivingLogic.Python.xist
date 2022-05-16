@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2021 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2021 by Walter Dörwald
+## Copyright 1999-2022 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2022 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -37,6 +37,24 @@ def _getmodulename(thing):
 
 
 def getdoc(thing, format):
+	"""
+	Return the docstring for ``thing``, as an XIST node using this namespace module.
+
+	``format`` specifies how to treat the docstring:
+
+	``"plaintext"
+		Treat to docstring as text. This returns a single :class:`~ll.xist.xsc.Text`
+		node.
+
+	``"restructuredtext"``.
+		This interprets the docstring as ReST source and converts it to use
+		this namespace.
+
+	``"xist"``
+		This treats the docstring as XML, which will be parsed using this
+		namespace as the default namespace.
+	"""
+
 	if thing.__doc__ is None:
 		return xsc.Null
 
@@ -135,9 +153,7 @@ def _namekey(obj, name):
 
 
 def _codeheader(thing, name, type):
-	# FullArgSpec(args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations)
 	spec = inspect.getfullargspec(thing)
-	# kwonlyargs, kwonlydefaults
 	sig = xsc.Frag()
 	offset = len(spec.args)
 	if spec.defaults is not None:
@@ -199,6 +215,8 @@ def explain(thing, name=None, format=None, context=[]):
 	i.e. a list of names of objects into which ``thing`` is nested. This
 	means the first entry will always be the module name, and the other entries
 	will be class names.
+
+	For the meaning for ``format`` see, :func:`getdoc`.
 	"""
 
 	def _append(all, obj, varname):
@@ -230,7 +248,6 @@ def explain(thing, name=None, format=None, context=[]):
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		(args, varargs, varkw, defaults) = inspect.getargspec(thing.__func__)
 		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.__self__.__class__.__name__ + thing.__name__):

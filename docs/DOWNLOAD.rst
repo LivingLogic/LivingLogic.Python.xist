@@ -10,6 +10,27 @@ You can download XIST from the Cheeseshop_, go directly to the
 .. autogenerate start
 
 
+5.70 (released 03/11/2022)
+--------------------------
+
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+========================================================================================================================================================= ======================= ====
+File                                                                                                                                                      Type                    Size
+========================================================================================================================================================= ======================= ====
+`ll-xist-5.70.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll-xist-5.70.tar.gz>`_                                                         Source                  733K
+`ll_xist-5.70-cp310-cp310-macosx_12_0_x86_64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.70-cp310-cp310-macosx_12_0_x86_64.whl>`_ Mac wheel (Python 3.10) 554K
+========================================================================================================================================================= ======================= ====
+
+
+5.69.1 (released 12/13/2021)
+----------------------------
+
+(no files for this version)
+
+
 5.69 (released 11/17/2021)
 --------------------------
 
@@ -5108,5 +5129,5 @@ Older versions of some modules were distributed seperately before XIST 3.2
 download those packages you have to hunt around in the
 `HTTP download directory`_.
 
-.. _HTTP download directory: http://python.livinglogic.de/download/
+.. _HTTP download directory: http://python-downloads.livinglogic.de/download/
 .. _Cheeseshop: http://cheeseshop.python.org/pypi/ll-xist

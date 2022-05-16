@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 1999-2021 by LivingLogic AG, Bayreuth/Germany
-## Copyright 1999-2021 by Walter Dörwald
+## Copyright 1999-2022 by LivingLogic AG, Bayreuth/Germany
+## Copyright 1999-2022 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -83,7 +83,7 @@ def test_isinstance():
 	check(list(node.walknodes(html.h1 | html.h2)))
 	check(list(node.walknodes(html.h1, html.h2)))
 	check(list(node.walknodes(html.h1, html.h2, ~xfind.any)))
-	check(list(node.walknodes(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img))))
+	check(list(node.walknodes(xsc.Element & ~xfind.selector(xsc.Text | html.p | html.div | html.em | html.img))))
 
 
 def test_element():

@@ -8,7 +8,24 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+<<<<<<< HEAD
 Changes in HEAD (released ??/??/2022)
+-------------------------------------
+
+*	:class:`ll.xist.xfind.Selector` now implements the reflected operators too.
+	This reenables certain argument combinations after
+	:meth:`ll.xist.xsc._Node_Meta.__or__` was dropped in version 5.69.
+
+*	:class:`ll.xist.xfind.NotCombinator` now converts its argument to a
+	:class:`~ll.xist.xfind.Selector` object, instead of expecting it to already
+	be one.
+
+*	However, some XFind expressions are still invalid, e.g. ``~html.h1`` will not
+	work. Use ``~xfind.IsInstanceSelector(html.h1)``, ``~xfind.selector(html.h1)``
+	or ``xfind.NotCombinator(html.h1)``.
+
+
+Changes in 5.70 (released 03/11/2022)
 -------------------------------------
 
 *	:mod:`ll.pysql` now supports Postgres. To connect to a Postgres database
@@ -51,6 +68,14 @@ Changes in HEAD (released ??/??/2022)
 
 *	Fixed a bug in the method :meth:`ll.orasql.Connection.getobject` (which we
 	only keep for backwards compatibility).
+
+*	Fixed a bug in parsing UL4 source code: UL4 would treat a tag name that
+	starts with a valid prefix as a valid tag name, although it shouldn't
+	(i.e. it treated ``<?printe?>`` as ``<?print e?>``).
+
+*	Added new UL4 AST classes: :class:`~ll.ul4c.RenderOrPrintAST`,
+	:class:`~ll.ul4c.RenderOrPrintXAST`, :class:`~ll.ul4c.RenderXOrPrintAST` and
+	:class:`~ll.ul4c.RenderXOrPrintXAST`.
 
 
 Changes in 5.69 (released 11/17/2021)

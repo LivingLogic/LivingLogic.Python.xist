@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-## Copyright 2009-2021 by LivingLogic AG, Bayreuth/Germany
-## Copyright 2009-2021 by Walter Dörwald
+## Copyright 2009-2022 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2009-2022 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -549,7 +549,7 @@ duplicatekeywordargument = _make_exception_re(
 unknownkeywordargument = _make_exception_re(
 	# Python
 	"got an unexpected keyword argument",
-	"doesn't support an argument named",
+	"[a-zA-Z_][a-zA-Z0-9_]*\\(\\) doesn't support an argument named '[a-zA-Z_][a-zA-Z0-9_]*'",
 	"an argument named [a-zA-Z_][a-zA-Z0-9_]* isn't supported",
 	"too many keyword arguments",
 	"takes no keyword arguments",
@@ -1919,6 +1919,9 @@ def test_getitem(T):
 	with raises(indexmessage):
 		T("<?print x[-5]?>").renders(x=list("gurk"))
 
+	assert "z" == T("<?print x['y']?>").renders(x={"y": "z"})
+	assert "z" == T("<?print x[None]?>").renders(x={None: "z"})
+
 
 @pytest.mark.ul4
 def test_setitem(T):
@@ -1977,7 +1980,8 @@ def test_nested(T):
 	sc = "4"
 	sv = "x"
 	n = 4
-	# when using 8 Java will output "An irrecoverable stack overflow has occurred"
+	# when using 8, older Java version will output:
+	# "An irrecoverable stack overflow has occurred"
 	depth = 7
 	for i in range(depth):
 		sc = f"({sc})+({sc})"
@@ -2662,19 +2666,19 @@ def test_function_enumfl(T):
 	assert "" == t1.renders(data="")
 	assert "[(f=42)(o=43)(o=44)]" == t2.renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t1.renders(data=4.2)
 
 	with raises(argumentmismatchmessage):
@@ -2704,19 +2708,19 @@ def test_function_isfirstlast(T):
 	with raises(unknownkeywordargument):
 		T("<?for (f, l, value) in isfirstlast(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=4.2)
 
 
@@ -2737,19 +2741,19 @@ def test_function_isfirst(T):
 	with raises(unknownkeywordargument):
 		T("<?for (f, value) in isfirst(iterable=data)?><?if f?>[<?end if?>(<?print value?>)<?end for?>").renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=4.2)
 
 
@@ -2771,19 +2775,19 @@ def test_function_islast(T):
 	with raises(unknownkeywordargument):
 		T("<?for (l, value) in islast(iterable=data)?>(<?print value?>)<?if l?>]<?end if?><?end for?>").renders(data="foo")
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=None)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=True)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=False)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=42)
 
-	with raises("is not iterable|iter\\(.*\\) not supported"):
+	with raises("must be iterable|is not iterable|iter\\(.*\\) not supported"):
 		t.renders(data=4.2)
 
 
@@ -5628,6 +5632,26 @@ def test_renderx(T):
 	t = ul4c.Template("<?print prefix?><?print data?><?print suffix?>")
 
 	assert "&lt;f&gt;&lt;&amp;&gt;&lt;o&gt;&lt;&amp;&gt;&lt;o&gt;" == T('<?for c in data?><?renderx t(data=c, prefix="<", suffix=">")?><?end for?>').renders(t=t, data='f&o&o')
+
+
+@pytest.mark.ul4
+def test_render_or_print(T):
+	assert "<&><&>" == T("<?def x?><&><?end def?><?render_or_print x()?><?render_or_print '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_render_or_printx(T):
+	assert "<&>&lt;&amp;&gt;" == T("<?def x?><&><?end def?><?render_or_printx x()?><?render_or_printx '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_renderx_or_print(T):
+	assert "&lt;&amp;&gt;<&>" == T("<?def x?><&><?end def?><?renderx_or_print x()?><?renderx_or_print '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_renderx_or_printx(T):
+	assert "&lt;&amp;&gt;&lt;&amp;&gt;" == T("<?def x?><&><?end def?><?renderx_or_printx x()?><?renderx_or_printx '<&>'()?>").renders()
 
 
 @pytest.mark.ul4
