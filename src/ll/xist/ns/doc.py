@@ -42,11 +42,11 @@ def getdoc(thing, format):
 
 	``format`` specifies how to treat the docstring:
 
-	``"plaintext"
+	``"plaintext"``
 		Treat to docstring as text. This returns a single :class:`~ll.xist.xsc.Text`
 		node.
 
-	``"restructuredtext"``.
+	``"restructuredtext"``
 		This interprets the docstring as ReST source and converts it to use
 		this namespace.
 
