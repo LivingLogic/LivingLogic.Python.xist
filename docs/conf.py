@@ -666,7 +666,7 @@ class PythonUL4Lexer(DelegatingLexer):
 
 
 def setup(app):
-	app.require_sphinx("4.1")
+	app.require_sphinx("5.0")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
 	app.add_lexer("ul4", UL4Lexer)
