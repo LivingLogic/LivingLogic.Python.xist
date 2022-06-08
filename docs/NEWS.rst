@@ -23,6 +23,16 @@ Changes in ???? (released ??/??/2022)
 	work. Use ``~xfind.IsInstanceSelector(html.h1)``, ``~xfind.selector(html.h1)``
 	or ``xfind.NotCombinator(html.h1)``.
 
+*	Updated :mod:`ll.orasql` to work with the new :mod:`oracledb` (which is
+	the successor of :mod:`cx_Oracle`).
+
+*	The :mod:`ll.orasql.connect` arguments ``readlobs`` and ``decimal`` are
+	gone now. Use :attr:`orasql.default.fetch_lobs` and
+	:attr:`orasql.default.fetch_decimal` instead.
+
+*	Added arguments ``--thick`` and ``--config_dir`` to all scripts that use
+	:mod:`ll.orasql`.
+
 
 Changes in 5.70 (released 03/11/2022)
 -------------------------------------

@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-"""
+r"""
 Purpose
 =======
 
@@ -59,6 +59,17 @@ Options
 	``SYS_EXPORT_SCHEMA_`` in their name will be skipped (otherwise these
 	objects will be considered as merge candidates).
 	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --thick <flag>
+
+	If true, use :mod:`oracledb`\s thick mode.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --config_dir <directory>
+
+	In thin mode, specify the directory that contains the ``tnsnames.ora`` file.
+	This can be used if "Connect Descriptor Strings" from ``tnsnames.ora`` must
+	be used.
 
 
 Example
@@ -163,6 +174,8 @@ def main(args=None):
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' in their name? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument(      "--thick", dest="thick", help="Use oracledb's 'thick' mode?", default=False, action=misc.FlagAction)
+	p.add_argument(      "--config_dir", dest="config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used.")
 
 	args = p.parse_args(args)
 
@@ -175,9 +188,11 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection1 = orasql.connect(args.connectstring1)
-	connection2 = orasql.connect(args.connectstring2)
-	connection3 = orasql.connect(args.connectstring3)
+	if args.thick:
+		orasql.init_oracle_client()
+	connection1 = orasql.connect(args.connectstring1, config_dir=args.config_dir)
+	connection2 = orasql.connect(args.connectstring2, config_dir=args.config_dir)
+	connection3 = orasql.connect(args.connectstring3, config_dir=args.config_dir)
 
 	def fetch(connection, name):
 		objects = set()

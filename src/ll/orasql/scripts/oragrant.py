@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-"""
+r"""
 Purpose
 =======
 
@@ -84,6 +84,17 @@ Options
 	Exclude objects from the output if their name contains the regular
 	expression.
 
+.. option:: --thick <flag>
+
+	If true, use :mod:`oracledb`\s thick mode.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --config_dir <directory>
+
+	In thin mode, specify the directory that contains the ``tnsnames.ora`` file.
+	This can be used if "Connect Descriptor Strings" from ``tnsnames.ora`` must
+	be used.
+
 
 Example
 =======
@@ -123,6 +134,8 @@ def main(args=None):
 	p.add_argument(      "--format", dest="format", help="The output format (default %(default)s)", choices=("sql", "pysql"), default="sql")
 	p.add_argument(      "--include", dest="include", metavar="REGEXP", help="Include only objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
 	p.add_argument(      "--exclude", dest="exclude", metavar="REGEXP", help="Exclude objects whose name contains PATTERN (default: %(default)s)", type=re.compile)
+	p.add_argument(      "--thick", dest="thick", help="Use oracledb's 'thick' mode?", default=False, action=misc.FlagAction)
+	p.add_argument(      "--config_dir", dest="config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used.")
 
 	args = p.parse_args(args)
 
@@ -135,10 +148,12 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection = orasql.connect(args.connectstring)
+	if args.thick:
+		orasql.init_oracle_client()
+	connection = orasql.connect(args.connectstring, config_dir=args.config_dir)
 
 	if args.execute:
-		connection2 = orasql.connect(args.execute)
+		connection2 = orasql.connect(args.execute, config_dir=args.config_dir)
 		cursor2 = connection2.cursor()
 		term = False
 	else:

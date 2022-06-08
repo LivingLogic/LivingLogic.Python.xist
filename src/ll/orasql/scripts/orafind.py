@@ -59,6 +59,17 @@ Options
 	If true, ``CLOB``\s will be read when printing search results.
 	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
 
+.. option:: --thick <flag>
+
+	If true, use :mod:`oracledb`\s thick mode.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --config_dir <directory>
+
+	In thin mode, specify the directory that contains the ``tnsnames.ora`` file.
+	This can be used if "Connect Descriptor Strings" from ``tnsnames.ora`` must
+	be used.
+
 
 Example
 =======
@@ -162,6 +173,8 @@ def main(args=None):
 	p.add_argument("-c", "--color", dest="color", help="Color output (default: %(default)s)", default="auto", choices=("yes", "no", "auto"))
 	p.add_argument("-i", "--ignore-case", dest="ignorecase", help="Ignore case distinctions? (default: %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-r", "--read-lobs", dest="readlobs", help="Read CLOBs when printing records? (default: %(default)s)", action=misc.FlagAction, default=False)
+	p.add_argument(      "--thick", dest="thick", help="Use oracledb's 'thick' mode?", default=False, action=misc.FlagAction)
+	p.add_argument(      "--config_dir", dest="config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used.")
 
 	args = p.parse_args(args)
 
@@ -181,7 +194,10 @@ def main(args=None):
 	searchstring = f"%{searchstring}%"
 	tablenames = [name.lower() for name in args.tables]
 
-	connection = orasql.connect(args.connectstring, readlobs=args.readlobs)
+	if args.thick:
+		orasql.init_oracle_client()
+	orasql.defaults.fetch_lobs = not args.readlobs
+	connection = orasql.connect(args.connectstring, config_dir=args.config_dir)
 	c = connection.cursor()
 
 	tables = list(connection.tables(None))

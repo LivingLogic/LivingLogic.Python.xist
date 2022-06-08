@@ -8,6 +8,35 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.71
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	:mod:`ll.orasql` now uses :mod:`oracledb` instead of :mod:`cx_Oracle`.
+	If you want the switch :mod:`oracledb` to work in "thick" mode (which is
+	closer to how :mod:`cx_Oracle` worked), use the following statement::
+
+		orasql.init_oracle_client()
+
+*	The :func:`~ll.orasql.connect` arguments ``readlobs`` and ``decimal`` are
+	gone now. To get something similar to ``readlobs=True`` use the following
+	statement::
+
+		orasql.defaults.fetch_lobs = False
+
+	To get something similar to ``decimal=True`` use the following statement::
+
+		orasql.defaults.fetch_decimal = True
+
+	Hoever, integer values for ``readlobs`` are no longer supported with this
+	new approach.
+
+	Also, with ``orasql.defaults.fetch_decimal = True`` even numbers with scale
+	0 will be returned as :class:`decimal.Decimal` objects.
+
+
 Migrating to version 5.67
 =========================
 

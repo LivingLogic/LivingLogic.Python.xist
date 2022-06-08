@@ -19,6 +19,8 @@ from ll.orasql.scripts import oracreate, oradrop, oradiff, oramerge, oragrant, o
 
 
 dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
+config_dir = os.environ["ORACLE_HOME"] + "/network/admin"
+orasql.defaults.config_dir = config_dir
 
 
 class Info:
@@ -285,7 +287,7 @@ def test_createorder(db_data):
 def test_scripts_oracreate():
 	if dbname:
 		# Test oracreate without executing anything
-		args = f"--color=yes --verbose=yes --seqcopy=yes {dbname}"
+		args = f"--color=yes --verbose=yes --seqcopy=yes --config_dir={config_dir} {dbname}"
 		oracreate.main(args.split())
 
 
@@ -293,7 +295,7 @@ def test_scripts_oracreate():
 def test_scripts_oradrop():
 	if dbname:
 		# Test oradrop without executing anything
-		args = f"--color=yes --verbose=yes {dbname}"
+		args = f"--color=yes --verbose=yes --config_dir={config_dir} {dbname}"
 		oradrop.main(args.split())
 
 
@@ -302,8 +304,8 @@ def test_scripts_oradiff():
 	if dbname:
 		# Test oradiff (not really: we will not get any differences)
 		allargs = [
-			f"--color=yes --verbose=yes {dbname} {dbname}",
-			f"--color=yes --verbose=yes {dbname} {dbname} -mfull",
+			f"--color=yes --verbose=yes --config_dir={config_dir} {dbname} {dbname}",
+			f"--color=yes --verbose=yes --config_dir={config_dir} {dbname} {dbname} -mfull",
 		]
 		for args in allargs:
 			oradiff.main(args.split())
@@ -313,7 +315,7 @@ def test_scripts_oradiff():
 def test_scripts_oramerge():
 	if dbname:
 		# Test oramerge (not really: we will not get any differences)
-		args = f"--color=yes --verbose=yes {dbname} {dbname} {dbname}"
+		args = f"--color=yes --verbose=yes --config_dir={config_dir} {dbname} {dbname} {dbname}"
 		oramerge.main(args.split())
 
 
@@ -321,7 +323,7 @@ def test_scripts_oramerge():
 def test_scripts_oragrant():
 	if dbname:
 		# Test oragrant
-		args = f"--color=yes {dbname}"
+		args = f"--color=yes --config_dir={config_dir} {dbname}"
 		oragrant.main(args.split())
 
 
@@ -329,7 +331,7 @@ def test_scripts_oragrant():
 def test_scripts_orafind():
 	if dbname:
 		# Test orafind
-		args = f"--ignore-case yes --color=yes {dbname} foo"
+		args = f"--ignore-case yes --color=yes --config_dir={config_dir} {dbname} foo"
 		orafind.main(args.split())
 
 
@@ -337,7 +339,7 @@ def test_scripts_orafind():
 def test_scripts_oradelete():
 	if dbname:
 		# Test oradelete without executing anything
-		args = f"--color=yes --verbose=yes {dbname}"
+		args = f"--color=yes --verbose=yes --config_dir={config_dir} {dbname}"
 		oradelete.main(args.split())
 
 
@@ -345,21 +347,24 @@ def test_scripts_oradelete():
 def test_scripts_orareindex():
 	if dbname:
 		# Test orareindex without executing anything
-		args = f"--color=yes --verbose=yes {dbname}"
+		args = f"--color=yes --verbose=yes --config_dir={config_dir} {dbname}"
 		orareindex.main(args.split())
 
 
 @pytest.mark.db
 def test_callprocedure():
 	if dbname:
+		orasql.defaults.fetch_lobs = False
 		db = orasql.connect(dbname)
 		proc = db.object_named("orasql_testprocedure")
-		result = proc(db.cursor(readlobs=True), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
+		result = proc(db.cursor(), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
 		assert result.p_inout == "ABC"*10000 + "abcäöü"
 
-		result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
+		orasql.defaults.fetch_lobs = True
+		db = orasql.connect(dbname)
+		result = proc(db.cursor(), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result.p_in == "abcäöü"
 		assert result.p_out == "ABCÄÖÜ"
 		assert readlob(result.p_inout, 8192) == "ABC"*10000 + "abcäöü"
@@ -368,15 +373,18 @@ def test_callprocedure():
 @pytest.mark.db
 def test_callfunction():
 	if dbname:
+		orasql.defaults.fetch_lobs = False
 		db = orasql.connect(dbname)
 		func = db.object_named("orasql_testfunction")
-		(result, args) = func(db.cursor(readlobs=True), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
+		(result, args) = func(db.cursor(), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result == "ABCÄÖÜ"
 		assert args.p_in == "abcäöü"
 		assert args.p_out == "ABCÄÖÜ"
 		assert args.p_inout == "ABC"*10000 + "abcäöü"
 
-		(result, args) = func(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
+		orasql.defaults.fetch_lobs = True
+		db = orasql.connect(dbname)
+		(result, args) = func(db.cursor(), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 		assert result == "ABCÄÖÜ"
 		assert args.p_in == "abcäöü"
 		assert args.p_out == "ABCÄÖÜ"
@@ -390,7 +398,8 @@ def test_clob_fromprocedure():
 		proc = db.object_named("orasql_testprocedure")
 
 		def check(sizearg):
-			result = proc(db.cursor(readlobs=False), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
+			orasql.defaults.fetch_lobs = True
+			result = proc(db.cursor(), c_user="pytest", p_in="abcäöü", p_inout="abc"*10000)
 			assert readlob(result.p_inout, sizearg) == "ABC"*10000 + "abcäöü"
 			assert result.p_inout.read() == ""
 
@@ -449,17 +458,21 @@ def test_exists():
 @pytest.mark.db
 def test_decimal():
 	if dbname:
-		db = orasql.connect(dbname, decimal=True)
-		c = db.cursor()
+		try:
+			orasql.defaults.fetch_decimals = True
+			db = orasql.connect(dbname)
+			c = db.cursor()
 
-		c.execute("select 42 from dual")
-		r = c.fetchone()
-		assert type(r[0]) is decimal.Decimal
+			c.execute("select 42 from dual")
+			r = c.fetchone()
+			assert type(r[0]) is decimal.Decimal
 
-		c.execute("select 42.5 from dual")
-		r = c.fetchone()
-		assert type(r[0]) is decimal.Decimal
+			c.execute("select 42.5 from dual")
+			r = c.fetchone()
+			assert type(r[0]) is decimal.Decimal
 
-		c.execute("select cast(42 as integer) from dual")
-		r = c.fetchone()
-		assert type(r[0]) is int
+			c.execute("select cast(42 as integer) from dual")
+			r = c.fetchone()
+			assert type(r[0]) is decimal.Decimal
+		finally:
+			orasql.defaults.fetch_decimals = False
