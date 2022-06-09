@@ -182,19 +182,19 @@ html_theme_path = ["."]
 
 html_permalinks = True
 
-if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
+if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-6.1.1-web"):
 	html_theme_options = {
-		"font_awesome_url": "../fontawesome-pro-5.13.0-web/css/all.min.css",
+		"font_awesome_url": "../fontawesome-pro-6.1.1-web/css/all.min.css",
 		"font_awesome_style": "fal",
-		"font_awesome_name": "Font Awesome 5 Pro",
+		"font_awesome_name": "Font Awesome 6 Pro",
 		"font_awesome_weight": "400",
 	}
 	html_permalinks_icon = "<i class='fal fa-link'></i>"
 else:
 	html_theme_options = {
-		"font_awesome_url": "../fontawesome-free-5.13.0-web/css/all.min.css",
+		"font_awesome_url": "../fontawesome-free-6.1.1-web/css/all.min.css",
 		"font_awesome_style": "fas",
-		"font_awesome_name": "Font Awesome 5 Free",
+		"font_awesome_name": "Font Awesome 6 Free",
 		"font_awesome_weight": "900",
 	}
 	html_permalinks_icon = "<i class='fas fa-link'></i>"
