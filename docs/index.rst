@@ -49,10 +49,3 @@ Content
    .. |pythonversion|  image:: https://img.shields.io/pypi/pyversions/ll-xist.svg
    .. |format|         image:: https://img.shields.io/pypi/format/ll-xist.svg
    .. |license|        image:: https://img.shields.io/pypi/l/ll-xist.svg
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
