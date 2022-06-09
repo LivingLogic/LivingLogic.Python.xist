@@ -157,7 +157,7 @@ pygments_style = 'livinglogic-light'
 tab_width = 3
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+modindex_common_prefix = ["ll."]
 
 graphviz_output_format = "png"
 
