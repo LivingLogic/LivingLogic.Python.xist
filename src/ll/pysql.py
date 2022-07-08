@@ -557,6 +557,11 @@ try:
 except ImportError:
 	psycopg = None
 
+try:
+	from psycopg import rows
+except ImportError:
+	rows = None
+
 __docformat__ = "reStructuredText"
 
 
@@ -1262,7 +1267,7 @@ class PostgresHandler(DBHandler):
 
 	def user_exists(self, context, command):
 		cs = self.connectstring()
-		cursor = self.connection.cursor()
+		cursor = self.connection.cursor(row_factory=rows.tuple_row)
 		cursor.execute("select count(*) from pg_user where usename = %s", (command.name,))
 		count = cursor.fetchone()[0]
 		command.count(cs)
@@ -1270,7 +1275,7 @@ class PostgresHandler(DBHandler):
 
 	def schema_exists(self, context, command):
 		cs = self.connectstring()
-		cursor = self.connection.cursor()
+		cursor = self.connection.cursor(row_factory=rows.tuple_row)
 		cursor.execute("select count(*) from pg_namespace where nspname = %s", (command.name,))
 		count = cursor.fetchone()[0]
 		command.count(cs)
@@ -1278,7 +1283,7 @@ class PostgresHandler(DBHandler):
 
 	def object_exists(self, context, command):
 		cs = self.connectstring()
-		cursor = self.connection.cursor()
+		cursor = self.connection.cursor(row_factory=rows.tuple_row)
 		candidates = [
 			("pg_class", "relname"),
 			("pg_proc", "proname"),
@@ -1295,7 +1300,7 @@ class PostgresHandler(DBHandler):
 	def constraint_exists(self, context, command):
 		cs = self.connectstring()
 
-		cursor = self.connection.cursor()
+		cursor = self.connection.cursor(row_factory=rows.tuple_row)
 
 		cursor.execute(f"select count(*) from pg_catalog.pg_constraint where conname = %s", (command.name,))
 		count = cursor.fetchone()[0]
@@ -1314,7 +1319,7 @@ class PostgresHandler(DBHandler):
 		return None
 
 	def _reset_sequence(self, context, command):
-		cursor = self.connection.cursor()
+		cursor = self.connection.cursor(row_factory=rows.tuple_row)
 
 		# Fetch information about the table values
 		cursor.execute(f"select coalesce(max({command.field}), 0) from {command.table}")
@@ -1352,7 +1357,7 @@ class PostgresHandler(DBHandler):
 					argvalue = None
 			queryargvars.append(argvalue)
 
-		cursor = self.connection.cursor()
+		cursor = self.connection.cursor(row_factory=rows.dict_row)
 		cursor.execute(sql, queryargvars)
 		keys = {}
 		try:
@@ -1363,10 +1368,10 @@ class PostgresHandler(DBHandler):
 				# some other problem -> report it
 				raise
 		else:
-			for (value, column) in zip(result, cursor.description):
-				key = varargs[column.name].key
+			for (column_name, value) in result.items():
+				key = varargs[column_name].key
 				if key is not None and (key not in context._locals or context._locals[key] != value):
-					keys[column.name] = value
+					keys[column_name] = value
 					context._locals[key] = value
 		return keys
 
