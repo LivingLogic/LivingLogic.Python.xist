@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released ??/??/2022)
+Changes in 5.71 (released 07/08/2022)
 -------------------------------------
 
 *	Fixed :func:`ll.xist.xfind.selector` when running under Python 3.9.
