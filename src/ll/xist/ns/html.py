@@ -694,6 +694,15 @@ class script(xsc.Element):
 			xmlname = "for"
 			deprecated = True
 
+	def publish(self, publisher):
+		if publisher.xhtml == 2:
+			yield from super().publish(publisher)
+		else:
+			output = "".join(str(text) for text in self.walknodes(xsc.Text))
+			output = output.replace("</script>", "\\u003c/script>")
+			yield from self._publishstarttag(publisher)
+			yield publisher.encode(output)
+			yield from self._publishendtag(publisher)
 
 class noscript(xsc.Element):
 	"""

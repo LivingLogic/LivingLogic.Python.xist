@@ -3375,12 +3375,7 @@ class Element(Node, metaclass=_Element_Meta):
 				return f"{prefix}:{self.xmlname}"
 		return self.xmlname
 
-	def _publishfull(self, publisher):
-		"""
-		Does the full publication of the element. If you need full elements
-		inside attributes (e.g. for JSP tag libraries), you can overwrite
-		:meth:`publish` and simply call this method.
-		"""
+	def _publishstarttag(self, publisher):
 		name = self._publishname(publisher)
 		yield publisher.encode("<")
 		yield publisher.encode(name)
@@ -3400,10 +3395,6 @@ class Element(Node, metaclass=_Element_Meta):
 		yield from self.attrs.publish(publisher)
 		if len(self):
 			yield publisher.encode(">")
-			yield from self.content.publish(publisher)
-			yield publisher.encode("</")
-			yield publisher.encode(name)
-			yield publisher.encode(">")
 		else:
 			if publisher.xhtml in (0, 1):
 				if self.model is not None and self.model.empty:
@@ -3416,6 +3407,24 @@ class Element(Node, metaclass=_Element_Meta):
 					yield publisher.encode(">")
 			elif publisher.xhtml == 2:
 				yield publisher.encode("/>")
+
+	def _publishendtag(self, publisher):
+		name = self._publishname(publisher)
+		if len(self):
+			yield publisher.encode("</")
+			yield publisher.encode(name)
+			yield publisher.encode(">")
+
+
+	def _publishfull(self, publisher):
+		"""
+		Does the full publication of the element. If you need full elements
+		inside attributes (e.g. for JSP tag libraries), you can overwrite
+		:meth:`publish` and simply call this method.
+		"""
+		yield from self._publishstarttag(publisher)
+		yield from self.content.publish(publisher)
+		yield from self._publishendtag(publisher)
 
 	def publish(self, publisher):
 		if publisher.inattr:
