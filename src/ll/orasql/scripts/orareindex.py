@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-r"""
+"""
 Purpose
 =======
 
@@ -58,17 +58,6 @@ Options
 	If :option:`--execute` is not given, this determines the output format:
 	Plain SQL (format ``sql``), or PySQL (format ``pysql``) which can be piped
 	into :mod:`ll.pysql`.
-
-.. option:: --thick <flag>
-
-	If true, use :mod:`oracledb`\s thick mode.
-	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
-
-.. option:: --config_dir <directory>
-
-	In thin mode, specify the directory that contains the ``tnsnames.ora`` file.
-	This can be used if "Connect Descriptor Strings" from ``tnsnames.ora`` must
-	be used.
 """
 
 
@@ -93,8 +82,6 @@ def main(args=None):
 	p.add_argument("-x", "--execute", dest="execute", action=misc.FlagAction, help="immediately execute the commands instead of printing them? (default %(default)s)")
 	p.add_argument(      "--format", dest="format", help="The output format (default %(default)s)", choices=("sql", "pysql"), default="sql")
 	p.add_argument(      "--ignoreerrors", dest="ignoreerrors", help="Ignore errors? (default: %(default)s)", action=misc.FlagAction, default=False)
-	p.add_argument(      "--thick", dest="thick", help="Use oracledb's 'thick' mode?", default=False, action=misc.FlagAction)
-	p.add_argument(      "--config_dir", dest="config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used.")
 
 	args = p.parse_args(args)
 
@@ -108,9 +95,7 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	if args.thick:
-		orasql.init_oracle_client()
-	connection = orasql.connect(args.connectstring, config_dir=args.config_dir)
+	connection = orasql.connect(args.connectstring)
 	cursor = connection.cursor()
 
 	cs = s4connectstring(connection.connectstring())

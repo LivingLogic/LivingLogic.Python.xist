@@ -36,12 +36,9 @@ __ https://oracle.github.io/python-cx_Oracle/
 import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
 from collections import abc
 
-from oracledb import *
-__cx_oracle_version__ = None
-from oracledb import __version__ as __oracledb_version__
-__connect = connect
+from cx_Oracle import *
 
-# init_oracle_client()
+from cx_Oracle import __version__ as __cx_oracle_version__
 
 from ll import misc, url as url_
 
@@ -53,8 +50,6 @@ bigbang = datetime.datetime(1970, 1, 1, 0, 0, 0) # timestamp for Oracle "directo
 
 
 ALL = misc.Const("ALL", "ll.orasql") # marker object for specifying a user
-
-_default_chunksize = 131072
 
 
 ###
@@ -178,10 +173,9 @@ class LOBStream:
 	A :class:`LOBStream` object provides streamlike access to a ``BLOB`` or ``CLOB``.
 	"""
 
-	def __init__(self, value, chunksize):
+	def __init__(self, value):
 		self.value = value
 		self.pos = 0
-		self.chunksize = chunksize
 
 	def readall(self):
 		"""
@@ -196,11 +190,12 @@ class LOBStream:
 		Read a chunk of data from the stream and return it. Reading is done in
 		optimally sized chunks.
 		"""
-		date = self.value.read(self.pos+1, self.chunksize)
-		self.pos += self.chunksize
+		size = self.value.getchunksize()
+		bytes = self.value.read(self.pos+1, size)
+		self.pos += size
 		if self.pos >= self.value.size():
 			self.pos = self.value.size()
-		return date
+		return bytes
 
 	def read(self, size=None):
 		"""
@@ -243,32 +238,34 @@ class LOBStream:
 			self.pos = 0
 
 
+def _decodelob(value, readlobs):
+	if value is not None:
+		if readlobs is True or (isinstance(readlobs, int) and value.size() <= readlobs):
+			value = value.read()
+		else:
+			value = LOBStream(value)
+	return value
+
+
 class RecordMaker:
 	def __init__(self, cursor):
+		self._readlobs = cursor.readlobs
 		self._index2name = tuple(d[0].lower() for d in cursor.description)
 		self._name2index = dict(zip(self._index2name, itertools.count()))
 		self._index2conv = tuple(getattr(self, d[1].name, self.DEFAULT) for d in cursor.description)
-		self._thin = cursor.connection.thin
-		self._chunksize = None
 
 	def __call__(self, *row):
 		row = tuple(conv(value) for (conv, value) in zip(self._index2conv, row))
 		return Record(self._index2name, self._name2index, row)
 
-	def _decodelob(self, value):
-		if self._chunksize is None:
-			self._chunksize = _default_chunksize if self._thin else value.getchunksize()
-		value = LOBStream(value, self._chunksize)
-		return value
-
 	def DB_TYPE_CLOB(self, value):
-		return self._decodelob(value)
+		return _decodelob(value, self._readlobs)
 
 	def DB_TYPE_NCLOB(self, value):
-		return self._decodelob(value)
+		return _decodelob(value, self._readlobs)
 
 	def DB_TYPE_BLOB(self, value):
-		return self._decodelob(value)
+		return _decodelob(value, self._readlobs)
 
 	def DEFAULT(self, value):
 		return value
@@ -428,19 +425,56 @@ class Connection(Connection):
 	:class:`Connection` is a subclass of :class:`cx_Oracle.Connection`.
 	"""
 	def __init__(self, *args, **kwargs):
+		"""
+		Create a new connection. In addition to the parameters supported by
+		:func:`cx_Oracle.connect` the following keyword argument is supported.
+
+		``readlobs`` : bool or integer
+			If ``readlobs`` is :const:`False` all cursor fetches return
+			:class:`LOBStream` objects for LOB objects. If ``readlobs`` is an
+			:class:`int` LOBs with a maximum size of ``readlobs`` will be
+			returned as :class:`bytes`/:class:`str` objects. If ``readlobs``
+			is :const:`True` all LOB values will be returned as
+			:class:`bytes`/:class:`str` objects.
+
+		``decimal`` : bool
+			If ``decimal`` is :const:`True` numbers will be returned as
+			:class:`decimal.Decimal` objects, else :class:`float` will be used.
+
+		Furthermore the ``clientinfo`` will be automatically set to the name
+		of the currently running script (except if the ``clientinfo`` keyword
+		argument is given and :const:`None`).
+		"""
+		if "readlobs" in kwargs:
+			kwargs = kwargs.copy()
+			self.readlobs = kwargs.pop("readlobs", False)
+		else:
+			self.readlobs = False
+		self.decimal = kwargs.pop("decimal", False)
+		if self.decimal:
+			self.outputtypehandler = self._numbersasdecimal
+		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
 		super().__init__(*args, **kwargs)
-		self.mode = kwargs.get("mode", 0)
+		if clientinfo is not None:
+			self.clientinfo = clientinfo
+			self.commit()
+		self.mode = kwargs.get("mode")
 		self._ddprefix = None # Do we have access to the ``DBA_*`` views?
 		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?
+
+	def _numbersasdecimal(self, cursor, name, defaultType, length, precision, scale):
+		if defaultType is DB_TYPE_NUMBER and scale:
+			return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
 	def connectstring(self):
 		return f"{self.username}@{self.dsn}"
 
-	def cursor(self):
+	def cursor(self, readlobs=None):
 		"""
-		Return a new cursor for this connection.
+		Return a new cursor for this connection. For the meaning of
+		``readlobs`` see :meth:`__init__`.
 		"""
-		return Cursor(self)
+		return Cursor(self, readlobs=readlobs)
 
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} db={self.connectstring()!r} at {id(self):#x}>"
@@ -748,20 +782,8 @@ class Connection(Connection):
 def connect(*args, **kwargs):
 	"""
 	Create a connection to the database and return a :class:`Connection` object.
-
-	The ``clientinfo`` will be automatically set to the name of the currently
-	running script (except if the ``clientinfo`` keyword argument is given and
-	:const:`None`).
 	"""
-
-	clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
-
-	connection = __connect(*args, **{"conn_class": Connection, **kwargs})
-
-	if clientinfo is not None:
-		connection.clientinfo = clientinfo
-		connection.commit()
-	return connection
+	return Connection(*args, **kwargs)
 
 
 class Cursor(Cursor):
@@ -769,8 +791,15 @@ class Cursor(Cursor):
 	A subclass of the cursor class in :mod:`cx_Oracle`. The "fetch" methods
 	will return records as :class:`Record` objects and  ``LOB`` values will be
 	returned as :class:`LOBStream` objects or :class:`str`/:class:`bytes` objects
-	(depending :attr:`oracledb.defaults.fetch_lobs` attribute).
+	(depending on the cursors :attr:`readlobs` attribute).
 	"""
+	def __init__(self, connection, readlobs=None):
+		"""
+		Return a new cursor for the connection ``connection``. For the meaning
+		of ``readlobs`` see :meth:`Connection.__init__`.
+		"""
+		super().__init__(connection)
+		self.readlobs = (readlobs if readlobs is not None else connection.readlobs)
 
 	def ddprefix(self):
 		"""
@@ -3548,10 +3577,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 
 	def _unwraparg(self, arginfo, cursor, value):
 		if isinstance(value, LOB):
-			if defaults.fetch_lobs:
-				return LOBStream(value, _default_chunksize if cursor.connection.thin else value.getchunksize())
-			else:
-				return value.read()
+			value = _decodelob(value, cursor.readlobs)
 		return value
 
 	def _makerecord(self, cursor, args):
