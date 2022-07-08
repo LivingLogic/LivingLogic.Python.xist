@@ -11,6 +11,9 @@ see :ref:`MIGRATION`.
 Changes in ???? (released ??/??/2022)
 -------------------------------------
 
+*	Restored support for the ``__or__`` operator for XIST classes under
+	Python 3.9.
+
 *	:class:`ll.xist.xfind.Selector` now implements the reflected operators too.
 	This reenables certain argument combinations after
 	:meth:`ll.xist.xsc._Node_Meta.__or__` was dropped in version 5.69.
