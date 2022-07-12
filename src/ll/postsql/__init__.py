@@ -772,6 +772,8 @@ class RecordFactory:
 				self.name2index[colname] = i
 
 	def __call__(self, values: Sequence[Any]) -> Record:
+		if self.index2name is None:
+			raise errors.InterfaceError("the cursor doesn't have a result")
 		return Record(self.index2name, self.name2index, values)
 
 
