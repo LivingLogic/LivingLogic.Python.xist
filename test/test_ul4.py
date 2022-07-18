@@ -873,13 +873,15 @@ def test_dictcomp(T):
 @pytest.mark.ul4
 def test_print(T):
 	assert "" == T("<?print None?>").renders()
-	assert "<foo>" == T("<?print '<foo>'?>").renders()
+	assert "" == T("<?print this_is_not_defined?>").renders()
+	assert """<'foo'&"bar">""" == T("""<?print '''<'foo'&"bar">'''?>""").renders()
 
 
 @pytest.mark.ul4
 def test_printx(T):
 	assert "" == T("<?printx None?>").renders()
-	assert "&lt;foo&gt;" == T("<?printx '<foo>'?>").renders()
+	assert "" == T("<?printx this_is_not_defined?>").renders()
+	assert """&lt;&#39;foo&#39;&amp;&quot;bar&quot;&gt;""" == T("""<?printx '''<'foo'&"bar">'''?>""").renders()
 
 
 @pytest.mark.ul4
