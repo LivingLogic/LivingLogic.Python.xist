@@ -74,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'XIST'
-copyright = '1999\N{EN DASH}2021, Walter Dörwald'
+copyright = '1999\N{EN DASH}2022, Walter Dörwald'
 author = 'Walter Dörwald'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -157,7 +157,7 @@ pygments_style = 'livinglogic-light'
 tab_width = 3
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+modindex_common_prefix = ["ll."]
 
 graphviz_output_format = "png"
 
@@ -182,19 +182,19 @@ html_theme_path = ["."]
 
 html_permalinks = True
 
-if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-5.13.0-web"):
+if os.path.exists("sphinx_ll_theme/static/fontawesome-pro-6.1.1-web"):
 	html_theme_options = {
-		"font_awesome_url": "../fontawesome-pro-5.13.0-web/css/all.min.css",
+		"font_awesome_url": "../fontawesome-pro-6.1.1-web/css/all.min.css",
 		"font_awesome_style": "fal",
-		"font_awesome_name": "Font Awesome 5 Pro",
+		"font_awesome_name": "Font Awesome 6 Pro",
 		"font_awesome_weight": "400",
 	}
 	html_permalinks_icon = "<i class='fal fa-link'></i>"
 else:
 	html_theme_options = {
-		"font_awesome_url": "../fontawesome-free-5.13.0-web/css/all.min.css",
+		"font_awesome_url": "../fontawesome-free-6.1.1-web/css/all.min.css",
 		"font_awesome_style": "fas",
-		"font_awesome_name": "Font Awesome 5 Free",
+		"font_awesome_name": "Font Awesome 6 Free",
 		"font_awesome_weight": "900",
 	}
 	html_permalinks_icon = "<i class='fas fa-link'></i>"
@@ -406,9 +406,9 @@ autodoc_class_signature = "separated"
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
 	exclusions = {
-		'__weakref__', '__slots__', # special-members
-		'__doc__', '__module__', '__dict__',  # undoc-members
-		'ul4_type' # our own special attribute
+		"__weakref__", "__slots__", # special-members
+		"__doc__", "__module__", "__dict__",  # undoc-members
+		"ul4_type" # our own special attribute
 	}
 	doc = getattr(obj, "__doc__", None)
 	if skip:
@@ -669,7 +669,7 @@ class PythonUL4Lexer(DelegatingLexer):
 
 
 def setup(app):
-	app.require_sphinx("4.1")
+	app.require_sphinx("5.0")
 	app.connect('autodoc-skip-member', autodoc_skip_member)
 	app.set_translator("html", HTML5Translator, True)
 	app.add_lexer("ul4", UL4Lexer)

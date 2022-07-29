@@ -2096,4 +2096,9 @@ dt em
 	{
 		filter: invert(80%);
 	}
+
+	.rst-content .highlighted
+	{
+		background: #0e3bf0;
+	}
 }

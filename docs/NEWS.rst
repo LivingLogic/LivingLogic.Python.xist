@@ -11,17 +11,33 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released ??/??/2022)
 -------------------------------------
 
+
+Changes in 5.71 (released 07/08/2022)
+-------------------------------------
+
+*	Fixed :func:`ll.xist.xfind.selector` when running under Python 3.9.
+
+*	Restored support for :meth:`ll.xist.xsc._Node_Meta.__or__` for XIST classes
+	under Python 3.9.
+
 *	:class:`ll.xist.xfind.Selector` now implements the reflected operators too.
-	This reenables certain argument combinations after
-	:meth:`ll.xist.xsc._Node_Meta.__or__` was dropped in version 5.69.
+	This reenables certain argument combinations as
+	:meth:`ll.xist.xsc._Node_Meta.__or__` isn't available on Python 3.10.
 
 *	:class:`ll.xist.xfind.NotCombinator` now converts its argument to a
 	:class:`~ll.xist.xfind.Selector` object, instead of expecting it to already
 	be one.
 
-*	However, some XFind expressions are still invalid, e.g. ``~html.h1`` will not
-	work. Use ``~xfind.IsInstanceSelector(html.h1)``, ``~xfind.selector(html.h1)``
-	or ``xfind.NotCombinator(html.h1)``.
+*	Publishing of ``<script>`` elements now properly outputs the elements
+	content as ``CDATA`` unless in XML mode. I.e. ::
+
+		html.script("&").string()
+
+	will now output ``<script>&</script>`` and ::
+
+		html.script("&").string(xhtml=2)
+
+	outputs ``<script>&amp;</script>`` as before.
 
 
 Changes in 5.70 (released 03/11/2022)

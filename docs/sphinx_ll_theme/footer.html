@@ -23,6 +23,29 @@
 					</span>
 				</a>
 			{% endif %}
+			{%- if hasdoc('genindex') and pagename != 'genindex' %}
+				<a href="{{ pathto('genindex') }}" accesskey="i" rel="index" class="iconpanel index">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-address-book"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ _('Index') }}</span>
+						<span class="title">{{ _('All modules, classes, functions, scripts and everything else') }}</span>
+					</span>
+				</a>
+			{% endif %}
+			{# FIXME: hasdoc('modindex') doesn't seem to work #}
+			{%- if pagename != 'py-modindex' %}
+				<a href="{{ pathto('py-modindex') }}" rel="index" class="iconpanel mod-index">
+					<span class="icon">
+						<i class="{{theme_font_awesome_style}} fa-fw fa-address-book"></i>
+					</span>
+					<span class="text">
+						<span class="label">{{ _('Module Index') }}</span>
+						<span class="title">{{ _('List of all Python modules') }}</span>
+					</span>
+				</a>
+			{% endif %}
 			{%- if theme_pdf %}
 				<a href="{{ pathto(theme_pdf, 1) }}" rel="alternate" type="application/pdf" class="iconpanel">
 					<span class="icon">

@@ -105,11 +105,11 @@ def selector(*objs):
 		obj = objs[0]
 		if isinstance(obj, Selector):
 			return obj
-		if isinstance(obj, xsc._Node_Meta):
+		elif isinstance(obj, xsc._Node_Meta):
 			return IsInstanceSelector(obj)
 		elif isinstance(obj, tuple):
 			return selector(*obj)
-		elif isinstance(obj, types.UnionType):
+		elif builtins.hasattr(types, "UnionType") and isinstance(obj, types.UnionType):
 			return IsInstanceSelector(*obj.__args__)
 		elif isinstance(obj, xsc.Node):
 			return IsSelector(obj)

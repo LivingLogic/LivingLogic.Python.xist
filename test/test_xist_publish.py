@@ -13,6 +13,8 @@
 from ll.xist import xsc, parse
 from ll.xist.ns import html, xml, php, abbr, xlink, specials, struts_html
 
+import pytest
+
 
 def test_publishelement():
 	node = html.html()
@@ -201,3 +203,13 @@ def test_allowschemerelurls():
 	assert node.bytes(base="http://www.example.org") == b'<span style="background: url(index.html)"></span>'
 	assert node.bytes(base="http://www.example.com") == b'<span style="background: url(http://www.example.org/index.html)"></span>'
 	assert node.bytes(base="http://www.example.com", allowschemerelurls=True) == b'<span style="background: url(//www.example.org/index.html)"></span>'
+
+
+def test_script():
+	node1 = html.script("foo & bar")
+	assert node1.string() == "<script>foo & bar</script>"
+	assert node1.string(xhtml=2) == "<script>foo &amp; bar</script>"
+
+	node2 = html.script("</script>")
+	assert node2.string() == "<script>\\u003c/script></script>"
+	assert node2.string(xhtml=2) == "<script>&lt;/script&gt;</script>"

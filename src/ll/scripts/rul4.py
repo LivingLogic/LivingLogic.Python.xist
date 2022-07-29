@@ -188,10 +188,10 @@ Suppose we have a database table that looks like this:
 
 Then we can use the following template to output the table into an XML file:
 
-.. sourcecode:: xml
+.. sourcecode:: xml+ul4
 
 	<?xml version='1.0' encoding='utf-8'?>
-	<?code db = globals.oracle("user/password@database')?>
+	<?code db = globals.oracle("user/password@database")?>
 	<persons>
 		<?for p in db.query("select id, firstname, lastname from person order by 3, 2")?>
 			<person id="<?printx p.id?>">
@@ -268,7 +268,7 @@ class Connection:
 	object. The following example creates a function, calls it to get at the
 	result and drops it again:
 
-	.. sourcecode:: xml
+	.. sourcecode:: html+ul4
 
 		<?code db = oracle.connect('user/password@database')?>
 		<?code db.execute('''
@@ -321,12 +321,17 @@ class Connection:
 		fragments of the SQL query and parameters that will be embedded in the
 		query. For example:
 
-		.. sourcecode:: xml
+		.. sourcecode:: html+ul4
 
 			<?code db = globals.oracle("user/pwd@db")?>
 			<?code name = "Bob"?>
 			<ul>
-				<?for p in db.query("select * from person where firstname=", name, " or lastname=", name)?>
+				<?for p in db.query(
+					"select * from person where firstname=",
+					name,
+					" or lastname=",
+					name
+				)?>
 					<li><?print p.firstname?> <?print p.lastname?></li>
 				<?end for?>
 			</ul>
@@ -456,11 +461,13 @@ class RedisConnection:
 	the methods :meth:`get` to read data from the database and :meth:`set` to
 	write data to the database.
 
-	Example::
+	Example:
+
+	.. sourcecode:: ul4
 
 		<?code db = redis.connect("192.168.123.42/1")?>
 		<?code value = db.get("key")?>
-		<?if isnone(value)?>
+		<?if value is None?>
 			<?code value = "foobar"?>
 			<?code db.put("key", value, timedelta(seconds=10*60))?>
 		<?end if?>
@@ -642,7 +649,9 @@ class Globals:
 	def oracle(self, connectstring):
 		"""
 		Return an :class:`OracleConnection` object for the Oracle connect string
-		passed in::
+		passed in:
+
+		.. sourcecode:: ul4
 
 			<?code db = globals.oracle("user/password@database")?>
 			<?for row in db.query("select sysdate as sd from dual")?>
@@ -705,7 +714,7 @@ class Globals:
 		Execute the system command ``cmd`` and returns its output, e.g.
 		the template:
 
-		.. sourcecode:: xml
+		.. sourcecode:: html+ul4
 
 			<?print globals.system("whoami")?>
 
@@ -719,7 +728,7 @@ class Globals:
 		filename and ``encoding`` is the encoding of the file. The encoding
 		parameter is optional and defaults to ``"utf-8"``:
 
-		.. sourcecode:: xml
+		.. sourcecode:: html+ul4
 
 			<?code data = globals.load("/home/user/data.txt", "iso-8859-1")?>
 		"""
@@ -732,7 +741,7 @@ class Globals:
 		filename and ``encoding`` is the encoding of the file. The encoding
 		parameter is optional and defaults to ``"utf-8"``:
 
-		.. sourcecode:: xml
+		.. sourcecode:: html+ul4
 
 			<?code globals.save("/home/user/data.txt", "foo\nbar\n", "iso-8859-1")?>
 		"""
