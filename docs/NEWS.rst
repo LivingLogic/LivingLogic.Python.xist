@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 07/??/2022)
+-------------------------------------
+
+*	:class:`ll.ul4c.TextAST` objects now always store the final text string
+	instead of slicing it from the source code on every call.
+
+
 Changes in 5.71 (released 07/08/2022)
 -------------------------------------
 

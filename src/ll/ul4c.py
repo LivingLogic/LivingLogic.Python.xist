@@ -1547,6 +1547,10 @@ class TextAST(AST):
 
 	output = True
 
+	def __init__(self, template=None, source="", startpos=0, stoppos=0):
+		super().__init__(template, slice(startpos, stoppos))
+		self.text = source[startpos:stoppos]
+
 	def _repr(self):
 		yield repr(self.text)
 
@@ -1555,15 +1559,19 @@ class TextAST(AST):
 		p.text("text=")
 		p.pretty(self.text)
 
-	@property
-	def text(self):
-		return self.template._fullsource[self._startpos]
-
 	def _str(self):
 		yield f"text {self.text!r}"
 
 	def eval(self, context):
 		yield context.output(self.text)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.text)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.text = decoder.load()
 
 
 @register("indent")
@@ -1579,33 +1587,14 @@ class IndentAST(TextAST):
 
 	ul4_type = Type("ul4")
 
-	def __init__(self, template=None, startpos=None, text=None):
-		super().__init__(template, startpos)
-		self._text = text
-
-	@property
-	def text(self):
-		if self._text is None:
-			return self.template._fullsource[self._startpos]
-		else:
-			return self._text
-
 	# We don't define a setter, because the template should *not* be able to
 	# set this attribute. However the attribute *will* be set by the code
 	# compiling the template
 	def _settext(self, text):
-		self._text = text if text != self.template._fullsource[self._startpos] else None
+		self.text = text
 
 	def _str(self):
 		yield f"indent {self.text!r}"
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self._text)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self._text = decoder.load()
 
 	def eval(self, context):
 		for indent in context.indents:
@@ -5441,7 +5430,7 @@ class Template(BlockAST):
 		last_ignore_code_pos = None
 		for match in re.finditer(pattern, source):
 			if not ignore and match.start() != pos:
-				yield TextAST(self, slice(pos, match.start()))
+				yield TextAST(self, source, pos, match.start())
 			tagname = source[slice(*match.span(1))]
 			if tagname == "ignore":
 				if not ignore:
@@ -5457,7 +5446,7 @@ class Template(BlockAST):
 			pos = match.end()
 		end = len(source)
 		if not ignore and pos != end:
-			yield TextAST(self, slice(pos, end))
+			yield TextAST(self, source, pos, end)
 		if ignore:
 			exc = BlockError("<?ignore?> block unclosed")
 			_decorateexception(exc, Tag(self, "ignore", last_ignore_tag_pos, last_ignore_code_pos))
@@ -5483,7 +5472,7 @@ class Template(BlockAST):
 			# as this is used by :class:`RenderAST` to reindent the output of one
 			# template when called from inside another template)
 			if not tagline and not isinstance(tag, IndentAST):
-				tagline.append(IndentAST(tag.template, slice(tag._startpos.start, tag._startpos.start)))
+				tagline.append(IndentAST(tag.template, self._fullsource, tag._startpos.start, tag._startpos.start))
 			tagline.append(tag)
 
 		# Yield lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
@@ -5513,13 +5502,13 @@ class Template(BlockAST):
 
 					# Output the parts we found
 					if lineindentlen:
-						append(IndentAST(tag.template, slice(pos, pos+lineindentlen)))
+						append(IndentAST(tag.template, self._fullsource, pos, pos+lineindentlen))
 						pos += lineindentlen
 					if linelen:
-						append(TextAST(tag.template, slice(pos, pos+linelen)))
+						append(TextAST(tag.template, self._fullsource, pos, pos+linelen))
 						pos += linelen
 					if lineendlen:
-						append(LineEndAST(tag.template, slice(pos, pos+lineendlen)))
+						append(LineEndAST(tag.template, self._fullsource, pos, pos+lineendlen))
 						pos += lineendlen
 						yield tagline
 						tagline = []
