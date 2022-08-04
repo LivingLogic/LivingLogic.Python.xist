@@ -13,6 +13,11 @@ Changes in HEAD (released 07/??/2022)
 
 *	:class:`ll.ul4c.TextAST` objects now always store the final text string
 	instead of slicing it from the source code on every call.
+*	UL4 AST classes store source offsets in the UL4ON dump now as two
+	:class:`int`\s instead of a :class:`slice` object. The Java and Javascript
+	implementations directly use these two ints instead of converting them to
+	a :class:`slice` object. This reduces memory usage in the Java version.
+	However the Python version still stores :class:`slice` objects internally.
 
 
 Changes in 5.71 (released 07/08/2022)
