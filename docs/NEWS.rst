@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 07/??/2022)
+Changes in HEAD (released 2022-07-??)
 -------------------------------------
 
 *	:class:`ll.ul4c.TextAST` objects now always store the final text string
@@ -20,7 +20,7 @@ Changes in HEAD (released 07/??/2022)
 	However the Python version still stores :class:`slice` objects internally.
 
 
-Changes in 5.71 (released 07/08/2022)
+Changes in 5.71 (released 2022-07-08)
 -------------------------------------
 
 *	Fixed :func:`ll.xist.xfind.selector` when running under Python 3.9.
@@ -48,7 +48,7 @@ Changes in 5.71 (released 07/08/2022)
 	outputs ``<script>&amp;</script>`` as before.
 
 
-Changes in 5.70 (released 03/11/2022)
+Changes in 5.70 (released 2022-03-11)
 -------------------------------------
 
 *	Fixed a bug in the PySQL command :class:`~ll.pysql.commit`: Removed the
@@ -66,7 +66,7 @@ Changes in 5.70 (released 03/11/2022)
 	:class:`~ll.ul4c.RenderXOrPrintXAST`.
 
 
-Changes in 5.69 (released 11/17/2021)
+Changes in 5.69 (released 2021-11-17)
 -------------------------------------
 
 *	The UL4 function ``urlquote()`` now uses :func:`urllib.parse.quote` instead
@@ -82,14 +82,14 @@ Changes in 5.69 (released 11/17/2021)
 	already documented).
 
 
-Changes in 5.68.1 (released 09/23/2021)
+Changes in 5.68.1 (released 2021-09-23)
 ---------------------------------------
 
 *	Fixed a bug in :mod:`ll.pysql` that resulted in the local variable
 	``connection`` being wrapped in a tuple.
 
 
-Changes in 5.68 (released 08/04/2021)
+Changes in 5.68 (released 2021-08-04)
 -------------------------------------
 
 *	UL4 templates now support the ``<?ignore?>`` tag. It can be used to
@@ -108,20 +108,20 @@ Changes in 5.68 (released 08/04/2021)
 	:mod:`ll.xist.ns.ihtml`.
 
 
-Changes in 5.67.2 (released 06/30/2021)
+Changes in 5.67.2 (released 2021-06-30)
 ---------------------------------------
 
 *	Fixed handling of values for the ``--define``/``--D`` option of
 	:mod:`ll.pysql`.
 
 
-Changes in 5.67.1 (released 06/28/2021)
+Changes in 5.67.1 (released 2021-06-28)
 ---------------------------------------
 
 *	Fixed a typo in the tag ``external`` when logging exceptions in Sisyphus jobs.
 
 
-Changes in 5.67 (released 06/25/2021)
+Changes in 5.67 (released 2021-06-25)
 -------------------------------------
 
 *	Added the options ``--sentry_environment``, ``--sentry_release`` and
@@ -144,14 +144,14 @@ Changes in 5.67 (released 06/25/2021)
 	added that returns all database objects with the specified name.
 
 
-Changes in 5.66.1 (released 06/24/2021)
+Changes in 5.66.1 (released 2021-06-24)
 ---------------------------------------
 
 *	When a sisyphus job logs to Sentry, flush messages after logging them
 	to make sure that they arrive even in forking mode.
 
 
-Changes in 5.66 (released 06/15/2021)
+Changes in 5.66 (released 2021-06-15)
 -------------------------------------
 
 *	UL4 now use functions and methods with positional-only parameters, so
@@ -246,7 +246,7 @@ Changes in 5.66 (released 06/15/2021)
 	:func:`ll.color.css` and  :func:`ll.color.mix` are now also available to UL4.
 
 
-Changes in 5.65 (released 01/13/2021)
+Changes in 5.65 (released 2021-01-13)
 -------------------------------------
 
 *	:mod:`ll.ul4on` now supports "persistent" objects, i.e. objects that can be
@@ -266,7 +266,7 @@ Changes in 5.65 (released 01/13/2021)
 	UL4 templates.
 
 
-Changes in 5.64 (released 10/30/2020)
+Changes in 5.64 (released 2020-10-30)
 -------------------------------------
 
 *	It is now possible to specify a custom port for ``ssh`` URLs.
@@ -283,14 +283,14 @@ Changes in 5.64 (released 10/30/2020)
 		... 	data = u.open("rb").read()
 
 
-Changes in 5.63.1 (released 10/26/2020)
+Changes in 5.63.1 (released 2020-10-26)
 ---------------------------------------
 
 *	Add a workaround for Python issue #41889 (https://bugs.python.org/issue41889)
 	to :class:`~ll.misc.Enum` and :class:`~ll.misc.IntEnum`.
 
 
-Changes in 5.63 (released 09/08/2020)
+Changes in 5.63 (released 2020-09-08)
 -------------------------------------
 
 *	All PySQL commands now support the argument ``cond``.
@@ -299,21 +299,21 @@ Changes in 5.63 (released 09/08/2020)
 	database constraints.
 
 
-Changes in 5.62 (released 07/13/2020)
+Changes in 5.62 (released 2020-07-13)
 -------------------------------------
 
 *	Update HTML for the documentation to use our own (RTD based) theme instead
 	of using and overwriting the RTD theme.
 
 
-Changes in 5.61.2 (released 07/09/2020)
+Changes in 5.61.2 (released 2020-07-09)
 ---------------------------------------
 
 *	Fixed a regression in :mod:`ll.sisyphus` from 5.61.1: Stay in delayed logs
 	mode after a successful job run.
 
 
-Changes in 5.61.1 (released 07/09/2020)
+Changes in 5.61.1 (released 2020-07-09)
 ---------------------------------------
 
 *	Fixed handling of the ``--exit_on_error`` option in :mod:`ll.sisyphus`.
@@ -322,7 +322,7 @@ Changes in 5.61.1 (released 07/09/2020)
 	forking mode.
 
 
-Changes in 5.61 (released 07/07/2020)
+Changes in 5.61 (released 2020-07-07)
 -------------------------------------
 
 *	Updated handling of custom data types when calling functions or procedures
@@ -333,7 +333,7 @@ Changes in 5.61 (released 07/07/2020)
 	have the same order as in :meth:`ll.orasql.Table.referencedby`.
 
 
-Changes in 5.60 (released 07/03/2020)
+Changes in 5.60 (released 2020-07-03)
 -------------------------------------
 
 *	The handling of delayed logs and uneventful runs in :mod:`ll.sisyphus` has
@@ -349,7 +349,7 @@ Changes in 5.60 (released 07/03/2020)
 	will stop job execution in repeat mode when an exception occurs.
 
 
-Changes in 5.59 (released 06/30/2020)
+Changes in 5.59 (released 2020-06-30)
 -------------------------------------
 
 *	:mod:`ll.orasql` now requires :mod:`cx_Oracle` 8.0.
@@ -361,7 +361,7 @@ Changes in 5.59 (released 06/30/2020)
 	different user.
 
 
-Changes in 5.58 (released 06/12/2020)
+Changes in 5.58 (released 2020-06-12)
 -------------------------------------
 
 *	For running healthchecks for sisyphus jobs it's no longer neccessary (or even
@@ -404,7 +404,7 @@ Changes in 5.58 (released 06/12/2020)
 	Those methods must return an absolute path as a :class:`pathlib.Path` object.
 
 
-Changes in 5.57 (released 04/14/2020)
+Changes in 5.57 (released 2020-04-14)
 -------------------------------------
 
 *	Added a "delayed logs" mode to :mod:`ll.sisyphus`. This makes it possible to
@@ -430,7 +430,7 @@ Changes in 5.57 (released 04/14/2020)
 	to ``dump``.
 
 
-Changes in 5.56 (released 12/12/2019)
+Changes in 5.56 (released 2019-12-12)
 -------------------------------------
 
 *	:class:`ll.orasql.Comment` has been renamed to
@@ -447,7 +447,7 @@ Changes in 5.56 (released 12/12/2019)
 	:meth:`renders_with_globals` and :meth:`call_with_globals`.
 
 
-Changes in 5.55 (released 11/11/2019)
+Changes in 5.55 (released 2019-11-11)
 -------------------------------------
 
 *	Added an option ``--ignoreerrors`` to ``orareindex``.
@@ -472,13 +472,13 @@ Changes in 5.55 (released 11/11/2019)
 	as ``(key, value)`` pairs.
 
 
-Changes in 5.54.1 (released 10/24/2019)
+Changes in 5.54.1 (released 2019-10-24)
 ---------------------------------------
 
 *	Fixed wrong HTTP header when posting sisyphus log entries to Mattermost.
 
 
-Changes in 5.54 (released 10/24/2019)
+Changes in 5.54 (released 2019-10-24)
 -------------------------------------
 
 *	The tab width used by :func:`ll.xist.ns.html.astext` is now configurable and
@@ -491,7 +491,7 @@ Changes in 5.54 (released 10/24/2019)
 	channel.
 
 
-Changes in 5.53 (released 09/30/2019)
+Changes in 5.53 (released 2019-09-30)
 -------------------------------------
 
 *	Fixed a bug in the handling of users and job classes (i.e. objects that
@@ -502,14 +502,14 @@ Changes in 5.53 (released 09/30/2019)
 	to check that the job is doing what it's supposed to be doing.
 
 
-Changes in 5.52.1 (released 09/05/2019)
+Changes in 5.52.1 (released 2019-09-05)
 ---------------------------------------
 
 *	Fixed handling of indentation when an UL4 ``<?renderblock?>`` contains a
 	``<?render?>`` call.
 
 
-Changes in 5.52 (released 07/29/2019)
+Changes in 5.52 (released 2019-07-29)
 -------------------------------------
 
 *	The method :meth:`getobject` for :class:`ll.orasql.Synonym` has been renamed
@@ -533,7 +533,7 @@ Changes in 5.52 (released 07/29/2019)
 
 
 
-Changes in 5.51 (released 07/26/2019)
+Changes in 5.51 (released 2019-07-26)
 -------------------------------------
 
 *	:meth:`ll.orasql.Synonym.names` and :meth:`ll.orasql.Synonym.objects` can now
@@ -544,7 +544,7 @@ Changes in 5.51 (released 07/26/2019)
 *	Fixed the ``repr`` output of UL4 dictionary comprehensions.
 
 
-Changes in 5.50 (released 07/16/2019)
+Changes in 5.50 (released 2019-07-16)
 -------------------------------------
 
 *	There's a new option ``-a``/``--ascii`` for running PySQL scripts: With this
@@ -568,14 +568,14 @@ Changes in 5.50 (released 07/16/2019)
 	and instances.
 
 
-Changes in 5.49 (released 07/04/2019)
+Changes in 5.49 (released 2019-07-04)
 -------------------------------------
 
 *	Privileges returned by :meth:`ll.orasql.Privilege.objects` will now have a
 	stable sort order.
 
 
-Changes in 5.48 (released 07/03/2019)
+Changes in 5.48 (released 2019-07-03)
 -------------------------------------
 
 *	Filename printed by a PySQL script will now always be relative to the
@@ -584,7 +584,7 @@ Changes in 5.48 (released 07/03/2019)
 *	Fixed a bug in the filename handling of the PySQL command ``file``.
 
 
-Changes in 5.47 (released 07/01/2019)
+Changes in 5.47 (released 2019-07-01)
 -------------------------------------
 
 *	Include commands in PySQL scripts now actually change the current directory
@@ -594,7 +594,7 @@ Changes in 5.47 (released 07/01/2019)
 *	The PySQL commands ``procedure`` and ``sql`` now report new variable values.
 
 
-Changes in 5.46 (released 06/26/2019)
+Changes in 5.46 (released 2019-06-26)
 -------------------------------------
 
 *	The method :meth:`ll.scripts.rul4.Globals.log` now supports the keywords
@@ -637,7 +637,7 @@ Changes in 5.46 (released 06/26/2019)
 
 
 
-Changes in 5.45 (released 06/24/2019)
+Changes in 5.45 (released 2019-06-24)
 -------------------------------------
 
 *	UL4 AST nodes for blocks now have additional attributes ``startpos`` and
@@ -666,7 +666,7 @@ Changes in 5.45 (released 06/24/2019)
 	``sourceprefix`` and ``startsourcesuffix`` is the same as ``sourcesuffix``.)
 
 
-Changes in 5.44 (released 06/07/2019)
+Changes in 5.44 (released 2019-06-07)
 -------------------------------------
 
 *	:meth:`ll.orasql.Connection.objects` now outputs :class:`Job` objects too.
@@ -726,7 +726,7 @@ Changes in 5.44 (released 06/07/2019)
 *	Fixed SQL statement for dropping :class:`ll.orasql.Job` objects.
 
 
-Changes in 5.43 (released 05/07/2019)
+Changes in 5.43 (released 2019-05-07)
 -------------------------------------
 
 *	The functions :func:`ll.xist.css.iterrules` and
@@ -738,7 +738,7 @@ Changes in 5.43 (released 05/07/2019)
 	script can function as its own minimal cron daemon.
 
 
-Changes in 5.42.1 (released 04/29/2019)
+Changes in 5.42.1 (released 2019-04-29)
 ---------------------------------------
 
 *	Fixed a bug in :meth:`ll.orasql.OracleURLConnection._walk` to support orasql
@@ -749,7 +749,7 @@ Changes in 5.42.1 (released 04/29/2019)
 	log files for uneventful runs" logic work on Windows).
 
 
-Changes in 5.42 (released 04/26/2019)
+Changes in 5.42 (released 2019-04-26)
 -------------------------------------
 
 *	By returning :const:`None` from the method :meth:`ll.sisyphus.Job.execute`
@@ -757,27 +757,27 @@ Changes in 5.42 (released 04/26/2019)
 	job had nothing to do) and that the log file can be deleted immediately.
 
 
-Changes in 5.41 (released 03/29/2019)
+Changes in 5.41 (released 2019-03-29)
 -------------------------------------
 
 *	Added a script :program:`oracycles` that can find cyclic foreign key
 	references in an Oracle database schema.
 
 
-Changes in 5.40.2 (released 03/26/2019)
+Changes in 5.40.2 (released 2019-03-26)
 ---------------------------------------
 
 *	The jobname for :class:`ll.orasql.Job` objects now no longer includes the
 	owner name.
 
 
-Changes in 5.40.1 (released 03/25/2019)
+Changes in 5.40.1 (released 2019-03-25)
 ---------------------------------------
 
 *	Fixed a bug in :mod:`ll.orasql` for :class:`Comment` objects.
 
 
-Changes in 5.40 (released 03/25/2019)
+Changes in 5.40 (released 2019-03-25)
 -------------------------------------
 
 *	:mod:`ll.orasql` now supports jobs and job classes via the new classes
@@ -787,7 +787,7 @@ Changes in 5.40 (released 03/25/2019)
 	available as standalone Python functions in the :mod:`ll.misc` module.
 
 
-Changes in 5.39 (released 01/30/2019)
+Changes in 5.39 (released 2019-01-30)
 -------------------------------------
 
 *	:class:`ll.misc.SysInfo` now uses :func:`platform.uname` instead of
@@ -802,7 +802,7 @@ Changes in 5.39 (released 01/30/2019)
 	spaces in its source code header introduced by Oracle 18.
 
 
-Changes in 5.38 (released 11/15/2018)
+Changes in 5.38 (released 2018-11-15)
 -------------------------------------
 
 *	Added the following attributes to the UL4 class :class:`AST`: ``line`` (the
@@ -814,7 +814,7 @@ Changes in 5.38 (released 11/15/2018)
 	These attributes are also accessible to UL4 templates.
 
 
-Changes in 5.37.1 (released 11/13/2018)
+Changes in 5.37.1 (released 2018-11-13)
 ---------------------------------------
 
 *	Each UL4 AST node now has an attribute ``fullsource`` which is the full
@@ -823,7 +823,7 @@ Changes in 5.37.1 (released 11/13/2018)
 *	Fixed ``source`` attribute of empty UL4 templates.
 
 
-Changes in 5.37 (released 11/08/2018)
+Changes in 5.37 (released 2018-11-08)
 -------------------------------------
 
 *	The chaining of UL4 exceptions has been inverted. This means that the
@@ -841,7 +841,7 @@ Changes in 5.37 (released 11/08/2018)
 	``source`` property which returns the source code of the node itself.
 
 
-Changes in 5.36 (released 10/31/2018)
+Changes in 5.36 (released 2018-10-31)
 -------------------------------------
 
 *	As :mod:`cx_Oracle` provides its own class :class:`Object`
@@ -856,7 +856,7 @@ Changes in 5.36 (released 10/31/2018)
 	when calling function or procedures in :mod:`orasql`.
 
 
-Changes in 5.35 (released 09/14/2018)
+Changes in 5.35 (released 2018-09-14)
 -------------------------------------
 
 *	UL4 now support both ``datetime`` and ``date`` objects. A function ``today``
@@ -882,7 +882,7 @@ Changes in 5.35 (released 09/14/2018)
 	that reference a table in another schema.
 
 
-Changes in 5.34 (released 06/03/2018)
+Changes in 5.34 (released 2018-06-03)
 -------------------------------------
 
 *	Renamed the class :class:`ll.xist.ns.html.script.Attrs.async` because
@@ -891,7 +891,7 @@ Changes in 5.34 (released 06/03/2018)
 *	XIST is Python 3.7 compatible now.
 
 
-Changes in 5.33 (released 05/15/2018)
+Changes in 5.33 (released 2018-05-15)
 -------------------------------------
 
 *	:meth:`ll.orasql.PrimaryKey.columns` and :meth:`ll.orasql.ForeignKey.columns`
@@ -913,7 +913,7 @@ Changes in 5.33 (released 05/15/2018)
 	has been dropped.
 
 
-Changes in 5.32 (released 02/20/2018)
+Changes in 5.32 (released 2018-02-20)
 -------------------------------------
 
 *	:meth:`ll.orasql.Connection.objects` now makes sure that no objects from
@@ -924,7 +924,7 @@ Changes in 5.32 (released 02/20/2018)
 	from the current schema instead of all schemas).
 
 
-Changes in 5.31 (released 01/29/2018)
+Changes in 5.31 (released 2018-01-29)
 -------------------------------------
 
 *	The UL4ON decoder now has a new method :meth:`loadcontent` that can be used
@@ -933,7 +933,7 @@ Changes in 5.31 (released 01/29/2018)
 	than the reading side expects.
 
 
-Changes in 5.30 (released 01/17/2018)
+Changes in 5.30 (released 2018-01-17)
 -------------------------------------
 
 *	The new UL4 tag ``<?renderx?>`` works like ``<?render?>``, but the
@@ -995,7 +995,7 @@ Changes in 5.30 (released 01/17/2018)
 		<?render foo(content=content)?>
 
 
-Changes in 5.29 (released 11/29/2017)
+Changes in 5.29 (released 2017-11-29)
 -------------------------------------
 
 *	When an exception happens during decoding of an UL4ON stream the stack of
@@ -1009,14 +1009,14 @@ Changes in 5.29 (released 11/29/2017)
 	strings as an argument.
 
 
-Changes in 5.28.2 (released 08/03/2017)
+Changes in 5.28.2 (released 2017-08-03)
 ---------------------------------------
 
 *	The character ``<`` is now escaped as ``\x3c`` in UL4ON dumps to help XSS
 	prevention.
 
 
-Changes in 5.28.1 (released 08/02/2017)
+Changes in 5.28.1 (released 2017-08-02)
 ---------------------------------------
 
 *	Fixed a bug in :meth:`ll.sisyphus.Task.__str__`.
@@ -1025,7 +1025,7 @@ Changes in 5.28.1 (released 08/02/2017)
 	XSS prevention.
 
 
-Changes in 5.28 (released 08/01/2017)
+Changes in 5.28 (released 2017-08-01)
 -------------------------------------
 
 *	XIST requires Python 3.6 now.
@@ -1047,7 +1047,7 @@ Changes in 5.28 (released 08/01/2017)
 	properly.
 
 
-Changes in 5.27 (released 03/21/2017)
+Changes in 5.27 (released 2017-03-21)
 -------------------------------------
 
 *	When deserializing UL4ON dumps it is now possible to pass in a custom type
@@ -1055,14 +1055,14 @@ Changes in 5.27 (released 03/21/2017)
 	for which type.
 
 
-Changes in 5.26.1 (released 03/03/2017)
+Changes in 5.26.1 (released 2017-03-03)
 ---------------------------------------
 
 *	The fields of a unique constraint are now output in the correct order by
 	:meth:`ll.orasql.UniqueConstraint.createsql`.
 
 
-Changes in 5.26 (released 02/28/2017)
+Changes in 5.26 (released 2017-02-28)
 -------------------------------------
 
 *	UL4 templates now support a new tag: ``<?doc?>`` may contain the
@@ -1082,14 +1082,14 @@ Changes in 5.26 (released 02/28/2017)
 		(x=17, y=23)
 
 
-Changes in 5.25.1 (released 02/15/2017)
+Changes in 5.25.1 (released 2017-02-15)
 ---------------------------------------
 
 *	Fixed a problem with the ``renders`` method of local UL4 templates. The local
 	template didn't see the variables from the surrounding scope.
 
 
-Changes in 5.25 (released 02/13/2017)
+Changes in 5.25 (released 2017-02-13)
 -------------------------------------
 
 *	UL4ON dumps can now contain UL4 templates in "source" format, i.e. the
@@ -1100,7 +1100,7 @@ Changes in 5.25 (released 02/13/2017)
 .. _LivingLogic.Oracle.ul4: https://github.com/LivingLogic/LivingLogic.Oracle.ul4
 
 
-Changes in 5.24 (released 02/12/2017)
+Changes in 5.24 (released 2017-02-12)
 -------------------------------------
 
 *	Dictionary literals or dictionary comprehensions in UL4 templates now always
@@ -1108,19 +1108,19 @@ Changes in 5.24 (released 02/12/2017)
 	Python 3.5 and normal ``dict`` objects on Python 3.6).
 
 
-Changes in 5.23 (released 12/16/2016)
+Changes in 5.23 (released 2016-12-16)
 -------------------------------------
 
 *	UL4ON now supports ordered maps.
 
 
-Changes in 5.22.1 (released 11/02/2016)
+Changes in 5.22.1 (released 2016-11-02)
 ---------------------------------------
 
 *	Fixed the default value for the ``pysql`` option ``--commit``.
 
 
-Changes in 5.22 (released 10/18/2016)
+Changes in 5.22 (released 2016-10-18)
 -------------------------------------
 
 *	PySQL now supports connections to multiple databases via the new
@@ -1135,7 +1135,7 @@ Changes in 5.22 (released 10/18/2016)
 	``-v3`` is ``-vfull``.
 
 
-Changes in 5.21 (released 09/19/2016)
+Changes in 5.21 (released 2016-09-19)
 -------------------------------------
 
 *	Added a function ``md5`` to UL4.
@@ -1152,14 +1152,14 @@ Changes in 5.21 (released 09/19/2016)
 	constraint now.
 
 
-Changes in 5.20.1 (released 08/04/2016)
+Changes in 5.20.1 (released 2016-08-04)
 ---------------------------------------
 
 *	Fixed a bug in :program:`rul4` when database connections are specified on
 	the command line.
 
 
-Changes in 5.20 (released 07/29/2016)
+Changes in 5.20 (released 2016-07-29)
 -------------------------------------
 
 *	Dictionaries and sets in UL4 now support the :meth:`clear` method.
@@ -1170,7 +1170,7 @@ Changes in 5.20 (released 07/29/2016)
 	``globals``.
 
 
-Changes in 5.19.4 (released 06/30/2016)
+Changes in 5.19.4 (released 2016-06-30)
 ---------------------------------------
 
 *	:mod:`ll.orasql` now honors the logging mode of a table or index when
@@ -1182,19 +1182,19 @@ Changes in 5.19.4 (released 06/30/2016)
 	as :class:`decimal.Decimal` objects (otherwise as :class:`float`\s).
 
 
-Changes in 5.19.3 (released 06/29/2016)
+Changes in 5.19.3 (released 2016-06-29)
 ---------------------------------------
 
 *	Added a new method :meth:`ll.orasql.Record.replace`.
 
 
-Changes in 5.19.2 (released 06/21/2016)
+Changes in 5.19.2 (released 2016-06-21)
 ---------------------------------------
 
 *	Fixed a bug in :meth:`ll.orasql.Constraint.names`.
 
 
-Changes in 5.19.1 (released 06/20/2016)
+Changes in 5.19.1 (released 2016-06-20)
 ---------------------------------------
 
 *	The field ``USER_TAB_COLUMNS.DATA_DEFAULT`` is different in Oracle 11 and
@@ -1202,7 +1202,7 @@ Changes in 5.19.1 (released 06/20/2016)
 	difference.
 
 
-Changes in 5.19 (released 06/14/2016)
+Changes in 5.19 (released 2016-06-14)
 -------------------------------------
 
 *	The documentation has been ported to Sphinx_.
@@ -1214,7 +1214,7 @@ Changes in 5.19 (released 06/14/2016)
 	will be thrown away after the procedure call.
 
 
-Changes in 5.18 (released 05/17/2016)
+Changes in 5.18 (released 2016-05-17)
 -------------------------------------
 
 *	Added a function :func:`isexception` to UL4 that returns :const:`True` if
@@ -1236,13 +1236,13 @@ Changes in 5.18 (released 05/17/2016)
 	template exception objects.
 
 
-Changes in 5.17.1 (released 05/10/2016)
+Changes in 5.17.1 (released 2016-05-10)
 ---------------------------------------
 
 *	Fixed a bug in the query done by :meth:`orasql.Connection.getobject`.
 
 
-Changes in 5.17 (released 05/04/2016)
+Changes in 5.17 (released 2016-05-04)
 -------------------------------------
 
 *	The internal structure of UL4 templates has changed to simplify exception
@@ -1257,7 +1257,7 @@ Changes in 5.17 (released 05/04/2016)
 	rendering have been added to :program:`rul4`.
 
 
-Changes in 5.16 (released 04/13/2016)
+Changes in 5.16 (released 2016-04-13)
 -------------------------------------
 
 *	:mod:`orasql` now supports check constraints.
@@ -1288,14 +1288,14 @@ Changes in 5.16 (released 04/13/2016)
 	command will still fail if a user/group name is given.)
 
 
-Changes in 5.15.1 (released 03/21/2016)
+Changes in 5.15.1 (released 2016-03-21)
 ---------------------------------------
 
 *	Fixed some Python 3 compatibility problems in the module :mod:`ll.daemon`
 	and updated the command line argument parsing to make it extensible.
 
 
-Changes in 5.15 (released 03/18/2016)
+Changes in 5.15 (released 2016-03-18)
 -------------------------------------
 
 *	Calls to UL4 functions and templates now support specifying a ``*`` or
@@ -1330,21 +1330,21 @@ Changes in 5.15 (released 03/18/2016)
 	through the columns of the index.
 
 
-Changes in 5.14.2 (released 03/02/2016)
+Changes in 5.14.2 (released 2016-03-02)
 ---------------------------------------
 
 *	Fixed color blending in :class:`color.Color` to use "premultiplied alpha"
 	values. With this change blending colors gives the same result as CSS.
 
 
-Changes in 5.14.1 (released 12/04/2015)
+Changes in 5.14.1 (released 2015-12-04)
 ---------------------------------------
 
 *	Fixed a bug in :mod:`ll.make` so that :class:`Project` objects can now
 	be used as arguments in :class:`CallAction` objects.
 
 
-Changes in 5.14 (released 12/02/2015)
+Changes in 5.14 (released 2015-12-02)
 -------------------------------------
 
 *	Whitespace handling for UL4 templates has been extended. There are three
@@ -1453,7 +1453,7 @@ Changes in 5.14 (released 12/02/2015)
 	:func:`notifyfinish`. The can be used for issuing Mac OS X notifications.
 
 
-Changes in 5.13.1 (released 06/12/2015)
+Changes in 5.13.1 (released 2015-06-12)
 ---------------------------------------
 
 *	:mod:`ll.url.URL.relative` can now produce "scheme relative" URLs if
@@ -1473,7 +1473,7 @@ Changes in 5.13.1 (released 06/12/2015)
 		b'<a href="//www.example.org/index.html"></a>'
 
 
-Changes in 5.13 (released 12/18/2014)
+Changes in 5.13 (released 2014-12-18)
 -------------------------------------
 
 *	UL4 templates now support signatures. Signatures can be used for top level
@@ -1494,14 +1494,14 @@ Changes in 5.13 (released 12/18/2014)
 *	:class:`misc.Const` now allows to specify a module name.
 
 
-Changes in 5.12.1 (released 12/09/2014)
+Changes in 5.12.1 (released 2014-12-09)
 ---------------------------------------
 
 *	Fixed a bug in :mod:`ll.oradd`: Printing the final report failed when no
 	commands where executed.
 
 
-Changes in 5.12 (released 11/07/2014)
+Changes in 5.12 (released 2014-11-07)
 -------------------------------------
 
 *	Fixed bugs in Oracle URLs: the types ``comment`` and ``column`` are now
@@ -1514,7 +1514,7 @@ Changes in 5.12 (released 11/07/2014)
 	https://github.com/LivingLogic/LivingLogic.Oracle.ul4
 
 
-Changes in 5.11 (released 10/29/2014)
+Changes in 5.11 (released 2014-10-29)
 -------------------------------------
 
 *	UL4 now supports sets, set literals and set comprehensions.
@@ -1538,7 +1538,7 @@ Changes in 5.11 (released 10/29/2014)
 	are doing. (This requires that the module :mod:`setproctitle` is installed.)
 
 
-Changes in 5.10 (released 10/09/2014)
+Changes in 5.10 (released 2014-10-09)
 -------------------------------------
 
 *	Old sisyphus logfiles can now be compressed automatically via ``gzip``,
@@ -1549,7 +1549,7 @@ Changes in 5.10 (released 10/09/2014)
 	:func:`gzip.decompress` which work the same.
 
 
-Changes in 5.9.1 (released 09/29/2014)
+Changes in 5.9.1 (released 2014-09-29)
 --------------------------------------
 
 *	Fixed the precedence of the boolean ``not`` operator in UL4: Now it has a
@@ -1557,7 +1557,7 @@ Changes in 5.9.1 (released 09/29/2014)
 	as ``not (x in y)``.
 
 
-Changes in 5.9 (released 09/22/2014)
+Changes in 5.9 (released 2014-09-22)
 ------------------------------------
 
 *	A script :program:`udiff` has been added for doing line by line comparisons
@@ -1639,7 +1639,7 @@ Changes in 5.9 (released 09/22/2014)
 	__ https://en.wikipedia.org/wiki/SpiderMonkey_%28software%29
 
 
-Changes in 5.8.1 (released 06/18/2014)
+Changes in 5.8.1 (released 2014-06-18)
 --------------------------------------
 
 *	The UL4 function ``repr`` now handles recursive lists/dicts similar to
@@ -1649,7 +1649,7 @@ Changes in 5.8.1 (released 06/18/2014)
 	converting between URLs and filenames.
 
 
-Changes in 5.8 (released 05/05/2014)
+Changes in 5.8 (released 2014-05-05)
 ------------------------------------
 
 *	UL4 supports ``while`` loops now.
@@ -1679,7 +1679,7 @@ Changes in 5.8 (released 05/05/2014)
 	From now on we will have Windows installation packages again.
 
 
-Changes in 5.7.1 (released 02/13/2014)
+Changes in 5.7.1 (released 2014-02-13)
 --------------------------------------
 
 *	Fixed a bug in the script :program:`oradiff` that resulting in the wrong
@@ -1689,7 +1689,7 @@ Changes in 5.7.1 (released 02/13/2014)
 	exist.
 
 
-Changes in 5.7 (released 01/30/2014)
+Changes in 5.7 (released 2014-01-30)
 ------------------------------------
 
 *	The :mod:`ll.oradd` command ``file`` has been renamed to ``scp``.
@@ -1708,7 +1708,7 @@ Changes in 5.7 (released 01/30/2014)
 	dropped.
 
 
-Changes in 5.6 (released 01/28/2014)
+Changes in 5.6 (released 2014-01-28)
 ------------------------------------
 
 *	:mod:`ll.oradd` has been updated to support variables and literal SQL in
@@ -1723,14 +1723,14 @@ Changes in 5.6 (released 01/28/2014)
 *	Lines in an :program:`oradd` dump starting with ``#`` will now be ignored.
 
 
-Changes in 5.5.1 (released 01/27/2014)
+Changes in 5.5.1 (released 2014-01-27)
 --------------------------------------
 
 *	:mod:`ll.orasql` now unterstands type bodies (so the script
 	:program:`oracreate` will output them).
 
 
-Changes in 5.5 (released 01/23/2014)
+Changes in 5.5 (released 2014-01-23)
 ------------------------------------
 
 *	If expressions (i.e. ``code if cond else code``) have been added to UL4.
@@ -1751,14 +1751,14 @@ Changes in 5.5 (released 01/23/2014)
 .. _GitHub: https://github.com/LivingLogic/LivingLogic.Python.xist
 
 
-Changes in 5.4.1 (released 12/18/2013)
+Changes in 5.4.1 (released 2013-12-18)
 --------------------------------------
 
 *	Use quoted printable encoding for the JSON attachment in the sisyphus
 	failure email.
 
 
-Changes in 5.4 (released 11/29/2013)
+Changes in 5.4 (released 2013-11-29)
 ------------------------------------
 
 *	``ssh`` URLs now can handle any version of Python on the remote end. The
@@ -1768,21 +1768,21 @@ Changes in 5.4 (released 11/29/2013)
 	environment variable ``LL_URL_SSH_PYTHON``.
 
 
-Changes in 5.3 (released 10/28/2013)
+Changes in 5.3 (released 2013-10-28)
 ------------------------------------
 
 *	:class:`xist.parse.Tidy` can now pass the XML declaration and the doctype
 	to the application (however internal DTD subsets will be ignored).
 
 
-Changes in 5.2.7 (released 10/15/2013)
+Changes in 5.2.7 (released 2013-10-15)
 --------------------------------------
 
 *	:class:`orasql.Record` objects are now instances
 	of :class:`collections.Mapping` and are handled correctly by UL4 now.
 
 
-Changes in 5.2.6 (released 10/15/2013)
+Changes in 5.2.6 (released 2013-10-15)
 --------------------------------------
 
 *	Attribute access has been fixed in UL4: For objects that supported the
@@ -1790,21 +1790,21 @@ Changes in 5.2.6 (released 10/15/2013)
 	before instead of returning an "undefined" object.
 
 
-Changes in 5.2.5 (released 10/09/2013)
+Changes in 5.2.5 (released 2013-10-09)
 --------------------------------------
 
 *	``starttime`` and ``endtime`` are now included in the JSON
 	data sent with the :mod:`sisyphus` failure report email too.
 
 
-Changes in 5.2.4 (released 10/09/2013)
+Changes in 5.2.4 (released 2013-10-09)
 --------------------------------------
 
 *	``python_executable`` and ``python_version`` are now included in the JSON
 	data sent with the :mod:`sisyphus` failure report email.
 
 
-Changes in 5.2.3 (released 10/09/2013)
+Changes in 5.2.3 (released 2013-10-09)
 --------------------------------------
 
 *	The :func:`task` context manager function in :mod:`sisyphus` now allows
@@ -1812,7 +1812,7 @@ Changes in 5.2.3 (released 10/09/2013)
 	``None``.
 
 
-Changes in 5.2.2 (released 10/07/2013)
+Changes in 5.2.2 (released 2013-10-07)
 --------------------------------------
 
 *	:mod:`sisyphus` now doesn't reraise the exception if it was handled via email.
@@ -1824,13 +1824,13 @@ Changes in 5.2.2 (released 10/07/2013)
 *	In case of a parse error in UL4 templates an exception will now be raised.
 
 
-Changes in 5.2.1 (released 10/02/2013)
+Changes in 5.2.1 (released 2013-10-02)
 --------------------------------------
 
 *	Fixed a bug in one of the UL4 templates for :mod:`sisyphus`.
 
 
-Changes in 5.2 (released 10/01/2013)
+Changes in 5.2 (released 2013-10-01)
 ------------------------------------
 
 *	Added support for bound methods to UL4 templates. This means that methods
@@ -1877,7 +1877,7 @@ Changes in 5.2 (released 10/01/2013)
 *	Fixed the user related attributes of :obj:`misc.sysinfo`.
 
 
-Changes in 5.1 (released 08/02/2013)
+Changes in 5.1 (released 2013-08-02)
 ------------------------------------
 
 *	The HTML namespace (:mod:`ll.xist.ns.html`) now supports microdata__ attributes.
@@ -1928,7 +1928,7 @@ Changes in 5.1 (released 08/02/2013)
 	database driver.
 
 
-Changes in 5.0 (released 06/04/2013)
+Changes in 5.0 (released 2013-06-04)
 ------------------------------------
 
 *	The HTML namespace (:mod:`ll.xist.ns.html`) has been updated to support the
@@ -2070,7 +2070,7 @@ Changes in 5.0 (released 06/04/2013)
 	writing to an Oracle object.
 
 
-Changes in 4.10 (released 03/04/2013)
+Changes in 4.10 (released 2013-03-04)
 -------------------------------------
 
 *	It's now possible to use UL4 templates as functions by using the
@@ -2126,13 +2126,13 @@ Changes in 4.10 (released 03/04/2013)
 *	The automatic UL4 variable ``stack`` has been removed too.
 
 
-Changes in 4.9.1 (released 01/17/2013)
+Changes in 4.9.1 (released 2013-01-17)
 --------------------------------------
 
 *	Fixed a bug the ``printx`` tag for UL4 templates.
 
 
-Changes in 4.9 (released 01/17/2013)
+Changes in 4.9 (released 2013-01-17)
 ------------------------------------
 
 *	Fixed a bug in UL4 templates when a template called a top-level template
@@ -2142,14 +2142,14 @@ Changes in 4.9 (released 01/17/2013)
 	for IPythons pretty printing framework.
 
 
-Changes in 4.8 (released 01/15/2013)
+Changes in 4.8 (released 2013-01-15)
 ------------------------------------
 
 *	Linefeeds and indentation in the literal text for UL4 templates can now be
 	ignored by specifying ``keepws=False`` in the template constructor.
 
 
-Changes in 4.7 (released 01/11/2013)
+Changes in 4.7 (released 2013-01-11)
 ------------------------------------
 
 *	A variable ``stack`` is now automatically defined in all UL4 templates. This
@@ -2174,7 +2174,7 @@ Changes in 4.7 (released 01/11/2013)
 	``datetime.timedelta`` object.
 
 
-Changes in 4.6 (released 12/18/2012)
+Changes in 4.6 (released 2012-12-18)
 ------------------------------------
 
 *	The :meth:`~ll.xist.xsc.Node.walk` method in XIST has been changed: The
@@ -2207,7 +2207,7 @@ Changes in 4.6 (released 12/18/2012)
 	``abs(monthdelta(-1))`` returns ``monthdelta(1)``.)
 
 
-Changes in 4.5 (released 11/29/2012)
+Changes in 4.5 (released 2012-11-29)
 ------------------------------------
 
 *	Added UL4 functions ``any`` and ``all``.
@@ -2231,7 +2231,7 @@ Changes in 4.5 (released 11/29/2012)
 	.. _pytest: http://pytest.org/latest/
 
 
-Changes in 4.4 (released 11/08/2012)
+Changes in 4.4 (released 2012-11-08)
 ------------------------------------
 
 *	Python 3.3 is required now (as the code uses ``yield from`` and
@@ -2243,7 +2243,7 @@ Changes in 4.4 (released 11/08/2012)
 *	Fixed tab/space mix in :file:`antlr3/debug.py`.
 
 
-Changes in 4.3.1 (released 11/06/2012)
+Changes in 4.3.1 (released 2012-11-06)
 --------------------------------------
 
 *	Added a method ``values`` to UL4 for dictionaries.
@@ -2253,7 +2253,7 @@ Changes in 4.3.1 (released 11/06/2012)
 *	Fixed function :func:`ll.xist.ns.doc.explain` for methods.
 
 
-Changes in 4.3 (released 11/02/2012)
+Changes in 4.3 (released 2012-11-02)
 ------------------------------------
 
 *	UL4 now uses a parser generated by ANTLR_ instead of using spark_. This means
@@ -2287,7 +2287,7 @@ Changes in 4.3 (released 11/02/2012)
 	from UL4 (:class:`ll.ul4c.Undefined`).
 
 
-Changes in 4.2 (released 10/22/2012)
+Changes in 4.2 (released 2012-10-22)
 ------------------------------------
 
 *	UL4 templates now support list and dictionary comprehension as well as
@@ -2323,14 +2323,14 @@ Changes in 4.2 (released 10/22/2012)
 	``ismonthdelta``.
 
 
-Changes in 4.1.1 (released 10/04/2012)
+Changes in 4.1.1 (released 2012-10-04)
 --------------------------------------
 
 *	Fixed a bug in the UL4 handling of slices. (``('0' + str(x))[-2:]`` didn't
 	work correctly.)
 
 
-Changes in 4.1 (released 10/02/2012)
+Changes in 4.1 (released 2012-10-02)
 ------------------------------------
 
 *	Loop variable unpacking in UL4 now allows arbitrary nesting.
@@ -2356,7 +2356,7 @@ Changes in 4.1 (released 10/02/2012)
 	into an Oracle database (via procedure calls).
 
 
-Changes in 4.0 (released 08/08/2012)
+Changes in 4.0 (released 2012-08-08)
 ------------------------------------
 
 *	The source has been ported to Python 3. From now on XIST is a Python 3 only
@@ -2514,7 +2514,7 @@ Changes in 4.0 (released 08/08/2012)
 	``len`` attribute is greater that the length of the lorem ipsum text.
 
 
-Changes in 3.25 (released 08/12/2011)
+Changes in 3.25 (released 2011-08-12)
 -------------------------------------
 
 *	:class:`ll.xist.parse.Tidy` will now output the attribute events in sorted
@@ -2528,14 +2528,14 @@ Changes in 3.25 (released 08/12/2011)
 	also be used as a tool for comparing HTML files.
 
 
-Changes in 3.24.1 (released 08/10/2011)
+Changes in 3.24.1 (released 2011-08-10)
 ---------------------------------------
 
 *	Fixed a bug in the new :class:`ll.xist.xsc.AttrElement` class that surfaced
 	in the context of boolean attributes.
 
 
-Changes in 3.24 (released 08/09/2011)
+Changes in 3.24 (released 2011-08-09)
 -------------------------------------
 
 *	The :class:`ProcInst` subclass :class:`ll.xist.xsc.AttrProcInst` has been
@@ -2554,14 +2554,14 @@ Changes in 3.24 (released 08/09/2011)
 *	:class:`ll.xist.ns.ul4.attr_ifnn` has been removed.
 
 
-Changes in 3.23.1 (released 07/28/2011)
+Changes in 3.23.1 (released 2011-07-28)
 ---------------------------------------
 
 *	Fixed a bug in :mod:`ll.sisyphus`: The code wasn't updated to use
 	:class:`ll.ul4c.Template` instead of :func:`ll.ul4c.compile`.
 
 
-Changes in 3.23 (released 07/20/2011)
+Changes in 3.23 (released 2011-07-20)
 -------------------------------------
 
 *	UL4 template objects now have a name. This name will be displayed in
@@ -2576,7 +2576,7 @@ Changes in 3.23 (released 07/20/2011)
 	``--exclude`` and ``--keepjunk`` too.
 
 
-Changes in 3.22 (released 07/14/2011)
+Changes in 3.22 (released 2011-07-14)
 -------------------------------------
 
 *	The scripts :program:`oracreate`, :program:`oradrop` and :program:`oragrant`
@@ -2584,7 +2584,7 @@ Changes in 3.22 (released 07/14/2011)
 	the objects that will be output.
 
 
-Changes in 3.21 (released 06/03/2011)
+Changes in 3.21 (released 2011-06-03)
 -------------------------------------
 
 *	Oracle 10 doesn't have a ``DBA_ARGUMENTS`` view.
@@ -2598,14 +2598,14 @@ Changes in 3.21 (released 06/03/2011)
 	gained the additional attributes from HTML5.
 
 
-Changes in 3.20.2 (released 05/23/2011)
+Changes in 3.20.2 (released 2011-05-23)
 ---------------------------------------
 
 *	Unicode parameters in :meth:`execute` and :meth:`executemany` in
 	:mod:`ll.xist.orasql` now get encoded to the Oracle client character set.
 
 
-Changes in 3.20.1 (released 05/18/2011)
+Changes in 3.20.1 (released 2011-05-18)
 ---------------------------------------
 
 *	Fixed a bug in the Java code generation for UL4 templates: When the template
@@ -2613,7 +2613,7 @@ Changes in 3.20.1 (released 05/18/2011)
 	source code was produced.
 
 
-Changes in 3.20 (released 05/05/2011)
+Changes in 3.20 (released 2011-05-05)
 -------------------------------------
 
 *	It's now possible to specify the connection mode (i.e. ``SYSDBA`` and
@@ -2661,7 +2661,7 @@ Changes in 3.20 (released 05/05/2011)
 	now show up as attributes of the pool object.
 
 
-Changes in 3.19 (released 04/26/2011)
+Changes in 3.19 (released 2011-04-26)
 -------------------------------------
 
 *	:mod:`ll.orasql` now requires cx_Oracle 5.1.
@@ -2671,14 +2671,14 @@ Changes in 3.19 (released 04/26/2011)
 	Python file.
 
 
-Changes in 3.18.1 (released 04/13/2011)
+Changes in 3.18.1 (released 2011-04-13)
 ---------------------------------------
 
 *	The methods :meth:`elements`, :meth:`procinsts`, :meth:`entities` and
 	:meth:`charrefs` of :class:`ll.xist.xsc.Pool` now handle base pools properly.
 
 
-Changes in 3.18 (released 04/08/2011)
+Changes in 3.18 (released 2011-04-08)
 -------------------------------------
 
 *	Fixed a regression in :class:`ll.orasql.OracleConnection`.
@@ -2739,7 +2739,7 @@ Changes in 3.18 (released 04/08/2011)
 	properly documented on the webpages.
 
 
-Changes in 3.17.3 (released 03/02/2011)
+Changes in 3.17.3 (released 2011-03-02)
 ---------------------------------------
 
 *	Enhanced support for table and column names containing non-ASCII characters
@@ -2749,21 +2749,21 @@ Changes in 3.17.3 (released 03/02/2011)
 	printed twice.
 
 
-Changes in 3.17.2 (released 02/25/2011)
+Changes in 3.17.2 (released 2011-02-25)
 ---------------------------------------
 
 *	Fixed ``setup.py`` so that the spacer GIF and the UL4 Javascript support
 	library *really* get installed.
 
 
-Changes in 3.17.1 (released 02/25/2011)
+Changes in 3.17.1 (released 2011-02-25)
 ---------------------------------------
 
 *	Due to a bug in ``MANIFEST.in`` the spacer GIF and the UL4 Javascript support
 	library where not included in the distirbution package. This has been fixed.
 
 
-Changes in 3.17 (released 02/24/2011)
+Changes in 3.17 (released 2011-02-24)
 -------------------------------------
 
 *	The UL4 function ``repr`` now handles all instances of
@@ -2789,7 +2789,7 @@ Changes in 3.17 (released 02/24/2011)
 *	The tests for UL4 now test the Java implementation too.
 
 
-Changes in 3.16 (released 01/21/2011)
+Changes in 3.16 (released 2011-01-21)
 -------------------------------------
 
 *	The UL4 functions ``json``, ``type``, ``islist`` and ``isdict`` can now
@@ -2828,7 +2828,7 @@ Changes in 3.16 (released 01/21/2011)
 *	:mod:`ll.xist.xnd` and the related scripts have seen some refactoring.
 
 
-Changes in 3.15.3 (released 11/26/2010)
+Changes in 3.15.3 (released 2010-11-26)
 ---------------------------------------
 
 *	:mod:`ll.sisyphus` now supports a non-forking mode (``--fork=no``). In this
@@ -2836,7 +2836,7 @@ Changes in 3.15.3 (released 11/26/2010)
 	(single) process.
 
 
-Changes in 3.15.2 (released 11/25/2010)
+Changes in 3.15.2 (released 2010-11-25)
 ---------------------------------------
 
 *	Publishing an :class:`ll.xist.ns.xml.XML` object will now always put the
@@ -2844,7 +2844,7 @@ Changes in 3.15.2 (released 11/25/2010)
 	the :class:`xml.XML` object sits.
 
 
-Changes in 3.15.1 (released 11/24/2010)
+Changes in 3.15.1 (released 2010-11-24)
 ---------------------------------------
 
 *	Fixed a bug in the error handling code of the UL4 compiler when an unknown
@@ -2853,7 +2853,7 @@ Changes in 3.15.1 (released 11/24/2010)
 *	Fixed str/unicode problems with the search string in :program:`orafind`.
 
 
-Changes in 3.15 (released 11/09/2010)
+Changes in 3.15 (released 2010-11-09)
 -------------------------------------
 
 *	It's now possible to create Java source code from UL4 templates with the
@@ -2870,7 +2870,7 @@ Changes in 3.15 (released 11/09/2010)
 *	:func:`ll.xist.ns.jsp.javastring` has been moved to :mod:`ll.misc`.
 
 
-Changes in 3.14 (released 11/05/2010)
+Changes in 3.14 (released 2010-11-05)
 -------------------------------------
 
 *	UL4 templates now have a method :meth:`jssource` that returns Javascript
@@ -2884,7 +2884,7 @@ Changes in 3.14 (released 11/05/2010)
 	function name. The output will always be a full function.
 
 
-Changes in 3.13 (released 10/22/2010)
+Changes in 3.13 (released 2010-10-22)
 -------------------------------------
 
 *	sisyphus jobs now have a new method :meth:`prefix`. This method is a context
@@ -2901,13 +2901,13 @@ Changes in 3.13 (released 10/22/2010)
 *	The option ``-l`` for sisyphus jobs has been renamed to ``-f``.
 
 
-Changes in 3.12.1 (released 10/21/2010)
+Changes in 3.12.1 (released 2010-10-21)
 ---------------------------------------
 
 *	Fixed a bug in :mod:`ll.sisyphus` when logging exceptions.
 
 
-Changes in 3.12 (released 10/21/2010)
+Changes in 3.12 (released 2010-10-21)
 -------------------------------------
 
 *	The way that :mod:`ll.sisyphus` handles running jobs has changed. Jobs no
@@ -2939,7 +2939,7 @@ Changes in 3.12 (released 10/21/2010)
 	resolved on the remote host.
 
 
-Changes in 3.11.1 (released 10/18/2010)
+Changes in 3.11.1 (released 2010-10-18)
 ---------------------------------------
 
 *	Fixed two bugs in the error handling for unknown XML parsing events in
@@ -2949,7 +2949,7 @@ Changes in 3.11.1 (released 10/18/2010)
 *	:mod:`ll.sisyphus` jobs now don't break if they can't find the script source.
 
 
-Changes in 3.11 (released 10/15/2010)
+Changes in 3.11 (released 2010-10-15)
 -------------------------------------
 
 *	:mod:`ll.sisyphus` has been rewritten. The new version supports: One log
@@ -2961,7 +2961,7 @@ Changes in 3.11 (released 10/15/2010)
 *	Fixed a bug in :meth:`ll.url.LocalConnection.rename`.
 
 
-Changes in 3.10.1 (released 10/13/2010)
+Changes in 3.10.1 (released 2010-10-13)
 ---------------------------------------
 
 *	Fixed bugs in the handling of the ``def`` and ``enddef`` opcodes in
@@ -2971,7 +2971,7 @@ Changes in 3.10.1 (released 10/13/2010)
 	:func:`ll.xist.ns.jsp.fromul4`.
 
 
-Changes in 3.10 (released 09/24/2010)
+Changes in 3.10 (released 2010-09-24)
 -------------------------------------
 
 *	Python 2.7 is required now as XIST now uses set literals, set and dict
@@ -2994,7 +2994,7 @@ Changes in 3.10 (released 09/24/2010)
 	used to pretty print the data produced by the :mod:`csv` module.
 
 
-Changes in 3.9 (released 08/04/2010)
+Changes in 3.9 (released 2010-08-04)
 ------------------------------------
 
 *	:class:`ll.xist.ns.html.html` will no longer change the ``lang`` and
@@ -3012,14 +3012,14 @@ Changes in 3.9 (released 08/04/2010)
 	was missing from the output.
 
 
-Changes in 3.8.3 (released 07/29/2010)
+Changes in 3.8.3 (released 2010-07-29)
 --------------------------------------
 
 *	:class:`str` arguments are now always treated as ``BLOB``\s in
 	:mod:`ll.orasql` functions and procedures.
 
 
-Changes in 3.8.2 (released 06/21/2010)
+Changes in 3.8.2 (released 2010-06-21)
 --------------------------------------
 
 *	Fixed a bug in the logging methods of :class:`ll.sisyphus.Job`: Logging
@@ -3030,7 +3030,7 @@ Changes in 3.8.2 (released 06/21/2010)
 	class derived from :class:`ll.sisyphus.Job`.
 
 
-Changes in 3.8.1 (released 06/17/2010)
+Changes in 3.8.1 (released 2010-06-17)
 --------------------------------------
 
 *	The method :meth:`ll.url.URL.import_` that had been dropped in version 3.8
@@ -3045,7 +3045,7 @@ Changes in 3.8.1 (released 06/17/2010)
 		"k"
 
 
-Changes in 3.8 (released 06/15/2010)
+Changes in 3.8 (released 2010-06-15)
 ------------------------------------
 
 *	The parsing infrastructure has been completely rewritten to be more modular
@@ -3143,34 +3143,34 @@ Changes in 3.8 (released 06/15/2010)
 *	ssh URLs now support a ``nice`` argument instead of ``ssh_config``.
 
 
-Changes in 3.7.6 (released 05/14/2010)
+Changes in 3.7.6 (released 2010-05-14)
 --------------------------------------
 
 *	Fixed a bug in :class:`ll.xist.ns.htmlspecials.autopixel`.
 
 
-Changes in 3.7.5 (released 04/19/2010)
+Changes in 3.7.5 (released 2010-04-19)
 --------------------------------------
 
 *	:class:`ll.orasql.PrimaryKey` has a new method :meth:`itercolumns` that
 	returns an iterator over the columns this primary key consists of.
 
 
-Changes in 3.7.4 (released 03/25/2010)
+Changes in 3.7.4 (released 2010-03-25)
 --------------------------------------
 
 *	Fixed a bug in :class:`ll.xist.ns.rss20.guid`. The ``isPermaLink`` attribute
 	was a :class:`URLAttr`, but must be a :class:`TextAttr`.
 
 
-Changes in 3.7.3 (released 02/27/2010)
+Changes in 3.7.3 (released 2010-02-27)
 --------------------------------------
 
 *	Fixed a bug in the generated JSP code for the ``def`` opcode in
 	:func:`ll.xist.ns.jsp.fromul4`.
 
 
-Changes in 3.7.2 (released 02/26/2010)
+Changes in 3.7.2 (released 2010-02-26)
 --------------------------------------
 
 *	Fixed two bugs in the XML codecs:
@@ -3192,7 +3192,7 @@ Changes in 3.7.2 (released 02/26/2010)
 	``None``/``null``.
 
 
-Changes in 3.7.1 (released 02/08/2010)
+Changes in 3.7.1 (released 2010-02-08)
 --------------------------------------
 
 *	:func:`ll.xist.ns.jsp.fromul4` now outputs the correct code for calling the
@@ -3200,7 +3200,7 @@ Changes in 3.7.1 (released 02/08/2010)
 	UL4 Java package).
 
 
-Changes in 3.7 (released 09/10/2009)
+Changes in 3.7 (released 2009-09-10)
 ------------------------------------
 
 *	In UL4 templates it's now possible to define locale templates via
@@ -3266,14 +3266,14 @@ Changes in 3.7 (released 09/10/2009)
 	__ http://codespeak.net/py/dist/
 
 
-Changes in 3.6.6 (released 07/09/2009)
+Changes in 3.6.6 (released 2009-07-09)
 --------------------------------------
 
 *	Fixed handling of empty pid files in :mod:`ll.sisyphus` (Fixes issue #11
 	reported by Jarek Zgoda).
 
 
-Changes in 3.6.5 (released 06/02/2009)
+Changes in 3.6.5 (released 2009-06-02)
 --------------------------------------
 
 *	Fix UL4 templates that produce no output: As the generated Python sourcecode
@@ -3281,7 +3281,7 @@ Changes in 3.6.5 (released 06/02/2009)
 	ordinary function instead of a generator.
 
 
-Changes in 3.6.4 (released 03/19/2009)
+Changes in 3.6.4 (released 2009-03-19)
 --------------------------------------
 
 *	A new UL4 method ``join`` has been added. It works like the Python string
@@ -3295,7 +3295,7 @@ Changes in 3.6.4 (released 03/19/2009)
 	:func:`ll.xist.parsers.parsestring` now works again.
 
 
-Changes in 3.6.3 (released 03/02/2009)
+Changes in 3.6.3 (released 2009-03-02)
 --------------------------------------
 
 *	The xfind operators ``attrhasvalue``,  ``attrhasvalue_xml``,
@@ -3308,7 +3308,7 @@ Changes in 3.6.3 (released 03/02/2009)
 	an iterator that will output the items of any sequence in reverse order.
 
 
-Changes in 3.6.2 (released 02/16/2009)
+Changes in 3.6.2 (released 2009-02-16)
 --------------------------------------
 
 *	Inside UL4 templates rendering other templates can now be done with the new
@@ -3321,7 +3321,7 @@ Changes in 3.6.2 (released 02/16/2009)
 	base for the conversion.
 
 
-Changes in 3.6.1 (released 01/27/2009)
+Changes in 3.6.1 (released 2009-01-27)
 --------------------------------------
 
 *	Generating the Python source from an UL4 template is now 20-25% faster.
@@ -3335,7 +3335,7 @@ Changes in 3.6.1 (released 01/27/2009)
 	template into JSP source code.
 
 
-Changes in 3.6 (released 12/31/2008)
+Changes in 3.6 (released 2008-12-31)
 ------------------------------------
 
 *	The following :class:`Color` class methods have been dropped: ``fromrgba``,
@@ -3366,7 +3366,7 @@ Changes in 3.6 (released 12/31/2008)
 *	:class:`ll.make.UL4RenderAction` has been fixed.
 
 
-Changes in 3.5 (released 12/05/2008)
+Changes in 3.5 (released 2008-12-05)
 ------------------------------------
 
 *	A new function ``json`` has been added to UL4: This function returns a
@@ -3395,27 +3395,27 @@ Changes in 3.5 (released 12/05/2008)
 	namespace.
 
 
-Changes in 3.4.4 (released 09/16/2008)
+Changes in 3.4.4 (released 2008-09-16)
 --------------------------------------
 
 *	Fixed a bug in :meth:`ll.make.JoinAction.execute`.
 
 
-Changes in 3.4.3 (released 09/09/2008)
+Changes in 3.4.3 (released 2008-09-09)
 --------------------------------------
 
 *	:func:`css.applystylesheets` could no longer handle style declarations
 	containing comments. This has been fixed now.
 
 
-Changes in 3.4.2 (released 09/03/2008)
+Changes in 3.4.2 (released 2008-09-03)
 --------------------------------------
 
 *	Parsing didn't work when :obj:`tidy` was set to true and a :obj:`base`
 	argument was given. This has been fixed now.
 
 
-Changes in 3.4.1 (released 08/29/2008)
+Changes in 3.4.1 (released 2008-08-29)
 --------------------------------------
 
 *	Bugs with thread local storage have been fixed so using :class:`xsc.Pool`,
@@ -3423,7 +3423,7 @@ Changes in 3.4.1 (released 08/29/2008)
 	multithreaded applications should work now.
 
 
-Changes in 3.4 (released 08/19/2008)
+Changes in 3.4 (released 2008-08-19)
 ------------------------------------
 
 *	Templates can no longer be passed as a separate dictionary to UL4 templates
@@ -3505,7 +3505,7 @@ Changes in 3.4 (released 08/19/2008)
 *	The version number for :mod:`cssutils` has been bumped to 0.9.5.1.
 
 
-Changes in 3.3.2 (released 07/15/2008)
+Changes in 3.3.2 (released 2008-07-15)
 --------------------------------------
 
 *	Dictionaries in UL4 have gained a new method ``get``.
@@ -3520,7 +3520,7 @@ Changes in 3.3.2 (released 07/15/2008)
 *	Fixed a bug in the formatting for the ``getslice2`` opcode for UL4.
 
 
-Changes in 3.3.1 (released 07/14/2008)
+Changes in 3.3.1 (released 2008-07-14)
 --------------------------------------
 
 *	Fixed a bug in the implementation of the "not" operator in UL4.
@@ -3529,7 +3529,7 @@ Changes in 3.3.1 (released 07/14/2008)
 	start location of the block in the error message.
 
 
-Changes in 3.3 (released 07/11/2008)
+Changes in 3.3 (released 2008-07-11)
 ------------------------------------
 
 *	XIST has gained its fourth templating language: ``UL4`` the
@@ -3583,13 +3583,13 @@ Changes in 3.3 (released 07/11/2008)
 	has been renamed to :obj:`root`.
 
 
-Changes in 3.2.7 (released 05/16/2008)
+Changes in 3.2.7 (released 2008-05-16)
 --------------------------------------
 
 *	Added the missing file ``_misc_include.c`` to the distribution archives.
 
 
-Changes in 3.2.6 (released 05/07/2008)
+Changes in 3.2.6 (released 2008-05-07)
 --------------------------------------
 
 *	A new action class :class:`EvalAction` has been added to :mod:`ll.make`.
@@ -3603,7 +3603,7 @@ Changes in 3.2.6 (released 05/07/2008)
 	added. Those versions will be used in case the C module is not available.
 
 
-Changes in 3.2.5 (released 04/11/2008)
+Changes in 3.2.5 (released 2008-04-11)
 --------------------------------------
 
 *	A refcounting bug in the attribute parsing code of :mod:`sgmlop` has been
@@ -3617,7 +3617,7 @@ Changes in 3.2.5 (released 04/11/2008)
 	available.
 
 
-Changes in 3.2.4 (released 04/02/2008)
+Changes in 3.2.4 (released 2008-04-02)
 --------------------------------------
 
 *	The following functions have been added to :mod:`ll.xist.css`:
@@ -3649,7 +3649,7 @@ Changes in 3.2.4 (released 04/02/2008)
 		XIST tree (however any internal DTD subset will be dropped).
 
 
-Changes in 3.2.3 (released 03/04/2008)
+Changes in 3.2.3 (released 2008-03-04)
 --------------------------------------
 
 *	:mod:`cssutils` 0.9.5 is used now. This simplifies the implementation of
@@ -3665,7 +3665,7 @@ Changes in 3.2.3 (released 03/04/2008)
 	so they will always be published without any prefixes.
 
 
-Changes in 3.2.2 (released 02/25/2008)
+Changes in 3.2.2 (released 2008-02-25)
 --------------------------------------
 
 *	A new method :meth:`replaceurls` has been added to
@@ -3679,7 +3679,7 @@ Changes in 3.2.2 (released 02/25/2008)
 	method too.
 
 
-Changes in 3.2.1 (released 02/05/2008)
+Changes in 3.2.1 (released 2008-02-05)
 --------------------------------------
 
 *	It's now possible to force the publisher to output certain ``xmlns``
@@ -3687,7 +3687,7 @@ Changes in 3.2.1 (released 02/05/2008)
 	constructor.
 
 
-Changes in 3.2 (released 02/01/2008)
+Changes in 3.2 (released 2008-02-01)
 ------------------------------------
 
 *	The core package has been moved into XIST, installing XIST now only requires
@@ -3712,7 +3712,7 @@ Changes in 3.2 (released 02/01/2008)
 	:class:`link` element wasn't applied to the URLs in the stylesheet.
 
 
-Changes in 3.1 (released 01/18/2008)
+Changes in 3.1 (released 2008-01-18)
 ------------------------------------
 
 *	Fixed the problem that the source distibution didn't include header files.
@@ -3728,7 +3728,7 @@ Changes in 3.1 (released 01/18/2008)
 	conversion targets.
 
 
-Changes in 3.0 (released 01/07/2008)
+Changes in 3.0 (released 2008-01-07)
 ------------------------------------
 
 *	Namespaces have been greatly simplified. There are no namespace modules any
@@ -3867,14 +3867,14 @@ Changes in 3.0 (released 01/07/2008)
 	been removed.
 
 
-Changes in 2.15.5 (released 07/17/2007)
+Changes in 2.15.5 (released 2007-07-17)
 ---------------------------------------
 
 *	The Python quotes example no longer contains the XML source or the
 	generated HTML.
 
 
-Changes in 2.15.4 (released 07/16/2007)
+Changes in 2.15.4 (released 2007-07-16)
 ---------------------------------------
 
 *	The Python quotes example now always parses the file from the original URL.
@@ -3882,7 +3882,7 @@ Changes in 2.15.4 (released 07/16/2007)
 *	The Python quotes and the media example now print the result to ``stdout``.
 
 
-Changes in 2.15.3 (released 07/16/2007)
+Changes in 2.15.3 (released 2007-07-16)
 ---------------------------------------
 
 *	Use a consistent license (MIT) everywhere. This should make XIST Debian
@@ -3892,7 +3892,7 @@ Changes in 2.15.3 (released 07/16/2007)
 	:file:`python-quotes.xml` in the current directory.
 
 
-Changes in 2.15.2 (released 01/24/2007)
+Changes in 2.15.2 (released 2007-01-24)
 ---------------------------------------
 
 *	Fixed a bug in :meth:`presenters.CodePresenter.__str__`.
@@ -3905,7 +3905,7 @@ Changes in 2.15.2 (released 01/24/2007)
 	and :class:`Namespace` to conform to the newest version of IPython.
 
 
-Changes in 2.15.1 (released 09/25/2006)
+Changes in 2.15.1 (released 2006-09-25)
 ---------------------------------------
 
 *	Fixed a few bugs in the :mod:`sgmlop` function declarations.
@@ -3913,7 +3913,7 @@ Changes in 2.15.1 (released 09/25/2006)
 *	Readded the spacer pixel.
 
 
-Changes in 2.15 (released 09/24/2006)
+Changes in 2.15 (released 2006-09-24)
 -------------------------------------
 
 *	XIST has been made compatible with Python 2.5: Code has been updated
@@ -3939,14 +3939,14 @@ Changes in 2.15 (released 09/24/2006)
 	.. _w3m: http://w3m.sf.net/
 
 
-Changes in 2.14.2 (released 07/04/2006)
+Changes in 2.14.2 (released 2006-07-04)
 ---------------------------------------
 
 *	Fixed a bug in the :meth:`presentAttr` method of
 	:class:`ll.xist.presenters.TreePresenter`.
 
 
-Changes in 2.14.1 (released 06/29/2006)
+Changes in 2.14.1 (released 2006-06-29)
 ---------------------------------------
 
 *	Fixed a bug in the :meth:`presentEntity` method of
@@ -3955,7 +3955,7 @@ Changes in 2.14.1 (released 06/29/2006)
 *	Updated installation instructions.
 
 
-Changes in 2.14 (released 06/28/2006)
+Changes in 2.14 (released 2006-06-28)
 -------------------------------------
 
 *	Namespaces for RSS 0.91, RSS 2.0 and Atom 1.0 have been added.
@@ -3983,7 +3983,7 @@ Changes in 2.14 (released 06/28/2006)
 *	:mod:`setuptools` is now supported for installation.
 
 
-Changes in 2.13 (released 10/31/2005)
+Changes in 2.13 (released 2005-10-31)
 -------------------------------------
 
 *	:meth:`ll.xist.xsc.Namespace.tokenize` requires a :class:`unicode` object
@@ -4000,7 +4000,7 @@ Changes in 2.13 (released 10/31/2005)
 	tree.
 
 
-Changes in 2.12 (released 10/13/2005)
+Changes in 2.12 (released 2005-10-13)
 -------------------------------------
 
 *	Namespaces for `Relax NG`_ and Kid_ have been added.
@@ -4013,7 +4013,7 @@ Changes in 2.12 (released 10/13/2005)
 *	The class name for the DocBook DTD class has been fixed.
 
 
-Changes in 2.11 (released 07/29/2005)
+Changes in 2.11 (released 2005-07-29)
 -------------------------------------
 
 *	A script :file:`xml2xsc.py` has been added, that can be used to parse an
@@ -4063,7 +4063,7 @@ Changes in 2.11 (released 07/29/2005)
 	for evaluating expression.
 
 
-Changes in 2.10 (released 05/20/2005)
+Changes in 2.10 (released 2005-05-20)
 -------------------------------------
 
 *	The content of the processing instruction :class:`ll.xist.ns.code.pyexec`
@@ -4104,7 +4104,7 @@ Changes in 2.10 (released 05/20/2005)
 	have been removed.
 
 
-Changes in 2.9 (released 04/21/2005)
+Changes in 2.9 (released 2005-04-21)
 ------------------------------------
 
 *	XIST trees can now be pickled. The only restriction is that global
@@ -4178,13 +4178,13 @@ Changes in 2.9 (released 04/21/2005)
 	:meth:`__eq__` simply checks if the objects are instances of the same class.
 
 
-Changes in 2.8.1 (released 03/22/2005)
+Changes in 2.8.1 (released 2005-03-22)
 --------------------------------------
 
 *	Added a note about the package init file to the installation documentation.
 
 
-Changes in 2.8 (released 01/03/2005)
+Changes in 2.8 (released 2005-01-03)
 ------------------------------------
 
 *	XIST requires Python 2.4 now.
@@ -4211,7 +4211,7 @@ Changes in 2.8 (released 01/03/2005)
 	to change the output.
 
 
-Changes in 2.7 (released 11/24/2004)
+Changes in 2.7 (released 2004-11-24)
 ------------------------------------
 
 *	The transparent pixel used by :class:`ll.xist.ns.htmlspecials.pixel` has
@@ -4228,13 +4228,13 @@ Changes in 2.7 (released 11/24/2004)
 	:data:`reprEncoding` has been renamed to :data:`reprencoding`).
 
 
-Changes in 2.6.2 (released 06/06/2005)
+Changes in 2.6.2 (released 2005-06-06)
 --------------------------------------
 
 *	Fixed a bug in :meth:`ll.xist.parsers.Parser.parse`.
 
 
-Changes in 2.6.1 (released 11/02/2004)
+Changes in 2.6.1 (released 2004-11-02)
 --------------------------------------
 
 *	Fixed a bug in :meth:`ll.xist.xfind.Finder.__floordiv__`.
@@ -4245,7 +4245,7 @@ Changes in 2.6.1 (released 11/02/2004)
 	__ http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
 
 
-Changes in 2.6 (released 10/26/2004)
+Changes in 2.6 (released 2004-10-26)
 ------------------------------------
 
 *	:func:`ToNode` now tries iterating through the value passed in, so it's now
@@ -4312,7 +4312,7 @@ Changes in 2.6 (released 10/26/2004)
 	:class:`ll.xist.ns.xml.declaration`.
 
 
-Changes in 2.5 (released 06/30/2004)
+Changes in 2.5 (released 2004-06-30)
 ------------------------------------
 
 *	Specifying content models for elements has seen major enhancements. The
@@ -4430,7 +4430,7 @@ Changes in 2.5 (released 06/30/2004)
 	one for XIST announcements.
 
 
-Changes in 2.4.1 (released 01/05/2004)
+Changes in 2.4.1 (released 2004-01-05)
 --------------------------------------
 
 *	Changed the xmlname of :class:`ll.xist.ns.jsp.directive_page` back again
@@ -4445,7 +4445,7 @@ Changes in 2.4.1 (released 01/05/2004)
 	subclass of this namespace.
 
 
-Changes in 2.4 (released 01/02/2004)
+Changes in 2.4 (released 2004-01-02)
 ------------------------------------
 
 *	The class :class:`ll.xist.parsers.Handler` has been renamed to :class:`Parser`
@@ -4478,7 +4478,7 @@ Changes in 2.4 (released 01/02/2004)
 	:mod:`ll.xist.ns.chars` too have been removed.
 
 
-Changes in 2.3 (released 12/08/2003)
+Changes in 2.3 (released 2003-12-08)
 ------------------------------------
 
 *	It's now possible to parse XML without generating location information for
@@ -4522,7 +4522,7 @@ Changes in 2.3 (released 12/08/2003)
 	:meth:`doPublication` have been lowercased.
 
 
-Changes in 2.2 (released 07/31/2003)
+Changes in 2.2 (released 2003-07-31)
 ------------------------------------
 
 *	Namespace handling has been completely rewritten. Namespaces are now
@@ -4636,7 +4636,7 @@ Changes in 2.2 (released 07/31/2003)
 	.. _XSL-FO: http://www.w3.org/Style/XSL/
 
 
-Changes in 2.1.4 (released 06/13/2003)
+Changes in 2.1.4 (released 2003-06-13)
 --------------------------------------
 
 *	Remove the checks for attributes in attributes and moved the publication
@@ -4645,7 +4645,7 @@ Changes in 2.1.4 (released 06/13/2003)
 	element even inside attributes. (This is the same fix as in release 1.5.10).
 
 
-Changes in 2.1.3 (released 05/07/2003)
+Changes in 2.1.3 (released 2003-05-07)
 --------------------------------------
 
 *	The methods :meth:`sorted`, :meth:`reversed` and :meth:`shuffled` have been
@@ -4653,14 +4653,14 @@ Changes in 2.1.3 (released 05/07/2003)
 	methods for 64 bit platforms (reported by Giles Frances Hall)
 
 
-Changes in 2.1.2 (released 02/27/2003)
+Changes in 2.1.2 (released 2003-02-27)
 --------------------------------------
 
 *	:class:`ll.xist.ns.struts_config11.plug_in` now allows content (as the DTD
 	states). (This is the same fix as in release 1.5.8.)
 
 
-Changes in 2.1.1 (released 02/11/2003)
+Changes in 2.1.1 (released 2003-02-11)
 --------------------------------------
 
 *	Added a few elements and attributes to :mod:`ll.xist.ns.doc`:
@@ -4669,7 +4669,7 @@ Changes in 2.1.1 (released 02/11/2003)
 	``id`` for :class:`section`, which specifies the target for an :class:`xref`.
 
 
-Changes in 2.1 (released 12/09/2002)
+Changes in 2.1 (released 2002-12-09)
 ------------------------------------
 
 *	Added a new namespace module :mod:`ll.xist.ns.xndl` that contains the
@@ -4702,7 +4702,7 @@ Changes in 2.1 (released 12/09/2002)
 	been renamed to :obj:`encoding`.
 
 
-Changes in 2.0.8 (released 11/20/2002)
+Changes in 2.0.8 (released 2002-11-20)
 --------------------------------------
 
 *	:func:`ll.xist.ns.doc.getDoc` has been renamed to :func:`getdoc`.
@@ -4711,33 +4711,33 @@ Changes in 2.0.8 (released 11/20/2002)
 	been fixed.
 
 
-Changes in 2.0.7 (released 11/12/2002)
+Changes in 2.0.7 (released 2002-11-12)
 
 *	:meth:`xsc.Element.__nonzero__` can no longer fall back to
 	:meth:`xsc.Frag.__nonzero__`. (this is the same fix as in 1.5.7).
 
 
-Changes in 2.0.6 (released 11/11/2002)
+Changes in 2.0.6 (released 2002-11-11)
 --------------------------------------
 
 *	Performance optimizations.
 
 
-Changes in 2.0.5 (released 11/11/2002)
+Changes in 2.0.5 (released 2002-11-11)
 --------------------------------------
 
 *	Fixed a bug in :class:`ll.xist.ns.specials.autoimg`: Attributes were not
 	converted before the size check was done (this is the same fix as in 1.5.5).
 
 
-Changes in 2.0.4 (released 11/08/2002)
+Changes in 2.0.4 (released 2002-11-08)
 --------------------------------------
 
 *	Fixed a regression bug in :class:`ll.xist.ns.jsp.directive` and several
 	documentation issues.
 
 
-Changes in 2.0.3 (released 10/30/2002)
+Changes in 2.0.3 (released 2002-10-30)
 --------------------------------------
 
 *	Fixed a few bugs in :class:`HTMLParser`.
@@ -4747,7 +4747,7 @@ Changes in 2.0.3 (released 10/30/2002)
 *	Now the :file:`__init__.py` file for the :mod:`ll` package is included.
 
 
-Changes in 2.0.2 (released 10/21/2002)
+Changes in 2.0.2 (released 2002-10-21)
 --------------------------------------
 
 *	Fixed a bug in :meth:`Frag.__rmul__` (by reusing :meth:`__mul__`).
@@ -4761,14 +4761,14 @@ Changes in 2.0.2 (released 10/21/2002)
 	newly defined will be registered too.
 
 
-Changes in 2.0.1 (released 10/17/2002)
+Changes in 2.0.1 (released 2002-10-17)
 --------------------------------------
 
 *	Fixed :file:`xscmake.py` by removing the prefix handling.
 	:class:`OldPrefixes` will always be used for parsing now.
 
 
-Changes in 2.0 (released 10/16/2002)
+Changes in 2.0 (released 2002-10-16)
 ------------------------------------
 
 *	XIST now requires at least Python 2.2.1.
@@ -4821,7 +4821,7 @@ Changes in 2.0 (released 10/16/2002)
 	URLs shorter.
 
 
-Changes in 1.6.1 (released 08/25/2003)
+Changes in 1.6.1 (released 2003-08-25)
 --------------------------------------
 
 *	Updated to work with newer versions of :mod:`ll.ansistyle`.
@@ -4830,7 +4830,7 @@ Changes in 1.6.1 (released 08/25/2003)
 	:mod:`ll.xist.ns.struts_config11` to the state of Struts 1.1 final.
 
 
-Changes in 1.6 (released 07/02/2003)
+Changes in 1.6 (released 2003-07-02)
 ------------------------------------
 
 *	Removed the default value for the ``className`` attribute in
@@ -4840,7 +4840,7 @@ Changes in 1.6 (released 07/02/2003)
 	:class:`ll.xist.ns.struts_config11.action_mapping`.
 
 
-Changes in 1.5.13 (released 07/01/2003)
+Changes in 1.5.13 (released 2003-07-01)
 ---------------------------------------
 
 *	Implemented :meth:`ll.xist.xsc.Namespace.__eq__`, so that replacing a
@@ -4849,19 +4849,19 @@ Changes in 1.5.13 (released 07/01/2003)
 *	Added an attribute ``target`` to :class:`ll.xist.ns.html.area`.
 
 
-Changes in 1.5.12 (released 06/17/2003)
+Changes in 1.5.12 (released 2003-06-17)
 ---------------------------------------
 
 *	Fixed a bug in the new :mod:`ll.xist.ns.jsp`.
 
 
-Changes in 1.5.11 (released 06/13/2003)
+Changes in 1.5.11 (released 2003-06-13)
 ---------------------------------------
 
 *	Updated :mod:`ll.xist.ns.jsp` to JSP 1.2.
 
 
-Changes in 1.5.10 (released 06/13/2003)
+Changes in 1.5.10 (released 2003-06-13)
 ---------------------------------------
 
 *	Remove the checks for attributes in attributes and moved the publication
@@ -4870,41 +4870,41 @@ Changes in 1.5.10 (released 06/13/2003)
 	element even inside attributes.
 
 
-Changes in 1.5.9 (released 04/30/2003)
+Changes in 1.5.9 (released 2003-04-30)
 --------------------------------------
 
 *	Reregistering a namespace now properly overwrites the old version in
 	``xsc.namespaceRegistry``.
 
 
-Changes in 1.5.8 (released 02/27/2003)
+Changes in 1.5.8 (released 2003-02-27)
 --------------------------------------
 
 *	:class:`ll.xist.ns.struts_config11.plug_in` now allows content (as the
 	DTD states).
 
 
-Changes in 1.5.7 (released 11/12/2002)
+Changes in 1.5.7 (released 2002-11-12)
 --------------------------------------
 
 *	:meth:`xsc.Element.__nonzero__` can no longer fall back to
 	:meth:`xsc.Frag.__nonzero__`.
 
 
-Changes in 1.5.6 (released 11/11/2002)
+Changes in 1.5.6 (released 2002-11-11)
 --------------------------------------
 
 *	Performance optimizations.
 
 
-Changes in 1.5.5 (released 11/11/2002)
+Changes in 1.5.5 (released 2002-11-11)
 --------------------------------------
 
 *	Fixed a bug in :class:`ll.xist.ns.specials.autoimg`: Attributes were not
 	converted before the size check was done.
 
 
-Changes in 1.5.4 (released 09/30/2002)
+Changes in 1.5.4 (released 2002-09-30)
 --------------------------------------
 
 *	:file:`xscmake.py` now tries to strip off a trailing ``xsc`` from the
@@ -4912,21 +4912,21 @@ Changes in 1.5.4 (released 09/30/2002)
 	extension mapping is still tried first).
 
 
-Changes in 1.5.3 (released 09/25/2002)
+Changes in 1.5.3 (released 2002-09-25)
 --------------------------------------
 
 *	Added new processing instruction class :class:`ll.xist.ns.php.expression`
 	that generates a PHP ``print`` statement from its content.
 
 
-Changes in 1.5.2 (released 09/19/2002)
+Changes in 1.5.2 (released 2002-09-19)
 --------------------------------------
 
 *	Removed the ``value`` magic from :class:`ll.xist.ns.form.checkbox` as this
 	conflicted with dynamic ``value`` values.
 
 
-Changes in 1.5.1 (released 09/17/2002)
+Changes in 1.5.1 (released 2002-09-17)
 --------------------------------------
 
 *	Comparison of attributes with strings has been removed. You have to use
@@ -4959,7 +4959,7 @@ Changes in 1.5.1 (released 09/17/2002)
 	prepend to base URL to all URLs found in a style attribute.
 
 
-Changes in 1.4.3 (released 04/29/2002)
+Changes in 1.4.3 (released 2002-04-29)
 --------------------------------------
 
 *	New namespace module :mod:`xist.ns.struts_config11` allows to parse and
@@ -4969,7 +4969,7 @@ Changes in 1.4.3 (released 04/29/2002)
 	.. _Struts 1.1 DTD: http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd
 
 
-Changes in 1.4.2 (released 03/22/2002)
+Changes in 1.4.2 (released 2002-03-22)
 --------------------------------------
 
 *	Updated :file:`xscmake.py` to be compatible with the new :mod:`url` module.
@@ -4978,7 +4978,7 @@ Changes in 1.4.2 (released 03/22/2002)
 	``contentType`` on publishing.
 
 
-Changes in 1.4.1 (released 03/21/2002)
+Changes in 1.4.1 (released 2002-03-21)
 --------------------------------------
 
 *	Removed :class:`TidyURLInputSource`. Now it's possible to pass a :obj:`tidy`
@@ -4995,14 +4995,14 @@ Changes in 1.4.1 (released 03/21/2002)
 *	Removed the old :mod:`xist.url` from the Windows distribution.
 
 
-Changes in 1.4 (released 03/18/2002)
+Changes in 1.4 (released 2002-03-18)
 ------------------------------------
 
 *	Reimplemented URL handling again. Now the new global module :mod:`url` is
 	used for that.
 
 
-Changes in 1.3.1 (released 03/14/2002)
+Changes in 1.3.1 (released 2002-03-14)
 --------------------------------------
 
 *	Added a method :meth:`pretty` to :class:`Node` for generating a pretty
@@ -5012,7 +5012,7 @@ Changes in 1.3.1 (released 03/14/2002)
 	will be set at class instantiation time by the meta class.
 
 
-Changes in 1.3 (released 02/12/2002)
+Changes in 1.3 (released 2002-02-12)
 ------------------------------------
 
 *	Ported to Python 2.2. :class:`Node` is now derived from :class:`object`,
@@ -5056,7 +5056,7 @@ Changes in 1.3 (released 02/12/2002)
 *	Various other small bugfixes and enhancements.
 
 
-Changes in 1.2.5 (released 12/03/2001)
+Changes in 1.2.5 (released 2001-12-03)
 --------------------------------------
 
 *	Added a new element :class:`contentscripttype` to :mod:`xist.ns.meta` that
@@ -5076,21 +5076,21 @@ Changes in 1.2.5 (released 12/03/2001)
 	:class:`xist.ns.struts_config.data_source`.
 
 
-Changes in 1.2.4 (released 11/23/2001)
+Changes in 1.2.4 (released 2001-11-23)
 --------------------------------------
 
 *	Added the deprecated attributes ``start`` to :class:`xist.ns.html.ol` and
 	``value`` to :class:`xist.ns.html.li`.
 
 
-Changes in 1.2.3 (released 11/22/2001)
+Changes in 1.2.3 (released 2001-11-22)
 --------------------------------------
 
 *	Added missing :meth:`asPlainString` methods to :class:`Comment` and
 	:class:`DocType`.
 
 
-Changes in 1.2.2 (released 11/16/2001)
+Changes in 1.2.2 (released 2001-11-16)
 --------------------------------------
 
 *	:meth:`xist.url.URL.fileSize` and :meth:`xist.url.URL.imageSize` now use
@@ -5103,14 +5103,14 @@ Changes in 1.2.2 (released 11/16/2001)
 	have changed. These images are now included.
 
 
-Changes in 1.2.1 (released 10/08/2001)
+Changes in 1.2.1 (released 2001-10-08)
 --------------------------------------
 
 *	URLs that are completely dynamic will now be left in peace when parsing or
 	publishing.
 
 
-Changes in 1.2 (released 10/03/2001)
+Changes in 1.2 (released 2001-10-03)
 ------------------------------------
 
 *	:class:`xist.ns.meta.keywords` and :class:`xist.ns.meta.description` no
@@ -5151,7 +5151,7 @@ Changes in 1.2 (released 10/03/2001)
 	processing instructions (just like :mod:`xist.ns.jsp` does).
 
 
-Changes in 1.1.3 (released 09/17/2001)
+Changes in 1.1.3 (released 2001-09-17)
 --------------------------------------
 
 *	The global namespace registry now keeps a sequential list of all registered
@@ -5176,21 +5176,21 @@ Changes in 1.1.3 (released 09/17/2001)
 *	:class:`xist.ns.jsp.directive_page` now has new attribute ``session``.
 
 
-Changes in 1.1.2 (released 08/21/2001)
+Changes in 1.1.2 (released 2001-08-21)
 --------------------------------------
 
 *	:meth:`__repr__` now uses the new class :class:`presenters.PlainPresenter`
 	which gives a little more info than the default :meth:`__repr__`.
 
 
-Changes in 1.1.1 (released 08/01/2001)
+Changes in 1.1.1 (released 2001-08-01)
 --------------------------------------
 
 *	Small bugfix in :func:`presenters.strProcInst`.
 *	Fixed :class:`xist.ns.struts_html.option` to allow content.
 
 
-Changes in 1.1 (released 07/19/2001)
+Changes in 1.1 (released 2001-07-19)
 ------------------------------------
 
 *	Sequences in constructor arguments for :class:`Frag` and :class:`Element`
@@ -5220,7 +5220,7 @@ Changes in 1.1 (released 07/19/2001)
 	``xml:lang`` attribute when the converter has a language set.
 
 
-Changes in 1.0 (released 06/18/2001)
+Changes in 1.0 (released 2001-06-18)
 ------------------------------------
 
 *	New module for WML 1.3.
@@ -5364,7 +5364,7 @@ Changes in 1.0 (released 06/18/2001)
 	directory use the scheme ``root`` (e.g. ``root:main.css``).
 
 
-Changes in 0.4.7 (released 11/24/2000)
+Changes in 0.4.7 (released 2000-11-24)
 --------------------------------------
 
 *	Fixed a bug in the entity handling.
@@ -5402,7 +5402,7 @@ Changes in 0.4.7 (released 11/24/2000)
 	directories to :data:`sys.path`.
 
 
-Changes in 0.4.6 (released 11/03/2000)
+Changes in 0.4.6 (released 2000-11-03)
 --------------------------------------
 
 *	Now uses :class:`sgmlop.XMLParser` instead of :class:`sgmlop.SGMLParser`,
@@ -5411,7 +5411,7 @@ Changes in 0.4.6 (released 11/03/2000)
 *	Fixed another regression from the URL to string conversion change.
 
 
-Changes in 0.4.5 (released 11/01/2000)
+Changes in 0.4.5 (released 2000-11-01)
 --------------------------------------
 
 *	Converting URLs to nodes is now done in :func:`ToNode`, so :class:`URL`
@@ -5444,7 +5444,7 @@ Changes in 0.4.4 (releases 10/27/2000)
 *	Several small enhancements and bug fixes contributed by Hartmut Goebel.
 
 
-Changes in 0.4.3 (released 10/19/2000)
+Changes in 0.4.3 (released 2000-10-19)
 --------------------------------------
 
 *	Now processing instruction classes are registered in the same way as
@@ -5464,7 +5464,7 @@ Changes in 0.4.3 (released 10/19/2000)
 	objects will no longer be ignored.
 
 
-Changes in 0.4.2 (released 09/24/2000)
+Changes in 0.4.2 (released 2000-09-24)
 --------------------------------------
 
 *	New elements :class:`keywords` and :class:`description` in :file:`meta.py`.
@@ -5473,7 +5473,7 @@ Changes in 0.4.2 (released 09/24/2000)
 	prevent an element from being registered works again.
 
 
-Changes in 0.4.1 (released 09/21/2000)
+Changes in 0.4.1 (released 2000-09-21)
 --------------------------------------
 
 *	A new module named :file:`meta.py` has been created, that simplifies
@@ -5482,7 +5482,7 @@ Changes in 0.4.1 (released 09/21/2000)
 *	Various small bugfixes.
 
 
-Changes in 0.4 (released 09/19/2000)
+Changes in 0.4 (released 2000-09-19)
 ------------------------------------
 
 *	XIST now requires at least Python 2.0b1.
@@ -5572,34 +5572,34 @@ Changes in 0.4 (released 09/19/2000)
 		</if>
 
 
-Changes in 0.3.9 (released 08/10/2000)
+Changes in 0.3.9 (released 2000-08-10)
 --------------------------------------
 
 *	sgmlop will now be found either via ``import sgmlop`` or via
 	``from xml.parsers import sgmlop``.
 
 
-Changes in 0.3.8 (released 07/14/2000)
+Changes in 0.3.8 (released 2000-07-14)
 --------------------------------------
 
 *	Fixed a bug in :meth:`URLAttr.publish`, which prevented :class:`URLAttr`
 	from working at all.
 
 
-Changes in 0.3.7 (released 07/06/2000)
+Changes in 0.3.7 (released 2000-07-06)
 --------------------------------------
 
 *	Fixed a bug in :class:`html.img` and :class:`html.input`. Now image size
 	calculation works again.
 
 
-*	Changes in 0.3.6 (released 07/04/2000)
+*	Changes in 0.3.6 (released 2000-07-04)
 
 *	Fixed a bug in :meth:`Node._matches`, which resulted in a non working
 	:meth:`find`.
 
 
-Changes in 0.3.5 (released 07/02/2000)
+Changes in 0.3.5 (released 2000-07-02)
 --------------------------------------
 
 *	The documentation example has been enhanced. Now documenting methods works.
@@ -5643,7 +5643,7 @@ Changes in 0.3.5 (released 07/02/2000)
 	to which the strings to be output are passed.
 
 
-Changes in 0.3.4 (released 05/31/2000)
+Changes in 0.3.4 (released 2000-05-31)
 --------------------------------------
 
 *	Location information is now copied over in :meth:`clone`, :meth:`asHTML`
@@ -5663,7 +5663,7 @@ Changes in 0.3.4 (released 05/31/2000)
 	dark, the second for light.
 
 
-Changes in 0.3.3 (released 05/30/2000)
+Changes in 0.3.3 (released 2000-05-30)
 --------------------------------------
 
 *	The workaround for the trailing CDATA bug in sgmlop has been removed, so
