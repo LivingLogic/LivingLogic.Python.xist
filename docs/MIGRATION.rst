@@ -8,6 +8,22 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.73
+=========================
+
+Changes to :mod:`ll.pysql`
+--------------------------
+
+*	Some PySQL commands have been renamed: :class:`resetsequence` to
+	:class:`reset_sequence`, :class:`checkerrors` to :class:`check_errors`,
+	:class:`raiseexceptions` to :class:`raise_exceptions`,
+	:class:`pushraiseexceptions` to :class:`push_raise_exceptions` and
+	:class:`popraiseexceptions` to :class:`pop_raise_exceptions`.
+
+*	The argument ``raiseexceptions`` to various PySQL commands has been renamed
+	to ``raise_exceptions``.
+
+
 Migrating to version 5.67
 =========================
 
@@ -16,6 +32,7 @@ Changes to :mod:`ll.orasql`
 
 *	The method :meth:`ll.orasql.Connection.getobject` has been renamed
 	to :meth:`ll.orasql.Connection.object_named`.
+
 
 Migrating to version 5.66
 =========================
@@ -40,10 +57,10 @@ Changes to UL4
 
 *	The UL4 function ``type()`` now returns type objects instead of simple
 	strings. To get the name of the type use the type objects ``__name__``
-	attribute, i.e. replace ``type('foo')`` with ``type('foo').__name__``.
+	attribute, i.e. replace ``type(foo)`` with ``type(foo).__name__``.
 
-*	Naming of attributes that are used to implement UL4 functionality has been
-	made more uniform. This affects the following attributes: The methods
+*	Naming of attributes that are used to implement UL4 functionality is more
+	uniform now. This affects the following attributes: The methods
 	:meth:`ul4_getattr`, :meth:`ul4_setattr` and :meth:`ul4_hasattr` for
 	implementing object attribute access from UL4; the methods :meth:`ul4_call`,
 	:meth:`ul4_render` and , :meth:`ul4_renders` for making objects callable or
@@ -196,10 +213,10 @@ has been replaced with a flag option ``--rollback``. Automatically committing
 after every record is no longer available. However manual committing is
 available via the :class:`~ll.pysql.commit` command.
 
-PySQL no longer supports multiple active database connect via the ``connectname``
-key. When using literal SQL this couldn't be used anyway, so it has been
-dropped. If you really need this feature you can implement a workaround in
-literal Python blocks.
+PySQL no longer supports multiple active database connections via the
+``connectname`` key. When using literal SQL this couldn't be used anyway, so it
+has been dropped. If you really need this feature you can implement a workaround
+in literal Python blocks.
 
 
 Migrating to version 5.42

@@ -608,6 +608,26 @@ def _sourcesuffix(source, pos):
 	return source[innerstoppos:outerstoppos] + postsuffix
 
 
+def _dumpslice(encoder, slice):
+	encoder.dump(slice.start if slice is not None and slice.start is not None else -1)
+	encoder.dump(slice.stop if slice is not None and slice.stop is not None else -1)
+
+
+def _loadslice(decoder):
+	posstart = decoder.load()
+	posstop = decoder.load()
+	if posstart >= 0:
+		if posstop >= 0:
+			return slice(posstart, posstop)
+		else:
+			return slice(posstart, None)
+	else:
+		if posstop >= 0:
+			return slice(None, posstop)
+		else:
+			return None
+
+
 ###
 ### Helper functions for the various UL4 functions
 ###
@@ -1522,11 +1542,11 @@ class AST:
 
 	def ul4ondump(self, encoder):
 		encoder.dump(self.template)
-		encoder.dump(self._startpos)
+		_dumpslice(encoder, self._startpos)
 
 	def ul4onload(self, decoder):
 		self.template = decoder.load()
-		self.startpos = decoder.load()
+		self.startpos = _loadslice(decoder)
 		self.stoppos = None
 
 
@@ -1547,6 +1567,10 @@ class TextAST(AST):
 
 	output = True
 
+	def __init__(self, template=None, source="", startpos=0, stoppos=0):
+		super().__init__(template, slice(startpos, stoppos))
+		self.text = source[startpos:stoppos]
+
 	def _repr(self):
 		yield repr(self.text)
 
@@ -1555,15 +1579,19 @@ class TextAST(AST):
 		p.text("text=")
 		p.pretty(self.text)
 
-	@property
-	def text(self):
-		return self.template._fullsource[self._startpos]
-
 	def _str(self):
 		yield f"text {self.text!r}"
 
 	def eval(self, context):
 		yield context.output(self.text)
+
+	def ul4ondump(self, encoder):
+		super().ul4ondump(encoder)
+		encoder.dump(self.text)
+
+	def ul4onload(self, decoder):
+		super().ul4onload(decoder)
+		self.text = decoder.load()
 
 
 @register("indent")
@@ -1579,33 +1607,14 @@ class IndentAST(TextAST):
 
 	ul4_type = Type("ul4")
 
-	def __init__(self, template=None, startpos=None, text=None):
-		super().__init__(template, startpos)
-		self._text = text
-
-	@property
-	def text(self):
-		if self._text is None:
-			return self.template._fullsource[self._startpos]
-		else:
-			return self._text
-
 	# We don't define a setter, because the template should *not* be able to
 	# set this attribute. However the attribute *will* be set by the code
 	# compiling the template
 	def _settext(self, text):
-		self._text = text if text != self.template._fullsource[self._startpos] else None
+		self.text = text
 
 	def _str(self):
 		yield f"indent {self.text!r}"
-
-	def ul4ondump(self, encoder):
-		super().ul4ondump(encoder)
-		encoder.dump(self._text)
-
-	def ul4onload(self, decoder):
-		super().ul4onload(decoder)
-		self._text = decoder.load()
 
 	def eval(self, context):
 		for indent in context.indents:
@@ -2686,12 +2695,12 @@ class BlockAST(CodeAST):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self.stoppos)
+		_dumpslice(encoder, self.stoppos)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.stoppos = decoder.load()
+		self.stoppos = _loadslice(decoder)
 		self.content = decoder.load()
 
 
@@ -4827,12 +4836,12 @@ class RenderBlockAST(RenderAST):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self._stoppos)
+		_dumpslice(encoder, self._stoppos)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.stoppos = decoder.load()
+		self.stoppos = _loadslice(decoder)
 		self.content = decoder.load()
 
 
@@ -4952,12 +4961,12 @@ class RenderBlocksAST(RenderAST):
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
-		encoder.dump(self._stoppos)
+		_dumpslice(encoder, self._stoppos)
 		encoder.dump(self.content)
 
 	def ul4onload(self, decoder):
 		super().ul4onload(decoder)
-		self.stoppos = decoder.load()
+		self.stoppos = _loadslice(decoder)
 		self.content = decoder.load()
 
 
@@ -4993,7 +5002,7 @@ class Template(BlockAST):
 	ul4_type = InstantiableType("ul4", "Template", "An UL4 template")
 	ul4_attrs = BlockAST.ul4_attrs.union({"signature", "doc", "name", "whitespace", "parenttemplate", "fullsource", "renders"})
 
-	version = "51"
+	version = "52"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
@@ -5150,7 +5159,7 @@ class Template(BlockAST):
 		encoder.dump(self.name)
 		encoder.dump(self._fullsource)
 		encoder.dump(self.whitespace)
-		encoder.dump(self.docpos)
+		_dumpslice(encoder, self.docpos)
 		encoder.dump(self.parenttemplate)
 
 		# Signature can be :const:`None` or an instance of :class:`inspect.Signature` or :class:`SignatureAST`
@@ -5228,7 +5237,7 @@ class Template(BlockAST):
 			self.name = decoder.load()
 			self._fullsource = decoder.load()
 			self.whitespace = decoder.load()
-			self.docpos = decoder.load()
+			self.docpos = _loadslice(decoder)
 			self.parenttemplate = decoder.load()
 
 			dump = decoder.load()
@@ -5441,7 +5450,7 @@ class Template(BlockAST):
 		last_ignore_code_pos = None
 		for match in re.finditer(pattern, source):
 			if not ignore and match.start() != pos:
-				yield TextAST(self, slice(pos, match.start()))
+				yield TextAST(self, source, pos, match.start())
 			tagname = source[slice(*match.span(1))]
 			if tagname == "ignore":
 				if not ignore:
@@ -5457,7 +5466,7 @@ class Template(BlockAST):
 			pos = match.end()
 		end = len(source)
 		if not ignore and pos != end:
-			yield TextAST(self, slice(pos, end))
+			yield TextAST(self, source, pos, end)
 		if ignore:
 			exc = BlockError("<?ignore?> block unclosed")
 			_decorateexception(exc, Tag(self, "ignore", last_ignore_tag_pos, last_ignore_code_pos))
@@ -5483,7 +5492,7 @@ class Template(BlockAST):
 			# as this is used by :class:`RenderAST` to reindent the output of one
 			# template when called from inside another template)
 			if not tagline and not isinstance(tag, IndentAST):
-				tagline.append(IndentAST(tag.template, slice(tag._startpos.start, tag._startpos.start)))
+				tagline.append(IndentAST(tag.template, self._fullsource, tag._startpos.start, tag._startpos.start))
 			tagline.append(tag)
 
 		# Yield lines by splitting literal text into multiple chunks (normal text, indentation and lineends)
@@ -5513,13 +5522,13 @@ class Template(BlockAST):
 
 					# Output the parts we found
 					if lineindentlen:
-						append(IndentAST(tag.template, slice(pos, pos+lineindentlen)))
+						append(IndentAST(tag.template, self._fullsource, pos, pos+lineindentlen))
 						pos += lineindentlen
 					if linelen:
-						append(TextAST(tag.template, slice(pos, pos+linelen)))
+						append(TextAST(tag.template, self._fullsource, pos, pos+linelen))
 						pos += linelen
 					if lineendlen:
-						append(LineEndAST(tag.template, slice(pos, pos+lineendlen)))
+						append(LineEndAST(tag.template, self._fullsource, pos, pos+lineendlen))
 						pos += lineendlen
 						yield tagline
 						tagline = []
