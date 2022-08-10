@@ -10,151 +10,40 @@
 ## See ll/xist/__init__.py for the license
 
 
-import os, tempfile
+import os, datetime, json, pathlib
 
 import cx_Oracle
+
+import psycopg
 
 import pytest
 
 from ll import orasql, pysql
 
 
-dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as environment var
+basedir = pathlib.Path(__file__).parent
+
+connectstring_oracle = os.environ.get("LL_PYSQL_TEST_CONNECT_ORACLE") # Need a connectstring as environment var
+connectstring_postgres = os.environ.get("LL_PYSQL_TEST_CONNECT_POSTGRES") # Need a connectstring as environment var
 
 
-commands = """
-create table pysql_test_table(
-	odtt_id integer
-);
-
--- @@@
-
-create or replace procedure pysql_test_procedure(
-	p_odtt_id in out integer
-)
-as
-begin
-	if p_odtt_id is null then
-		p_odtt_id := 1;
-	end if;
-	insert into pysql_test_table (odtt_id) values (p_odtt_id);
-	p_odtt_id := p_odtt_id + 100;
-end;
-/
-
--- @@@
-
-{
-	"type": "sql",
-	"sql":
-		"create sequence pysql_test_sequence"
-		"	minvalue 10"
-		"	maxvalue 9999999999999999999999999999"
-		"	start with 30"
-		"	increment by 10"
-		"	cache 20",
-}
-
-procedure(
-	"pysql_test_procedure",
-	args=dict(
-		p_odtt_id=var("odtt_1"),
-	),
-)
-
-procedure(
-	"pysql_test_procedure",
-	args=dict(
-		p_odtt_id=var("odtt_1"),
-	)
-)
-
-resetsequence(
-	"pysql_test_sequence",
-	table="pysql_test_table",
-	field="odtt_id",
-)
-
-sql(
-	"begin :filename_file := 'gurk_file.txt'; end;",
-	args=dict(
-		filename_file=var("filename_file", str),
-	),
-)
-
-object_exists(
-	"pysql_test_procedure"
-)
-
-constraint_exists(
-	"doesnt_exist"
-)
-
-{
-	"type": "sql",
-	"sql": "begin :filename_scp := 'gurk_scp.txt'; end;",
-	"args": {
-		"filename_scp": var("filename_scp", str),
-	}
-}
-
-{
-	"type": "file",
-	"name": "{filename_file}",
-	"content": b"gurk_file",
-	"mode": 0o644,
-}
-
-{
-	"type": "scp",
-	"name": "{filename_scp}",
-	"content": b"gurk_scp",
-}
-
-procedure(
-	"doesnt_exist",
-	cond=False,
-)
-
-resetsequence(
-	"doesnt_exist",
-	table="doesnt_exist",
-	field="de_id",
-	cond=False,
-)
-
-sql(
-	"begin doesnt_exist; end;",
-	cond=False,
-)
-
-file(
-	name="doesnt_exist",
-	content=b"nothing",
-	cond=False,
-)
-
-scp(
-	name="doesnt_exist",
-	content=b"nothing",
-	cond=False,
-)
-"""
-
-
-def execute_commands(commands, tmpdir):
-	with tempfile.NamedTemporaryFile(delete=False) as f:
-		tempname = f.name
-		f.write(commands.encode("utf-8"))
-
-	try:
-		pysql.main([tempname, "-d", dbname, "-vfull", "--scpdirectory", tmpdir, "--filedirectory", tmpdir])
-	finally:
-		os.remove(tempname)
+def execute_commands(tmpdir):
+	pysql.main([
+		str(basedir/"pysql/main.pysql"),
+		"-d", connectstring_oracle,
+		"-D", f"connectstring_oracle={connectstring_oracle}",
+		"-D", f"connectstring_postgres={connectstring_postgres}",
+		"-vfull",
+		"-z",
+		"--tabsize=3",
+		"--context=10",
+		"--scpdirectory", f"{tmpdir}/",
+		"--filedirectory", f"{tmpdir}/"
+	])
 
 
 def cleanup():
-	with orasql.connect(dbname) as db:
+	with orasql.connect(connectstring_oracle) as db:
 		c = db.cursor()
 		try:
 			c.execute("drop table pysql_test_table")
@@ -165,28 +54,69 @@ def cleanup():
 		except cx_Oracle.DatabaseError:
 			pass
 
+	with psycopg.connect(connectstring_postgres) as db:
+		c = db.cursor()
+		c.execute("drop schema if exists pysqltest cascade")
+
 
 @pytest.mark.db
 def test_pysql(tmpdir):
 	cleanup()
 
-	execute_commands(commands, f"{tmpdir}/")
+	execute_commands(tmpdir)
+	tmpdir = pathlib.Path(tmpdir)
 
-	with orasql.connect(dbname) as db:
+	with orasql.connect(connectstring_oracle, readlobs=True) as db:
 		c = db.cursor()
-		c.execute("select odtt_id from pysql_test_table order by odtt_id")
-		data = [int(r.odtt_id) for r in c]
-		assert data == [1, 101]
-		c.execute("select pysql_test_sequence.nextval as nv from dual")
-		data = c.fetchone().nv
-		assert data == 111
+		c.execute("select * from pysql_test_table order by tt_cdate")
+		rows = c.fetchall()
 
-	f = tmpdir.join("gurk_file.txt")
-	assert f.read() == "gurk_file"
-	stat = os.stat(str(f))
-	assert stat.st_mode & 0o777 == 0o644
+		for r in rows:
+			if r.tt_identifier == "full":
+				assert r.tt_int == 42
+				assert r.tt_number == 42.5
+				assert r.tt_str == "ä"*2000
+				assert r.tt_clob == "ä"*100000
+				assert r.tt_blob == b"\xff"*100000
+				assert r.tt_datetime == datetime.datetime(2000, 2, 29, 12, 34, 56)
+			elif r.tt_identifier == "outcheck":
+				assert r.tt_int == 101
+			elif r.tt_identifier == "empty":
+				assert r.tt_int is None
+				assert r.tt_number is None
+				assert r.tt_str is None
+				assert r.tt_clob is None
+				assert r.tt_blob is None
+				assert r.tt_datetime is None
+			elif r.tt_identifier == "noparams":
+				assert r.tt_int is None
+				assert r.tt_number is None
+				assert r.tt_str is None
+				assert r.tt_clob is None
+				assert r.tt_blob is None
+				assert r.tt_datetime is None
+			elif r.tt_identifier == "schemacheck":
+				got = r.tt_str
+				got = json.loads(got)
+				expect = dict(
+					PROCEDURE=True,
+					NOPROCEDURE=False,
+					USER=True,
+					NOUSER=False,
+					SCHEMA=True,
+					NOSCHEMA=False,
+					PK=True,
+					NOPK=False,
+				)
+				assert got == expect
+			else:
+				pytest.fail(f"tt_identifier {r.tt_identifier!r} unknown")
 
-	f2 = tmpdir.join("gurk_scp.txt")
-	assert f2.read() == "gurk_scp"
+	for dbname in ("oracle", "postgres"):
+		f = tmpdir/f"{dbname}_gurk_file.txt"
+		assert f.read_text() == f"{dbname}_gurk_file"
+		stat = os.stat(str(f))
+		assert stat.st_mode & 0o777 == 0o644
 
-	cleanup()
+		f2 = tmpdir/f"{dbname}_gurk_scp.txt"
+		assert f2.read_text() == f"{dbname}_gurk_scp"

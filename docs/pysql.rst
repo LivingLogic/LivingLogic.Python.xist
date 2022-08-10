@@ -1,4 +1,4 @@
-:mod:`!ll.pysql` -- Oracle import script
-========================================
+:mod:`!ll.pysql` -- Database import script
+==========================================
 
 .. automodule:: ll.pysql

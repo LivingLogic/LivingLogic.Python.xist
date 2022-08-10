@@ -8,6 +8,53 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 2022-08-??)
+-------------------------------------
+
+*	:mod:`ll.pysql` now supports Postgres. To connect to a Postgres database
+	pass a connectstring to :class:`connect` starting with ``postgres:``, for
+	example::
+
+		connect("postgres:host=localhost dbname=test user=me password=secret")
+
+	This will create a Postgres database connection via::
+
+		psycopg.connect(
+			"host=localhost dbname=test user=me password=secret",
+			cursor_factory=extras.DictCursor
+		)
+
+	All other connectstrings will be interpreted as Oracle connectstrings.
+	An Oracle connectstring may start with the prefix ``oracle:`` which will
+	be stripped off, before passing it to :func:`cx_Oracle.connect` or
+	:func:`ll.orasql.connect`.
+
+	Note that Postgres currently doesn't support the :class:`drop_types`
+	command.
+
+*	Some PySQL commands have been renamed: :class:`resetsequence` to
+	:class:`reset_sequence`, :class:`checkerrors` to :class:`check_errors`,
+	:class:`raiseexceptions` to :class:`raise_exceptions`,
+	:class:`pushraiseexceptions` to :class:`push_raise_exceptions` and
+	:class:`popraiseexceptions` to :class:`pop_raise_exceptions`.
+
+*	The PySQL commands :class:`procedure` and :class:`sql` have an additional
+	argument ``argtypes`` that can be used to add casts to the parameter
+	values in the call to convert the value to the proper Postgres datatype
+	(to guide Postgres to find the correct overloaded version of the procedure).
+
+*	When a :class:`var` object is passed a second time in PySQL, now instead of
+	the variable's value a proper variable object will be passed to the
+	:class:`procedure` or :class:`sql` call. This means if the variable gets
+	changed by the call, the new value will be picked up by the local variable.
+
+	If you want to pass the variable's value instead as a simple IN parameter,
+	simply pass the local variable instead.
+
+*	The argument ``raiseexceptions`` to various PySQL commands has been renamed
+	to ``raise_exceptions``.
+
+
 Changes in 5.72 (released 2022-08-04)
 -------------------------------------
 
