@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.73.1 (released 2022-08-10)
+---------------------------------------
+
+*	Fixed handling of the PySQL variable ``connection`` on ``connect`` and
+	``disconnect`` calls.
+
+
 Changes in 5.73 (released 2022-08-10)
 -------------------------------------
 

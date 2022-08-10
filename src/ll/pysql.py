@@ -693,7 +693,7 @@ class Handler:
 			command.finish(f"Connected to {cs!r} as {command.mode}")
 		else:
 			command.finish(f"Connected to {cs!r}")
-		context.handlers.append(handler)
+		context.push_handler(handler)
 		return handler.connection
 
 	def include(self, context, command):
@@ -1010,7 +1010,7 @@ class DBHandler(Handler):
 			self.connection.rollback()
 		self.connection.close()
 
-		context.handlers.pop() # Pop ourselves off of the handler stack
+		context.pop_handler() # Pop ourselves off of the handler stack
 
 		if commit:
 			command.finish(f"Disconnected from {cs!r} (transaction committed)")
@@ -2681,17 +2681,25 @@ class Context:
 		else:
 			self._width = 80
 
-		if connectstring is not None:
-			self.handlers.append(Handler.from_connectstring(connectstring))
-
 		self._locals = dict(vars) if vars else {}
-		for command in Command.commands.values():
-			self._locals[command.__name__] = CommandExecutor(command, self)
 		self._locals["sqlexpr"] = sqlexpr
 		self._locals["datetime"] = datetime
 		self._locals["DB_TYPE_CLOB"] = cx_Oracle.DB_TYPE_CLOB
 		self._locals["DB_TYPE_NCLOB"] = cx_Oracle.DB_TYPE_NCLOB
 		self._locals["DB_TYPE_BLOB"] = cx_Oracle.DB_TYPE_BLOB
+		for command in Command.commands.values():
+			self._locals[command.__name__] = CommandExecutor(command, self)
+
+		if connectstring is not None:
+			self.push_handler(Handler.from_connectstring(connectstring))
+
+	def push_handler(self, handler):
+		self.handlers.append(handler)
+		self._locals["connection"] = handler.connection
+
+	def pop_handler(self):
+		if self.handlers:
+			self.handlers.pop()
 		self._locals["connection"] = self.handlers[-1].connection if self.handlers else None
 
 	def log(self, command, *objects):
