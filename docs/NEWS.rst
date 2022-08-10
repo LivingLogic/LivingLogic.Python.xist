@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2022-08-??)
+Changes in 5.73 (released 2022-08-10)
 -------------------------------------
 
 *	:mod:`ll.pysql` now supports Postgres. To connect to a Postgres database
