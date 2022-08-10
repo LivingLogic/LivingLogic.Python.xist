@@ -1,0 +1,8 @@
+# Execute code for the Oracle database
+# (This also tests the include command)
+
+include("oracle.pysql")
+
+# Execute code for the Postgres database
+
+include("postgres.pysql")
