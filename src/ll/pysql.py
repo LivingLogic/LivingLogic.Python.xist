@@ -2684,6 +2684,7 @@ class Context:
 		self._locals = dict(vars) if vars else {}
 		self._locals["sqlexpr"] = sqlexpr
 		self._locals["datetime"] = datetime
+		self._locals["connection"] = None
 		self._locals["DB_TYPE_CLOB"] = cx_Oracle.DB_TYPE_CLOB
 		self._locals["DB_TYPE_NCLOB"] = cx_Oracle.DB_TYPE_NCLOB
 		self._locals["DB_TYPE_BLOB"] = cx_Oracle.DB_TYPE_BLOB
