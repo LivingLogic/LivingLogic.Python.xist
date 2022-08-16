@@ -720,7 +720,7 @@ def selector(selectors, prefixes=None):
 			if t == "type-selector":
 				rule.xmlns = v[0] if v[0] != -1 else None
 				rule.type = v[1]
-			if t == "universal":
+			elif t == "universal":
 				rule.xmlns = v[0] if v[0] != -1 else None
 				rule.type = None
 			elif t == "id":
@@ -760,7 +760,7 @@ def selector(selectors, prefixes=None):
 						rule.selectors.append(_pseudoname2class[v.lstrip(":")]())
 					except KeyError:
 						raise ValueError(f"unknown pseudo-class {v}")
-			elif t == "NUMBER":
+			elif t == "NUMBER" or t == "IDENT":
 				# can only appear in a function => set the function value
 				rule.selectors[-1].value = v
 			elif t == "STRING":

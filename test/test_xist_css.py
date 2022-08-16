@@ -70,6 +70,10 @@ def test_css():
 	assert list(e.walknodes(css.selector("*:nth-last-of-type(1)"))) == [e[0], e[0][0], e[0][3], e[2], e[4]]
 	assert list(e.walknodes(css.selector("*:nth-last-of-type(2)"))) == [e[0][2], e[1]]
 
+	e = html.ul(html.li(i) for i in range(4))
+	assert list(e.walknodes(css.selector("*:nth-child(odd)"))) == [e[0], e[2]]
+	assert list(e.walknodes(css.selector("*:nth-child(even)"))) == [e[1], e[3]]
+
 	e = xsc.Frag(html.span(html.b("hurz"), "gurk"))
 	assert list(e.walknodes(css.selector("*:only-child"))) == [e[0], e[0][0]]
 
