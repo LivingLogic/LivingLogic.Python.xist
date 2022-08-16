@@ -10,7 +10,13 @@ You can download XIST from the Cheeseshop_, go directly to the
 .. autogenerate start
 
 
-5.73.1 (released 08/11/2022)
+5.73.2 (released 08/16/2022)
+----------------------------
+
+(no files for this version)
+
+
+5.73.1 (released 08/10/2022)
 ----------------------------
 
 .. tabularcolumns:: |l|l|r|
