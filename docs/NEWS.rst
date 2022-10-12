@@ -483,7 +483,7 @@ Changes in 5.57 (released 2020-04-14)
 	to multiple strings or streams that nonetheless keep the state for the
 	encoding/decoding machinery.
 
-*	UL4ON functionality is now available to UL4 template in a ``ul4on`` "module".
+*	UL4ON functionality is now available to UL4 templates in a ``ul4on`` "module".
 	This module provides the functions/types ``loads``, ``dumps``, ``Decoder``
 	and ``Encoder``.
 
