@@ -974,7 +974,7 @@ class DBHandler(Handler):
 
 	def commit(self, context, command):
 		cs = self.connectstring()
-		if not self.cond:
+		if not command.cond:
 			self.finish(f"Skipped committing transaction in {cs!r}")
 			return None
 
@@ -985,7 +985,7 @@ class DBHandler(Handler):
 
 	def rollback(self, context, command):
 		cs = self.connectstring()
-		if not self.cond:
+		if not command.cond:
 			self.finish(f"Skipped rolling back transaction in {cs!r}")
 			return None
 

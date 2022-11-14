@@ -8,8 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.73.2 (releaes 2022-08-16)
---------------------------------------
+Changes in HEAD (release 2022-11-??)
+------------------------------------
+
+*	Fixed handling of the ``cond`` attribute in the PySQL command ``commit``
+	and ``rollback``.
+
+Changes in 5.73.2 (released 2022-08-16)
+---------------------------------------
 
 *	Fixed handing of the CSS selectors ``:nth-child(odd)`` and
 	``:nth-child(even)`` in :func:`ll.xist.css.selector`.
