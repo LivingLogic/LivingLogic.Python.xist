@@ -14,6 +14,9 @@ Changes in HEAD (release 2022-11-??)
 *	Fixed handling of the ``cond`` attribute in the PySQL command ``commit``
 	and ``rollback``.
 
+*	Bumped required :mod:`cssutils` version to at least 2.6.0.
+
+
 Changes in 5.73.2 (released 2022-08-16)
 ---------------------------------------
 
