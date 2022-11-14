@@ -305,7 +305,7 @@ args = dict(
 	],
 	python_requires=">=3.8",
 	install_requires=[
-		"cssutils == 2.3.0",
+		"cssutils >= 2.6.0",
 	],
 	extras_require={
 		"oracle": ["cx_Oracle >= 8.0"],
