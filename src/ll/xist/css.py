@@ -516,6 +516,14 @@ class CSSBeforeSelector(CSSInvalidPseudoSelector):
 	pass
 
 
+class CSSValidSelector(CSSInvalidPseudoSelector):
+	pass
+
+
+class CSSInvalidSelector(CSSInvalidPseudoSelector):
+	pass
+
+
 class CSSFunctionSelector(CSSWeightedSelector):
 	"""
 	Base class of all CSS selectors that require an argument.
@@ -671,6 +679,8 @@ _pseudoname2class = {
 	"active": CSSActiveSelector,
 	"after": CSSAfterSelector,
 	"before": CSSBeforeSelector,
+	"valid": CSSValidSelector,
+	"invalid": CSSInvalidSelector,
 }
 
 _function2class = {
