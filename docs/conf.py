@@ -46,7 +46,7 @@ latex.LaTeXTranslator.visit_definition = visit_definition
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '6.0' # 4.1 fixed bug #6165 (``tab_width`` was ignored)
+needs_sphinx = '5.3' # 4.1 fixed bug #6165 (``tab_width`` was ignored)
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
