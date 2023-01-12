@@ -505,7 +505,7 @@ class Connection(psycopg.Connection):
 
 	def pks(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
 		query = _conquery(
-			"n.nspname || '.' || c.conname as name",
+			"n.nspname || '.' || r.relname || '.' || c.conname as name",
 			contype="p",
 			nsp=schema,
 			rel=tablename,
@@ -517,7 +517,7 @@ class Connection(psycopg.Connection):
 
 	def fks(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
 		query = _conquery(
-			"n.nspname || '.' || c.conname as name",
+			"n.nspname || '.' || r.relname || '.' || c.conname as name",
 			contype="f",
 			nsp=schema,
 			rel=tablename,
@@ -529,7 +529,7 @@ class Connection(psycopg.Connection):
 
 	def unique_constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
 		query = _conquery(
-			"n.nspname || '.' || c.conname as name",
+			"n.nspname || '.' || r.relname || '.' || c.conname as name",
 			contype="u",
 			nsp=schema,
 			rel=tablename,
@@ -541,7 +541,7 @@ class Connection(psycopg.Connection):
 
 	def check_constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
 		query = _conquery(
-			"n.nspname || '.' || c.conname as name",
+			"n.nspname || '.' || r.relname || '.' || c.conname as name",
 			contype="c",
 			nsp=schema,
 			rel=tablename,
@@ -554,7 +554,7 @@ class Connection(psycopg.Connection):
 	def constraints(self, cursor=None, schema=None, tablename=None, conname=None, internal=False):
 		query = _conquery(
 			"c.contype",
-			"n.nspname || '.' || c.conname as name",
+			"n.nspname || '.' || r.relname || '.' || c.conname as name",
 			nsp=schema,
 			rel=tablename,
 			con=conname,
