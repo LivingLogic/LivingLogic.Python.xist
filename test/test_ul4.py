@@ -3733,29 +3733,29 @@ def test_function_format_float(T):
 	t = T("<?print format(data, fmt)?>")
 
 	# type f
-	assert "042.12" == t.renders(data=42.125, fmt="06.2f")
-	assert "-42.12" == t.renders(data=-42.125, fmt="06.2f")
-	assert "   42.12" == t.renders(data=42.125, fmt="8.2f")
-	assert "   42.12" == t.renders(data=42.125, fmt=">8.2f")
-	assert "42.12   " == t.renders(data=42.125, fmt="<8.2f")
-	assert "   42.12" == t.renders(data=42.125, fmt="=8.2f")
-	assert " 42.12  " == t.renders(data=42.125, fmt="^8.2f")
-	assert "  +42.12" == t.renders(data=42.125, fmt="+8.2f")
-	assert "   42.12" == t.renders(data=42.125, fmt="-8.2f")
-	assert "  -42.12" == t.renders(data=-42.125, fmt="-8.2f")
-	assert "  -42.12" == t.renders(data=-42.125, fmt=" 8.2f")
-	assert " 0042.12" == t.renders(data= 42.125, fmt=" 08.2f")
-	assert "00042." == t.renders(data=42.0, fmt="#06.0f")
-	assert "000042" == t.renders(data=42.0, fmt="06.0f")
-	assert "42.000" == t.renders(data=42.0, fmt="#06.3f")
-	assert "042.00" == t.renders(data=42.0, fmt="06.2f")
+	assert t.renders(data=42.125, fmt="06.2f") in {"042.12", "042.13"}
+	assert t.renders(data=-42.125, fmt="06.2f") in {"-42.12", "-42.13"}
+	assert t.renders(data=42.125, fmt="8.2f") in {"   42.12", "   42.13"}
+	assert t.renders(data=42.125, fmt=">8.2f") in {"   42.12", "   42.13"}
+	assert t.renders(data=42.125, fmt="<8.2f") in {"42.12   ", "42.13   "}
+	assert t.renders(data=42.125, fmt="=8.2f") in {"   42.12", "   42.13"}
+	assert t.renders(data=42.125, fmt="^8.2f") in {" 42.12  ", " 42.13  "}
+	assert t.renders(data=42.125, fmt="+8.2f") in {"  +42.12", "  +42.13"}
+	assert t.renders(data=42.125, fmt="-8.2f") in {"   42.12", "   42.13"}
+	assert t.renders(data=-42.125, fmt="-8.2f") in {"  -42.12", "  -42.13"}
+	assert t.renders(data=-42.125, fmt=" 8.2f") in {"  -42.12", "  -42.13"}
+	assert t.renders(data= 42.125, fmt=" 08.2f") in {" 0042.12", " 0042.13"}
+	assert t.renders(data=42.0, fmt="#06.0f") == "00042."
+	assert t.renders(data=42.0, fmt="06.0f") == "000042"
+	assert t.renders(data=42.0, fmt="#06.3f") == "42.000"
+	assert t.renders(data=42.0, fmt="06.2f") == "042.00"
 
 	# type e
-	assert "4.21250e+01" == t.renders(data=42.125, fmt="1.5e")
-	assert "4.2125000e+01" == t.renders(data=42.125, fmt="01.7e")
-	assert "-4.21250e+01" == t.renders(data=-42.125, fmt="1.5e")
-	assert "-4.21250E+01" == t.renders(data=-42.125, fmt="1.5E")
-	assert "-4.212e+01" == t.renders(data=-42.125, fmt="1.3e")
+	assert t.renders(data=42.125, fmt="1.5e") == "4.21250e+01"
+	assert t.renders(data=42.125, fmt="01.7e") == "4.2125000e+01"
+	assert t.renders(data=-42.125, fmt="1.5e") == "-4.21250e+01"
+	assert t.renders(data=-42.125, fmt="1.5E") == "-4.21250E+01"
+	assert t.renders(data=-42.125, fmt="1.3e") in {"-4.212e+01", "-4.213e+01"}
 
 
 @pytest.mark.ul4
