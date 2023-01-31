@@ -25,7 +25,7 @@ __docformat__ = "reStructuredText"
 
 import re, os.path, datetime, urllib.parse as urlparse, json, collections
 import locale, itertools, random, functools, math, inspect, contextlib
-import types, textwrap
+import types, textwrap, decimal
 
 from collections import abc
 
@@ -6302,6 +6302,31 @@ def _format(obj, fmt, lang=None):
 				locale.setlocale(locale.LC_ALL, oldlocale)
 			except locale.Error:
 				pass
+	elif isinstance(obj, (float, decimal.Decimal)):
+		if lang is None:
+			lang = "en"
+		result = format(obj, fmt)
+		if lang == "en":
+			return result
+		# Shortcut: we know that these languages use comma
+		elif lang in {"de", "fr", "it", "es", "nl", "no", "pl", "ru", "sv"}:
+			return result.replace(".", ",")
+		oldlocale = locale.getlocale()
+		try:
+			for candidate in (locale.normalize(lang), locale.normalize("en"), ""):
+				try:
+					locale.setlocale(locale.LC_ALL, candidate)
+					decimalpoint = locale.localeconv()["decimal_point"]
+					return result.replace(".", decimalpoint)
+				except locale.Error:
+					if not candidate:
+						return result
+		finally:
+			try:
+				locale.setlocale(locale.LC_ALL, oldlocale)
+			except locale.Error:
+				pass
+		return result
 	else:
 		return format(obj, fmt)
 

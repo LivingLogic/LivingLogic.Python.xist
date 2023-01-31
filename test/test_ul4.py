@@ -3750,32 +3750,38 @@ def test_function_format_int(T):
 
 @pytest.mark.ul4
 def test_function_format_float(T):
-	t = T("<?print format(data, fmt)?>")
+	t1 = T("<?print format(data, fmt)?>")
+	t2 = T("<?print format(data, fmt, lang)?>")
 
-	# type f
-	assert t.renders(data=42.125, fmt="06.2f") in {"042.12", "042.13"}
-	assert t.renders(data=-42.125, fmt="06.2f") in {"-42.12", "-42.13"}
-	assert t.renders(data=42.125, fmt="8.2f") in {"   42.12", "   42.13"}
-	assert t.renders(data=42.125, fmt=">8.2f") in {"   42.12", "   42.13"}
-	assert t.renders(data=42.125, fmt="<8.2f") in {"42.12   ", "42.13   "}
-	assert t.renders(data=42.125, fmt="=8.2f") in {"   42.12", "   42.13"}
-	assert t.renders(data=42.125, fmt="^8.2f") in {" 42.12  ", " 42.13  "}
-	assert t.renders(data=42.125, fmt="+8.2f") in {"  +42.12", "  +42.13"}
-	assert t.renders(data=42.125, fmt="-8.2f") in {"   42.12", "   42.13"}
-	assert t.renders(data=-42.125, fmt="-8.2f") in {"  -42.12", "  -42.13"}
-	assert t.renders(data=-42.125, fmt=" 8.2f") in {"  -42.12", "  -42.13"}
-	assert t.renders(data= 42.125, fmt=" 08.2f") in {" 0042.12", " 0042.13"}
-	assert t.renders(data=42.0, fmt="#06.0f") == "00042."
-	assert t.renders(data=42.0, fmt="06.0f") == "000042"
-	assert t.renders(data=42.0, fmt="#06.3f") == "42.000"
-	assert t.renders(data=42.0, fmt="06.2f") == "042.00"
+	# Test format type ``f``
+	assert t1.renders(data=42.125, fmt="06.2f") in {"042.12", "042.13"}
+	assert t1.renders(data=-42.125, fmt="06.2f") in {"-42.12", "-42.13"}
+	assert t1.renders(data=42.125, fmt="8.2f") in {"   42.12", "   42.13"}
+	assert t1.renders(data=42.125, fmt=">8.2f") in {"   42.12", "   42.13"}
+	assert t1.renders(data=42.125, fmt="<8.2f") in {"42.12   ", "42.13   "}
+	assert t1.renders(data=42.125, fmt="=8.2f") in {"   42.12", "   42.13"}
+	assert t1.renders(data=42.125, fmt="^8.2f") in {" 42.12  ", " 42.13  "}
+	assert t1.renders(data=42.125, fmt="+8.2f") in {"  +42.12", "  +42.13"}
+	assert t1.renders(data=42.125, fmt="-8.2f") in {"   42.12", "   42.13"}
+	assert t1.renders(data=-42.125, fmt="-8.2f") in {"  -42.12", "  -42.13"}
+	assert t1.renders(data=-42.125, fmt=" 8.2f") in {"  -42.12", "  -42.13"}
+	assert t1.renders(data= 42.125, fmt=" 08.2f") in {" 0042.12", " 0042.13"}
+	assert t1.renders(data=42.0, fmt="#06.0f") == "00042."
+	assert t1.renders(data=42.0, fmt="06.0f") == "000042"
+	assert t1.renders(data=42.0, fmt="#06.3f") == "42.000"
+	assert t1.renders(data=42.0, fmt="06.2f") == "042.00"
 
-	# type e
-	assert t.renders(data=42.125, fmt="1.5e") == "4.21250e+01"
-	assert t.renders(data=42.125, fmt="01.7e") == "4.2125000e+01"
-	assert t.renders(data=-42.125, fmt="1.5e") == "-4.21250e+01"
-	assert t.renders(data=-42.125, fmt="1.5E") == "-4.21250E+01"
-	assert t.renders(data=-42.125, fmt="1.3e") in {"-4.212e+01", "-4.213e+01"}
+	# Test ``lang`` parameter
+	assert t2.renders(data=42.0, fmt="06.2f", lang=None) == "042.00"
+	assert t2.renders(data=42.0, fmt="06.2f", lang="en") == "042.00"
+	assert t2.renders(data=42.0, fmt="06.2f", lang="de") == "042,00"
+
+	# Test format type ``e``
+	assert t1.renders(data=42.125, fmt="1.5e") == "4.21250e+01"
+	assert t1.renders(data=42.125, fmt="01.7e") == "4.2125000e+01"
+	assert t1.renders(data=-42.125, fmt="1.5e") == "-4.21250e+01"
+	assert t1.renders(data=-42.125, fmt="1.5E") == "-4.21250E+01"
+	assert t1.renders(data=-42.125, fmt="1.3e") in {"-4.212e+01", "-4.213e+01"}
 
 
 @pytest.mark.ul4
