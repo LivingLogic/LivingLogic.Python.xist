@@ -19,6 +19,14 @@ Changes in HEAD (released 2022-12-??)
 *	:mod:`ll.xist.css` now ignores the CSS pseudo classes ``:valid`` and
 	``:invalid``.
 
+*	Since the Java and Javascript versions of UL4 now supports ``format(float)``
+	this is now checked by the tests.
+
+*	Running the UL4 tests for Java now is done via Gradle, so the tests no
+	longer require Java UL4 and all its dependencies on the ``CLASSPATH``.
+	(Instead a full Java UL4 checkout is required in
+	``~/checkouts/LivingLogic.Java.ul4``.)
+
 
 Changes in 5.73.2 (released 2022-08-16)
 ---------------------------------------

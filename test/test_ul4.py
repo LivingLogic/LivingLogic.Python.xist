@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, re, io, tempfile, subprocess, codecs, datetime, math
+import sys, os, re, io, tempfile, subprocess, codecs, datetime, math, textwrap, pathlib
 from collections import abc
 
 import pytest
@@ -133,6 +133,9 @@ class TemplateJava:
 		self.whitespace = whitespace
 		self.signature = signature
 
+	def _indent(self, text):
+		return textwrap.indent(text, "\t\t")
+
 	def findexception(self, output):
 		lines = output.splitlines()
 		msg = None
@@ -160,11 +163,28 @@ class TemplateJava:
 			raise exc
 
 	def run(self, data):
-		dump = ul4on.dumps(data).encode("utf-8")
-		result = subprocess.run("java com.livinglogic.ul4.Tester", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		dump = ul4on.dumps(data)
+		print(f"\tInput data as UL4ON dump is:\n{self._indent(dump)}")
+		dump = dump.encode("utf-8")
+		currentdir = pathlib.Path.cwd()
+		try:
+			os.chdir(pathlib.Path.home() / "checkouts/LivingLogic.Java.ul4")
+			result = subprocess.run("gradle -q --console=plain execute", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		finally:
+			os.chdir(currentdir)
+		print(f"\tReturn code is {result.returncode}")
 		# Check if we have an exception
-		self.findexception(result.stderr.decode("utf-8", "passbytes"))
-		return result.stdout.decode("utf-8", "passbytes")
+		stderr = result.stderr.decode("utf-8", "passbytes")
+		print(f"\tOutput on stderr is:\n{self._indent(stderr)}")
+		if result.returncode != 0:
+			self._find_exception(stderr)
+			if stderr:
+				# No exception found, but we still have error output,
+				# so complain anyway with the original output
+				raise ValueError(stderr)
+		stdout = result.stdout.decode("utf-8", "passbytes")
+		print(f"\tOutput on stdout is:\n{self._indent(stdout)}")
+		return stdout
 
 	def renders(self, *args, **kwargs):
 		data = self._makedata("renders", args, kwargs)
