@@ -3729,6 +3729,36 @@ def test_function_format_int(T):
 
 
 @pytest.mark.ul4
+def test_function_format_float(T):
+	t = T("<?print format(data, fmt)?>")
+
+	# type f
+	assert "042.12" == t.renders(data=42.125, fmt="06.2f")
+	assert "-42.12" == t.renders(data=-42.125, fmt="06.2f")
+	assert "   42.12" == t.renders(data=42.125, fmt="8.2f")
+	assert "   42.12" == t.renders(data=42.125, fmt=">8.2f")
+	assert "42.12   " == t.renders(data=42.125, fmt="<8.2f")
+	assert "   42.12" == t.renders(data=42.125, fmt="=8.2f")
+	assert " 42.12  " == t.renders(data=42.125, fmt="^8.2f")
+	assert "  +42.12" == t.renders(data=42.125, fmt="+8.2f")
+	assert "   42.12" == t.renders(data=42.125, fmt="-8.2f")
+	assert "  -42.12" == t.renders(data=-42.125, fmt="-8.2f")
+	assert "  -42.12" == t.renders(data=-42.125, fmt=" 8.2f")
+	assert " 0042.12" == t.renders(data= 42.125, fmt=" 08.2f")
+	assert "00042." == t.renders(data=42.0, fmt="#06.0f")
+	assert "000042" == t.renders(data=42.0, fmt="06.0f")
+	assert "42.000" == t.renders(data=42.0, fmt="#06.3f")
+	assert "042.00" == t.renders(data=42.0, fmt="06.2f")
+
+	# type e
+	assert "4.21250e+01" == t.renders(data=42.125, fmt="1.5e")
+	assert "4.2125000e+01" == t.renders(data=42.125, fmt="01.7e")
+	assert "-4.21250e+01" == t.renders(data=-42.125, fmt="1.5e")
+	assert "-4.21250E+01" == t.renders(data=-42.125, fmt="1.5E")
+	assert "-4.212e+01" == t.renders(data=-42.125, fmt="1.3e")
+
+
+@pytest.mark.ul4
 def test_function_format_kwargs(T):
 	assert "42" == T("<?print format(obj=data, fmt=fmt, lang=lang)?>").renders(fmt="", data=42, lang="de")
 
