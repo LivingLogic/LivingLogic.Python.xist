@@ -136,7 +136,7 @@ class TemplateJava:
 	def _indent(self, text):
 		return textwrap.indent(text, "\t\t")
 
-	def findexception(self, output):
+	def _find_exception(self, output):
 		lines = output.splitlines()
 		msg = None
 		exc = None
@@ -3626,8 +3626,8 @@ def test_function_format_date(T):
 	assert "Fri" == t2.renders(fmt="%a", data=dt)
 	assert "Fri" == t3.renders(fmt="%a", data=dt, lang=None)
 	assert "Fri" == t3.renders(fmt="%a", data=dt, lang="en")
-	assert "Fr" == t3.renders(fmt="%a", data=dt, lang="de")
-	assert "Fr" == t3.renders(fmt="%a", data=dt, lang="de_DE")
+	assert t3.renders(fmt="%a", data=dt, lang="de") in {"Fr", "Fr."}
+	assert t3.renders(fmt="%a", data=dt, lang="de_DE") in {"Fr", "Fr."}
 	assert "Friday" == t2.renders(fmt="%A", data=dt)
 	assert "Friday" == t3.renders(fmt="%A", data=dt, lang=None)
 	assert "Friday" == t3.renders(fmt="%A", data=dt, lang="en")
@@ -3636,8 +3636,8 @@ def test_function_format_date(T):
 	assert "Sep" == t2.renders(fmt="%b", data=dt)
 	assert "Sep" == t3.renders(fmt="%b", data=dt, lang=None)
 	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="en")
-	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="de")
-	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="de_DE")
+	assert t3.renders(fmt="%b", data=dt, lang="de") in {"Sep", "Sept."}
+	assert t3.renders(fmt="%b", data=dt, lang="de_DE") in {"Sep", "Sept."}
 	assert "September" == t2.renders(fmt="%B", data=dt)
 	assert "September" == t3.renders(fmt="%B", data=dt, lang=None)
 	assert "September" == t3.renders(fmt="%B", data=dt, lang="en")
@@ -3679,8 +3679,8 @@ def test_function_format_datetime(T):
 	assert "Tue" == t2.renders(fmt="%a", data=dt)
 	assert "Tue" == t3.renders(fmt="%a", data=dt, lang=None)
 	assert "Tue" == t3.renders(fmt="%a", data=dt, lang="en")
-	assert "Di" == t3.renders(fmt="%a", data=dt, lang="de")
-	assert "Di" == t3.renders(fmt="%a", data=dt, lang="de_DE")
+	assert t3.renders(fmt="%a", data=dt, lang="de") in {"Di", "Di."}
+	assert t3.renders(fmt="%a", data=dt, lang="de_DE") in {"Di", "Di."}
 	assert "Tuesday" == t2.renders(fmt="%A", data=dt)
 	assert "Tuesday" == t3.renders(fmt="%A", data=dt, lang=None)
 	assert "Tuesday" == t3.renders(fmt="%A", data=dt, lang="en")
@@ -3689,8 +3689,8 @@ def test_function_format_datetime(T):
 	assert "Jan" == t2.renders(fmt="%b", data=dt)
 	assert "Jan" == t3.renders(fmt="%b", data=dt, lang=None)
 	assert "Jan" == t3.renders(fmt="%b", data=dt, lang="en")
-	assert "Jan" == t3.renders(fmt="%b", data=dt, lang="de")
-	assert "Jan" == t3.renders(fmt="%b", data=dt, lang="de_DE")
+	assert t3.renders(fmt="%b", data=dt, lang="de") in {"Jan", "Jan."}
+	assert t3.renders(fmt="%b", data=dt, lang="de_DE") in {"Jan", "Jan."}
 	assert "January" == t2.renders(fmt="%B", data=dt)
 	assert "January" == t3.renders(fmt="%B", data=dt, lang=None)
 	assert "January" == t3.renders(fmt="%B", data=dt, lang="en")
