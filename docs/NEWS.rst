@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2023-01-??)
+Changes in 5.74 (released 2023-03-01)
 -------------------------------------
 
 *	Fixed handling of the ``cond`` attribute in the PySQL command ``commit``
