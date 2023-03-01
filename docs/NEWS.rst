@@ -22,7 +22,7 @@ Changes in HEAD (released 2023-01-??)
 *	Since the Java and Javascript versions of UL4 now supports ``format(float)``
 	this is now checked by the tests.
 
-*	The UL4 function ``format(float)`` now honor the specified language and uses
+*	The UL4 function ``format(float)`` now honors the specified language and uses
 	the correct decimal separator.
 
 *	Running the UL4 tests for Java now is done via Gradle, so the tests no
