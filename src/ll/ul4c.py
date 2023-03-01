@@ -6308,7 +6308,7 @@ def _format(obj, fmt, lang=None):
 		result = format(obj, fmt)
 		if lang == "en":
 			return result
-		# Shortcut: we know that these languages use comma
+		# Shortcut: we know that these languages use commas as the decimal separator
 		elif lang in {"de", "fr", "it", "es", "nl", "no", "pl", "ru", "sv"}:
 			return result.replace(".", ",")
 		oldlocale = locale.getlocale()
