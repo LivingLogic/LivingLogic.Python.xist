@@ -110,17 +110,6 @@ Sourcecode is available on GitHub_.
 .. _GitHub: https://github.com/LivingLogic/LivingLogic.Python.xist
 
 
-Mailing lists
--------------
-
-A discussion mailing list is available. For more info go to
-https://mail.livinglogic.de/mailman/listinfo/xist-discuss. You can subscribe
-from these webpages as well as read the mailing list archives.
-
-An announcement mailing list is available too. For info go to
-https://mail.livinglogic.de/mailman/listinfo/xist-announce
-
-
 Author
 ------
 
