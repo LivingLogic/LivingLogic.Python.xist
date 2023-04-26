@@ -115,7 +115,7 @@ def iterpath(node):
 	yield [node]
 	if hasattr(node, "text") and node.text:
 		yield [node, node.text]
-	if hasattr(node, "getchildren"):
+	if hasattr(node, "findall"):
 		for child in node:
 			for path in iterpath(child):
 				yield [node] + path

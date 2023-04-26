@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 2023-??-??)
+-------------------------------------
+
+*	Replace a check for the ElementTree method :meth:`getchildren` with a check
+	for :meth:`findall` in :func:`xml2xsc.iterpath` since :meth:`getchildren`
+	has been removed in Python 3.9.
+
+
 Changes in 5.74 (released 2023-03-01)
 -------------------------------------
 
