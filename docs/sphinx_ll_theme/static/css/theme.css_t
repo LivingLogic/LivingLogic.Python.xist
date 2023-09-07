@@ -2066,16 +2066,6 @@ dt em
 		color: #ddf;
 	}
 
-	pre,
-	code,
-	.rst-content tt,
-	.rst-content code,
-	kbd,
-	samp
-	{
-		background-color: #000c;
-	}
-
 	a.iconpanel
 	{
 		border-color: #fc39;
@@ -2094,11 +2084,21 @@ dt em
 		background-color: #cc61;
 	}
 
+	pre,
+	code,
+	.rst-content tt,
+	.rst-content code,
+	kbd,
+	samp
+	{
+		background-color: #0006;
+	}
+
 	.rst-content pre.literal-block,
 	.rst-content div[class^="highlight"]
 	{
 		border-color: var(--rule-color-fg);
-		background-color: #ffffff03;
+		background-color: #0006;
 	}
 
 	main dl dt .classifier
