@@ -145,15 +145,15 @@ argument list and positional arguments must always be before keyword arguments.
 A list of builtin functions can be found in :ref:`UL4_functions`.
 
 .. hint::
-	This documentation uses Python's `/` and `*` notation to specify
+	This documentation uses Python's ``/`` and ``*`` notation to specify
 	positional-only and keyword-only arguments. So
 
 	.. sourcecode:: ul4
 
 		<?ul4 f(x, /, y, *, z)?>
 
-	means that the function `f` accepts the parameter ``x`` only when passed by
-	position, `y` can be passed either by position or by keyword and `z` will
+	means that the function ``f`` accepts the parameter ``x`` only when passed by
+	position, ``y`` can be passed either by position or by keyword and ``z`` will
 	only be accepted when passed by keyword.
 
 .. hint::
