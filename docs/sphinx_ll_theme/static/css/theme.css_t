@@ -231,7 +231,6 @@ mark
 	font-style:italic;
 	font-weight:bold;
 }
-
 pre,
 code,
 .rst-content tt,
@@ -240,6 +239,16 @@ kbd,
 samp
 {
 	font-family: "Source Code Pro", "Courier New", Courier, monospace;
+	background-color: #0001;
+	border-radius: 0.5em;
+}
+
+code,
+.rst-content code,
+kbd,
+samp
+{
+	padding: 1px 0.3em;
 }
 
 pre
@@ -2055,6 +2064,16 @@ dt em
 		border-color: #000;
 		background: #0094;
 		color: #ddf;
+	}
+
+	pre,
+	code,
+	.rst-content tt,
+	.rst-content code,
+	kbd,
+	samp
+	{
+		background-color: #000c;
 	}
 
 	a.iconpanel
