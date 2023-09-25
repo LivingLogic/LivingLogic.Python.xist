@@ -646,20 +646,20 @@ static PyMethodDef _functions[] =
 };
 
 
-static struct PyModuleDef _xml_codecmodule = {
+static PyModuleDef_Slot _xml_codec_slots[] = {
+	{0, NULL}
+};
+
+static struct PyModuleDef _xml_codec_module = {
 	PyModuleDef_HEAD_INIT,
-	"_xml_codec",
-	0, /* module doc */
-	0,
-	_functions,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.m_name = "_xml_codec",
+	.m_size = 0,
+	.m_methods = _functions,,
+	.m_slots = _xml_codec_slots
 };
 
 PyMODINIT_FUNC
 PyInit__xml_codec(void)
 {
-	return PyModuleDef_Init(&_xml_codecmodule);
+	return PyModuleDef_Init(&_xml_codec_module);
 }

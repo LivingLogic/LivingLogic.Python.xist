@@ -323,7 +323,7 @@ static PyMethodDef _functions[] = {
 	{"xmlescape",      (PyCFunction)xmlescape, METH_O,      xmlescape_doc},
 	{"xmlescape_text", (PyCFunction)xmlescape_text, METH_O, xmlescape_text_doc},
 	{"xmlescape_attr", (PyCFunction)xmlescape_attr, METH_O, xmlescape_attr_doc},
-	{NULL,     NULL} /* sentinel */
+	{NULL,             NULL} /* sentinel */
 };
 
 static char module__doc__[] = PyDoc_STR(
@@ -331,20 +331,22 @@ static char module__doc__[] = PyDoc_STR(
 	and :func:`xmlescape_attr`"
 );
 
-static struct PyModuleDef _miscmodule = {
+
+static PyModuleDef_Slot _misc_slots[] = {
+	{0, NULL}
+};
+
+static struct PyModuleDef _misc_module = {
 	PyModuleDef_HEAD_INIT,
-	"_misc",
-	module__doc__, /* module doc */
-	0,
-	_functions,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.m_name = "_misc",
+	.m_doc = module__doc__, /* module doc */
+	.m_size = 0,
+	.m_methods = _functions,
+	.m_slots = _misc_slots
 };
 
 PyMODINIT_FUNC
 PyInit__misc(void)
 {
-	return PyModuleDef_Init(&_miscmodule);
+	return PyModuleDef_Init(&_misc_module);
 }

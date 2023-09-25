@@ -486,14 +486,10 @@ static PyMethodDef _functions[] = {
 
 static struct PyModuleDef sgmlopmodule = {
 	PyModuleDef_HEAD_INIT,
-	"sgmlop",
-	0, /* module doc */
-	-1,
-	_functions,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.m_name = "sgmlop",
+	.m_doc = 0, /* module doc */
+	.m_size = -1,
+	.m_methods = _functions
 };
 
 PyMODINIT_FUNC PyInit_sgmlop(void)

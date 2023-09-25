@@ -106,20 +106,21 @@ static char module__doc__[] = PyDoc_STR(
 	"This module contains the function switchcolor()."
 );
 
-static struct PyModuleDef _ansistylemodule = {
+static PyModuleDef_Slot _ansistyle_slots[] = {
+	{0, NULL}
+};
+
+static struct PyModuleDef _ansistyle_module = {
 	PyModuleDef_HEAD_INIT,
-	"_ansistyle",
-	module__doc__, /* module doc */
-	0,
-	_functions,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.m_name = "_ansistyle",
+	.m_doc = module__doc__, /* module doc */
+	.m_size = 0,
+	.m_methods = _functions,
+	.m_slots = _ansistyle_slots
 };
 
 PyMODINIT_FUNC
 PyInit__ansistyle(void)
 {
-	return PyModuleDef_Init(&_ansistylemodule);
+	return PyModuleDef_Init(&_ansistyle_module);
 }
