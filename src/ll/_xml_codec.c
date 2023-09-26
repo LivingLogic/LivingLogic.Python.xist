@@ -654,7 +654,7 @@ static struct PyModuleDef _xml_codec_module = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "_xml_codec",
 	.m_size = 0,
-	.m_methods = _functions,,
+	.m_methods = _functions,
 	.m_slots = _xml_codec_slots
 };
 
