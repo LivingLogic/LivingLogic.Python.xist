@@ -15,6 +15,8 @@ Changes in HEAD (released 2023-??-??)
 	for :meth:`findall` in :func:`xml2xsc.iterpath` since :meth:`getchildren`
 	has been removed in Python 3.9.
 
+*	Add method ``timestamp`` to UL4 type ``datetime``.
+
 
 Changes in 5.74 (released 2023-03-01)
 -------------------------------------

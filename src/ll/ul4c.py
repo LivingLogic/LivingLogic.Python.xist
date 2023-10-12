@@ -1225,7 +1225,7 @@ DateType = DateType(None, "date", "A date")
 
 
 class DateTimeType(DateType.__class__):
-	wrappedmethattrs = DateType.wrappedmethattrs.union({"hour", "minute", "second", "microsecond"})
+	wrappedmethattrs = DateType.wrappedmethattrs.union({"hour", "minute", "second", "microsecond", "timestamp"})
 
 	def __call__(self, year, month, day, hour=0, minute=0, second=0, microsecond=0):
 		return datetime.datetime(year, month, day, hour, minute, second, microsecond)
@@ -1258,6 +1258,13 @@ class DateTimeType(DateType.__class__):
 		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4} {obj.hour:02}:{obj.minute:02}:{obj.second:02} GMT"
+	
+	@staticmethod
+	def timestamp(obj):
+		"""
+		Return the number of seconds since 1970-01-01 with microseconds precision.
+		"""
+		return obj.timestamp()
 
 DateTimeType = DateTimeType(None, "datetime", "A date and time value")
 
