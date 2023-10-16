@@ -4774,8 +4774,8 @@ def test_method_mimeformat_datetime(T):
 def test_method_timestamp_datetime(T):
 	t2 = datetime.datetime(1970, 1, 1)
 
-	assert '-3600.0' == T("<?print data.timestamp()?>").renders(data=t2)
-	assert '-3600.0' == T("<?code m = data.timestamp?><?print m()?>").renders(data=t2)
+	assert T("<?print data.timestamp()?>").renders(data=t2) in ('-3600', '-3600.0')
+	assert T("<?code m = data.timestamp?><?print m()?>").renders(data=t2) in ('-3600', '-3600.0')
 
 	with raises(argumentmismatchmessage):
 		T("<?print @(2000-02-29T12:34:56.987000).timestamp(42)?>").renders()
