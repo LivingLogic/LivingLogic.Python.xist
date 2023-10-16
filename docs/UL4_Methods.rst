@@ -387,6 +387,13 @@ a date object containing the date portion of the object is returned, so:
 prints ``2000-02-29``.
 
 
+``timestamp()``
+---------------
+
+The method ``timestamp()`` of date and datetime objects returns the number of
+seconds (with microseconds precision) between this date and 1970-01-01T00:00:00.
+
+
 ``calendar(firstweekday=0, mindaysinfirstweek=4)``
 -------------------------------------------------------
 
