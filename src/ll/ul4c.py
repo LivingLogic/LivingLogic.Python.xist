@@ -5007,13 +5007,13 @@ class Template(BlockAST):
 	"""
 
 	ul4_type = InstantiableType("ul4", "Template", "An UL4 template")
-	ul4_attrs = BlockAST.ul4_attrs.union({"signature", "doc", "name", "whitespace", "parenttemplate", "fullsource", "renders"})
+	ul4_attrs = BlockAST.ul4_attrs.union({"signature", "doc", "name", "namespace", "fullname", "whitespace", "parenttemplate", "fullsource", "renders"})
 
 	version = "52"
 
 	output = False # Evaluating a template doesn't produce output, but simply stores it in a local variable
 
-	def __init__(self, source=None, name=None, *, whitespace="keep", signature=None):
+	def __init__(self, source=None, name=None, *, namespace=None, whitespace="keep", signature=None):
 		"""
 		Create a :class:`Template` object.
 
@@ -5022,6 +5022,8 @@ class Template(BlockAST):
 
 		``name`` is the name of the template. It will be used in exception
 		messages and should be a valid Python identifier.
+
+		``namespace`` is the namespace name. It defaults to None.
 
 		``whitespace`` specifies how whitespace is handled in the literal text
 		in templates (i.e. the text between the tags):
@@ -5089,6 +5091,7 @@ class Template(BlockAST):
 		super().__init__(self, slice(0, 0), None)
 		self.whitespace = whitespace
 		self.name = name
+		self.namespace = namespace
 		self._fullsource = None
 		self.docpos = None
 		self.parenttemplate = None
@@ -5110,16 +5113,22 @@ class Template(BlockAST):
 			self._fullsource = ""
 			self.stoppos = self._startpos
 
+	@property
+	def fullname(self):
+		if self.name is None:
+			return None
+		return f"{self.namespace}.{self.name}" if self.namespace is not None else self.name
+
 	def _repr(self):
-		yield f"name={self.name!r}"
+		yield f"fullname={self.fullname!r}"
 		yield f"whitespace={self.whitespace!r}"
 		if self.signature is not None:
 			yield f"signature={self.signature}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
-		p.text("name=")
-		p.pretty(self.name)
+		p.text("fullname=")
+		p.pretty(self.fullname)
 		p.breakable()
 		p.text("whitespace=")
 		p.pretty(self.whitespace)
@@ -5138,7 +5147,7 @@ class Template(BlockAST):
 
 	def _str(self):
 		yield "def "
-		yield self.name if self.name is not None else "unnamed"
+		yield self.fullname or "unnamed"
 		if self.signature is not None:
 			if isinstance(self.signature, SignatureAST):
 				yield from self.signature._str()
@@ -5164,6 +5173,7 @@ class Template(BlockAST):
 		# Don't call ``super().ul4ondump()`` first, as we want the version to be first
 		encoder.dump(self.version)
 		encoder.dump(self.name)
+		encoder.dump(self.namespace)
 		encoder.dump(self._fullsource)
 		encoder.dump(self.whitespace)
 		_dumpslice(encoder, self.docpos)
@@ -5227,6 +5237,7 @@ class Template(BlockAST):
 		# This is implemented so that the PL/SQL version can put templates into UL4ON dumps.
 		if version is None: # dump is in "source" form
 			self.name = decoder.load()
+			self.namespace = decoder.load()
 			source = decoder.load()
 			signature = decoder.load()
 			self.whitespace = decoder.load()
@@ -5242,6 +5253,7 @@ class Template(BlockAST):
 			if version != self.version:
 				raise ValueError(f"invalid version, expected {self.version!r}, got {version!r}")
 			self.name = decoder.load()
+			self.namespace = decoder.load()
 			self._fullsource = decoder.load()
 			self.whitespace = decoder.load()
 			self.docpos = _loadslice(decoder)
@@ -6469,15 +6481,15 @@ class TemplateClosure(BlockAST):
 			return getattr(self, name)
 
 	def _repr(self):
-		yield f"name={self.name!r}"
+		yield f"fullname={self.fullname!r}"
 		yield f"whitespace={self.whitespace!r}"
 		if self.signature is not None:
 			yield f"signature={self.signature}"
 
 	def _repr_pretty(self, p):
 		p.breakable()
-		p.text("name=")
-		p.pretty(self.name)
+		p.text("fullname=")
+		p.pretty(self.fullname)
 		p.breakable()
 		p.text("whitespace=")
 		p.pretty(self.whitespace)

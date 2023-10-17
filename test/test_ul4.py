@@ -4421,7 +4421,7 @@ def test_function_dir(T):
 	set() == t(data=True)
 	set() == t(data=42)
 	set() == t(data=42.5)
-	assert {"calendar", "date", "day", "hour", "isoformat", "microsecond", "mimeformat", "minute", "month", "second", "week", "weekday", "year", "yearday"} == t(data=datetime.datetime.now())
+	assert {"calendar", "date", "day", "hour", "isoformat", "microsecond", "mimeformat", "minute", "month", "second", "week", "weekday", "timestamp", "year", "yearday"} == t(data=datetime.datetime.now())
 	assert {"a", "abslight", "abslum", "b", "combine", "g", "hls", "hlsa", "hsv", "hsva", "hue", "invert", "light", "lum", "r", "rellight", "rellum", "sat", "witha", "withhue", "withlight", "withlum", "withsat"} == t(data=color.red)
 	assert {"append", "count", "find", "insert", "pop", "rfind"} == t(data=[1, 2, 3])
 	assert {"add", "clear"} == t(data={1, 2, 3})
