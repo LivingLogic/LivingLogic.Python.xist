@@ -5980,9 +5980,11 @@ def test_astattributes(T):
 	t1 = ul4c.Template(s1, name="t1")
 
 	s2 = "<?printx 42?>"
-	t2 = ul4c.Template(s2, name="t2")
+	t2 = ul4c.Template(s2, name="t2", namespace="space")
 
 	assert "t1" == T("<?print template.template.name?>").renders(template=t1)
+	assert "None" == T("<?print repr(template.template.namespace)?>").renders(template=t1)
+	assert "t1" == T("<?print template.template.fullname?>").renders(template=t1)
 	assert "None" == T("<?print repr(template.parenttemplate)?>").renders(template=t1)
 	assert "2" == T("<?print len(template.content)?>").renders(template=t1) # The template AST always contains an :class:`Indent` node at the start
 	assert "(indent) (print)" == T("<?print ' '.join('(' + ast.type + ')' for ast in template.content)?>").renders(template=t1)
@@ -5992,6 +5994,9 @@ def test_astattributes(T):
 	assert "x" == T("<?print template.content[1].obj.source?>").renders(template=t1)
 	assert "var" == T("<?print template.content[1].obj.type?>").renders(template=t1)
 	assert "x" == T("<?print template.content[1].obj.name?>").renders(template=t1)
+	assert "t2" == T("<?print template.name?>").renders(template=t2)
+	assert "space" == T("<?print template.namespace?>").renders(template=t2)
+	assert "space.t2" == T("<?print template.fullname?>").renders(template=t2)
 	assert "printx" == T("<?print template.content[1].type?>").renders(template=t2)
 	assert "const" == T("<?print template.content[1].obj.type?>").renders(template=t2)
 	assert "42" == T("<?print template.content[1].obj.value?>").renders(template=t2)
@@ -6151,6 +6156,8 @@ def test_templateattributes_localtemplate(T):
 	assert source + "<?print lower.parenttemplate.source?>" == T(source + "<?print lower.parenttemplate.source?>").renders()
 	assert "<?print t.lower()?>" == T(source + "<?print lower.source[lower.content[0].startpos.start:lower.content[-1].startpos.stop]?>").renders()
 	assert "lower" == T(source + "<?print lower.name?>").renders()
+	assert "None" == T(source + "<?print repr(lower.namespace)?>").renders()
+	assert "lower" == T(source + "<?print lower.fullname?>").renders()
 
 
 @pytest.mark.ul4
@@ -6367,6 +6374,8 @@ def test_function_multiple_returnvalues(T):
 @pytest.mark.ul4
 def test_function_name(T):
 	assert "f" == T("<?def f?><?return f.name?><?end def?><?return f(f=f)?>")()
+	assert None is T("<?def f?><?return f.namespace?><?end def?><?return f(f=f)?>")()
+	assert "f" == T("<?def f?><?return f.fullname?><?end def?><?return f(f=f)?>")()
 
 
 @pytest.mark.ul4
@@ -6665,10 +6674,14 @@ def test_ul4_tag_python():
 
 	t1 = ul4c.Template("<?ul4 foo?>")
 	assert t1.name == "foo"
+	assert t1.namespace is None
+	assert t1.fullname == "foo"
 	assert t1.signature is None
 
 	t2 = ul4c.Template("<?ul4 foo2(bar)?>")
 	assert t2.name == "foo2"
+	assert t2.namespace is None
+	assert t2.fullname == "foo2"
 	assert str(t2.signature) == "(bar)"
 
 	t3 = ul4c.Template("<?ul4 foo3(bar=17, baz=23)?>")
