@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-import sys, os, json, datetime, math, tempfile, shutil, subprocess, re
+import sys, os, json, datetime, math, tempfile, subprocess, re, textwrap, pathlib
 
 import pytest
 
@@ -25,6 +25,10 @@ home = os.environ["HOME"]
 # are installed
 
 re_test_name = re.compile("(?P<file>[a-z0-9_/.]+)::(?P<test>[a-zA-Z0-9_]+)(?:\\[(?P<param>[a-z0-9_]+)\\])? \\((?P<phase>[a-z]+)\\)")
+
+
+def _indent(text):
+	return textwrap.indent(text, "\t\t")
 
 
 def make_func_name():
@@ -276,43 +280,33 @@ def java_formatsource(string):
 	return "".join(newlines)
 
 
-def java_runsource(source):
-	"""
-	Compile the Java source ``source``, run it and return the output
-	"""
-	source = f"""
-	public class UL4ONTest
-	{{
-		@SuppressWarnings("unchecked")
-		public static void main(String[] args) throws java.io.IOException, java.io.UnsupportedEncodingException, org.antlr.runtime.RecognitionException, ClassNotFoundException
-		{{
-			// Force the JVM to register the UL4 classes for UL4ON
-			Class.forName("com.livinglogic.ul4.Template");
-			{source}
-		}}
-	}}
-	"""
-
-	tempdir = tempfile.mkdtemp()
-	stderr = stdout = None
+def run(data, indent=None):
+	dump = ul4on.dumps(data, indent=indent)
+	dump = ul4on.dumps({'indent': indent, 'dump': dump})
+	print(f"\tInput data as UL4ON dump is:\n{_indent(dump)}")
+	dump = dump.encode("utf-8")
+	currentdir = pathlib.Path.cwd()
 	try:
-		source = java_formatsource(source)
-		print(source)
-		with open(os.path.join(tempdir, "UL4ONTest.java"), "wb") as f:
-			f.write(source.encode("utf-8"))
-		result = subprocess.run(f"cd {tempdir}; javac -encoding utf-8 UL4ONTest.java", stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		if result.returncode:
-			stderr = result.stderr.decode("utf-8")
-			print(stderr, file=sys.stderr)
-			raise RuntimeError(stderr.splitlines()[0])
-		result = subprocess.run(f"cd {tempdir}; java UL4ONTest", stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-		stdout = result.stdout.decode("utf-8")
-		# Check if we have an exception
-		java_findexception(result.stderr.decode("utf-8"))
+		os.chdir(pathlib.Path.home() / "checkouts/LivingLogic.Java.ul4")
+		result = subprocess.run("gradle -q --console=plain execute_ul4on", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	finally:
-		shutil.rmtree(tempdir)
-	if stderr:
-		print(stderr, file=sys.stderr)
+		os.chdir(currentdir)
+	print(f"\tReturn code is {result.returncode}")
+	# Check if we have an exception
+	stderr = result.stderr.decode("utf-8", "passbytes")
+	print(f"\tOutput on stderr is:\n{_indent(stderr)}")
+	if result.returncode != 0:
+		self._find_exception(stderr)
+		if stderr:
+			# No exception found, but we still have error output,
+			# so complain anyway with the original output
+			raise ValueError(stderr)
+	stdout = result.stdout.decode("utf-8", "passbytes")
+	if stdout.startswith("hexdump:"):
+		stdout = bytes.fromhex(stdout[8:]).decode("utf-8")
+	else:
+		raise ValueError(f"unrecognizable stdout: {stdout!r}")
+	print(f"\tOutput on stdout is:\n{_indent(stdout)}")
 	return stdout
 
 
@@ -327,18 +321,7 @@ def _transport_java(obj, indent):
 	f = sys._getframe(1)
 	print(f"Testing UL4ON via Java ({f.f_code.co_filename}, line {f.f_lineno}):")
 
-	dump = ul4on.dumps(obj, indent=indent)
-	code = f"""
-	String input = {misc.javaexpr(dump)};
-	Object object = com.livinglogic.ul4on.Utils.loads(input, null);
-	String output = com.livinglogic.ul4on.Utils.dumps(object, {misc.javaexpr(indent)});
-	// We can't use ``System.out.print`` here, because this gives us no control over the encoding
-	// Use ``System.out.write`` to make sure the output is in UTF-8
-	byte[] outputBytes = output.getBytes("utf-8");
-	System.out.write(outputBytes, 0, outputBytes.length);
-	"""
-
-	output = java_runsource(code)
+	output = run(obj, indent=indent)
 	return ul4on.loads(output)
 
 
@@ -515,9 +498,10 @@ def test_nested(t):
 
 
 def test_template_from_source():
-	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'<?print x + y?>' s'x, y=23' s'keep' )")
+	t = ul4on.loads("o s'de.livinglogic.ul4.template' n s'test' s'namespace' s'<?print x + y?>' s'x, y=23' s'keep' )")
 
 	assert t.name == "test"
+	assert t.namespace == "namespace"
 	assert t.source == "<?ul4 test(x, y=23)?><?print x + y?>"
 	assert t.whitespace == "keep"
 	assert t.renders(17) == "40"

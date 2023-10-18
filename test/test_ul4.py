@@ -169,7 +169,7 @@ class TemplateJava:
 		currentdir = pathlib.Path.cwd()
 		try:
 			os.chdir(pathlib.Path.home() / "checkouts/LivingLogic.Java.ul4")
-			result = subprocess.run("gradle -q --console=plain execute", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+			result = subprocess.run("gradle -q --console=plain execute_ul4", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		finally:
 			os.chdir(currentdir)
 		print(f"\tReturn code is {result.returncode}")
