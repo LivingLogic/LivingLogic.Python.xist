@@ -183,6 +183,10 @@ class TemplateJava:
 				# so complain anyway with the original output
 				raise ValueError(stderr)
 		stdout = result.stdout.decode("utf-8", "passbytes")
+		if stdout.startswith("hexdump:"):
+			stdout = bytes.fromhex(stdout[8:]).decode("utf-8")
+		else:
+			raise ValueError(f"unrecognizable stdout: {stdout!r}")
 		print(f"\tOutput on stdout is:\n{self._indent(stdout)}")
 		return stdout
 
