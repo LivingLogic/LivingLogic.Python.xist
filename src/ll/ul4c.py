@@ -5462,33 +5462,40 @@ class Template(BlockAST):
 		pattern = r"<\?\s*(ul4|whitespace|printx|print|code|for|while|if|elif|else|end|break|continue|def|return|renderblocks|renderblock|renderx|render|renderx_or_printx|render_or_printx|renderx_or_print|render_or_print|note|doc|ignore)\b(\s*((.|\n)*?)\s*)?\?>"
 		# Last position
 		pos = 0
-		# Nesting level of ``<?ignore?>``/``<?end ignore?>``
-		ignore = 0
-		# Location of the last active outermost ``<?ignore?>`` block
-		last_ignore_tag_pos = None
-		last_ignore_code_pos = None
+		# Nesting level of ``<?ignore?>``, ``<?doc?>`` or ``<?note?>`` blocks
+		nestinglevel = 0
+		# In which type of nested block we're in: "ignore", "doc" or "note"
+		nestingtype = None
+		# Location of the last active outermost nested block
+		last_nested_tag_pos = None
+		last_nested_code_pos = None
 		for match in re.finditer(pattern, source):
-			if not ignore and match.start() != pos:
+			if not nestinglevel and match.start() != pos:
 				yield TextAST(self, source, pos, match.start())
 			tagname = source[slice(*match.span(1))]
-			if tagname == "ignore":
-				if not ignore:
-					# Remember the initial ignore block so we can complain about it
-					# if it remains unclosed
-					last_ignore_tag_pos = slice(*match.span())
-					last_ignore_code_pos = slice(*match.span(3))
-				ignore += 1
-			elif ignore and tagname == "end" and match.group(3) == "ignore":
-				ignore -= 1
-			elif not ignore and tagname != "note":
-				yield Tag(self, tagname, slice(*match.span()), slice(*match.span(3)))
+			if not nestinglevel:
+				if tagname == "ignore" or (tagname in {"doc", "note"} and not match.group(3)):
+					# Remember the initial outer nested block so we can complain
+					# about it if it remains unclosed
+					last_nested_tag_pos = slice(*match.span())
+					last_nested_code_pos = slice(*match.span(3))
+					nestinglevel += 1
+					nestingtype = tagname
+				elif tagname not in {"ignore", "note"}:
+					yield Tag(self, tagname, slice(*match.span()), slice(*match.span(3)))
+			elif tagname == nestingtype and (tagname == "ignore" or not match.group(3)):
+				nestinglevel += 1
+			elif tagname == "end" and match.group(3) == nestingtype:
+				nestinglevel -= 1
+				if not nestinglevel and nestingtype == "doc":
+					yield Tag(self, nestingtype, slice(last_nested_tag_pos.start, match.end()), slice(last_nested_tag_pos.stop, match.start()))
 			pos = match.end()
 		end = len(source)
-		if not ignore and pos != end:
+		if not nestinglevel and pos != end:
 			yield TextAST(self, source, pos, end)
-		if ignore:
-			exc = BlockError("<?ignore?> block unclosed")
-			_decorateexception(exc, Tag(self, "ignore", last_ignore_tag_pos, last_ignore_code_pos))
+		if nestinglevel:
+			exc = BlockError(f"<?{nestingtype}?> block unclosed")
+			_decorateexception(exc, Tag(self, nestingtype, last_nested_tag_pos, last_nested_code_pos))
 			raise exc
 
 	def _tags2lines(self, tags):

@@ -21,6 +21,11 @@ Changes in HEAD (released 2023-??-??)
 
 *	Updated UL4 and UL4ON test infrastructure to work around problems with gradle.
 
+*	In UL4 ``<?doc?>`` and ``<?note?>`` can now be nested, and otherwise can
+	contain anything up to the matching ``<?end doc?>`` or ``<?end note?>`` tag,
+	but only if the initial ``<?doc?>`` or ``<?note?>`` tag contains only
+	whitespace (e.g. ``<?doc    ?>`` etc.)
+
 
 Changes in 5.74 (released 2023-03-01)
 -------------------------------------

@@ -1190,6 +1190,7 @@ def test_ignore(T):
 	assert "" == T("<?ignore?><?if?>nix<?end?><?end for?><?end ignore?>").renders()
 	assert "" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
 	assert "doch" == T("<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>doch<?ignore?>nix<?ignore?>nix<?end ignore?>nix<?end ignore?>").renders()
+	assert "" == T("<?ignore?><?doc?><?doc gurk?><?note?><?note gurk?><?end ignore?>").renders()
 
 
 @pytest.mark.ul4
@@ -5928,17 +5929,26 @@ def test_nested_exceptions(T):
 @pytest.mark.ul4
 def test_note(T):
 	assert "foo" == T("f<?note This is?>o<?note a comment?>o").renders()
+	assert "foo" == T("f<?note \r\n\t?>This is<?end note?>o<?note \r\n\t?>a comment<?end note?>o").renders()
+	assert "foo" == T("f<?note \r\n\t?>This is<?note anything?> ok<?end note?>o<?note anything?>o").renders()
+	with raises("<\\?note\\?> block unclosed"):
+		T("f<?note?>This is<?note?>unclosed<?end note?>").renders()
 
 
-@pytest.mark.ul4
-def test_doc_attr():
-	template = ul4c.Template("<?doc foo?><?def inner?><?doc innerfoo?><?doc innerbar?><?end def?><?doc bar?><?printx inner.doc?>")
-	assert "foo" == template.doc
 
 
 @pytest.mark.ul4
 def test_doc(T):
+	t1 = ul4c.Template("<?doc foo?><?def inner?><?doc innerfoo?><?doc innerbar?><?end def?><?doc bar?><?printx inner.doc?>")
+	assert "foo" == T("<?print t.doc?>").renders(t=t1)
+
 	assert "innerfoo" == T("<?doc foo?><?def inner?><?doc innerfoo?><?doc innerbar?><?end def?><?doc bar?><?printx inner.doc?>").renders()
+
+	t2 = ul4c.Template("<?doc?><?note?><?note?><?end note?><?end doc?>")
+	assert "<?note?><?note?><?end note?>" == T("<?print t.doc?>").renders(t=t2)
+
+	t3 = ul4c.Template("<?doc?><?doc nix?><?end doc?>")
+	assert "<?doc nix?>" == T("<?print t.doc?>").renders(t=t3)
 
 
 @pytest.mark.ul4
