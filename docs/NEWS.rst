@@ -11,20 +11,21 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released 2023-??-??)
 -------------------------------------
 
-*	Replace a check for the ElementTree method :meth:`getchildren` with a check
-	for :meth:`findall` in :func:`xml2xsc.iterpath` since :meth:`getchildren`
-	has been removed in Python 3.9.
-
-*	Add method ``timestamp`` to UL4 type ``datetime``.
-
-*	Add attribute ``namespace`` to UL4 templates.
-
-*	Updated UL4 and UL4ON test infrastructure to work around problems with gradle.
-
 *	In UL4 ``<?doc?>`` and ``<?note?>`` can now be nested, and otherwise can
 	contain anything up to the matching ``<?end doc?>`` or ``<?end note?>`` tag,
 	but only if the initial ``<?doc?>`` or ``<?note?>`` tag contains only
-	whitespace (e.g. ``<?doc    ?>`` etc.)
+	whitespace (e.g. ``<?doc    ?>`` etc.). This makes it possible to have source
+	code examples in ``<?doc?>`` or ``<?note?>`` tags.
+
+*	Add attribute ``namespace`` to UL4 templates.
+
+*	Add method ``timestamp`` to UL4 type ``datetime``.
+
+*	Updated UL4 and UL4ON test infrastructure to work around problems with gradle.
+
+*	Replace a check for the ElementTree method :meth:`getchildren` with a check
+	for :meth:`findall` in :func:`xml2xsc.iterpath` since :meth:`getchildren`
+	has been removed in Python 3.9.
 
 
 Changes in 5.74 (released 2023-03-01)
