@@ -288,7 +288,7 @@ def run(data, indent=None):
 	currentdir = pathlib.Path.cwd()
 	try:
 		os.chdir(pathlib.Path.home() / "checkouts/LivingLogic.Java.ul4")
-		result = subprocess.run("gradle -q --console=plain execute_ul4on", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+		result = subprocess.run("./gradlew -q --console=plain execute_ul4on", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	finally:
 		os.chdir(currentdir)
 	print(f"\tReturn code is {result.returncode}")
