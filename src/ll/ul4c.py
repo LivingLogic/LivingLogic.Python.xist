@@ -6506,3 +6506,28 @@ class TemplateClosure(BlockAST):
 		for node in self.content:
 			p.breakable()
 			p.pretty(node)
+
+
+class BoundTemplate:
+	"""
+	A template bound to an object.
+
+	Calling or rendering a :class:`BoundTemplate` instance passes the object
+	to which the template is bound as the first positional argument.
+	"""
+
+	def __init__(self, object, template):
+		self.object = object
+		self.template = template
+
+	@withcontext
+	def ul4_render(self, context, /, *args, **kwargs):
+		yield from self.template.ul4_render(context, *(self.object,) + args, **kwargs)
+
+	@withcontext
+	def ul4_renders(self, context, /, *args, **kwargs):
+		return self.template.ul4_renders(context, *(self.object,) + args, **kwargs)
+
+	@withcontext
+	def ul4_call(self, context, /, *args, **kwargs):
+		return self.template.ul4_call(context, *(self.object,) + args, **kwargs)

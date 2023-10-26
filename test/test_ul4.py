@@ -79,6 +79,19 @@ class PseudoList(abc.Sequence):
 		return len(self.list)
 
 
+class ObjectWithTemplate:
+	def __init__(self, attr, **kwargs):
+		self.attr = attr
+		self.templates = kwargs
+
+	def ul4_getattr(self, name):
+		if name == "attr":
+			return self.attr
+		elif name.startswith("t_") and name[2:] in self.templates:
+			return ul4c.BoundTemplate(self, self.templates[name[2:]])
+		raise AttributeError(name)
+
+
 class TemplatePython:
 	def __init__(self, source, name=None, whitespace="keep", signature=None):
 		self.source = source
@@ -90,13 +103,13 @@ class TemplatePython:
 	def maketemplate(self):
 		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
-	def render(self, *args, **kwargs):
+	def render(self, /, *args, **kwargs):
 		return "".join(self.template.render(*args, **kwargs))
 
-	def renders(self, *args, **kwargs):
+	def renders(self, /, *args, **kwargs):
 		return self.template.renders(*args, **kwargs)
 
-	def __call__(self, *args, **kwargs):
+	def __call__(self, /, *args, **kwargs):
 		return self.template(*args, **kwargs)
 
 	def render_with_globals(self, args, kwargs, globals):
@@ -7540,3 +7553,88 @@ def test_module_ul4_typecheck_template(T):
 @pytest.mark.ul4
 def test_module_ul4_typecheck_templateclosure(T):
 	check_ast_types(T, "<?def f()?><?end def?><?return f?>", "t()", "ul4.TemplateClosure")
+
+
+@pytest.mark.ul4
+def test_python_boundtemplate_normal():
+	T = TemplatePython
+
+	obj = ObjectWithTemplate(
+		42,
+		call=ul4c.Template("""
+			<?ul4 call(self)?>
+			<?whitespace strip?>
+			<?return self.attr?>
+		"""),
+		render1=ul4c.Template("""
+			<?ul4 render1(self)?>
+			<?whitespace strip?>
+			<?print self.attr?>
+		"""),
+		render2=ul4c.Template("""
+			<?ul4 render2(self)?>
+			<?whitespace strip?>
+			<?render self.t_render1()?>
+		"""),
+	)
+
+	assert 42 == T('<?return self.t_call()?>')(self=obj)
+	assert "42" == T('<?render self.t_render1()?>').renders(self=obj)
+	assert "42" == T('<?render self.t_render2()?>').renders(self=obj)
+
+
+@pytest.mark.ul4
+def test_python_boundtemplate_renderx():
+	T = TemplatePython
+
+	obj = ObjectWithTemplate(
+		"<&>",
+		render1=ul4c.Template("""
+			<?ul4 render(self)?>
+			<?whitespace strip?>
+			<?print self.attr?>
+		"""),
+		render2=ul4c.Template("""
+			<?ul4 render(self)?>
+			<?whitespace strip?>
+			<?renderx self.t_render1()?>
+		"""),
+	)
+
+	assert "&lt;&amp;&gt;" == T('<?renderx self.t_render1()?>').renders(self=obj)
+	assert "&amp;lt;&amp;amp;&amp;gt;" == T('<?renderx self.t_render2()?>').renders(self=obj)
+
+
+@pytest.mark.ul4
+def test_python_boundtemplate_renderblock():
+	T = TemplatePython
+
+	obj = ObjectWithTemplate(
+		"<&>",
+		render=ul4c.Template("""
+			<?ul4 render(self, content)?>
+			<?whitespace strip?>
+			[<?print self.attr?>]
+			[<?render_or_printx content()?>]
+		""")
+	)
+
+	assert "[<&>][!!!]" == T('<?renderblock self.t_render()?>!!!<?end renderblock?>').renders(self=obj)
+
+
+@pytest.mark.ul4
+def test_python_boundtemplate_renderblocks():
+	T = TemplatePython
+
+	obj = ObjectWithTemplate(
+		"<&>",
+		render=ul4c.Template("""
+			<?ul4 render(self, content1, content2)?>
+			<?whitespace strip?>
+			[<?print self.attr?>]
+			[<?render_or_printx content1()?>]
+			[<?render_or_printx content2()?>]
+		""")
+	)
+
+	assert "[<&>][!!!][???]" == T('<?renderblocks self.t_render()?><?def content1?>!!!<?end def?><?code content2 = "???"?><?end renderblocks?>').renders(self=obj)

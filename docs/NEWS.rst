@@ -17,6 +17,12 @@ Changes in HEAD (released 2023-??-??)
 	whitespace (e.g. ``<?doc    ?>`` etc.). This makes it possible to have source
 	code examples in ``<?doc?>`` or ``<?note?>`` tags.
 
+*	Added a new class :class:`BoundTemplate` to :mod:`ll.ul4c`: This is an UL4
+	template bound to an object.
+
+	Calling or rendering a :class:`BoundTemplate` instance passes the object
+	to which the template is bound as the first positional argument.
+
 *	Add attribute ``namespace`` to UL4 templates.
 
 *	Add method ``timestamp`` to UL4 type ``datetime``.
