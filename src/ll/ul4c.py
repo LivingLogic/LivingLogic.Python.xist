@@ -3129,7 +3129,7 @@ class AttrAST(CodeAST):
 		try:
 			return _type(obj).getattr(obj, self.attrname)
 		except AttributeError:
-			return UndefinedKey(self.attrname)
+			return UndefinedKey(obj, self.attrname)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -3475,7 +3475,7 @@ class ItemAST(BinaryAST):
 		try:
 			return obj1[obj2]
 		except KeyError:
-			return UndefinedKey(obj2)
+			return UndefinedKey(obj1, obj2)
 
 	@_handleexpressioneval
 	def evalset(self, context, value):
@@ -4621,7 +4621,10 @@ class RenderAST(CallAST):
 		if 0:
 			yield None
 		from ll import misc
-		raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
+		if isinstance(obj, Undefined):
+			raise TypeError(f"{obj!r} can't be rendered")
+		else:
+			raise TypeError(f"{misc.format_class(obj)} object can't be rendered")
 
 	def _printobject(self, context, obj):
 		if self.indent:
@@ -6085,21 +6088,22 @@ class Undefined:
 class UndefinedKey(Undefined):
 	ul4_type = Type(None, "undefinedkey")
 
-	def __init__(self, key):
-		self._key = key
+	def __init__(self, object, key):
+		self.object = object
+		self.key = key
 
 	def __repr__(self):
-		return f"UndefinedKey({self._key!r})"
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object={self.object!r} key={self.key!r} at {id(self):#x}>"
 
 
 class UndefinedVariable(Undefined):
 	ul4_type = Type(None, "undefinedvariable")
 
 	def __init__(self, name):
-		self._name = name
+		self.name = name
 
 	def __repr__(self):
-		return f"UndefinedVariable({self._name!r})"
+		return f"UndefinedVariable({self.name!r})"
 
 
 ###
