@@ -6525,6 +6525,9 @@ class BoundTemplate:
 		self.object = object
 		self.template = template
 
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object={self.object!r} template={self.template!r} at {id(self):#x}>"
+
 	@withcontext
 	def ul4_render(self, context, /, *args, **kwargs):
 		yield from self.template.ul4_render(context, *(self.object,) + args, **kwargs)
