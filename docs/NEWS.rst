@@ -27,6 +27,9 @@ Changes in HEAD (released 2023-??-??)
 
 *	Add method ``timestamp`` to UL4 type ``datetime``.
 
+*	The result of calling ``dir()`` on an object in UL4 can now be customized
+	by implementing ``ul4_dir()``.
+
 *	Updated UL4 and UL4ON test infrastructure to work around problems with gradle.
 
 *	Replace a check for the ElementTree method :meth:`getchildren` with a check

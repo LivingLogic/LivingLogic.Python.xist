@@ -927,6 +927,9 @@ class Type:
 				return name in self.plainattrs or name in self.wrappeddataattrs or name in self.wrappedmethattrs
 
 	def dir(self, obj):
+		ul4_dir = getattr(obj, "ul4_dir", None)
+		if ul4_dir is not None:
+			return ul4_dir()
 		ul4_attrs = getattr(obj, "ul4_attrs", None)
 		if ul4_attrs is not None:
 			return ul4_attrs
