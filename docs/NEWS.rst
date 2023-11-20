@@ -27,6 +27,9 @@ Changes in HEAD (released 2023-??-??)
 
 *	Add method ``timestamp`` to UL4 type ``datetime``.
 
+*	The UL4 function ``getattr`` now returns an ``UndefinedKey`` object when
+	accessing an undefined attribute and no default value is passed.
+
 *	The result of calling ``dir()`` on an object in UL4 can now be customized
 	by implementing ``ul4_dir()``.
 

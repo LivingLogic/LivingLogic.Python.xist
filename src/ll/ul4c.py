@@ -6424,8 +6424,11 @@ def _ceil(number, /, digits=0):
 		return math.ceil(number)
 
 
-def _getattr(obj, attrname, default=None):
-	return _type(obj).getattr(obj, attrname, default)
+def _getattr(obj, attrname, default=object):
+	try:
+		return _type(obj).getattr(obj, attrname, default)
+	except AttributeError:
+		return UndefinedKey(obj, attrname)
 
 
 def _setattr(obj, attrname, value):
