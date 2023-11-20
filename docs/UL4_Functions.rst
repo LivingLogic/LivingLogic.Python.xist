@@ -660,3 +660,18 @@ prints
 
 ``type`` returns the type of an object as a type object. For type object see the
 following description.
+
+
+``getattr(obj, attrname, default=?, /)``
+========================================
+
+``getattr`` returns the attribute named ``attrname`` of the object ``obj``. If
+``obj`` doesn't have an attribute with that name ``default`` will returned
+(when passed, else an ``UndefinedKey`` object will returned).
+
+
+``hasattr(obj, attrname, /)``
+=============================
+
+``hasattr`` returns whether the object ``obj`` has an attribute named
+``attrname``.
