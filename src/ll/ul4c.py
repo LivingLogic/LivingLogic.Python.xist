@@ -108,7 +108,8 @@ class LocationError(Exception):
 		prefix = "in local template" if template.parenttemplate is not None else "in template"
 		out = []
 		while template is not None:
-			out.append(repr(template.name) if template.name is not None else "(unnamed)")
+			fullname = template.fullname
+			out.append(repr(fullname) if fullname is not None else "(unnamed)")
 			template = template.parenttemplate
 		return f"{prefix} {' in '.join(out)}"
 
