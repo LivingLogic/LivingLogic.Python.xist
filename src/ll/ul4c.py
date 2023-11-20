@@ -6528,6 +6528,75 @@ class BoundTemplate:
 	def __repr__(self):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} object={self.object!r} template={self.template!r} at {id(self):#x}>"
 
+	def render(self, /, *args, **kwargs):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will
+		only be supported if the template has a signature.
+		"""
+		context = Context()
+		yield from self.ul4_render(context, *args, **kwargs)
+
+	def render_with_globals(self, args, kwargs, globals):
+		"""
+		Render the template iteratively (i.e. this is a generator).
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. ``globals`` contains global
+		variables. Positional arguments will only be supported if the template
+		has a signature.
+		"""
+		context = Context(globals)
+		yield from self.ul4_render(context, *args, **kwargs)
+
+	def renders(self, /, *args, **kwargs):
+		"""
+		Render the template as a string.
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will only
+		be supported if the template has a signature.
+		"""
+		context = Context()
+		return self.ul4_renders(context, *args, **kwargs)
+
+	def renders_with_globals(self, args, kwargs, globals):
+		"""
+		Render the template as a string.
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. ``globals`` contains global
+		variables. Positional arguments will only be supported if the template
+		has a signature.
+		"""
+		context = Context(globals)
+		return self.ul4_renders(context, *args, **kwargs)
+
+	def __call__(self, /, *args, **kwargs):
+		"""
+		Call the template as a function and return the resulting value.
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. Positional arguments will
+		only be supported if the template has a signature.
+		"""
+		context = Context()
+		return self.ul4_call(context, *args, **kwargs)
+
+	def call_with_globals(self, args, kwargs, globals):
+		"""
+		Call the template as a function and return the resulting value.
+
+		``args`` and ``kwargs`` contain the top level positional and keyword
+		arguments available to the template code. ``globals`` contains global
+		variables. Positional arguments will only be supported if the template
+		has a signature.
+		"""
+		context = Context(globals)
+		return self.ul4_call(context, *args, **kwargs)
+
 	@withcontext
 	def ul4_render(self, context, /, *args, **kwargs):
 		yield from self.template.ul4_render(context, *(self.object,) + args, **kwargs)
