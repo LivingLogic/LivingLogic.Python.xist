@@ -14,8 +14,7 @@ A module that allows you to embed JSP content as processing instructions.
 """
 
 
-import cgi # for parse_header
-
+from ll import misc
 from ll.xist import xsc, sims
 
 
@@ -155,7 +154,7 @@ class directive_page(directive):
 	def publish(self, publisher):
 		# Only a contentType attribute triggers the special code
 		if "contentType" in self.attrs and not self.attrs.contentType.isfancy() and not self.attrs.pageEncoding.isfancy():
-			(contenttype, options) = cgi.parse_header(str(self.attrs.contentType))
+			(contenttype, options) = misc.parse_header(str(self.attrs.contentType))
 			pageencoding = str(self.attrs.pageEncoding)
 			encoding = publisher.encoding
 			if encoding is None:

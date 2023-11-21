@@ -28,8 +28,9 @@ text.
 
 """
 
-import os, tempfile, subprocess, cgi, textwrap, collections
+import os, tempfile, subprocess, textwrap, collections
 
+from ll import misc
 from ll.xist import xsc, sims
 
 
@@ -607,7 +608,7 @@ class meta(xsc.Element):
 		if "http-equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
 			ctype = str(self.attrs.http_equiv).lower()
 			if ctype == "content-type" and "content" in self.attrs:
-				(contenttype, options) = cgi.parse_header(str(self.attrs.content))
+				(contenttype, options) = misc.parse_header(str(self.attrs.content))
 				encoding = publisher.getencoding()
 				if "charset" not in options or options["charset"] != encoding:
 					options["charset"] = encoding

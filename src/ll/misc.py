@@ -631,6 +631,42 @@ def itersplitat(string, positions):
 		yield part
 
 
+# The following two function are copied from Python ``cgi`` module
+# (which will be deprecated in Python 3.13)
+
+def _parseparam(s):
+	while s[:1] == ';':
+		s = s[1:]
+		end = s.find(';')
+		while end > 0 and (s.count('"', 0, end) - s.count('\\"', 0, end)) % 2:
+			end = s.find(';', end + 1)
+		if end < 0:
+			end = len(s)
+		f = s[:end]
+		yield f.strip()
+		s = s[end:]
+
+
+def parse_header(line):
+	"""
+	Parse a Content-type like header.
+
+	Return the main content-type and a dictionary of options.
+	"""
+	parts = _parseparam(';' + line)
+	key = parts.__next__()
+	pdict = {}
+	for p in parts:
+		i = p.find('=')
+		if i >= 0:
+			name = p[:i].strip().lower()
+			value = p[i+1:].strip()
+			if len(value) >= 2 and value[0] == value[-1] == '"':
+				value = value[1:-1]
+				value = value.replace('\\\\', '\\').replace('\\"', '"')
+			pdict[name] = value
+	return (key, pdict)
+
 def module(source, filename="unnamed.py", name=None):
 	"""
 	Create a module from the Python source code ``source``. ``filename``
@@ -709,9 +745,9 @@ def javaexpr(obj):
 		items = ", ".join(javaexpr(item) for item in obj)
 		return f"com.livinglogic.utils.SetUtils.makeSet({items})"
 	elif isinstance(obj, ul4c.UndefinedKey):
-		return f"new com.livinglogic.ul4.UndefinedKey({javaexpr(obj._key)})"
+		return f"new com.livinglogic.ul4.UndefinedKey(null, {javaexpr(obj.key)})"
 	elif isinstance(obj, ul4c.UndefinedVariable):
-		return f"new com.livinglogic.ul4.UndefinedVariable({javaexpr(obj._name)})"
+		return f"new com.livinglogic.ul4.UndefinedVariable({javaexpr(obj.name)})"
 	elif isinstance(obj, ul4c.Template):
 		return obj.javasource()
 	else:

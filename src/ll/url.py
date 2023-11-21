@@ -41,7 +41,7 @@ Module documentation
 
 
 import os, urllib.request, urllib.error, urllib.parse as urlparse, mimetypes, io, warnings
-import datetime, cgi, re, fnmatch, pickle, errno, threading
+import datetime, re, fnmatch, pickle, errno, threading
 import email
 from email import utils
 
@@ -1628,7 +1628,7 @@ class URLResource(Resource):
 		self._encoding = None
 		contenttype = self._resheaders.get("Content-Type")
 		if contenttype is not None:
-			(mimetype, options) = cgi.parse_header(contenttype)
+			(mimetype, options) = misc.parse_header(contenttype)
 			self._mimetype = mimetype
 			self._encoding = options.get("charset")
 
