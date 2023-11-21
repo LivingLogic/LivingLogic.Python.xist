@@ -40,7 +40,7 @@ Changes in 5.75 (released 2023-11-21)
 	has been removed in Python 3.9.
 
 *	Copied the implementation of :func:`cgi.parse_header` to :mod:`ll.misc`
-	since :func:`cgi.parse_header` will deprecated in Python 3.13.
+	since :func:`cgi.parse_header` will be deprecated in Python 3.13.
 	(:func:`cgi.parse_header` is used by :mod:`ll.url`, :mod:`ll.xist.ns.html`
 	and :mod:`ll.xist.ns.jsp`).
 
