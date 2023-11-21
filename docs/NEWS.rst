@@ -39,6 +39,11 @@ Changes in HEAD (released 2023-??-??)
 	for :meth:`findall` in :func:`xml2xsc.iterpath` since :meth:`getchildren`
 	has been removed in Python 3.9.
 
+*	Copied the implementation of :func:`cgi.parse_header` to :mod:`ll.misc`
+	since :func:`cgi.parse_header` will deprecated in Python 3.13.
+	(:func:`cgi.parse_header` is used by :mod:`ll.url`, :mod:`ll.xist.ns.html`
+	and :mod:`ll.xist.ns.jsp`).
+
 
 Changes in 5.74 (released 2023-03-01)
 -------------------------------------
