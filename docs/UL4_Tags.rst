@@ -540,6 +540,26 @@ A ``note`` tag is a comment and can be used to explain the template code.
 When the template gets executed, the content of the tag will be completely
 ignored.
 
+The ``<?note?>`` tag supports two variants:
+
+*	The comment can be included as the content of the tag:
+
+	.. sourcecode:: ul4
+
+		<?note comment?>
+
+*	The comment can be included between a ``<?note?>`` and an ``<?end note?>``
+	tag:
+
+	.. sourcecode:: ul4
+
+		<?note?>
+		comment
+		<?end note?>
+
+	This second variant makes it possible to include UL4 source code in
+	``<?note?>`` tags.
+
 .. hint::
 	A ``<?note?>`` tag has no corresponding AST nodes.
 
@@ -563,6 +583,26 @@ level, it belongs to the outermost template. If the ``<?doc?>`` tag is inside
 a local template, it is the documentation for the local template. If multiple
 ``<?doc?>`` tags are given, only the first one will be used, all later ones will
 be ignored.
+
+The ``<?doc?>`` tag supports two variants:
+
+*	The description can be included as the content of the tag:
+
+	.. sourcecode:: ul4
+
+		<?doc description?>
+
+*	The description can be included between a ``<?doc?>`` and an ``<?end doc?>``
+	tag:
+
+	.. sourcecode:: ul4
+
+		<?doc?>
+		description
+		<?end doc?>
+
+	This second variant makes it possible to include UL4 source code in
+	``<?doc?>`` tags.
 
 Note that the template name, documentation and signature are accessible inside
 the templates themselves, i.e.:

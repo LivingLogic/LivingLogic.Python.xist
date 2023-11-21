@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2023-??-??)
+Changes in 5.75 (released 2023-11-21)
 -------------------------------------
 
 *	In UL4 ``<?doc?>`` and ``<?note?>`` can now be nested, and otherwise can
