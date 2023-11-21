@@ -308,7 +308,7 @@ def test_javaexpr():
 	assert "com.livinglogic.utils.MapUtils.makeMap()" == misc.javaexpr({})
 	assert "com.livinglogic.utils.MapUtils.makeMap(1, 2)" == misc.javaexpr({1: 2})
 	# undefined
-	assert 'new com.livinglogic.ul4.UndefinedKey("foo")' == misc.javaexpr(ul4c.UndefinedKey("foo"))
+	assert 'new com.livinglogic.ul4.UndefinedKey(null, "foo")' == misc.javaexpr(ul4c.UndefinedKey(42, "foo"))
 	assert 'new com.livinglogic.ul4.UndefinedVariable("foo")' == misc.javaexpr(ul4c.UndefinedVariable("foo"))
 
 
