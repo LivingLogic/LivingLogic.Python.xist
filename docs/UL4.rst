@@ -4,7 +4,7 @@ UL4 -- A templating language
 :mod:`ll.ul4c` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
-look.
+look :math:`O(n \log n)` or :math:`O(n^2)`.
 
 :mod:`ll.ul4c` compiles a template to an internal format, which makes it
 possible to implement renderers for these templates in multiple programming
