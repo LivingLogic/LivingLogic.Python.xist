@@ -8,6 +8,27 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.75.1 (released 2024-04-11)
+---------------------------------------
+
+*	Added supported for the HTML pseudo class ``:disabled`` to
+	:func:`ll.xist.css.applystylesheets`. Now the following works::
+
+		>>> from ll.xist.ns import html
+		>>> from ll.xist import css
+		>>> e = html.html(
+		...		html.style('''
+		...			button {color: blue;}
+		...			button:disabled {color: red;}
+		...			'''),
+		...		html.button('gurk', disabled=True)
+		...	)
+		...
+		>>> css.applystylesheets(e)
+		>>> e.string()
+		'<html><button disabled="disabled" style="color: red">gurk</button></html>'
+
+
 Changes in 5.75 (released 2023-11-21)
 -------------------------------------
 

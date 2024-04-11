@@ -500,6 +500,24 @@ class CSSActiveSelector(CSSInvalidPseudoSelector):
 	pass
 
 
+class CSSDisabledSelector(CSSWeightedSelector):
+	"""
+	A :class:`CSSDisabledSelector` selector selects all HTML elements where the
+	attribute ``disabled`` is set.
+
+	Note that that is not 100% what the pseudo class `:disabled` means, but since
+	we have no live DOM this is the best we can do.
+	"""
+	def __contains__(self, path):
+		if path:
+			node = path[-1]
+			return isinstance(node, xsc.Element) and node.xmlns=="http://www.w3.org/1999/xhtml" and "disabled" in node.attrs
+		return False
+
+	def __str__(self):
+		return f"{self.__class__.__qualname__}()"
+
+
 class CSSVisitedSelector(CSSInvalidPseudoSelector):
 	pass
 
@@ -677,6 +695,7 @@ _pseudoname2class = {
 	"link": CSSLinkSelector,
 	"visited": CSSVisitedSelector,
 	"active": CSSActiveSelector,
+	"disabled": CSSDisabledSelector,
 	"after": CSSAfterSelector,
 	"before": CSSBeforeSelector,
 	"valid": CSSValidSelector,

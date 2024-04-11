@@ -87,18 +87,30 @@ def test_css():
 	assert list(e.walknodes(css.selector("em[class~='gurk']"))) == [e[0], e[1]]
 	assert list(e.walknodes(css.selector("em[lang|='en']"))) == [e[0], e[1]]
 
+	with xsc.build():
+		with xsc.Frag() as e:
+			+html.button(disabled=True)
+
+	assert list(e.walknodes(css.selector(":disabled"))) == [e[0]]
+
 
 def test_applystylesheets1():
 	with xsc.build():
 		with html.html() as e:
 			with html.head():
-				+html.style("p {color: red;}", type="text/css")
+				+html.style("""
+					p {color: red;}
+					button {color: green;}
+					button:disabled {color: blue;}
+				""")
 			with html.body():
 				+html.p("gurk")
+				+html.button("hurz", disabled=True)
 
 	css.applystylesheets(e)
 
 	assert str(e.walknodes(html.p)[0].attrs.style) == "color: red;"
+	assert str(e.walknodes(html.button)[0].attrs.style) == "color: blue;"
 	assert list(e.walknodes(html.style)) == []
 
 
