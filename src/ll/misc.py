@@ -667,6 +667,7 @@ def parse_header(line):
 			pdict[name] = value
 	return (key, pdict)
 
+
 def module(source, filename="unnamed.py", name=None):
 	"""
 	Create a module from the Python source code ``source``. ``filename``
