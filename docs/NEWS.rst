@@ -11,7 +11,7 @@ see :ref:`MIGRATION`.
 Changes in 5.75.1 (released 2024-04-11)
 ---------------------------------------
 
-*	Added supported for the HTML pseudo class ``:disabled`` to
+*	Added support for the HTML pseudo class ``:disabled`` to
 	:func:`ll.xist.css.applystylesheets`. Now the following works::
 
 		>>> from ll.xist.ns import html
