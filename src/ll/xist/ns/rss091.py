@@ -167,7 +167,7 @@ class rss(xsc.Element):
 
 
 class skipDays(xsc.Element):
-	"""
+	r"""
 	A list of :class:`day`\s of the week, in English, indicating the days of
 	the week when your channel will not be updated. As with :class:`activeHours`,
 	if you know your channel will never be updated on Saturday or Sunday, for
@@ -177,7 +177,7 @@ class skipDays(xsc.Element):
 
 
 class skipHours(xsc.Element):
-	"""
+	r"""
 	A list of :class:`hour`\s indicating the hours in the day, GMT, when the
 	channel is unlikely to be updated. If this sub-item is omitted, the channel
 	is assumed to be updated hourly.

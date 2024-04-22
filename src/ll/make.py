@@ -80,7 +80,7 @@ def filechanged(key):
 
 
 class Level:
-	"""
+	r"""
 	Stores information about the recursive execution of :class:`Action`\s.
 	"""
 	__slots__ = ("action", "since", "reportable", "reported")
