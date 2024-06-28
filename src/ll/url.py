@@ -18,7 +18,7 @@ These three levels of functionality are implemented in three classes:
 
 :class:`URL`
 	:class:`URL` objects are the names of resources and can be used and
-	modified, regardless of the fact whether these resources actually exits.
+	modified, regardless of the fact whether these resources actually exist.
 	:class:`URL` objects never hits the hard drive or the net.
 
 :class:`Connection`
