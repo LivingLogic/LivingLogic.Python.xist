@@ -196,13 +196,13 @@ def main(args=None):
 				datatype = col.datatype()
 				if datatype == "clob" or datatype.startswith("varchar2"):
 					if args.ignorecase:
-						where.append(f"lower({col.name}) like :searchstring")
+						where.append(f'lower("{col.columnname}") like :searchstring')
 					else:
-						where.append(f"{col.name} like :searchstring")
+						where.append(f'"{col.columnname}" like :searchstring')
 			if not where:
 				continue # no string columns
 			where = " or ".join(where)
-			query = f"select * from {table.name} where {where}"
+			query = f'select * from "{table.name}" where {where}'
 			c.execute(query, searchstring=searchstring)
 			for r in c:
 				stdout.writeln("orafind.py: in ", df(table), ": ", repr(r))

@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.76 (released 2024-07-08)
+-------------------------------------
+
+*	:program:`orafind` now supports table and column names with "fancy"
+	characters by quoting names when generating queries.
+
+
 Changes in 5.75.1 (released 2024-04-11)
 ---------------------------------------
 
