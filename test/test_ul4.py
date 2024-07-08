@@ -104,7 +104,9 @@ class TemplatePython:
 		return ul4c.Template(self.source, name=self.name, whitespace=self.whitespace, signature=self.signature)
 
 	def render(self, /, *args, **kwargs):
-		return "".join(self.template.render(*args, **kwargs))
+		stream = io.StringIO()
+		self.template.render(stream, *args, **kwargs)
+		return stream.getvalue()
 
 	def renders(self, /, *args, **kwargs):
 		return self.template.renders(*args, **kwargs)
@@ -113,7 +115,9 @@ class TemplatePython:
 		return self.template(*args, **kwargs)
 
 	def render_with_globals(self, args, kwargs, globals):
-		return "".join(self.template.render_with_globals(args, kwargs, globals))
+		stream = io.StringIO()
+		self.template.render_with_globals(stream, args, kwargs, globals)
+		return stream.getvalue()
 
 	def renders_with_globals(self, args, kwargs, globals):
 		return self.template.renders_with_globals(args, kwargs, globals)
@@ -5722,6 +5726,25 @@ def test_renderx(T):
 
 
 @pytest.mark.ul4
+def test_renders_in_renderx(T):
+	t = T("""
+		<?whitespace strip?>
+
+		<?def a()?>
+			<h1>gurk</h1>
+		<?end def?>
+
+		<?def b()?>
+			<?print a.renders()?>
+		<?end def?>
+
+		<?renderx b()?>
+	""")
+
+	assert "&lt;h1&gt;gurk&lt;/h1&gt;" == t.renders()
+
+
+@pytest.mark.ul4
 def test_render_or_print(T):
 	assert "<&><&>" == T("<?def x?><&><?end def?><?render_or_print x()?><?render_or_print '<&>'()?>").renders()
 
@@ -5737,8 +5760,46 @@ def test_renderx_or_print(T):
 
 
 @pytest.mark.ul4
+def test_renders_in_renderx_or_print(T):
+	t = T("""
+		<?whitespace strip?>
+
+		<?def a()?>
+			<h1>gurk</h1>
+		<?end def?>
+
+		<?def b()?>
+			<?print a.renders()?>
+		<?end def?>
+
+		<?renderx_or_print b()?>
+	""")
+
+	assert "&lt;h1&gt;gurk&lt;/h1&gt;" == t.renders()
+
+
+@pytest.mark.ul4
 def test_renderx_or_printx(T):
 	assert "&lt;&amp;&gt;&lt;&amp;&gt;" == T("<?def x?><&><?end def?><?renderx_or_printx x()?><?renderx_or_printx '<&>'()?>").renders()
+
+
+@pytest.mark.ul4
+def test_renders_in_renderx_or_printx(T):
+	t = T("""
+		<?whitespace strip?>
+
+		<?def a()?>
+			<h1>gurk</h1>
+		<?end def?>
+
+		<?def b()?>
+			<?print a.renders()?>
+		<?end def?>
+
+		<?renderx_or_printx b()?>
+	""")
+
+	assert "&lt;h1&gt;gurk&lt;/h1&gt;" == t.renders()
 
 
 @pytest.mark.ul4
@@ -6555,26 +6616,16 @@ def test_custommethods():
 
 @pytest.mark.ul4
 def test_customrender():
-	class CustomRenderNoContext:
-
-		def ul4_render(self, *args):
-			yield "w/o context="
-			for (i, arg) in enumerate(args):
-				if i:
-					yield ","
-				yield arg
-
-	class CustomRenderContext:
+	class CustomRender:
 		@ul4c.withcontext
 		def ul4_render(self, context, *args):
-			yield "w/ context="
+			context.write("w/ context=")
 			for (i, arg) in enumerate(args):
 				if i:
-					yield ","
-				yield arg
+					context.write(",")
+				context.write(arg)
 
-	assert "w/o context=foo,bar" == TemplatePython("<?render o('foo', 'bar')?>").renders(o=CustomRenderNoContext())
-	assert "w/ context=foo,bar" == TemplatePython("<?render o('foo', 'bar')?>").renders(o=CustomRenderContext())
+	assert "w/ context=foo,bar" == TemplatePython("<?render o('foo', 'bar')?>").renders(o=CustomRender())
 
 
 @pytest.mark.ul4
@@ -6747,7 +6798,7 @@ def test_smart_whitespace(T):
 	# Indentation will also be removed from those lines.
 	assert "True\n" == T("    <?if True?>\nTrue\n         <?end if?>\n", whitespace="smart").renders()
 
-	# Additional text (before and after tag) will leave the line feeds intact.
+	# Additional text (before and after a tag) will leave the line feeds intact.
 	assert "x\nTrue\n" == T("x<?if True?>\nTrue\n<?end if?>\n", whitespace="smart").renders()
 	assert " \nTrue\n" == T("<?if True?> \nTrue\n<?end if?>\n", whitespace="smart").renders()
 

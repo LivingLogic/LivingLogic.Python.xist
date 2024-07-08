@@ -55,7 +55,7 @@ The variables that should be available to the template code can be passed to the
 method :meth:`~ll.ul4c.Template.renders` as keyword arguments.
 :meth:`~ll.ul4c.Template.renders` returns the final rendered output as a string.
 Alternatively the method :meth:`~ll.ul4c.Template.render` can be used, which is
-a generator and returns the output piecewise.
+writes the output to a text stream.
 
 For more information see the following chapters:
 

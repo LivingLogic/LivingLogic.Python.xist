@@ -821,14 +821,12 @@ def main(args=None):
 
 	if args.stacktrace == "short":
 		try:
-			for part in maintemplate.render(globals=globals):
-				sys.stdout.write(part)
+			maintemplate.render(sys.stdout, globals=globals)
 		except Exception as exc:
 			print_exception_chain(exc)
 			return 1
 	else:
-		for part in maintemplate.render(globals=globals):
-			sys.stdout.write(part)
+		maintemplate.render(sys.stdout, globals=globals)
 
 
 if __name__ == "__main__":

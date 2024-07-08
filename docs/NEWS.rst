@@ -11,6 +11,12 @@ see :ref:`MIGRATION`.
 Changes in 5.76 (released 2024-07-08)
 -------------------------------------
 
+*	Fixed a bug in UL4 where calling the ``renders`` method during calls
+	in a ``renderx`` tag resulted in the output being excaped twice.
+
+	To fix this problem, the output infrastructure for UL4 (which was using
+	generator before) has been switched to a stream API.
+
 *	:program:`orafind` now supports table and column names with "fancy"
 	characters by quoting names when generating queries.
 

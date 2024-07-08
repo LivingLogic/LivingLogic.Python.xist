@@ -8,6 +8,17 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.76
+=========================
+
+Changes to :mod:`ll.ul4c`
+-------------------------
+
+*	The output infrastructure for UL4 (which was using generator before) has
+	been switched to a stream API. The new API is incompatible with the old one.
+
+
+
 Migrating to version 5.73
 =========================
 
