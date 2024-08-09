@@ -331,7 +331,7 @@ class Action:
 		return {}
 
 	def call(self, *args, **kwargs):
-		"""
+		r"""
 		Return a :class:`CallAction` for calling ``self``\s output with
 		positional arguments from ``args`` and keyword arguments from
 		``kwargs``.
@@ -339,14 +339,14 @@ class Action:
 		return CallAction(self, *args, **kwargs)
 
 	def getattr(self, attrname):
-		"""
+		r"""
 		Return a :class:`GetAttrAction` for getting ``self``\s attribute
 		named ``attrname``.
 		"""
 		return GetAttrAction(self, attrname)
 
 	def callattr(self, attrname, *args, **kwargs):
-		"""
+		r"""
 		Return a :class:`CallAttrAction` for calling ``self``\s attribute
 		named ``attrname`` with positional arguments from ``args`` and
 		keyword arguments from ``kwargs``.
@@ -1127,7 +1127,7 @@ class Project(dict):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__} with {len(self)} targets at {id(self):#x}>"
 
 	class showaction(misc.propclass):
-		"""
+		r"""
 		This property specifies which actions should be reported during the build
 		process. On setting, the value can be:
 
@@ -1411,7 +1411,7 @@ class Project(dict):
 		return any(super(Project, self).__contains__(key2) for key2 in self._candidates(key))
 
 	def create(self):
-		"""
+		r"""
 		Create all dependencies for the project. Overwrite in subclasses.
 
 		This method should only be called once, otherwise you'll get lots of
