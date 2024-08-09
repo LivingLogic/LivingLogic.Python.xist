@@ -1,18 +1,26 @@
+.env
 __pycache__
 build
 dist
 *.pyc
 *.so
 src/*.egg-info
-docs/build
 .cache
 .mypy_cache
 node_modules
 package-lock.json
-UL4.tokens
 .pytest_cache
 .vscode
 docs/sphinx_ll_theme/static/fontawesome-pro-5.13.0-web
+# Created by the test
 report.html
+# Created be ANTLR
+UL4.tokens
+# Part of the documentation build
+docs/build
 docs/download/XIST.pdf
-.env
+# Created by Cython
+src/ll/misc.c
+src/ll/url.c
+src/ll/xist/parse.c
+src/ll/xist/xsc.c
