@@ -309,7 +309,7 @@ args = dict(
 	],
 	extras_require={
 		"oracle": ["cx_Oracle >= 8.0"],
-		"postgres": ["pyscopg[binary] >= 3.0.5"],
+		"postgres": ["psycopg[binary] >= 3.0.5"],
 		"proctitle": ["setproctitle >= 1.1.8"],
 		"html": ["lxml >= 4.3.4"],
 		"requests": ["requests >= 2.22.0"],
