@@ -20,8 +20,7 @@ from ll import ul4c
 
 
 from typing import *
-OptStr = Optional[str]
-Number = Union[int, float]
+Number = int | float
 
 
 __docformat__ = "reStructuredText"
@@ -510,7 +509,7 @@ csscolors = {
 
 _missing = object()
 
-def css(value:str, default:OptStr=_missing, /) -> "Color":
+def css(value:str, default:str|None=_missing, /) -> "Color":
 	"""
 	Create a :class:`Color` object from the CSS__ color string ``value`` via
 	:meth:`Color.fromcss`.

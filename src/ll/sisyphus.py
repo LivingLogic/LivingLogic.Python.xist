@@ -408,8 +408,8 @@ __docformat__ = "reStructuredText"
 T = TypeVar("T")
 OptStr = Optional[str]
 OptInt = Optional[int]
-OptStrFromCall = Union[str, None, Callable[..., Union[str, None]]]
-OptDictFromCall = Union[dict, None, Callable[..., Union[dict, None]]]
+OptStrFromCall = str | None | Callable[..., str | None]
+OptDictFromCall = dict | None | Callable[..., dict | None]
 Tags = Tuple[str, ...]
 LogList  = List[Tuple[datetime.datetime, Tags, List["Task"], Any]]
 
@@ -435,7 +435,7 @@ def _formatlines(obj: Any) -> List[str]:
 	return lines
 
 
-def argdays(value: Union[str, int, datetime.timedelta]) -> datetime.timedelta:
+def argdays(value: str | int | datetime.timedelta) -> datetime.timedelta:
 	if isinstance(value, str):
 		value = int(value)
 	if not isinstance(value, datetime.timedelta):
@@ -443,7 +443,7 @@ def argdays(value: Union[str, int, datetime.timedelta]) -> datetime.timedelta:
 	return value
 
 
-def argseconds(value: Union[str, int, datetime.timedelta]) -> datetime.timedelta:
+def argseconds(value: str | int | datetime.timedelta) -> datetime.timedelta:
 	if isinstance(value, str):
 		value = int(value)
 	if not isinstance(value, datetime.timedelta):
@@ -1944,7 +1944,7 @@ class Job:
 					(self.lastfailedloglinkname, LastStatusLinkLogger, Status.FAILED),
 					(self.lastinterruptedloglinkname, LastStatusLinkLogger, Status.INTERRUPTED),
 					(self.lasttimeoutloglinkname, LastStatusLinkLogger, Status.TIMEOUT),
-				] # type: List[Union[Tuple[Callable[[], pathlib.Path], Type[Logger]], Tuple[Callable[[], pathlib.Path], Type[Logger], Status]]]
+				] # type: List[Tuple[Callable[[], pathlib.Path], Type[Logger]] | Tuple[Callable[[], pathlib.Path], Type[Logger], Status]]
 				for (makelinkfilename, logger, *additionalargs) in links:
 					linkfilename = makelinkfilename()
 					if linkfilename is not None:
