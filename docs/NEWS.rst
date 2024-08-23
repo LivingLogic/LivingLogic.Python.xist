@@ -14,8 +14,11 @@ Changes in HEAD (released 2024-??-??)
 *	The code has been updated to use ``X | Y`` for union types in some type
 	annotations, so Python 3.10 is required now.
 
+*	:mod:`ll.orasql` has been updated to use :mod:`oracledb`
+	(but :mod:`cx_Oracle` is still supported as a fallback).
+
 *	The SQL output by :meth:`ll.orasql.Job.dropsql` now includes the argument
-	``p_force=>true``, so a job can be dropped, even if it is currently running.
+	``p_force=>true``, so a job can be dropped even if it is currently running.
 
 
 Changes in 5.76 (released 2024-07-08)

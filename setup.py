@@ -303,12 +303,12 @@ args = dict(
 		"scripts/orafind.py",
 		"scripts/oracycles.py",
 	],
-	python_requires=">=3.8",
+	python_requires=">=3.10",
 	install_requires=[
 		"cssutils >= 2.6.0",
 	],
 	extras_require={
-		"oracle": ["cx_Oracle >= 8.0"],
+		"oracle": ["oracledb >= 2.4.0"],
 		"postgres": ["psycopg[binary] >= 3.0.5"],
 		"proctitle": ["setproctitle >= 1.1.8"],
 		"html": ["lxml >= 4.3.4"],

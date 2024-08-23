@@ -10,7 +10,7 @@
 
 
 """
-:mod:`!ll.orasql` contains utilities for working with cx_Oracle__:
+:mod:`!ll.orasql` contains utilities for working with oracledb__:
 
 *	It allows calling procedures and functions with keyword arguments (via the
 	classes :class:`Procedure` and :class:`Function`).
@@ -29,16 +29,22 @@
 		oracle://user:pwd@db/view/USER_TABLES.sql
 		oracle://sys:pwd:sysdba@db/
 
-__ https://oracle.github.io/python-cx_Oracle/
+__ https://oracle.github.io/python-oracledb/
 """
 
 
 import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
 from collections import abc
 
-from cx_Oracle import *
+try:
+	from oracledb import *
+	from oracledb import __version__ as __oracledb_version__
+	__cx_oracle_version__ = None
+except ImportError:
+	from cx_Oracle import *
+	from cx_Oracle import __version__ as __cx_oracle_version__
+	__oracledb_version__ = None
 
-from cx_Oracle import __version__ as __cx_oracle_version__
 
 from ll import misc, url as url_
 
@@ -450,11 +456,11 @@ class Connection(Connection):
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
+		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
 		self.decimal = kwargs.pop("decimal", False)
+		super().__init__(*args, **kwargs)
 		if self.decimal:
 			self.outputtypehandler = self._numbersasdecimal
-		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
-		super().__init__(*args, **kwargs)
 		if clientinfo is not None:
 			self.clientinfo = clientinfo
 			self.commit()
