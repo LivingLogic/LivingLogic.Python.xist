@@ -22,7 +22,7 @@ Changes in 5.76 (released 2024-07-08)
 -------------------------------------
 
 *	Fixed a bug in UL4 where calling the ``renders`` method during calls
-	in a ``renderx`` tag resulted in the output being excaped twice.
+	in a ``renderx`` tag resulted in the output being escaped twice.
 
 	To fix this problem, the output infrastructure for UL4 (which was using
 	generators before) has been switched to a stream API.
