@@ -15,8 +15,7 @@ Changes in HEAD (released 2024-??-??)
 	annotations, so Python 3.10 is required now.
 
 *	The SQL output by :meth:`ll.orasql.Job.dropsql` now includes the argument
-	``p_force=>true``, so the job can be dropped, even if it is currently
-	running.
+	``p_force=>true``, so a job can be dropped, even if it is currently running.
 
 
 Changes in 5.76 (released 2024-07-08)
