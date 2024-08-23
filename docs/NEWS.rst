@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 2024-??-??)
+-------------------------------------
+
+*	The SQL output by :meth:`ll.orasql.Job.dropsql` now includes the argument
+	``p_force=>true``, so the job can be dropped, even if it is currently
+	running.
+
+
 Changes in 5.76 (released 2024-07-08)
 -------------------------------------
 
@@ -168,6 +176,7 @@ Changes in 5.72 (released 2022-08-04)
 
 *	:class:`ll.ul4c.TextAST` objects now always store the final text string
 	instead of slicing it from the source code on every call.
+
 *	UL4 AST classes store source offsets in the UL4ON dump now as two
 	:class:`int`\s instead of a :class:`slice` object. The Java and Javascript
 	implementations directly use these two ints instead of converting them to

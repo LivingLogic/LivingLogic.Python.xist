@@ -4514,7 +4514,7 @@ class Job(OwnedSchemaObject):
 
 	def dropsql(self, connection=None, term=True):
 		name = self.getfullname()
-		code = f"begin\n\tdbms_scheduler.drop_job(job_name=>{sqlliteral(name)});\nend;\n"
+		code = f"begin\n\tdbms_scheduler.drop_job(job_name=>{sqlliteral(name)}, force=>true);\nend;\n"
 		if term:
 			code += "/\n"
 		return code
