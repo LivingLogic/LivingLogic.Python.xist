@@ -12,8 +12,6 @@
 
 import os, datetime, json, pathlib
 
-import cx_Oracle
-
 import psycopg
 
 import pytest
@@ -47,11 +45,11 @@ def cleanup():
 		c = db.cursor()
 		try:
 			c.execute("drop table pysql_test_table")
-		except cx_Oracle.DatabaseError:
+		except orasql.DatabaseError:
 			pass
 		try:
 			c.execute("drop sequence pysql_test_sequence")
-		except cx_Oracle.DatabaseError:
+		except orasql.DatabaseError:
 			pass
 
 	with psycopg.connect(connectstring_postgres) as db:

@@ -48,15 +48,15 @@ within the block as global variables:
 	database connection).
 
 ``DB_TYPE_CLOB``
-	:data:`cx_Oracle.DB_TYPE_CLOB`, i.e. :mod:`cx_Oracle`\\s type
+	:data:`oracledb.DB_TYPE_CLOB`, i.e. :mod:`oracledb`\\s type
 	for ``CLOB`` parameters;
 
 ``DB_TYPE_NCLOB``
-	:data:`cx_Oracle.DB_TYPE_NCLOB`, i.e. :mod:`cx_Oracle`\\s type
+	:data:`oracledb.DB_TYPE_NCLOB`, i.e. :mod:`oracledb`\\s type
 	for ``NCLOB`` parameters;
 
 ``DB_TYPE_BLOB``
-	:data:`cx_Oracle.DB_TYPE_BLOB`, i.e. :mod:`cx_Oracle`\\s type
+	:data:`oracledb.DB_TYPE_BLOB`, i.e. :mod:`oracledb`\\s type
 	for ``BLOB`` parameters;
 
 :class:`sqlexpr`
@@ -444,7 +444,7 @@ in :class:`procedure` commands, or as file content in :class:`scp` or
 Command line usage
 ==================
 
-``pysql.py`` has no external dependencies except for :mod:`cx_Oracle`
+``pysql.py`` has no external dependencies except for :mod:`oracledb`
 (for Oracle) or :mod:`psycopg` (for Postgres) and can be used as a script for
 importing a PySQL file into the database (However some commands require
 :mod:`ll.orasql` for an Oracle database). As a script it supports the following
@@ -543,6 +543,11 @@ except ImportError:
 	grp = None
 
 try:
+	import oracledb
+except ImportError:
+	oracledb = None
+
+try:
 	import cx_Oracle
 except ImportError:
 	cx_Oracle = None
@@ -632,10 +637,13 @@ class Handler:
 		else:
 			if connectstring.startswith("oracle:"):
 				connectstring = connectstring[7:]
-			mode = cx_Oracle.SYSDBA if mode == "sysdba" else 0
+			mode = orasql.SYSDBA if mode == "sysdba" else 0
 			if orasql is not None:
 				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
 				return OraSQLHandler(connection)
+			elif oracledb is not None:
+				connection = oracledb.connect(connectstring, mode=mode)
+				return OracleHandler(connection)
 			else:
 				connection = cx_Oracle.connect(connectstring, mode=mode)
 				return OracleHandler(connection)
@@ -1084,7 +1092,7 @@ class DBHandler(Handler):
 
 class OracleHandler(DBHandler):
 	"""
-	Subclass of :class:`DBHandler` that executes database commands via :mod:`cx_Oracle`.
+	Subclass of :class:`DBHandler` that executes database commands via :mod:`oracledb`.
 
 	However :class:`drop_types` is not supported, for this :class:`OraSQLHandler`
 	is required, which requires that :mod:`ll.orasql` is available).
@@ -1189,9 +1197,9 @@ class OracleHandler(DBHandler):
 				else:
 					argvalue = cursor.var(argvalue.type)
 			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, cx_Oracle.DB_TYPE_CLOB, argvalue)
+				argvalue = self._createvar(cursor, orasql.DB_TYPE_CLOB, argvalue)
 			elif isinstance(argvalue, bytes) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, cx_Oracle.DB_TYPE_BLOB, argvalue)
+				argvalue = self._createvar(cursor, orasql.DB_TYPE_BLOB, argvalue)
 			queryargvars[argname] = argvalue
 
 		cursor.execute(query, queryargvars)
@@ -1617,7 +1625,7 @@ class procedure(_SQLCommand):
 	``args`` : dictionary (optional)
 		A dictionary with the names of the parameters as keys and the parameter
 		values as values. PySQL supports all types as values that
-		:mod:`cx_Oracle` supports. In addition to those, three special classes
+		:mod:`oracledb` supports. In addition to those, three special classes
 		are supported:
 
 		*	:class:`sqlexpr` objects can be used to specify that the paramater
@@ -2685,9 +2693,9 @@ class Context:
 		self._locals["sqlexpr"] = sqlexpr
 		self._locals["datetime"] = datetime
 		self._locals["connection"] = None
-		self._locals["DB_TYPE_CLOB"] = cx_Oracle.DB_TYPE_CLOB
-		self._locals["DB_TYPE_NCLOB"] = cx_Oracle.DB_TYPE_NCLOB
-		self._locals["DB_TYPE_BLOB"] = cx_Oracle.DB_TYPE_BLOB
+		self._locals["DB_TYPE_CLOB"] = orasql.DB_TYPE_CLOB
+		self._locals["DB_TYPE_NCLOB"] = orasql.DB_TYPE_NCLOB
+		self._locals["DB_TYPE_BLOB"] = orasql.DB_TYPE_BLOB
 		for command in Command.commands.values():
 			self._locals[command.__name__] = CommandExecutor(command, self)
 
