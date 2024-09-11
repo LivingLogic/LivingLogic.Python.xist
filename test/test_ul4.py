@@ -596,6 +596,7 @@ unknownkeywordargument = _make_exception_re(
 	"takes no keyword arguments",
 	"got some positional-only arguments passed as keyword arguments",
 	"'[a-zA-Z_][a-zA-Z0-9_]*' is an invalid keyword argument for [a-zA-Z_][a-zA-Z0-9_]*\\(\\)",
+	"takes at least \\d+ positional arguments? \\(\\d+ given\\)",
 )
 
 missingkeywordargument = _make_exception_re(
@@ -4120,7 +4121,7 @@ def test_function_min(T):
 	with raises(unknownkeywordargument):
 		T("<?code min(args='gurk')?>").renders()
 
-	with raises("empty sequence"):
+	with raises("empty sequence|iterable argument is empty"):
 		T("<?print min([])?>").renders()
 
 
@@ -4141,7 +4142,7 @@ def test_function_max(T):
 	with raises(unknownkeywordargument):
 		T("<?code max(args='gurk')?>").renders()
 
-	with raises("empty sequence"):
+	with raises("empty sequence|iterable argument is empty"):
 		T("<?print max([])?>").renders()
 
 
