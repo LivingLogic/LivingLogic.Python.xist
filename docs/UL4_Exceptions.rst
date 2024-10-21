@@ -50,10 +50,10 @@ following UL4 code:
 		<?else?>
 			<li>
 				<p>
-					<b><?printx type(exc).__name__?></b><?if str(exc)?>: <?print str(exc)?>
+					<b><?printx type(exc).__name__?></b><?if str(exc)?>: <?print str(exc)?><?end if?>
 				</p>
 			</li>
-		<?end def?>
+		<?end if?>
 	<?end def?>
 
 	<ul>
