@@ -612,7 +612,7 @@ subscriptablemessage = _make_exception_re(
 	"object is not subscriptable",
 	"object does not support item assignment",
 	# Java
-	"com.livinglogic.ul4.ArgumentTypeMismatchException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
+	"UnsupportedOperationException: <[\\w\\d.]+>\\[<[\\w\\d.]+>\\] not supported"
 )
 
 indexmessage = _make_exception_re(
@@ -7122,13 +7122,24 @@ def test_module_operator(T):
 	assert "operator" == T("<?print operator.__name__?>").renders()
 	assert "Various operators as functions" == T("<?print operator.__doc__?>").renders()
 
-	assert "True" == T("<?print isinstance(operator.attrgetter('upper'), operator.attrgetter)?>").renders(data=None)
+	assert "True" == T("<?print isinstance(operator.attrgetter('upper'), operator.attrgetter)?>").renders()
 
 	t1 = T("<?print operator.attrgetter('upper')('foo')()?>")
 	assert "FOO" == t1.renders()
 
 	t2 = T("<?print operator.attrgetter('pos', 'pos.start', 'pos.stop')(t.content[-1])?>")
 	assert "[slice(0, 11, None), 0, 11]" == t2.renders(t=ul4c.Template("<?print x?>"))
+
+	assert "True" == T("<?print isinstance(operator.itemgetter(0), operator.itemgetter)?>").renders()
+
+	t1 = T("<?print operator.itemgetter(2)([17, 23, 42])?>")
+	assert "42" == t1.renders()
+
+	t2 = T("<?print operator.itemgetter(2, 1, 0)([17, 23, 42])?>")
+	assert "[42, 23, 17]" == t2.renders()
+
+	t3 = T("<?print operator.itemgetter('gurk', 'hurz')({'gurk': 17, 'hurz': 23})?>")
+	assert "[17, 23]" == t3.renders()
 
 
 @pytest.mark.ul4
