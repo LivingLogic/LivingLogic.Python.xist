@@ -36,15 +36,8 @@ __ https://oracle.github.io/python-oracledb/
 import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
 from collections import abc
 
-try:
-	from oracledb import *
-	from oracledb import __version__ as __oracledb_version__
-	__cx_oracle_version__ = None
-except ImportError:
-	from cx_Oracle import *
-	from cx_Oracle import __version__ as __cx_oracle_version__
-	__oracledb_version__ = None
-
+from oracledb import *
+from oracledb import __version__ as __oracledb_version__
 
 from ll import misc, url as url_
 
@@ -367,13 +360,13 @@ class Record(tuple, abc.Mapping):
 				p.text(suffix)
 
 
-class SessionPool(SessionPool):
+class ConnectionPool(ConnectionPool):
 	"""
-	:class:`SessionPool` is a subclass of :class:`cx_Oracle.SessionPool`.
+	:class:`ConnectionPool` is a subclass of :class:`oracledb.ConnectionPool`.
 	"""
 
-	def __init__(self, user=None, password=None, dsn=None, **kwargs):
-		super().__init__(user, password, dsn, **{**{"connectiontype": Connection}, **kwargs})
+	def __init__(self, dsn=None, **kwargs):
+		super().__init__(dsn, **{"connectiontype": Connection, **kwargs})
 
 	def connectstring(self):
 		return f"{self.username}@{self.dsn}"
@@ -428,12 +421,12 @@ def owned(obj, owner):
 
 class Connection(Connection):
 	"""
-	:class:`Connection` is a subclass of :class:`cx_Oracle.Connection`.
+	:class:`Connection` is a subclass of :class:`oracledb.Connection`.
 	"""
 	def __init__(self, *args, **kwargs):
 		"""
 		Create a new connection. In addition to the parameters supported by
-		:func:`cx_Oracle.connect` the following keyword argument is supported.
+		:func:`oracledb.connect` the following keyword argument is supported.
 
 		``readlobs`` : bool or integer
 			If ``readlobs`` is :const:`False` all cursor fetches return
@@ -785,16 +778,27 @@ class Connection(Connection):
 		return self.object_named(name, owner=None)
 
 
+connect_oracledb = connect
+
 def connect(*args, **kwargs):
 	"""
 	Create a connection to the database and return a :class:`Connection` object.
 	"""
-	return Connection(*args, **kwargs)
+	return connect_oracledb(*args, **{"conn_class": Connection, **kwargs})
+
+
+create_pool_oracledb = create_pool
+
+def create_pool(*args, **kwargs):
+	"""
+	Create a connection pool and return a :class:`ConnectionPool` object.
+	"""
+	return create_pool_oracledb(*args, **{"pool_class": ConnectionPool, **kwargs})
 
 
 class Cursor(Cursor):
 	"""
-	A subclass of the cursor class in :mod:`cx_Oracle`. The "fetch" methods
+	A subclass of the cursor class in :mod:`oracledb`. The "fetch" methods
 	will return records as :class:`Record` objects and  ``LOB`` values will be
 	returned as :class:`LOBStream` objects or :class:`str`/:class:`bytes` objects
 	(depending on the cursors :attr:`readlobs` attribute).
