@@ -784,7 +784,7 @@ def connect(*args, **kwargs):
 	"""
 	Create a connection to the database and return a :class:`Connection` object.
 	"""
-	return connect_oracledb(*args, **{"conn_class": Connection, **kwargs})
+	return Connection(*args, **kwargs)
 
 
 create_pool_oracledb = create_pool
