@@ -476,9 +476,9 @@ def test_resheaders():
 			for (k, v) in headers.items():
 				assert realheaders[k] == v
 
-	check(url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"})
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"})
+	check(url.File(__file__)/"../README.rst", {"Content-type": "text/x-rst"})
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "text/x-rst"})
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "text/x-rst"})
 	check("https://python.livinglogic.de/XIST.html", {"Content-type": "text/html"})
 
 
