@@ -19,7 +19,7 @@ Changes in HEAD (released 2024-??-??)
 *	The SQL output by :meth:`ll.orasql.Job.dropsql` now includes the argument
 	``p_force=>true``, so a job can be dropped even if it is currently running.
 
-*	UL4 gained the the type ``operator.itemgetter``.
+*	UL4 gained the type ``operator.itemgetter``.
 
 
 Changes in 5.76 (released 2024-07-08)
