@@ -309,7 +309,7 @@ args = dict(
 		"cssutils >= 2.6.0",
 	],
 	extras_require={
-		"oracle": ["oracledb >= 2.4.0"],
+		"oracle": ["oracledb >= 2.5.0"],
 		"postgres": ["psycopg[binary] >= 3.0.5"],
 		"proctitle": ["setproctitle >= 1.1.8"],
 		"html": ["lxml >= 4.3.4"],
