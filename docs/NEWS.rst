@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2024-??-??)
+Changes in 5.77 (released 2024-11-13)
 -------------------------------------
 
 *	The code has been updated to use ``X | Y`` for union types in some type
