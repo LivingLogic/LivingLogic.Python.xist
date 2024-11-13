@@ -33,7 +33,7 @@ __ https://oracle.github.io/python-oracledb/
 """
 
 
-import urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
+import sys, urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
 from collections import abc
 
 from oracledb import *
@@ -424,7 +424,7 @@ class Connection(Connection):
 	:class:`Connection` is a subclass of :class:`oracledb.Connection`.
 	"""
 	def __init__(self, *args, **kwargs):
-		"""
+		r"""
 		Create a new connection. In addition to the parameters supported by
 		:func:`oracledb.connect` the following keyword argument is supported.
 
@@ -440,23 +440,24 @@ class Connection(Connection):
 			If ``decimal`` is :const:`True` numbers will be returned as
 			:class:`decimal.Decimal` objects, else :class:`float` will be used.
 
-		Furthermore the ``clientinfo`` will be automatically set to the name
-		of the currently running script (except if the ``clientinfo`` keyword
-		argument is given and :const:`None`).
+		Furthermore ``program`` will automatacally include the name of the
+		currently running script. To skip that, pass ``program`` yourself.
+		Use ``None`` to get :mod:`oracledb`\s default value.
 		"""
 		if "readlobs" in kwargs:
 			kwargs = kwargs.copy()
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
-		clientinfo = kwargs.pop("clientinfo", misc.sysinfo.short_script_name[-64:])
+		if "program" not in kwargs:
+			program = misc.sysinfo.short_script_name[-64:]
+			if program != "<shell>":
+				program = program.replace(" ", "_").replace("~", "-")
+				kwargs["program"] = f"{sys.executable}:{program}"[-64:]
 		self.decimal = kwargs.pop("decimal", False)
 		super().__init__(*args, **kwargs)
 		if self.decimal:
 			self.outputtypehandler = self._numbersasdecimal
-		if clientinfo is not None:
-			self.clientinfo = clientinfo
-			self.commit()
 		self.mode = kwargs.get("mode")
 		self._ddprefix = None # Do we have access to the ``DBA_*`` views?
 		self._ddprefixargs = None # Do we have access to the ``DBA_ARGUMENTS`` view (which doesn't exist in Oracle 10)?

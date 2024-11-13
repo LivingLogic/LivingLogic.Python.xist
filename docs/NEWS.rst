@@ -16,6 +16,11 @@ Changes in HEAD (released 2024-??-??)
 
 *	:mod:`ll.orasql` has been updated to use :mod:`oracledb`.
 
+*	Instead of ``clientinfo`` :mod:`ll.orasql` now automatically includes
+	the running script in ``program``. If you don't want that (for example
+	when the path includes characters that are not allowed, so you get
+	``DPY-3029``), pass ``program=None`` (or your own custom value).
+
 *	The SQL output by :meth:`ll.orasql.Job.dropsql` now includes the argument
 	``p_force=>true``, so a job can be dropped even if it is currently running.
 
