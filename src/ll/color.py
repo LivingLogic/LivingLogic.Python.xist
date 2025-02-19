@@ -149,7 +149,9 @@ class Color(tuple):
 		``self`` formatted as a CSS color string.
 		"""
 		if self[3] != 0xff:
-			return f"rgba({self[0]},{self[1]},{self[2]},{self[3]/255.:.3f})"
+			s = f"#{self[0]:02x}{self[1]:02x}{self[2]:02x}{self[3]:02x}"
+			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6] and s[7] == s[8]:
+				s = f"#{s[1]}{s[3]}{s[5]}{s[7]}"
 		else:
 			s = f"#{self[0]:02x}{self[1]:02x}{self[2]:02x}"
 			if s[1] == s[2] and s[3] == s[4] and s[5] == s[6]:

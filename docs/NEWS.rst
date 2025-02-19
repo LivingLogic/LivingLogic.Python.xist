@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.78 (released 2025-??-??)
+-------------------------------------
+
+*	CSS output of colors with an alpha channel now no longer uses the
+	``rgba(...)`` syntax, but the more compact ``#rgba`` or ``#rrggbbaa``
+	format.
+
+
 Changes in 5.77 (released 2024-11-13)
 -------------------------------------
 
