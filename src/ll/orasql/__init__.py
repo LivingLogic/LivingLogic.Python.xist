@@ -440,22 +440,24 @@ class Connection(Connection):
 			If ``decimal`` is :const:`True` numbers will be returned as
 			:class:`decimal.Decimal` objects, else :class:`float` will be used.
 
-		Furthermore ``program`` will automatacally include the name of the
-		currently running script. To skip that, pass ``program`` yourself.
-		Use ``None`` to get :mod:`oracledb`\s default value.
+		Furthermore ``module`` will automatically be set to the currently running
+		script on the next database round-trip. To skip that, pass ``module``
+		yourself. Use ``None`` to get :mod:`oracledb`\s default value.
 		"""
 		if "readlobs" in kwargs:
 			kwargs = kwargs.copy()
 			self.readlobs = kwargs.pop("readlobs", False)
 		else:
 			self.readlobs = False
-		if "program" not in kwargs:
-			program = misc.sysinfo.short_script_name[-64:]
-			if program != "<shell>":
-				program = program.replace(" ", "_").replace("~", "-")
-				kwargs["program"] = f"{sys.executable}:{program}"[-64:]
 		self.decimal = kwargs.pop("decimal", False)
 		super().__init__(*args, **kwargs)
+		if "module" not in kwargs:
+			module = misc.sysinfo.short_script_name[-64:]
+			if module == "<shell>":
+				module = f"<shell pid={os.getpid()}>"
+			self.module = module
+		elif kwargs["module"] is not None:
+			self.module = kwargs["module"]
 		if self.decimal:
 			self.outputtypehandler = self._numbersasdecimal
 		self.mode = kwargs.get("mode")
