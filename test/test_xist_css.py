@@ -83,6 +83,7 @@ def test_css():
 			+html.em(class_="gurk hurz", lang="en-us")
 			+html.em(class_="hurz", lang="de")
 
+	assert list(e.walknodes(css.selector("[class]"))) == [e[0], e[1], e[2]]
 	assert list(e.walknodes(css.selector("em[class='gurk']"))) == [e[0]]
 	assert list(e.walknodes(css.selector("em[class~='gurk']"))) == [e[0], e[1]]
 	assert list(e.walknodes(css.selector("em[lang|='en']"))) == [e[0], e[1]]

@@ -295,7 +295,7 @@ class CSSHasAttributeSelector(CSSWeightedSelector):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
-				return node.attrs.has(self.attributename)
+				return self.attributename in node.attrs
 		return False
 
 	def __str__(self):

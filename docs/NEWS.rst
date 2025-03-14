@@ -15,6 +15,9 @@ Changes in 5.78 (released 2025-??-??)
 	``rgba(...)`` syntax, but the more compact ``#rgba`` or ``#rrggbbaa``
 	format.
 
+*	Fixed a bug in :meth:`ll.xist.css.CSSHasAttributeSelector`: The check
+	was using a non-existant method :meth:`ll.xist.xsc.Attrs.has`.
+
 
 Changes in 5.77 (released 2024-11-13)
 -------------------------------------
