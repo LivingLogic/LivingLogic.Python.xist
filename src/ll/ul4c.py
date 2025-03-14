@@ -3363,6 +3363,8 @@ class BitNotAST(UnaryAST):
 
 	@classmethod
 	def evalfold(cls, obj):
+		if isinstance(obj, bool):
+			obj = int(obj)
 		return ~obj
 
 
