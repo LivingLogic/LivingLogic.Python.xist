@@ -22,6 +22,11 @@ Changes in 5.78 (released 2025-??-??)
 	the running script in ``module`` instead of ``clientinfo`` or ```program``.
 	Pass ``module=None`` to get :mod:`oracledb`\s default behaviour.
 
+*	:func:`repr` output of UL4 ASTs has been simplified and shortened.
+
+*	Added a method :emth:`ll.ul4c.AST.walkpaths` for iterating through UL4
+	syntax trees.
+
 
 Changes in 5.77 (released 2024-11-13)
 -------------------------------------
