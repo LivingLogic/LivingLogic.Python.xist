@@ -1515,8 +1515,8 @@ class Job:
 			self.log.sisyphus.init.delay(f"forked worker child")
 			self._init_sentry()
 		else: # We didn't fork
-			# set a signal to kill ourselves after the maximum runtime
 			self._init_sentry()
+			# set a signal to kill ourselves after the maximum runtime
 			if self.maxtime is not None and hasattr(signal, "SIGALRM"):
 				signal.signal(signal.SIGALRM, self._signal_timeout)
 				signal.alarm(int(self.maxtime.total_seconds()))
