@@ -1549,8 +1549,17 @@ class AST:
 		return self.template._fullsource
 
 	def walkpaths(self):
-		path = []
-		yield from self._walkpaths(path)
+		"""
+		Return an iterator for traversing the syntax tree rooted at ``self``.
+
+		Items produced by the iterator paths, i.e. lists containing the path
+		from the root :class:`Template` object to ``self``.
+
+		Note that the iterator will always produre the same object that will
+		be changed during the iteration. If you want to keep value produced
+		during the iteration, you have to make copies.
+		"""
+		yield from self._walkpaths([])
 
 	def _walkpaths(self, path):
 		path.append(self)
