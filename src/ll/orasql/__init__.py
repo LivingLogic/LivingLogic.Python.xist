@@ -33,7 +33,7 @@ __ https://oracle.github.io/python-oracledb/
 """
 
 
-import sys, urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal
+import sys, os, urllib.request, urllib.parse, urllib.error, datetime, itertools, io, errno, re, unicodedata, decimal, inspect
 from collections import abc
 
 from oracledb import *
