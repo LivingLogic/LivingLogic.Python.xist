@@ -302,7 +302,7 @@ dictitem returns [node]
 	:
 		k=expr_if
 		':'
-		v=expr_if { $node = ul4c.DictItemAST(self.tag.template, slice($k.node._startpos.start, $v.node._startpos.start), $k.node, $v.node) }
+		v=expr_if { $node = ul4c.DictItemAST(self.tag.template, slice($k.node._startpos.start, $v.node._startpos.stop), $k.node, $v.node) }
 	|
 		star='**'
 		e=expr_if { $node = ul4c.UnpackDictItemAST(self.tag.template, slice(self.pos($star).start, $e.node._startpos.stop), $e.node) }

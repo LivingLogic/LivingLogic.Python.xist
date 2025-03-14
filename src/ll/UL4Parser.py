@@ -1,4 +1,4 @@
-# $ANTLR 3.5.2 src/ll/UL4.g 2021-04-19 13:46:34
+# $ANTLR 3.5.2 src/ll/UL4.g 2025-03-14 18:41:38
 
 import sys
 from antlr3 import *
@@ -1375,7 +1375,7 @@ class UL4Parser(Parser):
 
                     if self._state.backtracking == 0:
                         pass
-                        node = ul4c.DictItemAST(self.tag.template, slice(k._startpos.start, v._startpos.start), k, v) 
+                        node = ul4c.DictItemAST(self.tag.template, slice(k._startpos.start, v._startpos.stop), k, v) 
 
 
 

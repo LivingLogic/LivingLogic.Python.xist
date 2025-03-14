@@ -566,6 +566,23 @@ def _unpackvar(lvalue, value):
 			yield from _unpackvar(lvalue, value)
 
 
+def _unnestvar(lvalue):
+	"""
+	A generator used for recursively unpacking values for inspecting the :class:`AST` nodes in them.
+
+	``lvalue`` may be an :class:`AST` object (in which case the recursion ends)
+	or a (possible nested) sequence of :class:`AST` objects.
+
+	The values produced are AST nodes.
+	"""
+
+	if isinstance(lvalue, AST):
+		yield lvalue
+	else:
+		for sublvalue in lvalue:
+			yield from _unnestvar(sublvalue)
+
+
 def _makevars(signature, args, kwargs):
 	"""
 	Bind ``args`` and ``kwargs`` to the :class:`inspect.Signature` object
@@ -1531,6 +1548,15 @@ class AST:
 	def fullsource(self):
 		return self.template._fullsource
 
+	def walkpaths(self):
+		path = []
+		yield from self._walkpaths(path)
+
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		path.pop()
+
 	def __repr__(self):
 		parts = [f"<{self.__class__.__module__}.{self.__class__.__qualname__}"]
 		pos = self.pos
@@ -1540,7 +1566,7 @@ class AST:
 		return " ".join(parts)
 
 	def _repr(self):
-		yield from ()
+		yield f"source={self.template.source[self._startpos]!r}"
 
 	def _repr_pretty_(self, p, cycle):
 		prefix = f"<{self.__class__.__module__}.{self.__class__.__qualname__}"
@@ -1764,9 +1790,6 @@ class ConstAST(CodeAST):
 		super().ul4onload(decoder)
 		self.value = decoder.load()
 
-	def _repr(self):
-		yield repr(self.value)
-
 	def _repr_pretty(self, p):
 		p.breakable()
 		p.text("value=")
@@ -1793,8 +1816,14 @@ class SeqItemAST(CodeAST):
 		super().__init__(template, startpos)
 		self.value = value
 
-	def _repr(self):
-		yield f"{self.value!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.value._walkpaths(path)
+		path.pop()
+
+	def asts(self):
+		yield self
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1838,8 +1867,11 @@ class UnpackSeqItemAST(CodeAST):
 		super().__init__(template, startpos)
 		self.value = value
 
-	def _repr(self):
-		yield f"*{self.value!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.value._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1889,8 +1921,11 @@ class DictItemAST(CodeAST):
 		self.key = key
 		self.value = value
 
-	def _repr(self):
-		yield f"{self.key!r}={self.value!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.value._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1937,8 +1972,11 @@ class UnpackDictItemAST(CodeAST):
 		super().__init__(template, startpos)
 		self.item = item
 
-	def _repr(self):
-		yield f"**{self.item!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -1978,8 +2016,11 @@ class PositionalArgumentAST(CodeAST):
 		super().__init__(template, startpos)
 		self.value = value
 
-	def _repr(self):
-		yield f"{self.value!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.value._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2030,8 +2071,11 @@ class KeywordArgumentAST(CodeAST):
 		self.name = name
 		self.value = value
 
-	def _repr(self):
-		yield f"{self.name}={self.value!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.value._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2080,8 +2124,11 @@ class UnpackListArgumentAST(CodeAST):
 		super().__init__(template, startpos)
 		self.item = item
 
-	def _repr(self):
-		yield f"*{self.item!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2128,8 +2175,11 @@ class UnpackDictArgumentAST(CodeAST):
 		super().__init__(template, startpos)
 		self.item = item
 
-	def _repr(self):
-		yield f"**{self.item!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2182,8 +2232,12 @@ class ListAST(CodeAST):
 		super().__init__(template, startpos)
 		self.items = list(items)
 
-	def _repr(self):
-		yield f"with {len(self.items):,} items"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		for item in self.items:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		for item in self.items:
@@ -2239,12 +2293,16 @@ class ListComprehensionAST(CodeAST):
 		self.container = container
 		self.condition = condition
 
-	def _repr(self):
-		yield f"item={self.item!r}"
-		yield f"varname={self.varname!r}"
-		yield f"container={self.container!r}"
-		if self.container is not None:
-			yield f"condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.item._walkpaths(path)
+		for varname in _unnestvar(self.varname):
+			yield from varname._walkpaths(path)
+		yield from self.container._walkpaths(path)
+		if self.condition is not None:
+			yield from self.condition._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable("")
@@ -2311,8 +2369,12 @@ class SetAST(CodeAST):
 		super().__init__(template, startpos)
 		self.items = list(items)
 
-	def _repr(self):
-		yield f"with {len(self.items):,} items"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		for item in self.items:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		for item in self.items:
@@ -2368,12 +2430,16 @@ class SetComprehensionAST(CodeAST):
 		self.container = container
 		self.condition = condition
 
-	def _repr(self):
-		yield f"item={self.item!r}"
-		yield f"varname={self.varname!r}"
-		yield f"container={self.container!r}"
-		if self.container is not None:
-			yield f"condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.item._walkpaths(path)
+		for varname in _unnestvar(self.varname):
+			yield from varname._walkpaths(path)
+		yield from self.container._walkpaths(path)
+		if self.condition is not None:
+			yield from self.condition._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable("")
@@ -2440,8 +2506,12 @@ class DictAST(CodeAST):
 		super().__init__(template, startpos)
 		self.items = list(items)
 
-	def _repr(self):
-		yield f"with {len(self.items):,} items"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		for item in self.items:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		for item in self.items:
@@ -2502,13 +2572,17 @@ class DictComprehensionAST(CodeAST):
 		self.container = container
 		self.condition = condition
 
-	def _repr(self):
-		yield f"key={self.key!r}"
-		yield f"value={self.value!r}"
-		yield f"varname={self.varname!r}"
-		yield f"container={self.container!r}"
-		if self.container is not None:
-			yield f"condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.key._walkpaths(path)
+		yield from self.value._walkpaths(path)
+		for varname in _unnestvar(self.varname):
+			yield from varname._walkpaths(path)
+		yield from self.container._walkpaths(path)
+		if self.condition is not None:
+			yield from self.condition._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2590,12 +2664,16 @@ class GeneratorExpressionAST(CodeAST):
 		self.container = container
 		self.condition = condition
 
-	def _repr(self):
-		yield f"item={self.item!r}"
-		yield f"varname={self.varname!r}"
-		yield f"container={self.container!r}"
-		if self.container is not None:
-			yield f"condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.item._walkpaths(path)
+		for varname in _unnestvar(self.varname):
+			yield from varname._walkpaths(path)
+		yield from self.container._walkpaths(path)
+		if self.condition is not None:
+			yield from self.condition._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2661,9 +2739,6 @@ class VarAST(CodeAST):
 		super().__init__(template, startpos)
 		self.name = name
 
-	def _repr(self):
-		yield repr(self.name)
-
 	def _repr_pretty(self, p):
 		p.breakable()
 		p.text("name=")
@@ -2716,6 +2791,13 @@ class BlockAST(CodeAST):
 		self._stopline = None
 		self._stopcol = None
 		self.content = []
+
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def append(self, item):
 		self.content.append(item)
@@ -2774,13 +2856,6 @@ class ConditionalBlocksAST(BlockAST):
 		if condition is not None:
 			self.newblock(IfBlockAST(template, startpos, None, condition))
 
-	def _repr_pretty(self, p):
-		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
-
 	def append(self, item):
 		self.content[-1].append(item)
 
@@ -2833,18 +2908,18 @@ class IfBlockAST(BlockAST):
 		super().__init__(template, startpos, stoppos)
 		self.condition = condition
 
-	def _repr(self):
-		yield f" condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.condition._walkpaths(path)
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
 		p.text("condition=")
 		p.pretty(self.condition)
-		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
 
 	def _str(self):
 		yield "if "
@@ -2885,18 +2960,18 @@ class ElIfBlockAST(BlockAST):
 		super().__init__(template, startpos, stoppos)
 		self.condition = condition
 
-	def _repr(self):
-		yield f" condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.condition._walkpaths(path)
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
 		p.text("condition=")
 		p.pretty(self.condition)
-		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
 
 	def _str(self):
 		yield "elif "
@@ -2928,13 +3003,6 @@ class ElseBlockAST(BlockAST):
 	"""
 
 	ul4_type = Type("ul4")
-
-	def _repr_pretty(self, p):
-		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
 
 	def _str(self):
 		yield "else:"
@@ -2976,9 +3044,15 @@ class ForBlockAST(BlockAST):
 		self.varname = varname
 		self.container = container
 
-	def _repr(self):
-		yield f"varname={self.varname!r}"
-		yield f"container={self.container!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		for varname in _unnestvar(self.varname):
+			yield from varname._walkpaths(path)
+		yield from self.container._walkpaths(path)
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -2987,11 +3061,6 @@ class ForBlockAST(BlockAST):
 		p.breakable()
 		p.text("container=")
 		p.pretty(self.container)
-		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -3054,18 +3123,19 @@ class WhileBlockAST(BlockAST):
 		super().__init__(template, startpos, stoppos)
 		self.condition = condition
 
-	def _repr(self):
-		yield f"condition={self.condition!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.condition._walkpaths(path)
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
 		p.text("condition=")
 		p.pretty(self.condition)
 		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
 
 	def ul4ondump(self, encoder):
 		super().ul4ondump(encoder)
@@ -3153,9 +3223,11 @@ class AttrAST(CodeAST):
 		self.obj = obj
 		self.attrname = attrname
 
-	def _repr(self):
-		yield f"obj={self.obj!r}"
-		yield f"attrname={self.attrname!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.obj._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -3224,11 +3296,14 @@ class SliceAST(CodeAST):
 		self.index1 = index1
 		self.index2 = index2
 
-	def _repr(self):
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
 		if self.index1 is not None:
-			yield f"index1={self.index1!r}"
+			yield from self.index1._walkpaths(path)
 		if self.index2 is not None:
-			yield f"index2={self.index2!r}"
+			yield from self.index2._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		if self.index1 is not None:
@@ -3279,8 +3354,11 @@ class UnaryAST(CodeAST):
 		super().__init__(template, startpos)
 		self.obj = obj
 
-	def _repr(self):
-		yield repr(self.obj)
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.obj._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -3455,9 +3533,12 @@ class BinaryAST(CodeAST):
 		self.obj1 = obj1
 		self.obj2 = obj2
 
-	def _repr(self):
-		yield repr(self.obj1)
-		yield repr(self.obj2)
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.obj1._walkpaths(path)
+		yield from self.obj2._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -4136,10 +4217,13 @@ class IfAST(CodeAST):
 		self.objcond = objcond
 		self.objelse = objelse
 
-	def _repr(self):
-		yield f"objif={self.objif!r}"
-		yield f"objcond={self.objcond!r}"
-		yield f"objelse={self.objelse!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.objif._walkpaths(path)
+		yield from self.objcond._walkpaths(path)
+		yield from self.objelse._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -4182,7 +4266,7 @@ class ChangeVarAST(CodeAST):
 
 	Attributes are:
 
-	``lvalue`` : :class:`AST`
+	``lvalue`` : nested :class:`tuple` of :class:`VarAST` objects
 		The left hand side, i.e. the value that will be modified.
 
 	``value`` : :class:`AST`
@@ -4198,9 +4282,13 @@ class ChangeVarAST(CodeAST):
 		self.lvalue = lvalue
 		self.value = value
 
-	def _repr(self):
-		yield f"lvalue={self.lvalue!r}"
-		yield f"value={self.value!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		for lvalue in _unnestvar(self.lvalue):
+			yield from lvalue._walkpaths(path)
+		yield from self.value._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -4536,10 +4624,13 @@ class CallAST(CodeAST):
 		self.obj = obj
 		self.args = []
 
-	def _repr(self):
-		yield f"obj={self.obj!r}"
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.obj._walkpaths(path)
 		for arg in self.args:
-			yield from arg._repr()
+			yield from arg._walkpaths(path)
+		path.pop()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -4611,12 +4702,6 @@ class RenderAST(CallAST):
 	def __init__(self, template=None, startpos=None, obj=None):
 		super().__init__(template, startpos, obj)
 		self.indent = None # The indentation before this ``<?render?>``/``<?renderx?>`` tag, i.e. the sibling AST node before ``self``
-
-	def _repr(self):
-		yield f"indent={self.indent!r}"
-		yield f"obj={self.obj!r}"
-		for arg in self.args:
-			yield from arg._repr()
 
 	def _repr_pretty(self, p):
 		p.breakable()
@@ -4842,6 +4927,16 @@ class RenderBlockAST(RenderAST):
 		self._stoppos = None
 		self.content = None
 
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.obj._walkpaths(path)
+		for arg in self.args:
+			yield from arg._walkpaths(path)
+		for item in self.content.content:
+			yield from item._walkpaths(path)
+		path.pop()
+
 	def append(self, item):
 		self.content.content.append(item)
 
@@ -4928,6 +5023,16 @@ class RenderBlocksAST(RenderAST):
 		self._stoppos = stoppos
 		self.content = []
 
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		yield from self.obj._walkpaths(path)
+		for arg in self.args:
+			yield from arg._walkpaths(path)
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
+
 	def append(self, item):
 		self.content.append(item)
 
@@ -4963,16 +5068,6 @@ class RenderBlocksAST(RenderAST):
 			p.breakable()
 			p.pretty(arg)
 		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
-
-	def _repr(self):
-		yield f"indent={self.indent!r}"
-		yield f"obj={self.obj!r}"
-		for arg in self.args:
-			yield from arg._repr()
 
 	def eval(self, context):
 		(obj, args, kwargs) = self._evalobjargs(context)
@@ -5148,6 +5243,14 @@ class Template(BlockAST):
 			self._fullsource = ""
 			self.stoppos = self._startpos
 
+	def _walkpaths(self, path):
+		path.append(self)
+		yield path
+		# FIXME: signature?
+		for item in self.content:
+			yield from item._walkpaths(path)
+		path.pop()
+
 	@property
 	def fullname(self):
 		if self.name is None:
@@ -5174,11 +5277,6 @@ class Template(BlockAST):
 				p.pretty(self.signature)
 			else:
 				p.text(f"signature={self.signature}")
-		p.breakable()
-		with p.group(4, "content=[", "]"):
-			for node in self.content:
-				p.breakable()
-				p.pretty(node)
 
 	def _str(self):
 		yield "def "

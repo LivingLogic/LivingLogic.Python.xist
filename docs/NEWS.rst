@@ -18,7 +18,7 @@ Changes in 5.78 (released 2025-??-??)
 *	Fixed a bug in :meth:`ll.xist.css.CSSHasAttributeSelector`: The check
 	was using a non-existant method :meth:`ll.xist.xsc.Attrs.has`.
 
-*	:mod:`ll.orasql.Connection` has been changed too automatically include
+*	:mod:`ll.orasql.Connection` has been changed to automatically include
 	the running script in ``module`` instead of ``clientinfo`` or ```program``.
 	Pass ``module=None`` to get :mod:`oracledb`\s default behaviour.
 
