@@ -43,7 +43,9 @@ Creating the packages
 
 Commit everything up to now.
 
-Tag the release (with something like `rel-xx-yy` or `rel-xx-yy-zz`).
+Tag the release (with something like `rel-xx-yy` or `rel-xx-yy-zz`)::
+
+	git tag rel-xx-yy-zz
 
 Push the resulting commit and the tag::
 
