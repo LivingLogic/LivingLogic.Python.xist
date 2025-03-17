@@ -42,8 +42,8 @@
  * 2007-09-12 wd  Python 2.5 updates: use Py_ssize_t
  * 2021-01-12 wd  Switch to PEP 393 strings
  *
- * Copyright (c) 1998-2024 by Secret Labs AB
- * Copyright (c) 1998-2024 by Fredrik Lundh
+ * Copyright (c) 1998-2025 by Secret Labs AB
+ * Copyright (c) 1998-2025 by Fredrik Lundh
  *
  * fredrik@pythonware.com
  * http://www.pythonware.com
