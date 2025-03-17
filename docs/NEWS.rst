@@ -24,7 +24,7 @@ Changes in 5.78 (released 2025-03-17)
 
 *	:func:`repr` output of UL4 ASTs has been simplified and shortened.
 
-*	Added a method :emth:`ll.ul4c.AST.walkpaths` for iterating through UL4
+*	Added a method :meth:`ll.ul4c.AST.walkpaths` for iterating through UL4
 	syntax trees.
 
 
