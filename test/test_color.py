@@ -47,7 +47,7 @@ def test_repr():
 
 def test_str():
 	assert str(color.Color(0x12, 0x34, 0x56)) == "#123456"
-	assert str(color.Color(0x12, 0x34, 0x56, 0x78)) == "rgba(18,52,86,0.471)"
+	assert str(color.Color(0x12, 0x34, 0x56, 0x78)) == "#12345678"
 
 
 def test_r_g_b():
