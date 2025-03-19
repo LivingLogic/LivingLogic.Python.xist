@@ -639,7 +639,7 @@ class Connection(Connection):
 
 				# Column comments
 				for comment in table.comments():
-					# No dependency checks necessary, but use ``do`` anyway
+					# No dependency checks necessary, but use ``do`` anyway (this does no queries)
 					yield from do(comment)
 
 				# Primary key

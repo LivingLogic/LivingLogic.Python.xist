@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 2025-??-??)
+-------------------------------------
+
+*	Simplified outputting column comments in :meth:`ll.orasql.Connection.objects`
+	since dependencies for column comments are simple.
+
+
 Changes in 5.78 (released 2025-03-17)
 -------------------------------------
 
