@@ -3212,7 +3212,7 @@ class Synonym(OwnedSchemaObject):
 			where_sql.append("table_owner = :table_owner")
 			params["table_owner"] = object_owner
 		else:
-				where_sql.append(f"table_owner in ({', '.join(sqlstr(o) for o in object_owner)})")
+			where_sql.append(f"table_owner in ({', '.join(sqlstr(o) for o in object_owner)})")
 		query = f"select {owner_sql}, synonym_name from {view_sql}"
 		if where_sql:
 			query += f" where {' and '.join(where_sql)}"

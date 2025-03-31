@@ -11,8 +11,11 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released 2025-??-??)
 -------------------------------------
 
-*	Simplified outputting column comments in :meth:`ll.orasql.Connection.objects`
-	since dependencies for column comments are simple.
+*	Added arguments ``--oracle_thick`` and ``--oracle_config_dir`` to the
+	``rul4`` script.
+
+*	Added arguments ``--thick`` and ``--config_dir`` to all other scripts that
+	use :mod:`ll.orasql`.
 
 
 Changes in 5.78 (released 2025-03-17)

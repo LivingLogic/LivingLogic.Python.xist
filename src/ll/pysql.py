@@ -400,11 +400,11 @@ Variable objects can be used to receive OUT parameters of procedure calls or
 SQL statements. A variable object can be specified like this: ``var("foo")``.
 ``"foo"`` is the "name" of the variable. When a variable object is passed
 to a procedure the first time (i.e. the variable object is uninitialized),
-the resulting value after the call will be stored under the name of the
-variable. When the variable is used in a later command the stored value will
-be used instead. (Note that it's not possible to use the same variable twice
-in the same procedure call, if it hasn't been used before, however in later
-commands this is no problem).
+a :mod:`oracledb` ``var`` object will be passed and the resulting value after
+the call will be stored under the name of the variable. When the variable is
+used in a later command the stored value will be used instead. (Note that it's
+not possible to use the same variable twice in the same procedure call,
+if it hasn't been used before, however in later commands this is no problem).
 
 The type of the variable defaults to :class:`int`, but a different type can be
 passed when creating the object by passing the Python type like this:
@@ -548,11 +548,6 @@ except ImportError:
 	oracledb = None
 
 try:
-	import cx_Oracle
-except ImportError:
-	cx_Oracle = None
-
-try:
 	from ll import orasql
 except ImportError:
 	orasql = None
@@ -637,15 +632,12 @@ class Handler:
 		else:
 			if connectstring.startswith("oracle:"):
 				connectstring = connectstring[7:]
-			mode = orasql.SYSDBA if mode == "sysdba" else 0
+			mode = oracledb.SYSDBA if mode == "sysdba" else 0
 			if orasql is not None:
 				connection = orasql.connect(connectstring, mode=mode, readlobs=True)
 				return OraSQLHandler(connection)
-			elif oracledb is not None:
-				connection = oracledb.connect(connectstring, mode=mode)
-				return OracleHandler(connection)
 			else:
-				connection = cx_Oracle.connect(connectstring, mode=mode)
+				connection = oracledb.connect(connectstring, mode=mode)
 				return OracleHandler(connection)
 
 	@staticmethod
@@ -1197,9 +1189,9 @@ class OracleHandler(DBHandler):
 				else:
 					argvalue = cursor.var(argvalue.type)
 			elif isinstance(argvalue, str) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, orasql.DB_TYPE_CLOB, argvalue)
+				argvalue = self._createvar(cursor, oracledb.DB_TYPE_CLOB, argvalue)
 			elif isinstance(argvalue, bytes) and len(argvalue) >= 4000:
-				argvalue = self._createvar(cursor, orasql.DB_TYPE_BLOB, argvalue)
+				argvalue = self._createvar(cursor, oracledb.DB_TYPE_BLOB, argvalue)
 			queryargvars[argname] = argvalue
 
 		cursor.execute(query, queryargvars)
@@ -2693,9 +2685,9 @@ class Context:
 		self._locals["sqlexpr"] = sqlexpr
 		self._locals["datetime"] = datetime
 		self._locals["connection"] = None
-		self._locals["DB_TYPE_CLOB"] = orasql.DB_TYPE_CLOB
-		self._locals["DB_TYPE_NCLOB"] = orasql.DB_TYPE_NCLOB
-		self._locals["DB_TYPE_BLOB"] = orasql.DB_TYPE_BLOB
+		self._locals["DB_TYPE_CLOB"] = oracledb.DB_TYPE_CLOB
+		self._locals["DB_TYPE_NCLOB"] = oracledb.DB_TYPE_NCLOB
+		self._locals["DB_TYPE_BLOB"] = oracledb.DB_TYPE_BLOB
 		for command in Command.commands.values():
 			self._locals[command.__name__] = CommandExecutor(command, self)
 

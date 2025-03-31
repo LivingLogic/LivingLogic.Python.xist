@@ -41,6 +41,18 @@ Options
 	Should the output (when the :option:`-v` option is used) be colored? If
 	``auto`` is specified (the default) then the output is colored if it goes to
 	a terminal. Valid modes are ``yes``, ``no`` or ``auto``.
+
+.. option:: --thick <flag>
+
+	If true, use :mod:`oracledb`\s thick mode.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --config_dir <directory>
+
+	In :mod:`oracledb`\s thin mode, specify the directory that contains the
+	``tnsnames.ora`` file. This can be used if "Connect Descriptor Strings"
+	from ``tnsnames.ora`` must be used but ``tnsnames.ora`` can't be found
+	in its default location.
 """
 
 
@@ -61,6 +73,8 @@ def main(args=None):
 	p.add_argument("connectstring", help="Oracle connect string")
 	p.add_argument("-v", "--verbose", dest="verbose", help="Give a progress report? (default %(default)s)", action=misc.FlagAction, default=False)
 	p.add_argument("-c", "--color", dest="color", help="Color output (default %(default)s)", default="auto", choices=("yes", "no", "auto"))
+	p.add_argument(      "--thick", dest="thick", help="Use oracledb's 'thick' mode for Oracle connections?", default=False, action=misc.FlagAction)
+	p.add_argument(      "--config_dir", dest="config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used for Oracle connections.")
 
 	args = p.parse_args(args)
 
@@ -74,7 +88,9 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection = orasql.connect(args.connectstring)
+	if args.thick:
+		orasql.init_oracle_client()
+	connection = orasql.connect(args.connectstring, config_dir=args.config_dir)
 
 	cs = s4connectstring(connection.connectstring())
 

@@ -32,7 +32,11 @@ def globals(request):
 	"""
 	connectstring = os.environ.get("LL_ORASQL_TEST_CONNECT")
 	if connectstring:
-		return rul4.Globals(vars={"connectstring": connectstring})
+		return rul4.Globals(
+			vars={"connectstring": connectstring},
+			oracle_thick=True,
+			oracle_config_dir=os.environ["ORACLE_HOME"] + "/network/admin",
+		)
 	else:
 		return None
 
@@ -53,15 +57,31 @@ def test_oracle_query(globals):
 			<?code db.execute('insert into ul4test values(3, ', 'third', ', ', 10000*'third', ')')?>
 			<?code vin = db.int(2)?>
 			<?for row in db.query('select * from ul4test where ul4_int <= ', vin, ' order by ul4_int')?>
+				<?print row[0]?>|
 				<?print row.ul4_int?>|
+				<?print row[1]?>|
 				<?print row.ul4_char?>|
+				<?print row[2]?>|
 				<?print row.ul4_clob?>|
 			<?end for?>
 			<?code db.execute('drop table ul4test')?>
 			""",
 			whitespace="strip"
 		)
-		assert template.renders(globals=globals) == f"1|first|{10000*'first'}|2|second|{10000*'second'}|"
+		assert template.renders(globals=globals).strip("|").split("|") == [
+			"1",
+			"1",
+			"first",
+			"first",
+			10000*"first",
+			10000*"first",
+			"2",
+			"2",
+			"second",
+			"second",
+			10000*"second",
+			10000*"second",
+		]
 
 
 @pytest.mark.db

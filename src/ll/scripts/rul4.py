@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3, always_allow_keywords=True
 
-"""
+r"""
 Purpose
 =======
 
@@ -42,6 +42,18 @@ Options
 
 	(Allowed values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``;
 	the default is ``true``)
+
+.. option:: --oracle_thick <flag>
+
+	If true, use :mod:`oracledb`\s thick mode.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --oracle_config_dir <directory>
+
+	In :mod:`oracledb`\s thin mode, specify the directory that contains the
+	``tnsnames.ora`` file. This can be used if "Connect Descriptor Strings"
+	from ``tnsnames.ora`` must be used but ``tnsnames.ora`` can't be found
+	in its default location.
 
 .. option:: --sqlite <flag>
 
@@ -541,7 +553,8 @@ class Globals:
 	"""
 
 	ul4_attrs = {"templates", "vars", "encoding", "env", "oracle", "mysql", "sqlite", "redis", "error", "log", "system", "load", "save", "compile"}
-	def __init__(self, templates=None, vars=None, encoding=None, oracle=True, mysql=True, sqlite=True, redis=True, system=True, load=True, save=True, compile=True):
+
+	def __init__(self, templates=None, vars=None, encoding=None, oracle=True, mysql=True, sqlite=True, redis=True, system=True, load=True, save=True, compile=True, oracle_thick=False, oracle_config_dir=None):
 		self.templates = templates if templates is not None else {}
 		self.encoding = encoding if encoding is not None else sys.stdout.encoding
 		self.vars = vars if vars is not None else {}
@@ -563,6 +576,8 @@ class Globals:
 			self.save = None
 		if not compile:
 			self.compile = None
+		self.oracle_thick = oracle_thick
+		self.oracle_config_dir = oracle_config_dir
 
 	def from_args(self, args):
 		"""
@@ -616,6 +631,8 @@ class Globals:
 		option("load")
 		option("save")
 		option("compile")
+		self.oracle_thick = args.oracle_thick
+		self.oracle_config_dir = args.oracle_config_dir
 
 		return maintemplate
 
@@ -659,7 +676,11 @@ class Globals:
 			<?end for?>
 		"""
 		from ll import orasql
-		return OracleConnection(orasql.connect(connectstring, readlobs=True))
+		if self.oracle_thick:
+			orasql.init_oracle_client()
+		return OracleConnection(
+			orasql.connect(connectstring, config_dir=self.oracle_config_dir, readlobs=True)
+		)
 
 	def mysql(self, connectstring):
 		"""
@@ -814,6 +835,8 @@ def main(args=None):
 	p.add_argument(      "--save", dest="save", help="Allow the templates to save data to arbitrary paths? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument(      "--compile", dest="compile", help="Allow the templates access to the compile function? (default %(default)s)", action=misc.FlagAction, default=True)
 	p.add_argument("-D", "--define", dest="vars", metavar="var=value", help="Pass additional parameters to the template (can be specified multiple times).", action="append", type=define)
+	p.add_argument(      "--oracle_thick", dest="oracle_thick", help="Use oracledb's 'thick' mode for Oracle connections?", default=False, action=misc.FlagAction)
+	p.add_argument(      "--oracle_config_dir", dest="oracle_config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used for Oracle connections.")
 
 	args = p.parse_args(args)
 

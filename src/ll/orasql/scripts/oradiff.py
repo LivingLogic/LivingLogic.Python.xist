@@ -10,7 +10,7 @@
 ## See ll/xist/__init__.py for the license
 
 
-"""
+r"""
 Purpose
 =======
 
@@ -79,6 +79,18 @@ Options
 	whitespace will be ignored, with ``both`` trailing and leading whitespace
 	will be ignored and with ``collapse`` trailing and leading whitespace will
 	be ignored and stretches of whitespace will be treated as a single space.
+
+.. option:: --thick <flag>
+
+	If true, use :mod:`oracledb`\s thick mode.
+	(Valid flag values are ``false``, ``no``, ``0``, ``true``, ``yes`` or ``1``)
+
+.. option:: --config_dir <directory>
+
+	In :mod:`oracledb`\s thin mode, specify the directory that contains the
+	``tnsnames.ora`` file. This can be used if "Connect Descriptor Strings"
+	from ``tnsnames.ora`` must be used but ``tnsnames.ora`` can't be found
+	in its default location.
 
 
 Example
@@ -220,6 +232,8 @@ def main(args=None):
 	p.add_argument("-n", "--context", dest="context", help="Number of context lines (default %(default)s)", type=int, default=2)
 	p.add_argument("-k", "--keepjunk", dest="keepjunk", help="Output objects with '$' or 'SYS_EXPORT_SCHEMA_' in their name? (default %(default)s)", default=False, action=misc.FlagAction)
 	p.add_argument("-b", "--blank", dest="blank", help="How to treat whitespace (default %(default)s)", default="literal", choices=("literal", "trail", "lead", "both", "collapse"))
+	p.add_argument(      "--thick", dest="thick", help="Use oracledb's 'thick' mode for Oracle connections?", default=False, action=misc.FlagAction)
+	p.add_argument(      "--config_dir", dest="config_dir", metavar="DIR", help="Directory that contains 'tnsnames.ora', if it should be used for Oracle connections.")
 
 	args = p.parse_args(args)
 
@@ -232,8 +246,10 @@ def main(args=None):
 	stdout = astyle.Stream(sys.stdout, color)
 	stderr = astyle.Stream(sys.stderr, color)
 
-	connection1 = orasql.connect(args.connectstring1)
-	connection2 = orasql.connect(args.connectstring2)
+	if args.thick:
+		orasql.init_oracle_client()
+	connection1 = orasql.connect(args.connectstring1, config_dir=args.config_dir)
+	connection2 = orasql.connect(args.connectstring2, config_dir=args.config_dir)
 
 	def fetch(connection, name, mode="flat"):
 		objectset = set()
