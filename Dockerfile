@@ -46,7 +46,7 @@ ENV PATH="/opt/oracle/instantclient_${ORA_MAJOR}_${ORA_MINOR}:${PATH}"
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install modules required by XIST or for building the documentation
-RUN pip install cssutils cx_Oracle CherryPy Sphinx sphinxcontrib.jquery pygll
+RUN pip install cssutils oracledb CherryPy Sphinx sphinxcontrib.jquery pygll
 
 # Pass version info into the container
 ARG CI_COMMIT_TAG
