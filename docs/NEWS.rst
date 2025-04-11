@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2025-??-??)
+Changes in 5.79 (released 2025-04-11)
 -------------------------------------
 
 *	Added arguments ``--oracle_thick`` and ``--oracle_config_dir`` to the
