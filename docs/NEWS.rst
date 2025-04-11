@@ -17,6 +17,14 @@ Changes in HEAD (released 2025-??-??)
 *	Added arguments ``--thick`` and ``--config_dir`` to all other scripts that
 	use :mod:`ll.orasql`.
 
+*	Added a class :class:`ll.orasql.Dependencies` that fetches all database
+	ependencies once to speed up multiple calls to
+	:class:`ll.orasql.SchemaObject.references`,
+	:class:`ll.orasql.SchemaObject.referencedby`,
+	:class:`ll.orasql.SchemaObject.referencesall` and
+	:class:`ll.orasql.SchemaObject.referencedbyall`.
+	This is use autoamatically in :class:`ll.orasql.Connection.objects`.
+
 
 Changes in 5.78 (released 2025-03-17)
 -------------------------------------
