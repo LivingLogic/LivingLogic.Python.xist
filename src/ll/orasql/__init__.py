@@ -612,17 +612,17 @@ class Connection(Connection):
 		cursor = self.cursor()
 		# Prefetch all dependency info to speed up calls to each objects
 		# :meth:`references` or :meth:`referencedby`.
-		dependencies = Dependencies(cursor)
+		cache = Cache(cursor)
 
 		done = set()
 
 		def do(obj):
 			if mode == "create":
-				for subobj in obj.referencesall(self, done, dependencies):
+				for subobj in obj.referencesall(self, done, cache):
 					if owned(subobj, owner):
 						yield subobj
 			elif mode == "drop":
-				for subobj in obj.referencedbyall(self, done, dependencies):
+				for subobj in obj.referencedbyall(self, done, cache):
 					if owned(subobj, owner):
 						yield subobj
 			else:
@@ -879,7 +879,7 @@ class Cursor(Cursor):
 ### Classes used for database meta data
 ###
 
-class Dependencies:
+class Cache:
 	"""
 	Collects dependencies of objects that are not in system schemas.
 
@@ -888,36 +888,92 @@ class Dependencies:
 	"""
 
 	def __init__(self, cursor):
-		ddprefix = cursor.ddprefix()
-		cursor.execute(
-			f"""
-				select
-					type,
-					decode(owner, user, null, owner) as owner,
-					name,
-					referenced_type,
-					decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
-					referenced_name
-				from
-					{ddprefix}_dependencies
-				where
-					type != 'NON-EXISTENT' and
-					owner not in (select username from {ddprefix}_users where oracle_maintained = 'Y') and
-					referenced_owner not in (select username from {ddprefix}_users where oracle_maintained = 'Y')
-				order by
-					owner,
-					name,
-					referenced_owner,
-					referenced_name
-			"""
-		)
-		self.dependencies = cursor.fetchall()
-		self.references = collections.defaultdict(list)
-		self.referencedby = collections.defaultdict(list)
+		self.cursor = cursor
+		self.ddprefix = cursor.ddprefix()
+		self._references = None
+		self._referencedby = None
+		self._indexes = None
+		self._mviews = None
 
-		for rec in self.dependencies:
-			self.references[(rec.type, rec.owner, rec.name)].append(rec)
-			self.referencedby[(rec.referenced_type, rec.referenced_owner, rec.referenced_name)].append(rec)
+	@property
+	def references(self):
+		self._dependencies()
+		return self._references
+
+	@property
+	def referencedby(self):
+		self._dependencies()
+		return self._referencedby
+
+	def _dependencies(self):
+		if self._references is None or self._referencedby is None:
+			self.cursor.execute(
+				f"""
+					select
+						type,
+						decode(owner, user, null, owner) as owner,
+						name,
+						referenced_type,
+						decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
+						referenced_name
+					from
+						{self.ddprefix}_dependencies
+					where
+						type != 'NON-EXISTENT' and
+						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y') and
+						referenced_owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+					order by
+						owner,
+						name,
+						referenced_owner,
+						referenced_name
+				"""
+			)
+			self._references = collections.defaultdict(list)
+			self._referencedby = collections.defaultdict(list)
+
+			for rec in self.cursor:
+				self.references[(rec.type, rec.owner, rec.name)].append(rec)
+				self.referencedby[(rec.referenced_type, rec.referenced_owner, rec.referenced_name)].append(rec)
+
+	@property
+	def indexes(self):
+		if self._indexes is None:
+			self.cursor.execute(
+				f"""
+					select
+						decode(owner, user, null, owner) as owner,
+						index_name,
+						index_type,
+						parameters
+					from
+						{self.ddprefix}_indexes
+					where
+						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+					order by
+						owner,
+						index_name
+				"""
+			)
+			self._indexes = {(r.owner, r.index_name) : r for r in self.cursor}
+		return self._indexes
+
+	@property
+	def mviews(self):
+		if self._mviews is None:
+			self.cursor.execute(
+				f"""
+					select
+						decode(owner, user, null, owner) as owner,
+						mview_name
+					from
+						{self.ddprefix}_mviews
+					where
+						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+				"""
+			)
+			self._mviews = {(r.owner, r.index_name) : r for r in self.cursor}
+		return self._mviews
 
 
 class MixinNormalDates:
@@ -1141,7 +1197,7 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		"""
 		return None
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		"""
 		Objects directly used by ``self``.
 
@@ -1150,16 +1206,16 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 		the connection from which ``self`` has been extracted will be used. If
 		there is not such connection, you'll get an exception.
 
-		``dependencies`` can be a :class:`Dependencies` object, which will speed
-		up this method call, since this object already contains all dependencies.
+		``cache`` can be a :class:`Cache` object, which will speed up this
+		method call, since this object already contains all dependencies.
 		"""
 		yield from ()
 
-	def referencesall(self, connection=None, done=None, dependencies=None):
+	def referencesall(self, connection=None, done=None, cache=None):
 		"""
 		All objects used by ``self`` (recursively).
 
-		For the meaning of ``connection`` and ``dependencies`` see
+		For the meaning of ``connection`` and ``cache`` see
 		:meth:`references`.
 
 		``done`` is used internally and shouldn't be passed.
@@ -1168,24 +1224,24 @@ class SchemaObject(object, metaclass=_SchemaObject_meta):
 			done = set()
 		if self not in done:
 			done.add(self)
-			for obj in self.references(connection, dependencies):
-				yield from obj.referencesall(connection, done, dependencies)
+			for obj in self.references(connection, cache):
+				yield from obj.referencesall(connection, done, cache)
 			yield self
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		"""
 		Objects using ``self``.
 
-		For the meaning of ``connection`` and ``dependencies`` see
+		For the meaning of ``connection`` and ``cache`` see
 		:meth:`references`.
 		"""
 		yield from ()
 
-	def referencedbyall(self, connection=None, done=None, dependencies=None):
+	def referencedbyall(self, connection=None, done=None, cache=None):
 		"""
 		All objects depending on ``self`` (recursively).
 
-		For the meaning of ``connection`` and ``dependencies`` see
+		For the meaning of ``connection`` and ``cache`` see
 		:meth:`references`.
 
 		``done`` is used internally and shouldn't be passed.
@@ -1255,11 +1311,11 @@ class OwnedSchemaObject(SchemaObject):
 	def getfullname(self):
 		return getfullname(self.name, self.owner)
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		if dependencies is not None:
+		if cache is not None:
 			key = (self.type.upper(), self.owner, self.name)
-			records = dependencies.references[key]
+			records = cache.references[key]
 		else:
 			ddprefix = cursor.ddprefix()
 			query = f"""
@@ -1288,11 +1344,11 @@ class OwnedSchemaObject(SchemaObject):
 			else:
 				yield cls(rec.referenced_name, rec.referenced_owner, connection)
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		if dependencies is not None:
+		if cache is not None:
 			key = (self.type.upper(), self.owner, self.name)
-			records = dependencies.referencedby[key]
+			records = cache.referencedby[key]
 		else:
 			ddprefix = cursor.ddprefix()
 			query = f"""
@@ -1582,7 +1638,7 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 		code = f"create sequence {self.getfullname()}\n{code[3]}"
 		return code
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		# Shortcut: a sequence doesn't depend on anything
 		yield from ()
 
@@ -1750,33 +1806,36 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		code = f"create table {self.getfullname()}\n{code[3]}"
 		return code
 
-	def mview(self, connection=None):
+	def mview(self, connection=None, cache=None):
 		"""
 		The materialized view this table belongs to (or :const:`None` if it's a
 		real table).
 		"""
-		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				mview_name
-			from
-				{ddprefix}_mviews
-			where
-				owner = nvl(:owner, user) and
-				mview_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
+		if cache is not None:
+			rec = cache.mviews.get((self.owner, self.name), None)
+		else:
+			(connection, cursor) = self.getcursor(connection)
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					mview_name
+				from
+					{ddprefix}_mviews
+				where
+					owner = nvl(:owner, user) and
+					mview_name = :name
+			"""
+			cursor.execute(query, owner=self.owner, name=self.name)
+			rec = cursor.fetchone()
 		if rec is not None:
 			rec = MaterializedView(self.name, self.owner, connection)
 		return rec
 
-	def ismview(self, connection=None):
+	def ismview(self, connection=None, cache=None):
 		"""
 		Is this table a materialized view?
 		"""
-		return self.mview(connection) is not None
+		return self.mview(connection, cache) is not None
 
 	def _info(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
@@ -2020,20 +2079,20 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		"""
 		return self._iterconstraints(connection, "= 'C'")
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		connection = self.getconnection(connection)
 		# A table doesn't depend on anything ...
-		mview = self.mview(connection)
+		mview = self.mview(connection, cache)
 		if mview is not None:
 			# ... unless it was created by a materialized view, in which case it depends on the view
 			yield mview
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		if not self.ismview(connection):
 			yield self.comment(connection)
 			yield from self.comments(connection)
 			yield from self.constraints(connection)
-		for obj in super().referencedby(connection):
+		for obj in super().referencedby(connection, cache):
 			# skip the materialized view
 			if not isinstance(obj, MaterializedView) or obj.name != self.name or obj.owner != self.owner:
 				yield obj
@@ -2102,7 +2161,7 @@ class TableComment(OwnedSchemaObject):
 		code = f"comment on table {self.getfullname()} is {code[5]}"
 		return code
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		connection = self.getconnection(connection)
 		yield Table(self.name, self.owner, connection)
 
@@ -2174,7 +2233,7 @@ class ColumnComment(OwnedSchemaObject):
 		code = f"comment on column {self.getfullname()} is {code[5]}"
 		return code
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		connection = self.getconnection(connection)
 		yield Table(self.name.split(".")[0], self.owner, connection)
 
@@ -2483,7 +2542,7 @@ class PrimaryKey(Constraint):
 			code += "\n"
 		return code
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"""
@@ -2502,7 +2561,7 @@ class PrimaryKey(Constraint):
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
 		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		yield self.table(connection)
 
 
@@ -2569,11 +2628,11 @@ class ForeignKey(Constraint):
 			code += "\n"
 		return code
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		# Shortcut: Nobody references a foreign key
 		yield from ()
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		yield self.table(connection)
 		yield self.refconstraint(connection)
 
@@ -2677,7 +2736,7 @@ class UniqueConstraint(Constraint):
 			code += "\n"
 		return code
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"""
@@ -2697,7 +2756,7 @@ class UniqueConstraint(Constraint):
 
 		# Normally there is an index for this constraint, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"""
@@ -2751,11 +2810,11 @@ class CheckConstraint(Constraint):
 			code += "\n"
 		return code
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		# Shortcut: Nobody references a check constraint
 		yield from ()
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"""
@@ -3049,25 +3108,28 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		"""
 		return self.constraint(connection) is not None
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		constraint = self.constraint(connection)
 		# if self is generated by a constraint (i.e. ``constraint`` is not :const:`None`), we ignore all dependencies (such an index is never produced be :meth:`objects`)
 		if constraint is None:
-			(connection, cursor) = self.getcursor(connection)
-			ddprefix = cursor.ddprefix()
-			# If this is a domain index, reference the preferences defined there
-			query = f"""
-				select
-					index_type,
-					parameters
-				from
-					{ddprefix}_indexes
-				where
-					owner = nvl(:owner, user) and
-					index_name = :name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
-			rec = cursor.fetchone()
+			if cache is not None:
+				rec = cache.indexes[self.owner, self.name]
+			else:
+				(connection, cursor) = self.getcursor(connection)
+				ddprefix = cursor.ddprefix()
+				# If this is a domain index, reference the preferences defined there
+				query = f"""
+					select
+						index_type,
+						parameters
+					from
+						{ddprefix}_indexes
+					where
+						owner = nvl(:owner, user) and
+						index_name = :name
+				"""
+				cursor.execute(query, owner=self.owner, name=self.name)
+				rec = cursor.fetchone()
 			if rec.index_type == "DOMAIN":
 				parameters = re.split('\\b(datastore|memory|lexer|stoplist|wordlist)\\b', rec.parameters, flags=re.IGNORECASE)
 				foundparameter = None
@@ -3083,7 +3145,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 					elif parameter.lower() in ("datastore", "lexer", "stoplist", "wordlist"):
 						foundparameter = parameter
 
-			yield from super().references(connection)
+			yield from super().references(connection, cache)
 
 	def table(self, connection=None):
 		"""
@@ -3422,13 +3484,13 @@ class MaterializedView(View):
 		code = f"create materialized view {self.getfullname()} {code[4]}"
 		return code
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		# skip the table
-		for obj in super().references(connection):
+		for obj in super().references(connection, cache):
 			if not isinstance(obj, Table) or obj.name != self.name or obj.owner != self.owner:
 				yield obj
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		connection = self.getconnection(connection)
 		yield Table(self.name, self.owner, connection)
 
@@ -4237,7 +4299,7 @@ class Column(OwnedSchemaObject):
 		# The column modification date is the table modification date
 		return self.table().udate(connection)
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		connection = self.getconnection(connection)
 		name = self.name.split(".")
 		yield Table(name[0], self.owner, connection)
@@ -4509,10 +4571,10 @@ class JobClass(SchemaObject):
 		for name in cls.names(connection):
 			yield cls(name, connection)
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		yield from ()
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"select decode(owner, user, null, owner) as owner, job_name from {ddprefix}_scheduler_jobs where job_class = :name"
@@ -4636,7 +4698,7 @@ class Job(OwnedSchemaObject):
 		for name in cls.names(connection, owner=owner):
 			yield cls(name[0], name[1], connection)
 
-	def references(self, connection=None, dependencies=None):
+	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
 		query = f"select job_class from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
@@ -4650,7 +4712,7 @@ class Job(OwnedSchemaObject):
 		if "$" not in rec.job_class and rec.job_class not in system_classes:
 			yield JobClass(rec.job_class, connection)
 
-	def referencedby(self, connection=None, dependencies=None):
+	def referencedby(self, connection=None, cache=None):
 		# Oracle does not provide any information about which procedures etc.
 		# the job calls, so skip the check
 		# (To still be able to get objects in a usable order
