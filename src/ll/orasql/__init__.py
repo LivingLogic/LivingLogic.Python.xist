@@ -890,23 +890,18 @@ class Cache:
 	def __init__(self, cursor):
 		self.cursor = cursor
 		self.ddprefix = cursor.ddprefix()
+		self._dependencies = None
 		self._references = None
 		self._referencedby = None
 		self._indexes = None
 		self._mviews = None
+		self._constraints = None
+		self._constraints_by_constraint = None
+		self._constraints_by_referenced_constraint = None
 
 	@property
-	def references(self):
-		self._dependencies()
-		return self._references
-
-	@property
-	def referencedby(self):
-		self._dependencies()
-		return self._referencedby
-
-	def _dependencies(self):
-		if self._references is None or self._referencedby is None:
+	def dependencies(self):
+		if self._dependencies is None:
 			self.cursor.execute(
 				f"""
 					select
@@ -929,12 +924,24 @@ class Cache:
 						referenced_name
 				"""
 			)
-			self._references = collections.defaultdict(list)
-			self._referencedby = collections.defaultdict(list)
+			self._dependencies = self.cursor.fetchall()
+		return self._dependencies
 
-			for rec in self.cursor:
+	@property
+	def references(self):
+		if self._references is None:
+			self._references = collections.defaultdict(list)
+			for rec in self.dependencies:
 				self.references[(rec.type, rec.owner, rec.name)].append(rec)
+		return self._references
+
+	@property
+	def referencedby(self):
+		if self._referencedby is None:
+			self._referenceby = collections.defaultdict(list)
+			for rec in self.dependencies:
 				self.referencedby[(rec.referenced_type, rec.referenced_owner, rec.referenced_name)].append(rec)
+		return self._referencedby
 
 	@property
 	def indexes(self):
@@ -970,10 +977,57 @@ class Cache:
 						{self.ddprefix}_mviews
 					where
 						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+					order by
+						owner,
+						mview_name
 				"""
 			)
 			self._mviews = {(r.owner, r.index_name) : r for r in self.cursor}
 		return self._mviews
+
+	@property
+	def constraints(self):
+		if self._constraints is None:
+			self.cursor.execute(
+				f"""
+					select
+						constraint_type,
+						decode(owner, user, null, owner) as owner,
+						constraint_name,
+						table_name,
+						decode(r_owner, user, null, r_owner) as r_owner,
+						r_constraint_name,
+						decode(index_owner, user, null, index_owner) as index_owner,
+						index_name
+					from
+						{self.ddprefix}_constraints
+					where
+						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y') and
+						generated = 'USER NAME'
+					order by
+						r_owner,
+						r_constraint_name,
+						owner,
+						constraint_name
+				"""
+			)
+			self._constraints = self.cursor.fetchall()
+		return self._constraints
+
+	@property
+	def constraints_by_constraint(self):
+		if self._constraints_by_constraint is None:
+			self._constraints_by_constraint = {(r.owner, r.constraint_name): r for r in self.constraints}
+		return self._constraints_by_constraint
+
+	@property
+	def constraints_by_referenced_constraint(self):
+		if self._constraints_by_referenced_constraint is None:
+			self._constraints_by_referenced_constraint = collections.defaultdict(list)
+			for rec in self.constraints:
+				if rec.r_owner is not None or rec.r_constraint_name is not None:
+					self._constraints_by_referenced_constraint[(rec.r_owner, rec.r_constraint_name)].append(rec)
+		return self._constraints_by_referenced_constraint
 
 
 class MixinNormalDates:
@@ -2431,24 +2485,27 @@ class Constraint(OwnedSchemaObject):
 		code = f"alter table {code[2]} add constraint {self.getfullname()} {code[6]}"
 		return code
 
-	def table(self, connection=None):
+	def table(self, connection=None, cache=None):
 		"""
 		Return the :class:`Table` ``self`` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				table_name
-			from
-				{ddprefix}_constraints
-			where
-				constraint_type=:type and
-				owner=nvl(:owner, user) and
-				constraint_name=:name
-		"""
-		cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
+		if cache is not None:
+			rec = cache.constraints_by_constraint[(self.owner, self.name)]
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					table_name
+				from
+					{ddprefix}_constraints
+				where
+					constraint_type=:type and
+					owner=nvl(:owner, user) and
+					constraint_name=:name
+			"""
+			cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
+			rec = cursor.fetchone()
 		return Table(rec.table_name, self.owner, connection)
 
 
@@ -2544,20 +2601,24 @@ class PrimaryKey(Constraint):
 
 	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				decode(owner, user, null, owner) as owner,
-				constraint_name
-			from
-				{ddprefix}_constraints
-			where
-				constraint_type='R' and
-				r_owner=nvl(:owner, user) and
-				r_constraint_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
+		if cache is not None:
+			recs = [r for r in cache.constraints_by_referenced_constraint[(self.owner, self.name)] if r.constraint_type == "R"]
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					constraint_name
+				from
+					{ddprefix}_constraints
+				where
+					constraint_type='R' and
+					r_owner=nvl(:owner, user) and
+					r_constraint_name=:name
+			"""
+			cursor.execute(query, owner=self.owner, name=self.name)
+			recs = cursor.fetchall()
+		for rec in recs:
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
 		# Normally there is an index for this primary key, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
@@ -2633,10 +2694,10 @@ class ForeignKey(Constraint):
 		yield from ()
 
 	def references(self, connection=None, cache=None):
-		yield self.table(connection)
-		yield self.refconstraint(connection)
+		yield self.table(connection, cache=cache)
+		yield self.refconstraint(connection, cache=cache)
 
-	def refconstraint(self, connection=None):
+	def refconstraint(self, connection=None, cache=None):
 		"""
 		Return the constraint referenced by ``self``.
 
@@ -2644,26 +2705,30 @@ class ForeignKey(Constraint):
 		:class:`UniqueConstraint`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				c2.constraint_type,
-				decode(c1.r_owner, user, null, c1.r_owner) as r_owner,
-				c1.r_constraint_name
-			from
-				{ddprefix}_constraints c1,
-				{ddprefix}_constraints c2
-			where
-				c1.constraint_type = 'R' and
-				c1.owner = nvl(:owner, user) and
-				c1.constraint_name = :name and
-				c1.r_owner = c2.owner and
-				c1.r_constraint_name = c2.constraint_name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
-		rec = cursor.fetchone()
+		if cache is not None:
+			rec = cache.constraints_by_constraint[(self.owner, self.name)]
+			rec = cache.constraints_by_constraint[(rec.r_owner, rec.r_constraint_name)]
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					c2.constraint_type,
+					decode(c1.r_owner, user, null, c1.r_owner) as owner,
+					c2.constraint_name
+				from
+					{ddprefix}_constraints c1,
+					{ddprefix}_constraints c2
+				where
+					c1.constraint_type = 'R' and
+					c1.owner = nvl(:owner, user) and
+					c1.constraint_name = :name and
+					c1.r_owner = c2.owner and
+					c1.r_constraint_name = c2.constraint_name
+			"""
+			cursor.execute(query, owner=self.owner, name=self.name)
+			rec = cursor.fetchone()
 		types = {"P": PrimaryKey, "U": UniqueConstraint}
-		return types[rec.constraint_type](rec.r_constraint_name, rec.r_owner, connection)
+		return types[rec.constraint_type](rec.constraint_name, rec.owner, connection)
 
 	def columns(self, connection=None):
 		"""
@@ -2738,40 +2803,48 @@ class UniqueConstraint(Constraint):
 
 	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				decode(owner, user, null, owner) as owner,
-				constraint_name
-			from
-				{ddprefix}_constraints
-			where
-				constraint_type = 'R' and
-				r_owner = nvl(:owner, user) and
-				r_constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
+		if cache is not None:
+			recs = [r for r in cache.constraints_by_referenced_constraint[(self.owner, self.name)] if r.constraint_type == "R"]
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					constraint_name
+				from
+					{ddprefix}_constraints
+				where
+					constraint_type = 'R' and
+					r_owner = nvl(:owner, user) and
+					r_constraint_name = :name
+			"""
+			cursor.execute(query, owner=self.owner, name=self.name)
+			recs = cursor.fetchall()
+		for rec in recs:
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
 
 		# Normally there is an index for this constraint, but we ignore it, as for the purpose of :mod:`orasql` this index doesn't exist
 
 	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				decode(owner, user, null, owner) as owner,
-				table_name
-			from
-				{ddprefix}_constraints
-			where
-				constraint_type = 'U' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
+		if cache is not None:
+			recs = [cache.constraints_by_constraint[(self.owner, self.name)]]
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					table_name
+				from
+					{ddprefix}_constraints
+				where
+					constraint_type = 'U' and
+					owner = nvl(:owner, user) and
+					constraint_name = :name
+			"""
+			cursor.execute(query, owner=self.owner, name=self.name)
+			recs = cursor.fetchall()
+		for rec in recs:
 			yield Table(rec.table_name, rec.owner, connection)
 
 
@@ -2816,20 +2889,24 @@ class CheckConstraint(Constraint):
 
 	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
-			select
-				decode(owner, user, null, owner) as owner,
-				table_name
-			from
-				{ddprefix}_constraints
-			where
-				constraint_type = 'C' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
-		for rec in cursor.fetchall():
+		if cache is not None:
+			recs = [cache.constraints_by_constraint[(self.owner, self.name)]]
+		else:
+			ddprefix = cursor.ddprefix()
+			query = f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					table_name
+				from
+					{ddprefix}_constraints
+				where
+					constraint_type = 'C' and
+					owner = nvl(:owner, user) and
+					constraint_name = :name
+			"""
+			cursor.execute(query, owner=self.owner, name=self.name)
+			recs = cursor.fetchall()
+		for rec in recs:
 			yield Table(rec.table_name, rec.owner, connection)
 
 
