@@ -23,7 +23,7 @@ Changes in 5.79 (released 2025-04-11)
 	:class:`ll.orasql.SchemaObject.referencedby`,
 	:class:`ll.orasql.SchemaObject.referencesall` and
 	:class:`ll.orasql.SchemaObject.referencedbyall`.
-	This is use autoamatically in :class:`ll.orasql.Connection.objects`.
+	This is used autoamatically in :class:`ll.orasql.Connection.objects`.
 
 
 Changes in 5.78 (released 2025-03-17)
