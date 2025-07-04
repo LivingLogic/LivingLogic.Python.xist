@@ -1870,6 +1870,17 @@ def test_ge(T):
 
 
 @pytest.mark.ul4
+def test_str_isdigit(T):
+	t = T('<?print x.isdigit()?>')
+	assert 'True' == t.renders(x="123")
+	assert 'False' == t.renders(x="123a")
+	assert 'False' == t.renders(x="")
+	assert 'False' == t.renders(x="abc")
+	assert 'False' == t.renders(x="+123")
+	assert 'False' == t.renders(x="-123")
+	assert 'True' == t.renders(x="".join(chr(c) for c in range(sys.maxunicode) if chr(c).isdigit()))
+
+@pytest.mark.ul4
 def test_contains(T):
 	t = T('<?print x in y?>')
 

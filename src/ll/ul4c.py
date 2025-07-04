@@ -1049,7 +1049,7 @@ FloatType = FloatType(None, "float", "An floating point value")
 
 
 class StrType(Type):
-	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join"}
+	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join", "isdigit"}
 
 	def __call__(self, obj="", /):
 		return _str(obj)
@@ -1124,6 +1124,10 @@ class StrType(Type):
 	@staticmethod
 	def join(obj, iterable, /):
 		return obj.join(iterable)
+
+	@staticmethod
+	def isdigit(obj, /):
+		return obj.isdigit()
 
 StrType = StrType(None, "str", "A string")
 
