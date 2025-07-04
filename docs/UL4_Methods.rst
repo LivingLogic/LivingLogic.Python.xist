@@ -152,6 +152,13 @@ argument sequence with the string itself as the separator, i.e.:
 outputs ``1+2+3+4``.
 
 
+``isdigit()``
+-------------
+
+``s.isdigit()`` returns ``True`` if all characters in the string ``s`` are
+digits and there is at least one character, ``False`` otherwise.
+
+
 ``list``
 ========
 
