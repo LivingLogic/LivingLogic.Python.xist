@@ -2568,6 +2568,16 @@ def test_function_float(T):
 
 
 @pytest.mark.ul4
+def test_module_color_str_method(T):
+	assert "#000" == T("<?print #000?>").renders()
+	assert "#fff" == T("<?print #fff?>").renders()
+	assert "#123" == T("<?print #123?>").renders()
+	assert "#1234" == T("<?print #1234?>").renders()
+	assert "#123456" == T("<?print #123456?>").renders()
+	assert "#12345678" == T("<?print #12345678?>").renders()
+
+
+@pytest.mark.ul4
 def test_module_color_function_Color(T):
 	assert "#369" == T("<?print color.Color(51, 102, 153, 255)?>").renders()
 
