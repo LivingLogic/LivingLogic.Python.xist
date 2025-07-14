@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2025-??-??)
+Changes in 5.80 (released 2025-07-14)
 -------------------------------------
 
 *	Added the following methods to UL4s string type: ``isdigit``,
