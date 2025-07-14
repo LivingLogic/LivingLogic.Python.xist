@@ -8,6 +8,17 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 2025-??-??)
+-------------------------------------
+
+*	Added the following methods to UL4s string type: ``isdigit``,
+	``isasciidigit``, ``removeprefix`` and ``removesuffix``.
+
+*	:meth:`ll.orasql.create_pool` and :meth:`ll.orasql.ConnectionPool` now
+	support an argument ``module`` that sets Oracle's session attribute
+	``module``.
+
+
 Changes in 5.79 (released 2025-04-11)
 -------------------------------------
 

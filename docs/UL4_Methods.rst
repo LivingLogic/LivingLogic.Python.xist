@@ -79,6 +79,20 @@ whitespace removed. If an argument ``chars`` is given and not ``None``,
 characters in ``chars`` will be removed instead.
 
 
+``removeprefix(prefix, /)``
+-------------------------
+
+Remove the prefix ``prefix`` from the string. If the string doesn't start with
+``prefix`` the string is returned unodified.
+
+
+``removesuffix(suffix, /)``
+-------------------------
+
+Remove the suffix ``suffix`` from the string. If the string doesn't start with
+``suffix`` the string is returned unodified.
+
+
 ``split(sep=None, maxsplit=None)``
 ----------------------------------
 
@@ -157,6 +171,13 @@ outputs ``1+2+3+4``.
 
 ``s.isdigit()`` returns ``True`` if all characters in the string ``s`` are
 digits and there is at least one character, ``False`` otherwise.
+
+
+``isasciidigit()``
+------------------
+
+``s.isasciidigit()`` returns ``True`` if all characters in the string ``s`` are
+ASCII digits and there is at least one character, ``False`` otherwise.
 
 
 ``list``
