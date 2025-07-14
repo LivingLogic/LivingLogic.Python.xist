@@ -1049,7 +1049,7 @@ FloatType = FloatType(None, "float", "An floating point value")
 
 
 class StrType(Type):
-	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join", "isdigit"}
+	wrappedmethattrs = {"split", "rsplit", "splitlines", "strip", "lstrip", "rstrip", "removeprefix", "removesuffix", "upper", "lower", "capitalize", "startswith", "endswith", "replace", "count", "find", "rfind", "join", "isdigit", "isasciidigit"}
 
 	def __call__(self, obj="", /):
 		return _str(obj)
@@ -1080,6 +1080,14 @@ class StrType(Type):
 	@staticmethod
 	def rstrip(obj, chars=None, /):
 		return obj.rstrip(chars)
+
+	@staticmethod
+	def removeprefix(obj, prefix, /):
+		return obj.removeprefix(prefix)
+
+	@staticmethod
+	def removesuffix(obj, suffix, /):
+		return obj.removesuffix(suffix)
 
 	@staticmethod
 	def count(obj, sub, start=None, end=None, /):
@@ -1128,6 +1136,10 @@ class StrType(Type):
 	@staticmethod
 	def isdigit(obj, /):
 		return obj.isdigit()
+
+	@staticmethod
+	def isasciidigit(obj, /):
+		return all("0" <= c <= "9" for c in obj) and bool(obj)
 
 StrType = StrType(None, "str", "A string")
 

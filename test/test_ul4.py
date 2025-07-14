@@ -1879,6 +1879,39 @@ def test_str_isdigit(T):
 	assert 'False' == t.renders(x="+123")
 	assert 'False' == t.renders(x="-123")
 	assert 'True' == t.renders(x="".join(chr(c) for c in range(sys.maxunicode) if chr(c).isdigit()))
+	assert 'True' == t.renders(x="\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT TWO}\N{SUPERSCRIPT THREE}")
+
+
+@pytest.mark.ul4
+def test_str_isasciidigit(T):
+	t = T('<?print x.isasciidigit()?>')
+	assert 'True' == t.renders(x="123")
+	assert 'False' == t.renders(x="123a")
+	assert 'False' == t.renders(x="")
+	assert 'False' == t.renders(x="abc")
+	assert 'False' == t.renders(x="+123")
+	assert 'False' == t.renders(x="-123")
+	assert 'False' == t.renders(x="".join(chr(c) for c in range(sys.maxunicode) if chr(c).isdigit()))
+	assert 'False' == t.renders(x="\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT TWO}\N{SUPERSCRIPT THREE}")
+
+
+@pytest.mark.ul4
+def test_str_removeprefix(T):
+	assert "World" == T("<?print 'Hello World'.removeprefix('Hello ')?>").renders()
+	assert "Hello World" == T("<?print 'Hello World'.removeprefix('Goodbye ')?>").renders()
+	assert "Hello World" == T("<?print 'Hello World'.removeprefix('')?>").renders()
+	assert "" == T("<?print ''.removeprefix('test')?>").renders()
+	assert "" == T("<?print ''.removeprefix('')?>").renders()
+
+
+@pytest.mark.ul4
+def test_str_removesuffix(T):
+	assert "Hello " == T("<?print 'Hello World'.removesuffix('World')?>").renders()
+	assert "Hello World" == T("<?print 'Hello World'.removesuffix(' Universe')?>").renders()
+	assert "Hello World" == T("<?print 'Hello World'.removesuffix('')?>").renders()
+	assert "" == T("<?print ''.removesuffix('test')?>").renders()
+	assert "" == T("<?print ''.removesuffix('')?>").renders()
+
 
 @pytest.mark.ul4
 def test_contains(T):
