@@ -367,7 +367,13 @@ class ConnectionPool(ConnectionPool):
 	"""
 
 	def __init__(self, dsn=None, **kwargs):
+		self.module = kwargs.pop("module", None)
 		super().__init__(dsn, **{"connectiontype": Connection, **kwargs})
+
+	def acquire(self, *args, **kwargs):
+		connection = super().acquire(*args, **kwargs)
+		connection.module = oracle_module_name(self.module)
+		return connection
 
 	def connectstring(self):
 		return f"{self.username}@{self.dsn}"
@@ -420,6 +426,17 @@ def owned(obj, owner):
 	return True
 
 
+def oracle_module_name(module):
+	"""
+	Return the value for Oracle's session attribute ``module``.
+	"""
+	if module is None:
+		module = misc.sysinfo.short_script_name[-64:]
+		if module == "<shell>":
+			module = f"<shell pid={os.getpid()}>"
+	return module
+
+
 class Connection(Connection):
 	"""
 	:class:`Connection` is a subclass of :class:`oracledb.Connection`.
@@ -452,13 +469,7 @@ class Connection(Connection):
 			self.readlobs = False
 		self.decimal = kwargs.pop("decimal", False)
 		super().__init__(*args, **kwargs)
-		if "module" not in kwargs:
-			module = misc.sysinfo.short_script_name[-64:]
-			if module == "<shell>":
-				module = f"<shell pid={os.getpid()}>"
-			self.module = module
-		elif kwargs["module"] is not None:
-			self.module = kwargs["module"]
+		self.module = oracle_module_name(kwargs.get("module", None))
 		if self.decimal:
 			self.outputtypehandler = self._numbersasdecimal
 		self.mode = kwargs.get("mode")
@@ -798,11 +809,13 @@ def connect(*args, **kwargs):
 
 create_pool_oracledb = create_pool
 
-def create_pool(*args, **kwargs):
+def create_pool(*args, module=None, **kwargs):
 	"""
 	Create a connection pool and return a :class:`ConnectionPool` object.
 	"""
-	return create_pool_oracledb(*args, **{"pool_class": ConnectionPool, **kwargs})
+	pool = create_pool_oracledb(*args, **{"pool_class": ConnectionPool, **kwargs})
+	pool.module = module
+	return pool
 
 
 class Cursor(Cursor):
