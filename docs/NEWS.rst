@@ -8,8 +8,8 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2025-??-??)
--------------------------------------
+Changes in 5.80.1 (released 2025-07-22)
+---------------------------------------
 
 *	Fixed a bug in :meth:`ll.ul4c.BoundTemplate.renders_with_globals`.
 
