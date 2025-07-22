@@ -6729,8 +6729,7 @@ class BoundTemplate:
 		"""
 		stream = io.StringIO()
 		context = Context(globals, stream)
-		self.ul4_renders(context, *args, **kwargs)
-		return stream.getvalue()
+		return self.ul4_renders(context, *args, **kwargs)
 
 	def __call__(self, /, *args, **kwargs):
 		"""
