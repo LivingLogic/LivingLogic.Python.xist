@@ -123,7 +123,7 @@ You can define new elements and how they should be converted to HTML
 			)
 			return e.convert(converter)
 
-	names = ["ll-xist", "cx_Oracle", "PIL"]
+	names = ["ll-xist", "oracledb", "Pillow"]
 
 	node = xsc.Frag(
 		xml.XML(),
