@@ -28,7 +28,7 @@ XIST also includes the following modules and packages:
 
 	There are implementations for Python, Java and Javascript.
 
-*	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
+*	:mod:`ll.orasql` provides utilities for working with oracledb_:
 
 	-	It allows calling functions and procedures with keyword arguments.
 

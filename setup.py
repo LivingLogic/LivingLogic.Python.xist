@@ -46,7 +46,7 @@ XIST also includes the following modules and packages:
 
 	There are implementations for Python, Java and Javascript.
 
-*	:mod:`ll.orasql` provides utilities for working with cx_Oracle_:
+*	:mod:`ll.orasql` provides utilities for working with oracledb_:
 
 	-	It allows calling functions and procedures with keyword arguments.
 
@@ -59,7 +59,7 @@ XIST also includes the following modules and packages:
 	-	Importing the modules adds support for URLs with the scheme ``oracle`` to
 		:mod:`ll.url`.
 
-	.. _cx_Oracle: https://oracle.github.io/python-cx_Oracle/
+	.. _oracledb: https://oracle.github.io/python-oracledb/
 
 *	:mod:`ll.make` is an object oriented make replacement. Like make it allows
 	you to specify dependencies between files and actions to be executed

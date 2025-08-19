@@ -1023,7 +1023,7 @@ def loads(dump:str, /, registry:Optional[Dict[str, Callable[..., Any]]]=None) ->
 
 def loadclob(clob, /, bufsize:int=1024*1024, registry:Optional[Dict[str, Callable[..., Any]]]=None) -> Any:
 	"""
-	Deserialize ``clob`` (which must be an :mod:`cx_Oracle` ``CLOB`` variable
+	Deserialize ``clob`` (which must be an :mod:`oracledb` ``CLOB`` variable
 	containing an UL4ON formatted object) to a Python object.
 
 	``bufsize`` specifies the chunk size for reading the underlying ``CLOB``
