@@ -1620,11 +1620,10 @@ aside .breadcrumbs
 .rst-content pre.literal-block,
 .rst-content div[class^='highlight']
 {
-	border: 1px solid var(--rule-color-fg);
 	overflow-x: auto;
 	margin: {{theme_vertical_spacing}} 0;
 	border-radius: 0.5rem;
-	background-color: rgba(255, 255, 255, 0.66);
+	background-color: #0006;
 }
 .rst-content pre.literal-block div[class^='highlight'],
 .rst-content div[class^='highlight'] div[class^='highlight']
