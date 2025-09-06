@@ -61,6 +61,13 @@ XIST also includes the following modules and packages:
 
 	.. _oracledb: https://oracle.github.io/python-oracledb/
 
+*	:mod:`ll.vsql` provides a way to build Oracle SQL queries safely and
+	dynamically using UL4 expressions. Instead of manually concatenating strings,
+	you can express query logic with vSQL (a variant of UL4), which is then
+	compiled into proper SQL. This approach eliminates the risky parts of query
+	construction, effectively preventing SQL injection attacks, while offering
+	the expressive power of an ORM without the overhead.
+
 *	:mod:`ll.make` is an object oriented make replacement. Like make it allows
 	you to specify dependencies between files and actions to be executed
 	when files don't exist or are out of date with respect to one
@@ -207,6 +214,8 @@ PI
 # ul4
 template
 templating language
+
+# vSQL
 
 # orasql
 Oracle
