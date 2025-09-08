@@ -656,7 +656,7 @@ class Query(Repr):
 		self._fields : dict[str, tuple["AST"|str, str | None]] = {}
 		self._from : dict[str, "AST"|str] = {}
 		self._where : dict[str, "AST"|str] = {}
-		self._orderby : List[tuple[str, "AST"|str, str | None, str | None]] = []
+		self._orderby : list[tuple[str, "AST" | str, str | None, str | None]] = []
 		self._offset = None
 		self._limit = None
 		self._identifier_aliases : dict[str, str] = {}
