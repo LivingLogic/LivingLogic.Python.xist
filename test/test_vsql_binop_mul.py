@@ -1,8 +1,6 @@
 """
 Tests for the vSQL multiplication operator ``*``.
 
-The test are done via the Python DB interface.
-
 To run the tests, :mod:`pytest` is required.
 """
 
