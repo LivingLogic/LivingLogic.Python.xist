@@ -14,7 +14,6 @@ from conftest import *
 ### Tests
 ###
 
-
 def test_bool_bool1(db, vsql_data):
 	assert expr(db, "r.v_int * True", where="r.identifier == 'none'") is None
 
