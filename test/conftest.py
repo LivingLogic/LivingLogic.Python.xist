@@ -48,6 +48,7 @@ def extract_result(value):
 		value = value.read()
 	return value
 
+
 def expr(db, vsqlexpr, *, where=None):
 	query = vsql.Query(r=vsql_r)
 	query.select_vsql(vsqlexpr)
