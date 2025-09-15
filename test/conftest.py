@@ -25,6 +25,7 @@ vsql_group.add_field("v_datetime", vsql.DataType.DATETIME, "{a}.vs_datetime")
 vsql_group.add_field("v_datedelta", vsql.DataType.DATEDELTA, "{a}.vs_int")
 vsql_group.add_field("v_datetimedelta", vsql.DataType.DATETIMEDELTA, "{a}.vs_number")
 vsql_group.add_field("v_monthdelta", vsql.DataType.MONTHDELTA, "{a}.vs_int")
+vsql_group.add_field("v_color", vsql.DataType.COLOR, "{a}.vs_int")
 
 
 vsql_r = vsql.Field(
@@ -40,6 +41,13 @@ vsql_r = vsql.Field(
 ### Helder functions
 ###
 
+def extract_result(value):
+	if isinstance(value, orasql.DbObject):
+		value = [extract_result(item) for item in value.aslist()]
+	elif isinstance(value, orasql.LOB):
+		value = value.read()
+	return value
+
 def expr(db, vsqlexpr, *, where=None):
 	query = vsql.Query(r=vsql_r)
 	query.select_vsql(vsqlexpr)
@@ -47,10 +55,7 @@ def expr(db, vsqlexpr, *, where=None):
 		query.where_vsql(where)
 	rs = execute(db, query)
 	assert len(rs) == 1
-	result = rs[0][0]
-	if isinstance(result, orasql.DbObject):
-		result = result.aslist()
-	return result
+	return extract_result(rs[0][0])
 
 
 def execute(db, query):
@@ -97,11 +102,14 @@ def setup_vsql_data(db):
 	make_record(db, vs_identifier="date", vs_date=datetime.date(2000, 2, 29))
 	make_record(db, vs_identifier="datetime", vs_datetime=datetime.datetime(2000, 2, 29, 12, 34, 56))
 	make_record(db, vs_identifier="str", vs_str="gurk")
+	make_record(db, vs_identifier="clob", vs_clob="gurk"*100000)
+	make_record(db, vs_identifier="shortclob", vs_clob="gurk")
 	make_record(db, vs_identifier="int", vs_int=1776)
 	make_record(db, vs_identifier="number", vs_number=42.5)
 	make_record(db, vs_identifier="datedelta", vs_int=12)
 	make_record(db, vs_identifier="datetimedelta", vs_number=1.0 + 12/24 + 34/24/60 + 56/24/60/60)
 	make_record(db, vs_identifier="monthdelta", vs_int=3)
+	make_record(db, vs_identifier="color", vs_int=3)
 	db.commit()
 
 

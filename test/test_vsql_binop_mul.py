@@ -96,6 +96,47 @@ def test_int_str4(db, vsql_data):
 	assert expr(db, "2 * r.v_str", where="r.identifier == 'str'") == "gurkgurk"
 
 
+def test_bool_clob1(db, vsql_data):
+	assert expr(db, "r.v_bool * r.v_clob", where="r.identifier == 'none'") is None
+
+
+def test_bool_clob2(db, vsql_data):
+	assert expr(db, "r.v_bool * r.v_clob", where="r.identifier == 'bool_false'") is None
+
+
+def test_bool_clob3(db, vsql_data):
+	assert expr(db, "r.v_bool * r.v_clob", where="r.identifier == 'bool_false'") is None
+
+
+def test_bool_clob4(db, vsql_data):
+	assert expr(db, "r.v_bool * r.v_clob", where="r.identifier == 'clob'") is None
+
+
+def test_bool_clob5(db, vsql_data):
+	result = expr(db, "False * r.v_clob", where="r.identifier == 'clob'")
+	assert result is None or result == ""
+
+
+def test_bool_clob6(db, vsql_data):
+	assert expr(db, "True * r.v_clob", where="r.identifier == 'clob'") == "gurk" * 100000
+
+
+def test_int_clob1(db, vsql_data):
+	assert expr(db, "r.v_int * r.v_clob", where="r.identifier == 'none'") is None
+
+
+def test_int_clob2(db, vsql_data):
+	assert expr(db, "2 * r.v_clob", where="r.identifier == 'none'") is None
+
+
+def test_int_clob3(db, vsql_data):
+	assert expr(db, "r.v_int * r.v_clob", where="r.identifier == 'clob'") is None
+
+
+def test_int_clob4(db, vsql_data):
+	assert expr(db, "2 * r.v_clob", where="r.identifier == 'clob'") == "gurk" * 200000
+
+
 def test_bool_datedelta1(db, vsql_data):
 	assert expr(db, "r.v_bool * days(3)", where="r.identifier == 'none'") is None
 

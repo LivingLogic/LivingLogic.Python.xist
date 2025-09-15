@@ -64,6 +64,22 @@ def test_str_str2(db, vsql_data):
 	assert expr(db, "'gurk' + r.v_str", where="r.identifier == 'str'") == "gurkgurk"
 
 
+def test_str_clob1(db, vsql_data):
+	assert expr(db, "'hurz' + r.v_clob", where="r.identifier == 'none'") == "hurz"
+
+
+def test_str_clob2(db, vsql_data):
+	assert expr(db, "'hurz' + r.v_clob", where="r.identifier == 'clob'") == "hurz" + "gurk" * 100000
+
+
+def test_clob_str1(db, vsql_data):
+	assert expr(db, "r.v_clob + 'hurz'", where="r.identifier == 'none'") == "hurz"
+
+
+def test_clob_str2(db, vsql_data):
+	assert expr(db, "r.v_clob + 'hurz'", where="r.identifier == 'clob'") == "gurk" * 100000 + "hurz"
+
+
 def test_intlist_intlist(db, vsql_data):
 	assert expr(db, "[1, 2] + [3, 4]") == [1, 2, 3, 4]
 

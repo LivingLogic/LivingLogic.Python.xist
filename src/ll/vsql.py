@@ -399,24 +399,9 @@ class VSQLUnknownNameError(VSQLError):
 		return f"The {name} is unknown."
 
 
-class VSQLUnknownListTypeError(VSQLError):
-	def detail(self) -> str:
-		return f"List type can't be determined."
-
-
-class VSQLMixedListTypesError(VSQLError):
-	def detail(self) -> str:
-		return f"List type can't be determined, since it contains mixed types."
-
-
 class VSQLUnsupportedListTypesError(VSQLError):
 	def detail(self) -> str:
-		return f"Unsupported item type for list."
-
-
-class VSQLUnknownSetTypeError(VSQLError):
-	def detail(self) -> str:
-		return f"Set type can't be determined."
+		return f"List type can't be determined, since it contains unsupported or mixed types."
 
 
 class VSQLMixedSetTypesError(VSQLError):
@@ -426,7 +411,7 @@ class VSQLMixedSetTypesError(VSQLError):
 
 class VSQLUnsupportedSetTypesError(VSQLError):
 	def detail(self) -> str:
-		return f"Unsupported item type for set."
+		return f"Set type can't be determined, since it contains unsupported or mixed types."
 
 
 class VSQLWrongDatatypeError(VSQLError):
@@ -460,10 +445,7 @@ class Error(str, misc.Enum):
 	CONST_TIMESTAMP = ("const_timestamp", VSQLMalformedConstantError) # ``NODETYPE_CONST_DATETIME`` value is ``null`` or malformed
 	CONST_COLOR = ("const_color", VSQLMalformedConstantError) # ``NODETYPE_CONST_COLOR`` value is ``null`` or malformed
 	NAME = ("name", VSQLUnknownNameError) # Attribute/Function/Method is unknown
-	LISTTYPEUNKNOWN = ("listtypeunknown", VSQLUnknownListTypeError) # List is empty or only has literal ``None``s as items, so the type can't be determined
-	LISTMIXEDTYPES = ("listmixedtypes", VSQLMixedListTypesError) # List items have incompatible types, so the type can't be determined
-	LISTUNSUPPORTEDTYPES = ("listunsupportedtypes", VSQLUnsupportedListTypesError) # List items have unsupported types, so the type can't be determined
-	SETTYPEUNKNOWN = ("settypeunknown", VSQLUnknownSetTypeError) # Set is empty or only has literal ``None``s as items, so the type can't be determined
+	LISTUNSUPPORTEDTYPES = ("listunsupportedtypes", VSQLUnsupportedListTypesError) # List items have unsupported or mixed types, so the type can't be determined
 	SETMIXEDTYPES = ("setmixedtypes", VSQLMixedSetTypesError) # Set items have incompatible types, so the type can't be determined
 	SETUNSUPPORTEDTYPES = ("setunsupportedtypes", VSQLUnsupportedSetTypesError) # Set items have unsupported types, so the type can't be determined
 	DATATYPE_NULL = ("datatype_null", VSQLWrongDatatypeError) # The datatype of the node should be ``null`` but isn't
@@ -2002,6 +1984,18 @@ class ListAST(_SeqAST):
 		else:
 			return cls("[]")
 
+	valid_item_types = {
+		frozenset(): DataType.NULLLIST,
+		frozenset({DataType.INT}): DataType.INTLIST,
+		frozenset({DataType.NUMBER}): DataType.NUMBERLIST,
+		frozenset({DataType.STR}): DataType.STRLIST,
+		frozenset({DataType.CLOB}): DataType.CLOBLIST,
+		frozenset({DataType.DATE}): DataType.DATELIST,
+		frozenset({DataType.DATETIME}): DataType.DATETIMELIST,
+		frozenset({DataType.INT, DataType.NUMBER}): DataType.NUMBERLIST,
+		frozenset({DataType.STR, DataType.CLOB}): DataType.CLOBLIST,
+	}
+
 	def validate(self) -> None:
 		if any(item.error for item in self.items):
 			self.error = Error.SUBNODEERROR
@@ -2010,31 +2004,13 @@ class ListAST(_SeqAST):
 			types = {item.datatype for item in self.items}
 			if DataType.NULL in types:
 				types.remove(DataType.NULL)
-			if not types:
-				self.error = None
-				self.datatype = DataType.NULLLIST
-			elif len(types) == 1:
-				self.error = None
-				datatype = misc.first(types)
-				if datatype is DataType.INT:
-					datatype = DataType.INTLIST
-				elif datatype is DataType.NUMBER:
-					datatype = DataType.NUMBERLIST
-				elif datatype is DataType.STR:
-					datatype = DataType.STRLIST
-				elif datatype is DataType.CLOB:
-					datatype = DataType.CLOBLIST
-				elif datatype is DataType.DATE:
-					datatype = DataType.DATELIST
-				elif datatype is DataType.DATETIME:
-					datatype = DataType.DATETIMELIST
-				else:
-					datatype = None
-				self.datatype = datatype
-				self.error = None if datatype else Error.LISTUNSUPPORTEDTYPES
-			else:
-				self.error = Error.LISTMIXEDTYPES
+			try:
+				self.datatype = self.valid_item_types[frozenset(types)]
+			except KeyError:
 				self.datatype = None
+				self.error = Error.LISTUNSUPPORTEDTYPES
+			else:
+				self.error = None
 
 	@property
 	def nodevalue(self) -> str:
@@ -3842,7 +3818,7 @@ OrAST.add_rules(f"T1 <- {LIST} ? NULLLIST", "(case when nvl(vsqlimpl_pkg.len_{t1
 # Containment test (A in B)
 # Can't use the real operator ("in") in the spec, so use "?"
 ContainsAST.add_rules(f"BOOL <- NULL ? {LIST}_NULLLIST", "vsqlimpl_pkg.contains_null_{t2}({s2})")
-ContainsAST.add_rules(f"BOOL <- STR ? STR_CLOB_STRLIST_CLOBLIST_STRSET", "vsqlimpl_pkg.contains_str_{t2}({s1}, {s2})")
+ContainsAST.add_rules(f"BOOL <- STR_CLOB ? STR_CLOB_STRLIST_CLOBLIST_STRSET", "vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2})")
 ContainsAST.add_rules(f"BOOL <- INT_NUMBER ? INTLIST_NUMBERLIST_INTSET_NUMBERSET", "vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2})")
 ContainsAST.add_rules(f"BOOL <- DATE ? DATELIST_DATESET", "vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2})")
 ContainsAST.add_rules(f"BOOL <- DATETIME ? DATETIMELIST_DATETIMESET", "vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2})")
@@ -3851,7 +3827,7 @@ ContainsAST.add_rules(f"BOOL <- {ANY} ? NULLLIST", "case when {s1} is null then 
 # Inverted containment test (A not in B)
 # Can't use the real operator ("not in") in the spec, so use "?"
 NotContainsAST.add_rules(f"BOOL <- NULL ? {LIST}_NULLLIST", "(1 - vsqlimpl_pkg.contains_null_{t2}({s2}))")
-NotContainsAST.add_rules(f"BOOL <- STR ? STR_CLOB_STRLIST_CLOBLIST_STRSET", "(1 - vsqlimpl_pkg.contains_str_{t2}({s1}, {s2}))")
+NotContainsAST.add_rules(f"BOOL <- STR_CLOB ? STR_CLOB_STRLIST_CLOBLIST_STRSET", "(1 - vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2}))")
 NotContainsAST.add_rules(f"BOOL <- INT_NUMBER ? INTLIST_NUMBERLIST_INTSET_NUMBERSET", "(1 - vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2}))")
 NotContainsAST.add_rules(f"BOOL <- DATE ? DATELIST_DATESET", "(1 - vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2}))")
 NotContainsAST.add_rules(f"BOOL <- DATETIME ? DATETIMELIST_DATETIMESET", "(1 - vsqlimpl_pkg.contains_{t1}_{t2}({s1}, {s2}))")
