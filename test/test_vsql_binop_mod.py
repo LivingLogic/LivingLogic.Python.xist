@@ -65,3 +65,11 @@ def test_number_number3(db, vsql_data):
 
 def test_number_number4(db, vsql_data):
 	assert expr(db, "-r.v_number % -3.5", where="r.identifier == 'number'") == -0.5
+
+
+def test_color_color1(db, vsql_data):
+	assert expr(db, "#369 % #fff") == 0x336699ff
+
+
+def test_color_color2(db, vsql_data):
+	assert expr(db, "#369c % #fff6") == 0x4573a2e0
