@@ -176,7 +176,7 @@ def test_color_color_false(db, vsql_data):
 
 
 def test_color_color_true(db, vsql_data):
-	assert not expr(db, "r.v_color != #030609", where="r.identifier == 'color'")
+	assert not expr(db, "r.v_color != #123456ff", where="r.identifier == 'color'")
 
 
 def test_datetimedelta_datetimedelta_false(db, vsql_data):
