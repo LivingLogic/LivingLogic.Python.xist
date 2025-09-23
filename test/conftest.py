@@ -60,7 +60,9 @@ def expr(db, vsqlexpr, *, where=None):
 
 
 def execute(db, query):
-	return db.cursor().execute(query.sqlsource()).fetchall()
+	sql = query.sqlsource()
+	print(f"Executing query:\n{sql}")
+	return db.cursor().execute(sql).fetchall()
 
 
 def make_record(db, **kwargs):
