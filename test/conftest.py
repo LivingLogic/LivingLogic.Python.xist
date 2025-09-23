@@ -114,11 +114,14 @@ def setup_vsql_data(db):
 	db.commit()
 
 
-@pytest.fixture
-def vsql_data(db, tmp_path_factory, worker_id):
+@pytest.fixture(scope="session")
+def vsql_data(tmp_path_factory, worker_id):
 	"""
 	A test fixture that sets up the database for testing vSQL
 	"""
+
+	# Don't use the fixture `db` becuase of different scopes.
+	db = orasql.connect(dbname, readlobs=True)
 
 	# This uses the logic documented here:
 	# https://pytest-xdist.readthedocs.io/en/latest/how-to.html#making-session-scoped-fixtures-execute-only-once
