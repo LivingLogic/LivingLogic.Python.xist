@@ -110,7 +110,7 @@ def setup_vsql_data(db):
 	make_record(db, vs_identifier="datedelta", vs_int=12)
 	make_record(db, vs_identifier="datetimedelta", vs_number=1.0 + 12/24 + 34/24/60 + 56/24/60/60)
 	make_record(db, vs_identifier="monthdelta", vs_int=3)
-	make_record(db, vs_identifier="color", vs_int=3)
+	make_record(db, vs_identifier="color", vs_int=0x123456ff)
 	db.commit()
 
 
