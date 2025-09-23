@@ -747,8 +747,16 @@ def test_dist(db, vsql_data):
 	assert abs(expr(db, "dist(geo(49.95, 11.59, 'Here'), geo(12.34, 56.67, 'There'))")) - 5845.77551787602 < 1e-5
 
 
-def test_abs(db, vsql_data):
+def test_abs_bool(db, vsql_data):
+	assert expr(db, "abs(False)") == 0
+
+
+def test_abs_int(db, vsql_data):
 	assert expr(db, "abs(-42)") == 42
+
+
+def test_abs_number(db, vsql_data):
+	assert expr(db, "abs(-42.5)") == 42.5
 
 
 def test_cos_bool(db, vsql_data):
