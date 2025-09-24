@@ -6,10 +6,6 @@ FROM python:3 AS build-stage
 
 WORKDIR /build
 
-# Oracle Instant Client Version
-ARG ORA_MAJOR=19
-ARG ORA_MINOR=6
-
 # Oracle Instant Client dependencies, `graphviz` for Sphinx diagram, and the rest for PDF generation
 RUN apt-get update
 RUN apt-get install -y \
