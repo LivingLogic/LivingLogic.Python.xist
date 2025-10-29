@@ -80,14 +80,14 @@ characters in ``chars`` will be removed instead.
 
 
 ``removeprefix(prefix, /)``
--------------------------
+---------------------------
 
 Remove the prefix ``prefix`` from the string. If the string doesn't start with
 ``prefix`` the string is returned unodified.
 
 
 ``removesuffix(suffix, /)``
--------------------------
+---------------------------
 
 Remove the suffix ``suffix`` from the string. If the string doesn't start with
 ``suffix`` the string is returned unodified.
