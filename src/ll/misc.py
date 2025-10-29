@@ -28,7 +28,7 @@ __docformat__ = "reStructuredText"
 _curdir = os.getcwd()
 
 
-notifycmd = os.environ.get("LL_MISC_NOTIFY", "/usr/local/bin/terminal-notifier")
+notifycmd = os.environ.get("LL_MISC_NOTIFY", "terminal-notifier")
 
 
 # Try to fetch ``xmlescape`` from C implementation

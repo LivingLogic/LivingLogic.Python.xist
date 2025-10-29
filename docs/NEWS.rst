@@ -8,6 +8,16 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.81 (released 2025-10-29)
+-------------------------------------
+
+*	The functions :func:`ll.misc.notifystart` and :func:`ll.misc.notifyfinish`
+	no longer assume :program:`terminal-notifier` to be in :file:`/usr/local/lib`.
+	Instead :program:`terminal-notifier` must be available on the path.
+	(It is still possible to specify another command via the environment
+	variable :envvar:`LL_MISC_NOTIFY`).
+
+
 Changes in 5.80.1 (released 2025-07-22)
 ---------------------------------------
 
