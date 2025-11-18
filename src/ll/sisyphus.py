@@ -456,11 +456,11 @@ def env(varname: str) -> OptStr:
 
 
 def get_mtime(filename: pathlib.Path) -> datetime.datetime:
-	return datetime.datetime.fromtimestamp(filename.stat().st_mtime)
+	return datetime.datetime.fromtimestamp(filename.lstat().st_mtime)
 
 
 def get_utime(filename: pathlib.Path) -> Tuple[datetime.datetime, datetime.datetime]:
-	stat = filename.stat()
+	stat = filename.lstat()
 	return (datetime.datetime.fromtimestamp(stat.st_atime), datetime.datetime.fromtimestamp(stat.st_mtime))
 
 
@@ -2248,12 +2248,12 @@ class FileLogger(StreamLogger):
 		if self.job.process is not Process.CHILD:
 			if status is Status.UNEVENTFUL:
 				# Remove current log file in case of a uneventful run
-				self.filename.unlink()
+				self.filename.unlink(missing_ok=True)
 		return True
 
 	def remove(self, filename:pathlib.Path) -> None:
 		self.job.log.sisyphus.delay.info(f"Removing logfile {filename}")
-		filename.unlink()
+		filename.unlink(missing_ok=True)
 
 	def compress(self, filename:pathlib.Path, bufsize:int=65536) -> None:
 		if self.job.compressmode == "gzip":
@@ -2282,7 +2282,7 @@ class FileLogger(StreamLogger):
 		times = get_utime(filename)
 		set_utime(compressedfilename, *times)
 		# Remove uncompressed log file
-		filename.unlink()
+		filename.unlink(missing_ok=True)
 
 
 class LinkLogger(Logger):
@@ -2307,7 +2307,7 @@ class LinkLogger(Logger):
 		try:
 			linkname.symlink_to(filename)
 		except FileExistsError:
-			linkname.unlink()
+			linkname.unlink(missing_ok=True)
 			linkname.symlink_to(filename)
 
 	def close(self, status:Status) -> bool:
@@ -2398,7 +2398,7 @@ class EmailLogger(Logger):
 		else:
 			# If we never wrote any logs, remove the log file (shoudn't exist anyway)
 			try:
-				self.job.emailfilename().unlink()
+				self.job.emailfilename().unlink(missing_ok=True)
 			except FileNotFoundError:
 				pass
 		if self.job.process is not Process.CHILD:
@@ -2495,7 +2495,7 @@ class EmailLogger(Logger):
 			# Remove files
 			for p in processes:
 				try:
-					self.job.emailfilename(p).unlink()
+					self.job.emailfilename(p).unlink(missing_ok=True)
 				except FileNotFoundError:
 					pass
 		return True

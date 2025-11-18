@@ -1358,7 +1358,7 @@ class PostgresHandler(DBHandler):
 			result = cursor.fetchone()
 		except psycopg.ProgrammingError as exc:
 			# The procedure call might not have had any out parameters
-			if not exc.args or exc.args[0] not in {"no results to fetch", "no result available", "the last operation didn't produce a result"}:
+			if not exc.args or not any(exc.args[0].startswith(m) for m in {"no results to fetch", "no result available", "the last operation didn't produce a result", "the last operation didn't produce records"}):
 				# some other problem -> report it
 				raise
 		else:

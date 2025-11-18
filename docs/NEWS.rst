@@ -17,6 +17,15 @@ Changes in 5.81 (released 2025-10-29)
 	(It is still possible to specify another command via the environment
 	variable :envvar:`LL_MISC_NOTIFY`).
 
+*	:mod:`ll.sisyphus` now uses :meth:`pathlib.Path.lstat` for checking links
+	instead of :meth:`pathlib.Path.stat` (which checked the wrong file).
+
+*	When deleting files :mod:`ll.sisyphus` now calls :meth:`pathlib.Path.unlink`
+	with ``missing_ok=True`` to avoid problems with files that have been deleted
+	in the meantime.
+
+*	Update detection of OUT variables for Postgres in :mod:`ll.pysql`.
+
 
 Changes in 5.80.1 (released 2025-07-22)
 ---------------------------------------
