@@ -3396,7 +3396,7 @@ FuncAST.add_rules(f"NUMBER <- random()", "dbms_random.value")
 FuncAST.add_rules(f"INT <- randrange(INT, INT)", "floor(dbms_random.value({s1}, {s2}))")
 
 # Function `seq()``
-FuncAST.add_rules(f"INT <- seq()", "livingapi_pkg.seq()")
+FuncAST.add_rules(f"INT <- seq()", "vsqlimpl_pkg.seq()")
 
 # Function `rgb()``
 FuncAST.add_rules(f"COLOR <- rgb({NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE})", "vsqlimpl_pkg.rgb({s1}, {s2}, {s3})")
