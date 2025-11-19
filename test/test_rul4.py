@@ -12,7 +12,7 @@
 
 import os
 
-from ll import ul4c, orasql
+from ll import ul4c
 from ll.scripts import rul4
 
 import pytest
