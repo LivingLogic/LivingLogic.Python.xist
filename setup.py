@@ -321,7 +321,7 @@ args = dict(
 if havecython:
 	args["cmdclass"] = {"build_ext": build_ext}
 	args["ext_modules"].extend([
-		setuptools.Extension("ll.xist.xsc", ["src/ll/xist/xsc.py"]),
+		# setuptools.Extension("ll.xist.xsc", ["src/ll/xist/xsc.py"]),
 		setuptools.Extension("ll.xist.parse", ["src/ll/xist/parse.py"]),
 		setuptools.Extension("ll.url", ["src/ll/url.py"]),
 		# setuptools.Extension("ll.ul4c", ["src/ll/ul4c.py"]),
