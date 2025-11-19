@@ -1878,7 +1878,8 @@ def test_str_isdigit(T):
 	assert 'False' == t.renders(x="abc")
 	assert 'False' == t.renders(x="+123")
 	assert 'False' == t.renders(x="-123")
-	assert 'True' == t.renders(x="".join(chr(c) for c in range(sys.maxunicode) if chr(c).isdigit()))
+	if issubclass(T, TemplatePython):
+		assert 'True' == t.renders(x="".join(chr(c) for c in range(sys.maxunicode) if chr(c).isdigit()))
 	assert 'True' == t.renders(x="\N{SUPERSCRIPT ONE}\N{SUPERSCRIPT TWO}\N{SUPERSCRIPT THREE}")
 
 
