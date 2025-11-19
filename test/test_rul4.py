@@ -47,16 +47,16 @@ def test_oracle_query(globals):
 		template = ul4c.Template("""
 			<?code db = globals.oracle(globals.vars.connectstring)?>
 			<?code db.execute('''
-				create table ul4test(
+				create table ul4test_table(
 					ul4_int integer,
 					ul4_char varchar2(1000),
 					ul4_clob clob)
 			''')?>
-			<?code db.execute('insert into ul4test values(1, ', 'first', ', ', 10000*'first', ')')?>
-			<?code db.execute('insert into ul4test values(2, ', 'second', ', ', 10000*'second', ')')?>
-			<?code db.execute('insert into ul4test values(3, ', 'third', ', ', 10000*'third', ')')?>
+			<?code db.execute('insert into ul4test_table values(1, ', 'first', ', ', 10000*'first', ')')?>
+			<?code db.execute('insert into ul4test_table values(2, ', 'second', ', ', 10000*'second', ')')?>
+			<?code db.execute('insert into ul4test_table values(3, ', 'third', ', ', 10000*'third', ')')?>
 			<?code vin = db.int(2)?>
-			<?for row in db.query('select * from ul4test where ul4_int <= ', vin, ' order by ul4_int')?>
+			<?for row in db.query('select * from ul4test_table where ul4_int <= ', vin, ' order by ul4_int')?>
 				<?print row[0]?>|
 				<?print row.ul4_int?>|
 				<?print row[1]?>|
@@ -64,7 +64,7 @@ def test_oracle_query(globals):
 				<?print row[2]?>|
 				<?print row.ul4_clob?>|
 			<?end for?>
-			<?code db.execute('drop table ul4test')?>
+			<?code db.execute('drop table ul4test_table')?>
 			""",
 			whitespace="strip"
 		)
@@ -90,7 +90,7 @@ def test_oracle_execute_function(globals):
 		template = ul4c.Template("""
 			<?code db = globals.oracle(globals.vars.connectstring)?>
 			<?code db.execute('''
-				create or replace function ul4test(p_arg integer)
+				create or replace function ul4test_function(p_arg integer)
 				return integer
 				as
 				begin
@@ -99,9 +99,9 @@ def test_oracle_execute_function(globals):
 			''')?>
 			<?code vin = db.int(42)?>
 			<?code vout = db.int()?>
-			<?code db.execute('begin ', vout, ' := ul4test(', vin, '); end;')?>
+			<?code db.execute('begin ', vout, ' := ul4test_function(', vin, '); end;')?>
 			<?print vout.value?>
-			<?code db.execute('drop function ul4test')?>
+			<?code db.execute('drop function ul4test_function')?>
 			""",
 			whitespace="strip"
 		)
@@ -114,7 +114,7 @@ def test_oracle_execute_procedure_out(globals):
 		template = ul4c.Template("""
 			<?code db = globals.oracle(globals.vars.connectstring)?>
 			<?code db.execute('''
-				create or replace procedure ul4test(p_intarg out integer, p_numberarg out number, p_strarg out varchar2, p_clobarg out clob, p_datearg out timestamp)
+				create or replace procedure ul4test_procedure(p_intarg out integer, p_numberarg out number, p_strarg out varchar2, p_clobarg out clob, p_datearg out timestamp)
 				as
 				begin
 					p_intarg := 42;
@@ -132,9 +132,9 @@ def test_oracle_execute_procedure_out(globals):
 			<?code vstr = db.str()?>
 			<?code vclob = db.clob()?>
 			<?code vdate = db.date()?>
-			<?code db.execute('call ul4test(', vint, ', ', vnumber, ', ', vstr, ', ', vclob, ', ', vdate, ')')?>
+			<?code db.execute('call ul4test_procedure(', vint, ', ', vnumber, ', ', vstr, ', ', vclob, ', ', vdate, ')')?>
 			<?print vint.value?>|<?print vnumber.value?>|<?print vstr.value?>|<?print vclob.value?>|<?print vdate.value?>
-			<?code db.execute('drop procedure ul4test')?>
+			<?code db.execute('drop procedure ul4test_procedure')?>
 			""",
 			whitespace="strip"
 		)
