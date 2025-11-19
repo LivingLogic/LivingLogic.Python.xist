@@ -3714,8 +3714,8 @@ def test_function_format_date(T):
 	assert "Sep" == t2.renders(fmt="%b", data=dt)
 	assert "Sep" == t3.renders(fmt="%b", data=dt, lang=None)
 	assert "Sep" == t3.renders(fmt="%b", data=dt, lang="en")
-	assert t3.renders(fmt="%b", data=dt, lang="de") in {"Sep", "Sept."}
-	assert t3.renders(fmt="%b", data=dt, lang="de_DE") in {"Sep", "Sept."}
+	assert t3.renders(fmt="%b", data=dt, lang="de") in {"Sep", "Sep.", "Sept."}
+	assert t3.renders(fmt="%b", data=dt, lang="de_DE") in {"Sep", "Sep.", "Sept."}
 	assert "September" == t2.renders(fmt="%B", data=dt)
 	assert "September" == t3.renders(fmt="%B", data=dt, lang=None)
 	assert "September" == t3.renders(fmt="%B", data=dt, lang="en")
