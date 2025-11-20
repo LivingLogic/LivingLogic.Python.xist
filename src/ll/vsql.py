@@ -7,16 +7,44 @@
 ## All Rights Reserved
 
 """
-vSQL is a subset of UL4 expressions retargeted for generating SQL expressions
-used in SQL queries. Currently only Oracle is supported.
+Normally an object-relational mapper consist of:
 
-To create an SQL query via vSQL expressions the simplest form uses the
-class :class:`Query`::
+1.	An infrastructure for specifying which records to fetch from the database.
+	This can be as simple as specifying a primary key value, or as complex as
+	a complete query language.
+2. A way of mapping those records to objects and fields to attributes.
+
+vSQL provides the first part only. vSQL does this by using a subset of
+UL4 expressions retargeted for generating SQL expressions used in SQL queries.
+So the end result of using vSQL always is a SQL query that you can execute
+normally.
+
+Currently only Oracle is supported.
+
+The purpose of vSQL is not to abstract away differences between the relational
+datebase and the object oriented world or to shield the developer from having
+to deal with SQL or from handling the result of database queries.
+
+Instead vSQL provides a safe query language that can be used to provided a
+publicly accessible interface to database content. This eliminates the risky
+parts of query construction, effectively preventing SQL injection attacks,
+while offering the expressive power of an ORM without the overhead.
+
+
+Example
+-------
+
+To create an SQL query via vSQL expressions in the simplest form we're using the
+class :class:`Query` like this::
 
 	from ll import vsql
 	q = vsql.Query()
+
+	# Define the expression we want
 	q.select_vsql("('foo'.upper() + 'bar'.lower())[:3]")
 	q.select_vsql("now() + years(3)")
+
+	# Output the SQL query
 	print(q.sqlsource())
 
 this outputs:
@@ -29,9 +57,13 @@ this outputs:
 	from
 		dual
 
-If you want to select from a table, the :class:`Query` object needs to know about
-the structure of the table, and needs a variable that can be used to refer to
-records of that table. If the table looks like this:
+
+Selecting from tables
+---------------------
+
+If you want to select records from a table, the :class:`Query` object needs to
+know about the structure of the table, and needs a variable that can be used
+to refer to records of that table. If the table looks like this:
 
 .. sourcecode:: sql
 
@@ -69,7 +101,7 @@ Selecting from this table then works like this::
 	# even if we don't select any fields
 	q.register_vsql("p")
 
-	# Speciy which fields whe want returned
+	# Specify which fields we want returned
 	q.select_vsql("p.firstname + ' ' + p.lastname")
 	q.select_vsql("p.birthday")
 
@@ -79,6 +111,7 @@ Selecting from this table then works like this::
 	# Youngest first
 	q.orderby_vsql("p.birthday", "desc")
 
+	# Output the SQL query
 	print(q.sqlsource())
 
 this outputs:
@@ -96,29 +129,95 @@ this outputs:
 		t1.per_birthday /* p.birthday */ desc
 
 
-*	By directly constructing a vSQL expression via the class method :meth:`make`
-	of the various :class:`AST` subclasses. For example a vSQL expression for
-	``"foo".lower() + "bar".upper()`` can be constructed like this::
+Using foreign key references
+----------------------------
 
-		vsql.AddAST.make(
-			vsql.MethAST.make(
-				vsql.StrAST.make("foo"),
-				"lower",
-			),
-			vsql.MethAST.make(
-				vsql.StrAST.make("bar"),
-				"upper",
-			),
-		)
+When you have foreign key fields that reference other tables,
+you can use them too. When we assume that our table ``person``
+looks like this:
 
-*	By compiling the appropriate UL4/vSQL source code into an :class:`AST` object.
-	So ``"foo".lower() + "bar".upper()`` can be compiled like this::
+.. sourcecode:: sql
 
-		vsql.AST.fromsource("'foo'.lower() + 'bar'.upper()")
+	create table person
+	(
+		per_id integer,
+		per_firstname varchar2(100),
+		per_lastname varchar2(100),
+		per_birthday date,
+		com_id integer
+	);
+
+with the new field ``com_id`` referencing the table ``company``
+that looks like this:
+
+.. sourcecode:: sql
+
+	create table company
+	(
+		com_id integer,
+		com_name varchar2(100)
+	);
+
+then we can define the table structure and query connected fields,
+as the following code demonstrates::
+
+	from ll import vsql
+
+	company_table = vsql.Group("company")
+	company_table.add_field("id", vsql.DataType.INT, "{a}.com_id")
+	company_table.add_field("name", vsql.DataType.STR, "{a}.com_name")
+
+	person_table = vsql.Group("person")
+	person_table.add_field("id", vsql.DataType.INT, "{a}.per_id")
+	person_table.add_field("firstname", vsql.DataType.STR, "{a}.per_firstname")
+	person_table.add_field("lastname", vsql.DataType.STR, "{a}.per_lastname")
+	person_table.add_field("birthday", vsql.DataType.DATE, "{a}.per_birthday")
+	person_table.add_field("company", vsql.DataType.INT, "{a}.com_id", "{m}.com_id = {d}.com_id", company_table)
+
+	q = vsql.Query(
+		p=vsql.Field("p", vsql.DataType.INT, refgroup=person_table)
+	)
+
+	# We want to force the query to select from `person`,
+	# even if we don't select any fields
+	q.register_vsql("p")
+
+	# Specify which fields we want returned
+	q.select_vsql("p.firstname + ' ' + p.lastname")
+	q.select_vsql("p.birthday")
+	q.select_vsql("p.company.name")
+
+	# Return anly people born 1990 or later
+	q.where_vsql("p.birthday > @(1990-01-01)")
+
+	# Youngest first
+	q.orderby_vsql("p.birthday", "desc")
+
+	# Output the SQL query
+	print(q.sqlsource())
+
+This outputs:
+
+.. sourcecode:: sql
+
+	select
+		((t1.per_firstname /* p.firstname */ || ' ') || t1.per_lastname /* p.lastname */) /* p.firstname + ' ' + p.lastname */,
+		t1.per_birthday /* p.birthday */,
+		t2.com_name /* p.company.name */
+	from
+		person t1 /* p */,
+		company t2 /* p.company */
+	where
+		t1.com_id = t2.com_id /* p.company */ and
+		decode(vsqlimpl_pkg.cmp_datetime_datetime(t1.per_birthday /* p.birthday */, to_date('1990-01-01', 'YYYY-MM-DD')), 1, 1, null, null, 0) = 1 /* p.birthday > @(1990-01-01) */
+	order by
+		t1.per_birthday /* p.birthday */ desc
+
+
 
 """
 
-import sys, datetime, itertools, re, pathlib
+import sys, datetime, itertools, re, pathlib, abc
 
 from ll import color, misc, ul4c, ul4on
 
@@ -132,9 +231,6 @@ except ImportError:
 ###
 
 from typing import *
-
-T_sortdirection = None | Literal["asc", "desc"]
-T_sortnulls = None | Literal["first", "last"]
 
 
 ###
@@ -178,8 +274,8 @@ fields = dict(
 
 class sqlliteral(str):
 	"""
-	Marker class that can be used to spcifiy that its value should be treated
-	as literal SQL.
+	Internal marker class that can be used to specify that its value should be
+	treated as literal SQL.
 	"""
 	pass
 
@@ -353,6 +449,11 @@ class DataType(misc.Enum):
 		else:
 			return Error[f"DATATYPE_{required.name}"]
 
+DataType.__doc__ += f"""
+Possible values are:
+
+{"".join(f"\t- ``{dt.name}``\n" for dt in DataType)}
+"""
 
 class NodeType(misc.Enum):
 	"""
@@ -406,6 +507,12 @@ class NodeType(misc.Enum):
 	ATTR = "attr"
 	FUNC = "func"
 	METH = "meth"
+
+NodeType.__doc__ += f"""
+Possible values are:
+
+{"".join(f"\t- ``{nt.name}``\n" for nt in NodeType)}
+"""
 
 
 class VSQLError(Exception):
@@ -552,6 +659,12 @@ class Error(str, misc.Enum):
 	DATATYPE_STRSET = ("datatype_strset", VSQLWrongDatatypeError) # The datatype of the node should be ``strset`` but isn't
 	DATATYPE_DATESET = ("datatype_dateset", VSQLWrongDatatypeError) # The datatype of the node should be ``dateset`` but isn't
 	DATATYPE_DATETIMESET = ("datatype_datetimeset", VSQLWrongDatatypeError) # The datatype of the node should be ``datetimeset`` but isn't
+
+Error.__doc__ += f"""
+Possible values are:
+
+{"".join(f"\t- ``{e.name}``\n" for e in Error)}
+"""
 
 
 @ul4on.register("de.livinglogic.vsql.field")
@@ -882,7 +995,7 @@ class Query(Repr):
 			self._where[expr] = comment
 		return self
 
-	def orderby_vsql(self, expr:str, direction:T_sortdirection=None, nulls:T_sortnulls=None) -> "Query":
+	def orderby_vsql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> "Query":
 		r"""
 		Add the "order by" vSQL expression ``expr`` to this query.
 
@@ -933,7 +1046,7 @@ class Query(Repr):
 		self._orderby.append((sqlsource, expr, direction, nulls))
 		return self
 
-	def orderby_sql(self, expr:str, direction:T_sortdirection=None, nulls:T_sortnulls=None) -> "Query":
+	def orderby_sql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> Query:
 		"""
 		Add the "order by" SQL exprssion ``expr`` to this query.
 
@@ -959,6 +1072,15 @@ class Query(Repr):
 	def sqlsource(self, indent="\t") -> str:
 		"""
 		Return the SQL source code for this query.
+
+		For example::
+
+			>>> from ll import vsql
+			>>> print(vsql.Query().select_vsql("now()").sqlsource()))
+			select
+				sysdate /* now() */
+			from
+				dual
 		"""
 		tokens = []
 
@@ -1295,12 +1417,28 @@ class AST(Repr):
 		self.content = final_content
 
 	@classmethod
-	@misc.notimplemented
-	def make(cls) -> "AST":
+	@abc.abstractmethod
+	def make(cls) -> AST:
 		"""
 		Create an instance of this AST class from its child AST nodes.
 
 		This method is abstract and is overwritten in each subclass.
+
+		This is a very low level way of creating vSQL expressions.
+
+		For example a vSQL expression for
+		``"foo".lower() + "bar".upper()`` can be constructed like this::
+
+			vsql.AddAST.make(
+				vsql.MethAST.make(
+					vsql.StrAST.make("foo"),
+					"lower",
+				),
+				vsql.MethAST.make(
+					vsql.StrAST.make("bar"),
+					"upper",
+				),
+			)
 		"""
 
 	@classmethod
@@ -1368,6 +1506,16 @@ class AST(Repr):
 
 	@classmethod
 	def fromsource(cls, source:str, **vars: "Field") -> "AST":
+		"""
+		Create a vSQL expression from it source code.
+
+		For example ``"foo".lower() + "bar".upper()`` can be compiled like this::
+
+			vsql.AST.fromsource("'foo'.lower() + 'bar'.upper()")
+
+		``vars`` contains the "root" variables that can be referenced in
+		the vSQL expression.
+		"""
 		template = ul4c.Template(f"<?return {source}?>")
 		expr = template.content[-1].obj
 		return cls.fromul4(expr, **vars)
