@@ -1632,9 +1632,9 @@ aside .breadcrumbs
 .rst-content pre.literal-block div[class^='highlight'],
 .rst-content div[class^='highlight'] div[class^='highlight']
 {
-	padding:0px;
-	border:none;
-	margin:0;
+	padding: 0px;
+	border: none;
+	margin: {{theme_vertical_spacing}} 0;
 }
 .rst-content div[class^='highlight'] td.code{width:100%}
 
