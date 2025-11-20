@@ -377,7 +377,7 @@ texinfo_documents = [
 
 # Configuration for intersphinx: refer to other Python libraries.
 intersphinx_mapping = {
-	"python": ("https://docs.python.org/3.8", None),
+	"python": ("https://docs.python.org/3.14", None),
 	"requests": ("https://requests.readthedocs.io/en/latest", None),
 	"oracledb": ("https://python-oracledb.readthedocs.io/en/latest", None),
 	"cx_Oracle": ("https://cx-oracle.readthedocs.io/en/latest", None),
