@@ -34,7 +34,7 @@ This package contains the following scripts:
 	:program:`udiff` is an URL-enabled version of the :command:`diff` command
 	for showing differences between two files or directories.
 
-These scripts can either be called via Pythons :option:`-m` option:
+These scripts can either be called via Pythons ``-m`` option:
 
 .. sourcecode:: console
 

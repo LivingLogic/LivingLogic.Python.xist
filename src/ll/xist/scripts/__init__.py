@@ -31,7 +31,7 @@ This package contains the following scripts:
 	URL-enabled, so you can specify local file names and URLs (and remote files
 	via ``ssh`` URLs).
 
-These scripts can either be called via Pythons :option:`-m` option:
+These scripts can either be called via Pythons ``-m`` option:
 
 .. sourcecode:: console
 
