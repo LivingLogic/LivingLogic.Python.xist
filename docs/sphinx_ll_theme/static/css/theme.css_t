@@ -1618,7 +1618,7 @@ aside .breadcrumbs
 	overflow: auto;
 	tab-size: 3;
 	-moz-tab-size: 3;
-}}
+}
 .rst-content pre.literal-block,
 .rst-content div[class^='highlight']
 {
@@ -1634,7 +1634,7 @@ aside .breadcrumbs
 {
 	padding: 0px;
 	border: none;
-	margin: {{theme_vertical_spacing}} 0;
+	margin: 0;
 }
 .rst-content div[class^='highlight'] td.code{width:100%}
 
