@@ -10,10 +10,91 @@
 vSQL is a subset of UL4 expressions retargeted for generating SQL expressions
 used in SQL queries. Currently only Oracle is supported.
 
-This module contains classes and functions for generating and compiling
-vSQL expressions.
+To create an SQL query via vSQL expressions the simplest form uses the
+class :class:`Query`::
 
-A vSQL expression can be generated in two ways:
+	from ll import vsql
+	q = vsql.Query()
+	q.select_vsql("('foo'.upper() + 'bar'.lower())[:3]")
+	q.select_vsql("now() + years(3)")
+	print(q.sqlsource())
+
+this outputs:
+
+.. sourcecode:: sql
+
+	select
+		vsqlimpl_pkg.slice_str((upper('foo') || lower('bar')), null, 3) /* ('foo'.upper() + 'bar'.lower())[:3] */,
+		vsqlimpl_pkg.add_datetime_months(sysdate, (12 * 3)) /* now() + years(3) */
+	from
+		dual
+
+If you want to select from a table, the :class:`Query` object needs to know about
+the structure of the table, and needs a variable that can be used to refer to
+records of that table. If the table looks like this:
+
+.. sourcecode:: sql
+
+	create table person
+	(
+		per_id integer,
+		per_firstname varchar2(100),
+		per_lastname varchar2(100),
+		per_birthday date
+	);
+
+the table definition for vSQL can be defined like this::
+
+	person_table = vsql.Group("person")
+	person_table.add_field("id", vsql.DataType.INT, "{a}.per_id")
+	person_table.add_field("firstname", vsql.DataType.STR, "{a}.per_firstname")
+	person_table.add_field("lastname", vsql.DataType.STR, "{a}.per_lastname")
+	person_table.add_field("birthday", vsql.DataType.DATE, "{a}.per_birthday")
+
+Selecting from this table then works like this::
+
+	from ll import vsql
+
+	person_table = vsql.Group("person")
+	person_table.add_field("id", vsql.DataType.INT, "{a}.per_id")
+	person_table.add_field("firstname", vsql.DataType.STR, "{a}.per_firstname")
+	person_table.add_field("lastname", vsql.DataType.STR, "{a}.per_lastname")
+	person_table.add_field("birthday", vsql.DataType.DATE, "{a}.per_birthday")
+
+	q = vsql.Query(
+		p=vsql.Field("p", vsql.DataType.INT, refgroup=person_table)
+	)
+
+	# We want to force the query to select from `person`,
+	# even if we don't select any fields
+	q.register_vsql("p")
+
+	# Speciy which fields whe want returned
+	q.select_vsql("p.firstname + ' ' + p.lastname")
+	q.select_vsql("p.birthday")
+
+	# Return anly people born 1990 or later
+	q.where_vsql("p.birthday > @(1990-01-01)")
+
+	# Youngest first
+	q.orderby_vsql("p.birthday", "desc")
+
+	print(q.sqlsource())
+
+this outputs:
+
+.. sourcecode:: sql
+
+	select
+		((t1.per_firstname /* p.firstname */ || ' ') || t1.per_lastname /* p.lastname */) /* p.firstname + ' ' + p.lastname */,
+		t1.per_birthday /* p.birthday */
+	from
+		person t1 /* p */
+	where
+		decode(vsqlimpl_pkg.cmp_datetime_datetime(t1.per_birthday /* p.birthday */, to_date('1990-01-01', 'YYYY-MM-DD')), 1, 1, null, null, 0) = 1 /* p.birthday > @(1990-01-01) */
+	order by
+		t1.per_birthday /* p.birthday */ desc
+
 
 *	By directly constructing a vSQL expression via the class method :meth:`make`
 	of the various :class:`AST` subclasses. For example a vSQL expression for
@@ -36,8 +117,6 @@ A vSQL expression can be generated in two ways:
 		vsql.AST.fromsource("'foo'.lower() + 'bar'.upper()")
 
 """
-
-from __future__ import annotations
 
 import sys, datetime, itertools, re, pathlib
 
@@ -1629,11 +1708,11 @@ class AST(Repr):
 		"""
 		Return an iterator for traversing the syntax tree rooted at ``self``.
 
-		Items produced by the iterator paths, i.e. lists containing the path
+		Items produced by the iterator paths are lists containing the path
 		from the root :class:`AST` object to ``self``.
 
-		Note that the iterator will always produre the same list object that will
-		be changed during the iteration. If you want to keep value produced
+		Note that the iterator will always produce the same list object that will
+		be changed during the iteration. If you want to keep the value produced
 		during the iteration, you have to make copies.
 		"""
 		yield from self._walkpaths([])
