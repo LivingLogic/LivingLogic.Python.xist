@@ -108,9 +108,7 @@ Operating System :: OS Independent
 Programming Language :: Python
 Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.10
-Programming Language :: Python :: 3.11
-Programming Language :: Python :: 3.12
+Programming Language :: Python :: 3.14
 Topic :: Software Development :: Libraries :: Python Modules
 
 # ansistyle
@@ -216,6 +214,7 @@ template
 templating language
 
 # vSQL
+ORM
 
 # orasql
 Oracle
@@ -250,8 +249,8 @@ description = description.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
-	version="5.80.1",
-	description="Extensible HTML/XML generator, cross-platform templating language, Oracle utilities and various other tools",
+	version="5.81",
+	description="Extensible HTML/XML generator, cross-platform templating language, ORM, Oracle utilities and various other tools",
 	long_description=description,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",

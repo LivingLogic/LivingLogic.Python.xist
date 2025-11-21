@@ -22,7 +22,7 @@ normally.
 Currently only Oracle is supported.
 
 The purpose of vSQL is not to abstract away differences between the relational
-datebase and the object oriented world or to shield the developer from having
+database and the object oriented world or to shield the developer from having
 to deal with SQL or from handling the result of database queries.
 
 Instead vSQL provides a safe query language that can be used to provided a
@@ -214,7 +214,17 @@ This outputs:
 		t1.per_birthday /* p.birthday */ desc
 
 
+vSQL standard library
+---------------------
 
+Many vSQL operations can not be converted to simple SQL expressions.
+For these vSQL uses an Oracle package ``vsqlimpl_pkg`` that contains
+the "vSQL standard library". This packages is available from Github at
+https://github.com/LivingLogic/LivingLogic.Oracle.ul4
+
+
+Module content
+--------------
 """
 
 import sys, datetime, itertools, re, pathlib, abc
@@ -304,7 +314,7 @@ def sql(value:Any) -> str:
 
 def comment(s:str) -> str:
 	"""
-	Return an SQL comment with ther content ``s``.
+	Return an SQL comment with the content ``s``.
 
 	I.e. ``comment("foo")`` returns ``"/* foo */"``.
 	"""
@@ -516,6 +526,9 @@ Possible values are:
 
 
 class VSQLError(Exception):
+	"""
+	Base class of exceptions that can happend when compiling vSQL expressions.
+	"""
 	def __init__(self, root_ast:AST, cause_ast:AST, context:str | None=None):
 		self.root_ast = root_ast
 		self.cause_ast = cause_ast
@@ -690,7 +703,7 @@ class Field(Repr):
 
 		``fieldsql``
 			The SQL expression for that fields. This should include ``{a}`` as a
-			placeholder for the table alias
+			placeholder for the table alias.
 
 		``joinsql``
 			If this field is a foreign key to another table, ``joinsql`` is the
@@ -789,6 +802,9 @@ class Group(Repr):
 			raise KeyError(key)
 
 	def add_field(self, identifier:str, datatype:DataType, fieldsql:str, joinsql:str | None=None, refgroup:Group | None=None) -> None:
+		"""
+		Create a :class:`Field` object from the arguments and add it to the fields of the group.
+		"""
 		field = Field(identifier, datatype, fieldsql, joinsql, refgroup)
 		self.fields[identifier] = field
 
@@ -814,8 +830,6 @@ class Query(Repr):
 		``comment`` : :class:`str` or ``None``
 			A comment that will be included in the generated SQL.
 
-			Note that the comment text may not include ``/*`` or ``*/``.
-
 		``vars`` : :class:`Field`
 			These are the top level variables that will be availabe for vSQL
 			expressions added to this query. The argument name is the name of
@@ -827,10 +841,10 @@ class Query(Repr):
 		"""
 		self.comment = comment
 		self.vars = {name: field for (name, field) in vars.items() if field is not None}
-		self._fields : dict[str, tuple["AST"|str, str | None]] = {}
-		self._from : dict[str, "AST"|str] = {}
-		self._where : dict[str, "AST"|str] = {}
-		self._orderby : list[tuple[str, "AST" | str, str | None, str | None]] = []
+		self._fields : dict[str, tuple[AST|str, str | None]] = {}
+		self._from : dict[str, AST|str] = {}
+		self._where : dict[str, AST|str] = {}
+		self._orderby : list[tuple[str, AST | str, str | None, str | None]] = []
 		self._offset = None
 		self._limit = None
 		self._identifier_aliases : dict[str, str] = {}
@@ -840,7 +854,7 @@ class Query(Repr):
 		Registers the :class:`FieldRefAST` object `fieldref`.
 
 		This means that all the tables and join conditions that are required to
-		access the field will be added to the "form" and "where" clauses.
+		access the field will be added to the "from" and "where" clauses.
 		"""
 		if fieldref.error is not None:
 			return # Don't register broken expressions
@@ -885,7 +899,7 @@ class Query(Repr):
 
 		:func:`register_vsql` will then make sure that this referenced table will
 		be added to the "from" list, even if it is never referenced explicitely
-		in any of the "form" and "where" clauses.
+		in any of the "from" and "where" clauses.
 		"""
 		if identifier not in self.vars:
 			raise ValueError(f"Unknown field {identifier!r}!")
@@ -950,7 +964,7 @@ class Query(Repr):
 
 	def from_sql(self, tablename, alias, comment=None) -> "Query":
 		"""
-		Add a table to the list of table to select from.
+		Add a table to the list of tables to select from.
 
 		This adds the table in "raw" SQL form.
 
@@ -1014,7 +1028,7 @@ class Query(Repr):
 			Sort in ascending order (``"asc"``) or descending order (``"desc"``).
 
 			The default ``None`` adds neither ``asc`` nor ``desc`` (which is
-			equivalent to ``asc``.
+			equivalent to ``asc``).
 
 		``nulls`` : ``None``, ``"first"`` or ``"last"``
 			Output ``null`` values first or last.
@@ -1048,7 +1062,7 @@ class Query(Repr):
 
 	def orderby_sql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> Query:
 		"""
-		Add the "order by" SQL exprssion ``expr`` to this query.
+		Add the "order by" SQL expression ``expr`` to this query.
 
 		"order by" specifications will be output in the query in the order they
 		have been added.
@@ -1061,11 +1075,23 @@ class Query(Repr):
 		self._orderby.append((expr, None, direction, nulls))
 		return self
 
-	def offset(self, offset: int | None) -> "Query":
+	def offset(self, offset: int | None) -> Query:
+		"""
+		Use ``offset`` as the offset value.
+
+		This offset specifies how mnay records to skip before returing
+		the first one. The default `0` or `None` doesn't skip any records.
+		"""
 		self._offset = offset
 		return self
 
-	def limit(self, limit: int | None) -> "Query":
+	def limit(self, limit: int | None) -> Query:
+		"""
+		Use ``limit`` to limit the number of records returned.
+
+		After ``limit`` records no further records will be returned even if there
+		are more than ``limit`` records that match the filter condition.
+		"""
 		self._limit = limit
 		return self
 
@@ -1175,11 +1201,23 @@ class Query(Repr):
 
 
 class Rule(Repr):
+	"""
+	:class:`!Rule` is used to store a type specific vSQL grammar rule.
+
+	I.e. one rule object stores the information that:
+
+	- there's and addition operator;
+	- that adds two ``INT`` values;
+	- with a result of type ``INT``;
+	- and the SQL code to generate for that operation.
+
+	For more information see :meth:`AST.add_rules`.
+	"""
 	_re_specials = re.compile(r"{([st])(\d)}")
 	_re_sep = re.compile(r"\W+")
 	_re_tokenize = re.compile(r"\b[A-Z_0-9]+\b")
 
-	# Mappings of datatypes to other datatypes for creating the SQL source
+	# Mappings of vSQL datatypes to other datatypes for creating the SQL source
 	source_aliases = {
 		"bool":         "int",
 		"date":         "datetime",
@@ -1333,35 +1371,47 @@ class Rule(Repr):
 class AST(Repr):
 	"""
 	Base class of all vSQL abstract syntax tree node types.
+
+	The following class attribute is used:
+
+	.. attribute:: title
+		:type: str
+
+		Contains a human readable name for the AST type.
+
+	Instance attributes are:
+
+	.. attribute:: nodetype
+		:type: NodeType
+
+		Type of the node. There's a one-to-one correspondence between :class:`AST`
+		subclasses and :class:`NodeType` values (except for intermediate classes
+		like :class:`BinaryAST`)
+
+	.. attribute:: nodevalue
+		:type: str
+
+		The node value is an instance attribute that represents a string that
+		isn't represented by any child node. E.g. the values of constants or
+		the names of functions, methods and attributes. Will be overwritten by
+		properties in subclasses.
+
+	.. attribute:: datatype
+		:type: DataType | None
+
+		The datatype is an instance attribute that represents the datatype of the
+		expression.
+
+		If the datatype can't be determined because of errors `datatype` will be `None`.
 	"""
 
 	nodetype = None
-	"""
-	Type of the node. There's a one-to-one correspondence between :class:`AST`
-	subclasses and :class:`NodeType` values (except for intermediate classes
-	like :class:`BinaryAST`)
-	"""
 
 	nodevalue = None
-	"""
-	The node value is an instance attribute that represents a string that
-	isn't represented by any child node. E.g. the values of constants or
-	the names of functions, methods and attributes. Will be overwritten by
-	properties in subclasses.
-	"""
 
 	datatype = None
-	"""
-	The datatype is an instance attribute that represents the datatype of the
-	expression.
-
-	If the datatype can't be determined because of errors `datatype` will be `None`.
-	"""
 
 	title = None
-	"""
-	This class attribute contain a human readable name for the AST type.
-	"""
 
 	rules = None
 	_restore_tokens = None
@@ -1752,7 +1802,7 @@ class AST(Repr):
 		If ``self`` is invalid an appropriate exception will be raised.
 
 		``context`` should describe the context in which the expression is used.
-		E.g. ``"select"``when used in :meth:`Query.select_vsql` or ``"where"``
+		E.g. ``"select"`` when used in :meth:`Query.select_vsql` or ``"where"``
 		when used in :meth:`Query.where_vsql`.
 		"""
 		if self.error is not None:
@@ -4153,7 +4203,7 @@ class JavaSource:
 	implements a vSQL AST type with the Python class that implements that AST
 	type.
 
-	It is used to update the vSQL syntax rules in the Java implemenatio of vSQL.
+	It is used to update the vSQL syntax rules in the Java implemenation of vSQL.
 	"""
 
 	_start_line = "//BEGIN RULES (don't remove this comment)"
@@ -4327,7 +4377,7 @@ def recreate_oracle(connectstring:str, verbose:bool=False) -> None:
 	"""
 	Recreate the vSQL syntax rules in the database.
 
-	This recreate the procedure ``VSQLGRAMMAR_MAKE`` and the table ``VSQLRULE``
+	This recreates the procedure ``VSQLGRAMMAR_MAKE`` and the table ``VSQLRULE``
 	and its content.
 	"""
 
