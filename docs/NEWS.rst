@@ -11,14 +11,14 @@ see :ref:`MIGRATION`.
 Changes in 5.81 (released 2025-11-21)
 -------------------------------------
 
+*	XIST requires Python 3.14 now.
+
 *	:mod:`ll.vsql` has been added. This module provides a way to build Oracle
 	SQL queries safely and dynamically using UL4 expressions. Instead of manually
 	concatenating strings, you can express query logic with vSQL (a variant of
 	UL4), which is then compiled into proper SQL. This approach eliminates the
 	risky parts of query construction, effectively preventing SQL injection
 	attacks, while offering the expressive power of an ORM without the overhead.
-
-*	XIST requires Python 3.14 now.
 
 *	The functions :func:`ll.misc.notifystart` and :func:`ll.misc.notifyfinish`
 	no longer assume :program:`terminal-notifier` to be in :file:`/usr/local/lib`.
