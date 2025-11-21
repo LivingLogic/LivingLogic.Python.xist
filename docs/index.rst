@@ -17,6 +17,7 @@ Content
 
    XIST
    UL4
+   vSQL
    UL4ON
    URL_Howto
    make

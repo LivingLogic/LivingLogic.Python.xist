@@ -40,7 +40,7 @@ This package contains the following scripts:
 	:program:`oramerge` can be used for merging the changes between two Oracle
 	database schemas into a third one.
 
-These scripts can either be called via Pythons :option:`-m` option:
+These scripts can either be called via Pythons ``-m`` option:
 
 .. sourcecode:: console
 
@@ -55,4 +55,3 @@ or as a simple script installed in the search path:
 
 
 __docformat__ = "reStructuredText"
-
