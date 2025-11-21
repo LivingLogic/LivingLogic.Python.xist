@@ -54,7 +54,7 @@ Push the resulting commit and the tag::
 Create the release on the external and internal download server (do this
 in the root directory)::
 
-	make dist livinglogic
+	LL_URL_SSH_PYTHON=python3 make dist livinglogic
 
 
 Creating and deploying the documentation
