@@ -2515,10 +2515,10 @@ class FieldRefAST(AST):
 			# If the innermost field is "params" we need special treatment
 			yield f"livingapi_pkg.reqparam_{self.parent.identifier}('{self.identifier}') /* {self.source()} */"
 		elif alias is None:
-			yield f"{self.field.fieldsql} /* {self.source()} */"
+			yield f"{self.field.fieldsql} {comment(self.source())}"
 		else:
 			fieldsql = self.field.fieldsql.replace("{a}", alias)
-			yield f"{fieldsql} /* {self.source()} */"
+			yield f"{fieldsql} {comment(self.source())}"
 
 	def validate(self) -> None:
 		self.error = Error.FIELD if self.field is None else None
