@@ -1040,13 +1040,13 @@ class Query(Repr):
 			self._fields[sqlsource] = self.AliasedExpr(sqlsource, comment, alias)
 		return self
 
-	def select_sql(self, expr:str, alias=None, comment=None) -> Query:
+	def select_sql(self, expr:str, comment=None, alias=None) -> Query:
 		"""
 		Add the SQL expression ``expr`` to the list of expression to select.
 
-		``alias`` can be used to give the expression a column alias.
-
 		``comment`` can be used to give the column a comment in the select list.
+
+		``alias`` can be used to give the expression a column alias.
 
 		Note that that adds ``expr`` directly as "raw" SQL. To add a vSQL
 		expression use :meth:`select_vsql` instead.
@@ -1055,7 +1055,7 @@ class Query(Repr):
 			self._fields[expr] = self.AliasedExpr(expr, comment, alias)
 		return self
 
-	def from_sql(self, tablename, alias, comment=None) -> Query:
+	def from_sql(self, tablename, comment=None, alias=None) -> Query:
 		"""
 		Add a table to the list of tables to select from.
 
