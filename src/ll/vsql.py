@@ -6,6 +6,8 @@
 ##
 ## All Rights Reserved
 
+from __future__ import annotations
+
 """
 Normally an object-relational mapper consist of:
 
@@ -327,6 +329,8 @@ class Repr:
 	and :meth:`_repr_pretty_` (used by IPython).
 	"""
 
+	_ll_repr_attrs_ = []
+
 	def _ll_repr_prefix_(self) -> str:
 		"""
 		Return the initial part of the :meth:`__repr__` and :meth:`_repr_pretty_`
@@ -353,8 +357,15 @@ class Repr:
 		"""
 		Each string produced by :meth:`!_ll_repr__` will be part of the
 		:meth:`__repr__` output (joined by spaces).
+
+		By default this outputs all non-``None`` attributes whose
+		value is in the class attribute ``_ll_repr_attrs_``
 		"""
-		yield from ()
+		for cls in reversed(self.__class__.__mro__):
+			for name in getattr(cls, "_ll_repr_attrs_", ()):
+				value = getattr(self, name)
+				if value is not None:
+					yield f"{name}={value!r}"
 
 	def _repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter", cycle:bool) -> None:
 		if cycle:
@@ -371,8 +382,17 @@ class Repr:
 
 		This means that the cycle detection and :meth:`group` call have already
 		been done.
+
+		By default this outputs all non-``None`` attributes whose
+		value is in the class attribute ``_ll_repr_attrs_``
 		"""
-		pass
+		for cls in reversed(self.__class__.__mro__):
+			for name in getattr(cls, "_ll_repr_attrs_", {}):
+				value = getattr(self, name)
+				if value is not None:
+					p.breakable()
+					p.text(f"{name}=")
+					p.pretty(value)
 
 
 class DataType(misc.Enum):
@@ -689,6 +709,13 @@ class Field(Repr):
 
 	As a table or view field it belongs to a :class:`Group` object.
 	"""
+
+	identifier : str
+	datatype : DataType | None
+	fieldsql : str
+	joinsql : str | None
+	refgroup : Group | None
+
 	def __init__(self, identifier:str | None=None, datatype:DataType=DataType.NULL, fieldsql:str | None=None, joinsql:str | None=None, refgroup:Group | None=None):
 		"""
 		Create a :class:`Field` instance.
@@ -776,6 +803,9 @@ class Group(Repr):
 	:class:`Field`.
 	"""
 
+	tablesql : str
+	fields : dict[str, Field]
+
 	def __init__(self, tablesql:str | None=None, **fields:Field | tuple[DataType, str] | tuple[DataType, str, str, Group]):
 		self.tablesql = tablesql
 		self.fields = {}
@@ -793,7 +823,7 @@ class Group(Repr):
 		p.text("tablesql=")
 		p.pretty(self.tablesql)
 
-	def __getitem__(self, key:str) -> "Field":
+	def __getitem__(self, key:str) -> Field:
 		if key in self.fields:
 			return self.fields[key]
 		elif "*" in self.fields:
@@ -821,6 +851,66 @@ class Query(Repr):
 	"""
 	A :class:`!Query` object can be used to build an SQL query using vSQL expressions.
 	"""
+
+	class Expr(Repr):
+		_ll_repr_attrs_ = ["expr", "comment"]
+		expr : str
+		comment : str | None
+
+		def __init__(self, expr, comment):
+			self.expr = expr
+			self.comment = comment
+
+		def sqlsource(self, query:Query) -> str:
+			if self.comment is not None:
+				return f"{self.expr} {comment(self.comment)}"
+			else:
+				return self.expr
+
+	class AliasedExpr(Expr):
+		_ll_repr_attrs_ = ["alias"]
+		alias : str | None
+
+		def __init__(self, expr, comment, alias):
+			super().__init__(expr, comment)
+			self.alias = alias
+
+		def sqlsource(self, query:Query) -> str:
+			sqlsource = super().sqlsource(query)
+
+			if self.alias is not None:
+				sqlsource += f" as {self.alias}"
+			return sqlsource
+
+	class OrderByExpr(Expr):
+		_ll_repr_attrs_ = ["dir", "nulls"]
+		dir : str | None
+		nulls : str | None
+
+		def __init__(self, expr, comment, dir, nulls):
+			super().__init__(expr, comment)
+			self.dir = dir
+			self.nulls = nulls
+
+		def sqlsource(self, query:Query) -> str:
+			sqlsource = super().sqlsource(query)
+
+			if self.dir is not None:
+				sqlsource += f" {self.dir}"
+			if self.nulls is not None:
+				sqlsource += f" nulls {self.nulls}"
+			return sqlsource
+
+	comment : str | None
+	vars : dict[str, Field]
+	_fields : dict[str, AliasedExpr] # Key is the SQL source
+	_from : dict[str, AliasedExpr] # Key is the SQL source + the alias
+	_where : dict[str, Expr]
+	_orderby : list[OrderByExpr]
+	_offset : int | None
+	_limit = int | None
+	_identifier_aliases : dict[str, str]
+
 	def __init__(self, comment:str | None=None, **vars:Field):
 		"""
 		Create a new empty :class:`!Query` object.
@@ -841,13 +931,13 @@ class Query(Repr):
 		"""
 		self.comment = comment
 		self.vars = {name: field for (name, field) in vars.items() if field is not None}
-		self._fields : dict[str, tuple[AST|str, str | None]] = {}
-		self._from : dict[str, AST|str] = {}
-		self._where : dict[str, AST|str] = {}
-		self._orderby : list[tuple[str, AST | str, str | None, str | None]] = []
+		self._fields = {}
+		self._from = {}
+		self._where = {}
+		self._orderby = []
 		self._offset = None
 		self._limit = None
-		self._identifier_aliases : dict[str, str] = {}
+		self._identifier_aliases = {}
 
 	def _register(self, fieldref:FieldRefAST) -> str | None:
 		"""
@@ -877,7 +967,7 @@ class Query(Repr):
 			if alias is not None:
 				joincond = joincond.replace("{m}", alias)
 			joincond = joincond.replace("{d}", newalias)
-			self._where[joincond] = fieldref.parent
+			self._where[joincond] = self.Expr(joincond, fieldref.parent.source())
 
 		if fieldref.parent.field.refgroup.tablesql is None:
 			# If this field is not part of a table (which can happen e.g. for
@@ -887,7 +977,8 @@ class Query(Repr):
 			return None
 
 		self._identifier_aliases[identifier] = newalias
-		self._from[f"{fieldref.parent.field.refgroup.tablesql} {newalias}"] = fieldref.parent
+		sql = fieldref.parent.field.refgroup.tablesql
+		self._from[f"{sql} {newalias}"] = self.AliasedExpr(sql, fieldref.parent.source(), newalias)
 		return newalias
 
 	def register_vsql(self, identifier:str) -> str | None:
@@ -919,7 +1010,8 @@ class Query(Repr):
 			return None
 
 		self._identifier_aliases[identifier] = newalias
-		self._from[f"{field.refgroup.tablesql} {newalias}"] = identifier
+		sql = field.refgroup.tablesql
+		self._from[f"{sql} {newalias}"] = self.AliasedExpr(sql, identifier, newalias)
 		return newalias
 
 	def _vsql(self, expr:str) -> None:
@@ -931,7 +1023,7 @@ class Query(Repr):
 			self._register(fieldref)
 		return expr
 
-	def select_vsql(self, expr:str, alias=None) -> "Query":
+	def select_vsql(self, expr:str, alias=None) -> Query:
 		"""
 		Add the vSQL expression ``expr`` to the list of expression to select.
 
@@ -940,14 +1032,15 @@ class Query(Repr):
 		Note that this compiles ``expr`` and adds the resulting SQL. To add an
 		SQL expression directly use :meth:`select_sql` instead.
 		"""
+		comment = expr
 		expr = self._vsql(expr)
 		expr.check_valid("select")
 		sqlsource = expr.sqlsource(self)
 		if sqlsource not in self._fields:
-			self._fields[sqlsource] = (expr, alias)
+			self._fields[sqlsource] = self.AliasedExpr(sqlsource, comment, alias)
 		return self
 
-	def select_sql(self, expr:str, alias=None, comment=None) -> "Query":
+	def select_sql(self, expr:str, alias=None, comment=None) -> Query:
 		"""
 		Add the SQL expression ``expr`` to the list of expression to select.
 
@@ -959,10 +1052,10 @@ class Query(Repr):
 		expression use :meth:`select_vsql` instead.
 		"""
 		if expr not in self._fields:
-			self._fields[expr] = (comment, alias)
+			self._fields[expr] = self.AliasedExpr(expr, comment, alias)
 		return self
 
-	def from_sql(self, tablename, alias, comment=None) -> "Query":
+	def from_sql(self, tablename, alias, comment=None) -> Query:
 		"""
 		Add a table to the list of tables to select from.
 
@@ -976,10 +1069,10 @@ class Query(Repr):
 			(n, a) = f.rsplit(" ", 1)
 			if a == alias:
 				raise ValueError(f"duplicate table alias {alias!r}")
-		self._from[f"{tablename} {alias}"] = comment
+		self._from[f"{tablename} {alias}"] = self.AliasedExpr(tablename, comment, alias)
 		return self
 
-	def where_vsql(self, expr:str) -> "Query":
+	def where_vsql(self, expr:str) -> Query:
 		"""
 		Add vSQL condition ``expr`` to the ``where`` clause.
 
@@ -989,16 +1082,17 @@ class Query(Repr):
 		If ``expr`` doesn't have the datatype ``BOOL`` it will be automatically
 		converted to ``BOOL``.
 		"""
+		comment = expr
 		expr = self._vsql(expr)
 		expr.check_valid("where")
 		if expr.datatype is not DataType.BOOL:
 			expr = FuncAST.make("bool", expr)
 		sqlsource = f"{expr.sqlsource(self)} = 1"
 		if sqlsource not in self._where:
-			self._where[sqlsource] = expr
+			self._where[sqlsource] = self.Expr(sqlsource, comment)
 		return self
 
-	def where_sql(self, expr:str, comment:str|None=None) -> "Query":
+	def where_sql(self, expr:str, comment:str|None=None) -> Query:
 		"""
 		Add vSQL condition ``expr`` to the ``where`` clause.
 
@@ -1006,10 +1100,10 @@ class Query(Repr):
 		expression use :meth:`where_vsql` instead.
 		"""
 		if expr not in self._where:
-			self._where[expr] = comment
+			self._where[expr] = self.Expr(expr, comment)
 		return self
 
-	def orderby_vsql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> "Query":
+	def orderby_vsql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> Query:
 		r"""
 		Add the "order by" vSQL expression ``expr`` to this query.
 
@@ -1054,10 +1148,11 @@ class Query(Repr):
 				t1.ide_firstname /* user.firstname */ asc nulls first,
 				t1.ide_surname /* user.surname */ desc nulls last
 		"""
+		comment = expr
 		expr = self._vsql(expr)
 		expr.check_valid("orderby")
 		sqlsource = expr.sqlsource(self)
-		self._orderby.append((sqlsource, expr, direction, nulls))
+		self._orderby.append(self.OrderByExpr(sqlsource, comment, direction, nulls))
 		return self
 
 	def orderby_sql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> Query:
@@ -1072,7 +1167,7 @@ class Query(Repr):
 
 		For an explanation of the rest of the arguments see :meth:`select_vsql`.
 		"""
-		self._orderby.append((expr, None, direction, nulls))
+		self._orderby.append(OrderByExpr(expr, None, direction, nulls))
 		return self
 
 	def offset(self, offset: int | None) -> Query:
@@ -1113,64 +1208,47 @@ class Query(Repr):
 		def a(*parts):
 			tokens.extend(parts)
 
-		def s(sqlsource, expr, alias=None):
-			tokens.append(sqlsource)
-			if isinstance(expr, AST):
-				vsqlsource = f" {comment(expr.source())}"
-			elif expr is not None:
-				vsqlsource = f" {comment(expr)}"
-			else:
-				vsqlsource = None
-			if vsqlsource is not None and not sqlsource.endswith(vsqlsource):
-				tokens.append(vsqlsource)
-			if alias is not None:
-				tokens.append(f" as {alias}")
-
 		if self.comment:
 			a(comment(self.comment), None)
 
 		a("select", None, +1)
 		first = True
-		for (field, (expr, alias)) in self._fields.items():
+		for expr in self._fields.values():
 			if first:
 				first = False
 			else:
 				a(",", None)
-			s(field, expr, alias)
+			a(expr.sqlsource(self))
 		if first:
 			a("42")
 		a(None, -1)
 
 		a("from", None, +1)
 		first = True
-		for (table, expr) in self._from.items():
+		for expr in self._from.values():
 			if first:
 				first = False
 			else:
 				a(",", None)
-			s(table, expr)
+			a(expr.sqlsource(self))
 		if first:
 			a("dual")
 		a(None, -1)
 
 		if self._where:
 			a("where", None, +1)
-			for (i, (where, expr)) in enumerate(self._where.items()):
+			for (i, expr) in enumerate(self._where.values()):
 				if i:
 					a(" and", None)
-				s(where, expr)
+				a(expr.sqlsource(self))
 			a(None, -1)
 
 		if self._orderby:
 			a("order by", None, +1)
-			for (i, (sqlsource, expr, direction, nulls)) in enumerate(self._orderby):
+			for (i, expr) in enumerate(self._orderby):
 				if i:
 					a(",", None)
-				s(sqlsource, expr)
-				if direction:
-					a(" ", direction)
-				if nulls:
-					a(" nulls ", nulls)
+				a(expr.sqlsource(self))
 			a(None, -1)
 
 		if self._offset is not None:
@@ -1222,7 +1300,6 @@ class Rule(Repr):
 		"bool":         "int",
 		"date":         "datetime",
 		"datelist":     "datetimelist",
-		"datetimelist": "datetimelist",
 		"intset":       "intlist",
 		"numberset":    "numberlist",
 		"strset":       "strlist",
@@ -1492,7 +1569,7 @@ class AST(Repr):
 		"""
 
 	@classmethod
-	def fromul4(cls, node:ul4c.AST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.AST, **vars: Field) -> AST:
 		try:
 			vsqltype = _ul42vsql[type(node)]
 		except KeyError:
@@ -1555,7 +1632,7 @@ class AST(Repr):
 		raise TypeError(f"Can't compile UL4 expression of type {misc.format_class(node)}!")
 
 	@classmethod
-	def fromsource(cls, source:str, **vars: "Field") -> "AST":
+	def fromsource(cls, source:str, **vars: Field) -> AST:
 		"""
 		Create a vSQL expression from it source code.
 
@@ -1932,7 +2009,7 @@ class ConstAST(AST):
 	precedence = 20
 
 	@staticmethod
-	def make(value:Any) -> "ConstAST":
+	def make(value:Any) -> ConstAST:
 		cls = _consts.get(type(value))
 		if cls is None:
 			raise TypeError(value)
@@ -1942,7 +2019,7 @@ class ConstAST(AST):
 			return cls.make(value)
 
 	@classmethod
-	def fromul4(cls, node, **vars: "Field") -> "AST":
+	def fromul4(cls, node, **vars: Field) -> AST:
 		try:
 			vsqltype = _consts[type(node.value)]
 		except KeyError:
@@ -1961,14 +2038,14 @@ class NoneAST(ConstAST):
 	datatype = DataType.NULL
 
 	@classmethod
-	def make(cls) -> "NoneAST":
+	def make(cls) -> NoneAST:
 		return cls("None")
 
 	def _sqlsource(self, query:Query) -> Generator[str, None, None]:
 		yield "null"
 
 	@classmethod
-	def fromul4(cls, node:ul4c.ConstAST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.ConstAST, **vars: Field) -> AST:
 		return cls(node.source)
 
 
@@ -1984,11 +2061,11 @@ class _ConstWithValueAST(ConstAST):
 		self.value = value
 
 	@classmethod
-	def make(cls, value:Any) -> "ConstAST":
+	def make(cls, value:Any) -> ConstAST:
 		return cls(value, ul4c._repr(value))
 
 	@classmethod
-	def fromul4(cls, node:ul4c.ConstAST, **vars: "Field") -> "ConstAST":
+	def fromul4(cls, node:ul4c.ConstAST, **vars: Field) -> ConstAST:
 		return cls(node.value, node.source)
 
 	@property
@@ -2025,7 +2102,7 @@ class BoolAST(_ConstWithValueAST):
 	datatype = DataType.BOOL
 
 	@classmethod
-	def make(cls, value:Any) -> "BoolAST":
+	def make(cls, value:Any) -> BoolAST:
 		return cls(value, "True" if value else "False")
 
 	def _sqlsource(self, query:Query) -> Generator[str, None, None]:
@@ -2153,7 +2230,7 @@ class DateTimeAST(_ConstWithValueAST):
 	datatype = DataType.DATETIME
 
 	@classmethod
-	def make(cls, value:datetime.datetime) -> "DateTimeAST":
+	def make(cls, value:datetime.datetime) -> DateTimeAST:
 		value = value.replace(microsecond=0)
 		return cls(value, ul4c._repr(value))
 
@@ -2177,7 +2254,7 @@ class _SeqAST(AST):
 		self.validate()
 
 	@classmethod
-	def fromul4(cls, node:ul4c.AST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.AST, **vars: Field) -> AST:
 		content = []
 
 		lastpos = None # This value is never used
@@ -2519,7 +2596,7 @@ class BinaryAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, obj1:AST, obj2:AST) -> "BinaryAST":
+	def make(cls, obj1:AST, obj2:AST) -> BinaryAST:
 		return cls(
 			obj1,
 			obj2,
@@ -2542,7 +2619,7 @@ class BinaryAST(AST):
 			self.datatype = rule.result
 
 	@classmethod
-	def fromul4(cls, node:ul4c.BinaryAST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.BinaryAST, **vars: Field) -> AST:
 		obj1 = AST.fromul4(node.obj1, **vars)
 		obj2 = AST.fromul4(node.obj2, **vars)
 		return cls(
@@ -2843,14 +2920,14 @@ class ItemAST(BinaryAST):
 	precedence = 16
 
 	@classmethod
-	def make(self, obj1:AST, obj2:AST) -> "ItemAST":
+	def make(self, obj1:AST, obj2:AST) -> ItemAST:
 		if obj1.precedence >= self.precedence:
 			return cls(obj1, obj2, obj1, "[", obj2, "]")
 		else:
 			return cls(obj1, obj2, "(", obj1, ")[", obj2, "]")
 
 	@classmethod
-	def fromul4(cls, node:ul4c.ItemAST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.ItemAST, **vars: Field) -> AST:
 		if isinstance(node.obj2, ul4c.SliceAST):
 			return SliceAST.fromul4(node, **vars)
 		return super().fromul4(node, **vars)
@@ -2906,7 +2983,7 @@ class UnaryAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, obj:AST) -> "UnaryAST":
+	def make(cls, obj:AST) -> UnaryAST:
 		return cls(
 			obj,
 			cls.operator,
@@ -2914,7 +2991,7 @@ class UnaryAST(AST):
 		)
 
 	@classmethod
-	def fromul4(cls, node:ul4c.UnaryAST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.UnaryAST, **vars: Field) -> AST:
 		obj = AST.fromul4(node.obj, **vars)
 		return cls(
 			obj,
@@ -3017,7 +3094,7 @@ class IfAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, objif:AST, objcond:AST, objelse:AST) -> "IfAST":
+	def make(cls, objif:AST, objcond:AST, objelse:AST) -> IfAST:
 		return cls(
 			objif,
 			objcond,
@@ -3043,7 +3120,7 @@ class IfAST(AST):
 			self.datatype = rule.result
 
 	@classmethod
-	def fromul4(cls, node:ul4c.IfAST, **vars: "Field") -> "IfAST":
+	def fromul4(cls, node:ul4c.IfAST, **vars: Field) -> IfAST:
 		objif = AST.fromul4(node.objif, **vars)
 		objcond = AST.fromul4(node.objcond, **vars)
 		objelse = AST.fromul4(node.objelse, **vars)
@@ -3117,7 +3194,7 @@ class SliceAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, obj:AST, index1:AST | None, index2:AST | None) -> "SliceAST":
+	def make(cls, obj:AST, index1:AST | None, index2:AST | None) -> SliceAST:
 		if index1 is None:
 			index1 = NoneAST(None)
 		if index2 is None:
@@ -3149,7 +3226,7 @@ class SliceAST(AST):
 			self.datatype = rule.result
 
 	@classmethod
-	def fromul4(cls, node:ul4c.ItemAST, **vars: "Field") -> "AST":
+	def fromul4(cls, node:ul4c.ItemAST, **vars: Field) -> AST:
 		obj = AST.fromul4(node.obj1, **vars)
 		index1 = AST.fromul4(node.obj2.index1, **vars) if node.obj2.index1 is not None else NoneAST("")
 		index2 = AST.fromul4(node.obj2.index2, **vars) if node.obj2.index2 is not None else NoneAST("")
@@ -3224,7 +3301,7 @@ class AttrAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, obj:AST, attrname:str) -> "AttrAST":
+	def make(cls, obj:AST, attrname:str) -> AttrAST:
 		return cls(
 			obj,
 			attrname,
@@ -3304,7 +3381,7 @@ class FuncAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, name:str, *args:AST) -> "FuncAST":
+	def make(cls, name:str, *args:AST) -> FuncAST:
 		content = [name, "("]
 		for (i, arg) in enumerate(args):
 			if i:
@@ -3399,7 +3476,7 @@ class MethAST(AST):
 		self.validate()
 
 	@classmethod
-	def make(cls, obj:AST, name:str, *args:AST) -> "MethAST":
+	def make(cls, obj:AST, name:str, *args:AST) -> MethAST:
 		content = [*cls._wrap(obj, obj.precedence < cls.precedence), ".", name, "("]
 		for (i, arg) in enumerate(args):
 			if i:
