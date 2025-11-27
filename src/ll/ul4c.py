@@ -84,13 +84,13 @@ class NullStream:
 	"""
 	def write(self, text):
 		pass
-	
+
 	def writelines(self, lines):
 		pass
 
 	def flush(self):
 		pass
-	
+
 	def close(self):
 		pass
 
@@ -108,17 +108,17 @@ class XMLEscapeStream:
 	"""
 	def __init__(self, stream):
 		self.stream = stream
-	
+
 	def write(self, text):
 		self.stream.write(_xmlescape(text))
-	
+
 	def writelines(self, lines):
 		for line in lines:
 			self.write(line)
 
 	def flush(self):
 		self.stream.flush()
-	
+
 	def close(self):
 		self.stream.close()
 
@@ -1334,7 +1334,7 @@ class DateTimeType(DateType.__class__):
 		weekdayname = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 		monthname = (None, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 		return f"{weekdayname[obj.weekday()]}, {obj.day:02d} {monthname[obj.month]:3} {obj.year:4} {obj.hour:02}:{obj.minute:02}:{obj.second:02} GMT"
-	
+
 	@staticmethod
 	def timestamp(obj):
 		"""
