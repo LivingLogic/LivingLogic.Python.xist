@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from ll.xist.ns.chars import Agrave
+
 """
 Normally an object-relational mapper consist of:
 
@@ -395,37 +397,53 @@ class Repr:
 					p.pretty(value)
 
 
+class Aggregate(misc.Enum):
+	"""
+	Aggregation methods.
+	"""
+
+	GROUP = "group"
+	COUNT = "count"
+	MIN = "min"
+	MAX = "max"
+	SUM = "sum"
+
+
 class DataType(misc.Enum):
 	"""
 	The datatypes supported in vSQL expressions.
 	"""
 
-	NULL = "null"
-	BOOL = "bool"
-	INT = "int"
-	NUMBER = "number"
-	STR = "str"
-	CLOB = "clob"
-	COLOR = "color"
-	GEO = "geo"
-	DATE = "date"
-	DATETIME = "datetime"
-	DATEDELTA = "datedelta"
-	DATETIMEDELTA = "datetimedelta"
-	MONTHDELTA = "monthdelta"
-	NULLLIST = "nulllist"
-	INTLIST = "intlist"
-	NUMBERLIST = "numberlist"
-	STRLIST = "strlist"
-	CLOBLIST = "cloblist"
-	DATELIST = "datelist"
-	DATETIMELIST = "datetimelist"
-	NULLSET = "nullset"
-	INTSET = "intset"
-	NUMBERSET = "numberset"
-	STRSET = "strset"
-	DATESET = "dateset"
-	DATETIMESET = "datetimeset"
+	NULL = ("null", )
+	BOOL = ("bool", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX, Aggregate.SUM)
+	INT = ("int", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX, Aggregate.SUM)
+	NUMBER = ("number", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX, Aggregate.SUM)
+	STR = ("str", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX)
+	CLOB = ("clob", )
+	COLOR = ("color", Aggregate.GROUP)
+	GEO = ("geo", )
+	DATE = ("date", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX)
+	DATETIME = ("datetime", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX)
+	DATEDELTA = ("datedelta", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX, Aggregate.SUM)
+	DATETIMEDELTA = ("datetimedelta", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX, Aggregate.SUM)
+	MONTHDELTA = ("monthdelta", Aggregate.GROUP, Aggregate.MIN, Aggregate.MAX, Aggregate.SUM)
+	NULLLIST = ("nulllist", )
+	INTLIST = ("intlist", )
+	NUMBERLIST = ("numberlist", )
+	STRLIST = ("strlist", )
+	CLOBLIST = ("cloblist", )
+	DATELIST = ("datelist", )
+	DATETIMELIST = ("datetimelist", )
+	NULLSET = ("nullset", )
+	INTSET = ("intset", )
+	NUMBERSET = ("numberset", )
+	STRSET = ("strset", )
+	DATESET = ("dateset", )
+	DATETIMESET = ("datetimeset", )
+
+	def __init__(self, value:str, *aggregates:Aggregate):
+		super().__init__(value)
+		self.aggregates = aggregates
 
 	@classmethod
 	def compatible_to(cls, given:DataType, required:DataType) -> Error | None:
@@ -862,12 +880,14 @@ class Query(Repr):
 			self.comment = comment
 
 		def sqlsource(self, query:Query) -> str:
+			sqlsource = self.expr
 			if self.comment is not None:
-				return f"{self.expr} {comment(self.comment)}"
-			else:
-				return self.expr
+				c = comment(self.comment)
+				if not sqlsource.endswith(c):
+					sqlsource += f" {c}"
+			return sqlsource
 
-	class AliasedExpr(Expr):
+	class FieldExpr(Expr):
 		_ll_repr_attrs_ = ["alias"]
 		alias : str | None
 
@@ -877,10 +897,45 @@ class Query(Repr):
 
 		def sqlsource(self, query:Query) -> str:
 			sqlsource = super().sqlsource(query)
-
 			if self.alias is not None:
 				sqlsource += f" as {self.alias}"
 			return sqlsource
+
+	class AggregatedFieldExpr(FieldExpr):
+		_ll_repr_attrs_ = ["aggregate"]
+		aggregate : Aggregate
+
+		def __init__(self, expr, comment, alias, aggregate):
+			super().__init__(expr, comment, alias)
+			self.aggregate = aggregate
+
+		def sqlsource(self, query:Query, alias:bool=True) -> str:
+			if self.aggregate is Aggregate.COUNT:
+				sqlsource = "count(*)"
+			else:
+				sqlsource = Query.Expr.sqlsource(self, query)
+				if self.aggregate is not Aggregate.GROUP:
+					sqlsource = f"{self.aggregate.value}({sqlsource})"
+			if alias and self.alias is not None:
+				sqlsource += f" as {self.alias}"
+			return sqlsource
+
+	class FromExpr(Expr):
+		_ll_repr_attrs_ = ["alias"]
+		alias : str | None
+
+		def __init__(self, expr, comment, alias):
+			super().__init__(expr, comment)
+			self.alias = alias
+
+		def sqlsource(self, query:Query) -> str:
+			sqlsource = super().sqlsource(query)
+			if self.alias is not None:
+				sqlsource += f" {self.alias}"
+			return sqlsource
+
+	class WhereExpr(Expr):
+		pass
 
 	class OrderByExpr(Expr):
 		_ll_repr_attrs_ = ["dir", "nulls"]
@@ -894,7 +949,6 @@ class Query(Repr):
 
 		def sqlsource(self, query:Query) -> str:
 			sqlsource = super().sqlsource(query)
-
 			if self.dir is not None:
 				sqlsource += f" {self.dir}"
 			if self.nulls is not None:
@@ -903,9 +957,10 @@ class Query(Repr):
 
 	comment : str | None
 	vars : dict[str, Field]
-	_fields : dict[str, AliasedExpr] # Key is the SQL source
-	_from : dict[str, AliasedExpr] # Key is the SQL source + the alias
-	_where : dict[str, Expr]
+	_fields : dict[str, FieldExpr] # Key is the SQL source
+	_aggregated_fields : dict[str, AggregatedFieldExpr] # Key is the SQL source
+	_from : dict[str, FromExpr] # Key is the SQL source + the alias
+	_where : dict[str, WhereExpr]
 	_orderby : list[OrderByExpr]
 	_offset : int | None
 	_limit = int | None
@@ -932,6 +987,7 @@ class Query(Repr):
 		self.comment = comment
 		self.vars = {name: field for (name, field) in vars.items() if field is not None}
 		self._fields = {}
+		self._aggregated_fields = {}
 		self._from = {}
 		self._where = {}
 		self._orderby = []
@@ -967,7 +1023,7 @@ class Query(Repr):
 			if alias is not None:
 				joincond = joincond.replace("{m}", alias)
 			joincond = joincond.replace("{d}", newalias)
-			self._where[joincond] = self.Expr(joincond, fieldref.parent.source())
+			self._where[joincond] = self.WhereExpr(joincond, fieldref.parent.source())
 
 		if fieldref.parent.field.refgroup.tablesql is None:
 			# If this field is not part of a table (which can happen e.g. for
@@ -978,7 +1034,7 @@ class Query(Repr):
 
 		self._identifier_aliases[identifier] = newalias
 		sql = fieldref.parent.field.refgroup.tablesql
-		self._from[f"{sql} {newalias}"] = self.AliasedExpr(sql, fieldref.parent.source(), newalias)
+		self._from[f"{sql} {newalias}"] = self.FromExpr(sql, fieldref.parent.source(), newalias)
 		return newalias
 
 	def register_vsql(self, identifier:str) -> str | None:
@@ -1000,7 +1056,7 @@ class Query(Repr):
 		if joincond is not None:
 			# Only add to "where" if the join condition is not empty
 			joincond = joincond.replace("{d}", newalias)
-			self._where[joincond] = identifier
+			self._where[joincond] = self.WhereExpr(joincond, identifier)
 
 		if field.refgroup.tablesql is None:
 			# If this field is not part of a table (which can happen e.g. for
@@ -1011,7 +1067,7 @@ class Query(Repr):
 
 		self._identifier_aliases[identifier] = newalias
 		sql = field.refgroup.tablesql
-		self._from[f"{sql} {newalias}"] = self.AliasedExpr(sql, identifier, newalias)
+		self._from[f"{sql} {newalias}"] = self.FromExpr(sql, identifier, newalias)
 		return newalias
 
 	def _vsql(self, expr:str) -> None:
@@ -1023,24 +1079,63 @@ class Query(Repr):
 			self._register(fieldref)
 		return expr
 
-	def select_vsql(self, expr:str, alias=None) -> Query:
+	def select_vsql(self, expr:str, alias : str | None = None, aggregate:Aggregate | None = None) -> Query:
 		"""
 		Add the vSQL expression ``expr`` to the list of expression to select.
 
 		``alias`` can be used to give the expression a column alias.
 
-		Note that this compiles ``expr`` and adds the resulting SQL. To add an
+		If ``aggregate`` is not ``None`` it will be used to aggregate the field.
+		Note that it's not possible to mix aggregated and non-aggregated
+		fields. Possible values for ``aggregate`` are:
+
+		``group``
+			All records that have the same values for this expression will
+			be grouped together
+
+		``count``
+			The number of records in this group
+
+		``min``
+			The minimum value of this expressions for all records in this group
+
+		``max``
+			The maximum value of this expressions for all records in this group
+
+		``sum``
+			The sum of all values of this expressions for all records in this group
+
+		When ``aggregate`` is ``count``, ``expr`` will be ignored (and in fact
+		can be ``None`` or empty).
+
+		Otherwise thisthis compiles ``expr`` and adds the resulting SQL. To add an
 		SQL expression directly use :meth:`select_sql` instead.
 		"""
 		comment = expr
-		expr = self._vsql(expr)
-		expr.check_valid("select")
-		sqlsource = expr.sqlsource(self)
-		if sqlsource not in self._fields:
-			self._fields[sqlsource] = self.AliasedExpr(sqlsource, comment, alias)
+		if aggregate is Aggregate.COUNT:
+			expr = None
+			sqlsource = None
+		else:
+			expr = self._vsql(expr)
+			expr.check_valid("select")
+			sqlsource = expr.sqlsource(self)
+		if aggregate is not None:
+			if self._fields:
+				raise TypeError("Can't mix aggregated and non-aggregated select expressions")
+			field = self.AggregatedFieldExpr(sqlsource, comment, alias, aggregate)
+			if aggregate is not Aggregate.COUNT and aggregate not in expr.datatype.aggregates:
+				raise TypeError(f"Can't aggregate expression {expr.source()!r} of type {expr.datatype.name} using aggregation {aggregate.name}")
+			final_sqlsource = field.sqlsource(self)
+			if final_sqlsource not in self._aggregated_fields:
+				self._aggregated_fields[final_sqlsource] = field
+		else:
+			if self._aggregated_fields:
+				raise TypeError("Can't mix aggregated and non-aggregated select expressions")
+			if sqlsource not in self._fields:
+				self._fields[sqlsource] = self.FieldExpr(sqlsource, comment, alias)
 		return self
 
-	def select_sql(self, expr:str, comment=None, alias=None) -> Query:
+	def select_sql(self, expr:str, comment=None, alias=None, aggregate=None) -> Query:
 		"""
 		Add the SQL expression ``expr`` to the list of expression to select.
 
@@ -1052,7 +1147,7 @@ class Query(Repr):
 		expression use :meth:`select_vsql` instead.
 		"""
 		if expr not in self._fields:
-			self._fields[expr] = self.AliasedExpr(expr, comment, alias)
+			self._fields[expr] = self.FieldExpr(expr, comment, alias)
 		return self
 
 	def from_sql(self, tablename, comment=None, alias=None) -> Query:
@@ -1069,7 +1164,7 @@ class Query(Repr):
 			(n, a) = f.rsplit(" ", 1)
 			if a == alias:
 				raise ValueError(f"duplicate table alias {alias!r}")
-		self._from[f"{tablename} {alias}"] = self.AliasedExpr(tablename, comment, alias)
+		self._from[f"{tablename} {alias}"] = self.FromExpr(tablename, comment, alias)
 		return self
 
 	def where_vsql(self, expr:str) -> Query:
@@ -1089,7 +1184,7 @@ class Query(Repr):
 			expr = FuncAST.make("bool", expr)
 		sqlsource = f"{expr.sqlsource(self)} = 1"
 		if sqlsource not in self._where:
-			self._where[sqlsource] = self.Expr(sqlsource, comment)
+			self._where[sqlsource] = self.WhereExpr(sqlsource, comment)
 		return self
 
 	def where_sql(self, expr:str, comment:str|None=None) -> Query:
@@ -1100,7 +1195,7 @@ class Query(Repr):
 		expression use :meth:`where_vsql` instead.
 		"""
 		if expr not in self._where:
-			self._where[expr] = self.Expr(expr, comment)
+			self._where[expr] = self.WhereExpr(expr, comment)
 		return self
 
 	def orderby_vsql(self, expr:str, direction:None | Literal["asc", "desc"]=None, nulls:None | Literal["first", "last"]=None) -> Query:
@@ -1219,6 +1314,12 @@ class Query(Repr):
 			else:
 				a(",", None)
 			a(expr.sqlsource(self))
+		for expr in self._aggregated_fields.values():
+			if first:
+				first = False
+			else:
+				a(",", None)
+			a(expr.sqlsource(self))
 		if first:
 			a("42")
 		a(None, -1)
@@ -1241,6 +1342,18 @@ class Query(Repr):
 				if i:
 					a(" and", None)
 				a(expr.sqlsource(self))
+			a(None, -1)
+
+		if any(expr.aggregate is Aggregate.GROUP for expr in self._aggregated_fields.values()):
+			a("group by", None, +1)
+			first = True
+			for expr in self._aggregated_fields.values():
+				if expr.aggregate is Aggregate.GROUP:
+					if first:
+						first = False
+					else:
+						a(",", None)
+					a(expr.sqlsource(self, False))
 			a(None, -1)
 
 		if self._orderby:

@@ -14,6 +14,7 @@ Changes in HEAD (released 2025-??-??)
 *	The argument order for :meth:`ll.vsql.Query.select_sql` and
 	:meth:`ll.vsql.Query.from_sql` has changed to match the Java implementation.
 
+
 Changes in 5.81 (released 2025-11-21)
 -------------------------------------
 
