@@ -91,7 +91,7 @@ def test_query_oldest_by_gender(db, vsql_data):
 	q = vsql.Query(p=p)
 	q.from_vsql("p")
 	q.aggregate_vsql("group(p.gender)")
-	q.aggregate_vsql("max( int( ( (p.date_of_death or @(2000-02-29)) - p.date_of_birth ).days / 365.2525 ) )")
+	q.aggregate_vsql("max( int( ( (p.date_of_death or @(2000-02-29)) - p.date_of_birth ).days / 365.2524 ) )")
 	rs = execute(db, q)
 
 	assert {r[0]: int(r[1]) for r in rs} == {
