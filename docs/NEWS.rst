@@ -11,8 +11,22 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released 2025-??-??)
 -------------------------------------
 
+*	XIST now works again with Python 3.13.
+
 *	The argument order for :meth:`ll.vsql.Query.select_sql` and
 	:meth:`ll.vsql.Query.from_sql` has changed to match the Java implementation.
+
+*	:mod:`ll.vsql` now supports aggregated queries (i.e. ``group by`` and the
+	aggregating functions ``count()``, ``min()``, ``max()`` and ``sum()``. For
+	this the methods :meth:`ll.vsql.Query.aggegate_vsql`,
+	:meth:`ll.vsql.Query.aggegate_sql`, :meth:`ll.vsql.Query.groupby_vsql`,
+	and :meth:`ll.vsql.Query.groupby_sql` have been added.
+
+*	All methods in :class:`ll.vsql.Query` that accept vSQL expressions now
+	support comments.
+
+*	The method :meth:`ll.vsql.query.register_vsql` has been renamed to
+	:meth:`ll.vsql.query.from_vsql`.
 
 
 Changes in 5.81 (released 2025-11-21)
