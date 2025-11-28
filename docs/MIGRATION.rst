@@ -8,6 +8,20 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.82
+=========================
+
+Changes to :mod:`ll.vsql`
+-------------------------
+
+*	The argument order for :meth:`ll.vsql.Query.select_sql` and
+	:meth:`ll.vsql.Query.from_sql` has changed to match the Java implementation.
+	So in calls the order of ``comment`` and ``alias`` must be swapped.
+
+*	The method :meth:`ll.vsql.query.register_vsql` has been renamed to
+	:meth:`ll.vsql.query.from_vsql`.
+
+
 Migrating to version 5.76
 =========================
 
@@ -15,7 +29,7 @@ Changes to :mod:`ll.ul4c`
 -------------------------
 
 *	The output infrastructure for UL4 (which was using generator before) has
-	been switched to a stream API. The new API is incompatible with the old one.
+		been switched to a stream API. The new API is incompatible with the old one.
 
 
 
@@ -508,7 +522,7 @@ Changes to ``sisyphus``
 -----------------------
 
 *	The option :attr:`setproctitle` for sisyphus jobs has been renamed to
-	:attr:`proctitle`. 
+	:attr:`proctitle`.
 
 *	The default for the name parameter in :meth:`tasks` for sisyphus jobs has
 	changed from ``str`` to ``None``, i.e. it defaults to unnamed tasks now.
