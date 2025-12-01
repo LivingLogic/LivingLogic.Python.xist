@@ -16,7 +16,7 @@
 		{%- if css|attr("rel") %}
 			<link rel="{{ css.rel }}" href="{{ pathto(css.filename, 1)|e }}" type="text/css"{% if css.title is not none %} title="{{ css.title|e }}"{% endif %}{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
 		{%- else %}
-			<link rel="stylesheet" href="{{ pathto(css, 1)|e }}" type="text/css"{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
+			<link rel="stylesheet" href="{{ pathto(css.filename, 1)|e }}" type="text/css"{% if css.attributes.media is not none %} media="{{ css.attributes.media|e }}"{% endif %} />
 		{%- endif %}
 	{%- endfor %}
 
