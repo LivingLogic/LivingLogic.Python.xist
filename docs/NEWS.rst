@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2025-??-??)
+Changes in 5.82 (released 2025-12-01)
 -------------------------------------
 
 *	XIST now works again with Python 3.13.
@@ -27,6 +27,9 @@ Changes in HEAD (released 2025-??-??)
 
 *	The method :meth:`ll.vsql.query.register_vsql` has been renamed to
 	:meth:`ll.vsql.query.from_vsql`.
+
+*	Methods of :class:`ll.vsql.Query` that returned the qury object before
+	now return the newlich registered expression objects.
 
 
 Changes in 5.81 (released 2025-11-21)

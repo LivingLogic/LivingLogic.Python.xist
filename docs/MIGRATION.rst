@@ -21,6 +21,10 @@ Changes to :mod:`ll.vsql`
 *	The method :meth:`ll.vsql.query.register_vsql` has been renamed to
 	:meth:`ll.vsql.query.from_vsql`.
 
+*	Methods of :class:`ll.vsql.Query` that returned the qury object before
+	now return the newlich registered expression objects. So instead of
+	chaining method call, methods must be called separately now.
+
 
 Migrating to version 5.76
 =========================
