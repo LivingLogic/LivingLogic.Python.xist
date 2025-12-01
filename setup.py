@@ -108,7 +108,7 @@ Operating System :: OS Independent
 Programming Language :: Python
 Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3.14
+Programming Language :: Python :: 3.13
 Topic :: Software Development :: Libraries :: Python Modules
 
 # ansistyle
