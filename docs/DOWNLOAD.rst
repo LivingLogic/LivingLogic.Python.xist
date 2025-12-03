@@ -17,13 +17,17 @@ You can download XIST from the Cheeseshop_, go directly to the
 
 .. rst-class:: download
 
-======================================================================================================================================================= ======================= =====
-File                                                                                                                                                    Type                    Size
-======================================================================================================================================================= ======================= =====
-`ll_xist-5.82-cp313-cp313-macosx_26_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp313-cp313-macosx_26_0_arm64.whl>`_ Mac wheel (Python 3.13) 592K
-`ll_xist-5.82-cp314-cp314-macosx_26_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp314-cp314-macosx_26_0_arm64.whl>`_ Mac wheel (Python 3.14) 1377K
-`ll_xist-5.82.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82.tar.gz>`_                                                       Source                  1746K
-======================================================================================================================================================= ======================= =====
+======================================================================================================================================================= =========================== =====
+File                                                                                                                                                    Type                        Size
+======================================================================================================================================================= =========================== =====
+`ll_xist-5.82-cp313-cp313-macosx_26_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp313-cp313-macosx_26_0_arm64.whl>`_ Mac wheel (Python 3.13)     592K
+`ll_xist-5.82-cp313-cp313-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp313-cp313-win32.whl>`_                         Windows wheel (Python 3.13) 600K
+`ll_xist-5.82-cp313-cp313-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp313-cp313-win_amd64.whl>`_                 Windows wheel (Python 3.13) 603K
+`ll_xist-5.82-cp314-cp314-macosx_26_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp314-cp314-macosx_26_0_arm64.whl>`_ Mac wheel (Python 3.14)     1377K
+`ll_xist-5.82-cp314-cp314-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp314-cp314-win32.whl>`_                         Windows wheel (Python 3.14) 603K
+`ll_xist-5.82-cp314-cp314-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82-cp314-cp314-win_amd64.whl>`_                 Windows wheel (Python 3.14) 605K
+`ll_xist-5.82.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.82.tar.gz>`_                                                       Source                      1746K
+======================================================================================================================================================= =========================== =====
 
 
 5.81 (released 11/21/2025)
