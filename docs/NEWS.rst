@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.82.1 (released 2025-12-08)
+---------------------------------------
+
+*	Fixed a bug in :meth:`ll.vsql.Query.select_sql`.
+
+
 Changes in 5.82 (released 2025-12-01)
 -------------------------------------
 

@@ -144,3 +144,12 @@ def test_query_first_last_by_century(db, vsql_data):
 			6,
 		),
 	}
+
+
+def test_query_sql(db, vsql_data):
+	q = vsql.Query()
+	q.select_sql("count(*)")
+	q.from_sql("vsql_person")
+	rs = [list(r) for r in execute(db, q)]
+
+	assert rs == [[10]]

@@ -1250,7 +1250,7 @@ class Query(Repr):
 
 		if expr in self.fields:
 			return self.fields[expr]
-		sqlexpr = self.SQLFieldExpr(self, expr, comment, alias)
+		sqlexpr = self.SQLSelectExpr(self, expr, comment, alias)
 		self.fields[expr] = sqlexpr
 		return sqlexpr
 
