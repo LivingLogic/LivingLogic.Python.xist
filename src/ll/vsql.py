@@ -1048,7 +1048,7 @@ class Query(Repr):
 			self.dir = dir
 			self.nulls = nulls
 
-		def sqlsource(self, query:Query) -> str:
+		def sqlsource(self) -> str:
 			sqlsource = super().sqlsource()
 			if self.dir is not None:
 				sqlsource += f" {self.dir}"
@@ -1068,7 +1068,7 @@ class Query(Repr):
 			self.dir = dir
 			self.nulls = nulls
 
-		def sqlsource(self, query:Query) -> str:
+		def sqlsource(self) -> str:
 			sqlsource = super().sqlsource()
 			if self.dir is not None:
 				sqlsource += f" {self.dir}"

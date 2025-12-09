@@ -148,8 +148,10 @@ def test_query_first_last_by_century(db, vsql_data):
 
 def test_query_sql(db, vsql_data):
 	q = vsql.Query()
-	q.select_sql("count(*)")
+	q.select_sql("upper(per_firstname)")
 	q.from_sql("vsql_person")
+	q.where_sql("per_firstname like 'A%'")
+	q.orderby_sql("per_firstname asc nulls last")
 	rs = [list(r) for r in execute(db, q)]
 
-	assert rs == [[10]]
+	assert rs == [["ALBERT"], ["ANGELA"]]
