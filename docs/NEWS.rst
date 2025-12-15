@@ -38,8 +38,8 @@ Changes in 5.82 (released 2025-12-01)
 *	All methods in :class:`ll.vsql.Query` that accept vSQL expressions now
 	support comments.
 
-*	The method :meth:`ll.vsql.query.register_vsql` has been renamed to
-	:meth:`ll.vsql.query.from_vsql`.
+*	The method :meth:`ll.vsql.Query.register_vsql` has been renamed to
+	:meth:`ll.vsql.Query.from_vsql`.
 
 *	Methods of :class:`ll.vsql.Query` that returned the qury object before
 	now return the newlich registered expression objects.
