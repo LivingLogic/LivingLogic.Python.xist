@@ -4684,13 +4684,13 @@ class JavaSource:
 	@classmethod
 	def all_java_source_files(cls, path: pathlib.Path) -> Generator[JavaSource, None, None]:
 		"""
-		Return an iterator over all :class:`!JavaSource` objects that can be found
-		in the directory ``path``. ``path`` should point to the directory
-		containing the Java vSQL AST classes.
+		Return an iterator over all :class:`!JavaSource` objects for vSQL AST nodes
+		that can be found in the directory ``path``. ``path`` should point to the
+		directory containing the Java vSQL AST classes.
 		"""
 
 		# Find all AST classes that have rules
-		classes = {cls.__name__.lower(): cls for cls in AST.all_types() if hasattr(cls, "rules")}
+		classes = {"vsql" + cls.__name__.lower(): cls for cls in AST.all_types() if hasattr(cls, "rules")}
 
 		for filename in path.glob("**/*.java"):
 			try:
