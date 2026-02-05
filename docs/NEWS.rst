@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.83 (released 2026-02-05)
+-------------------------------------
+
+*	Added :attr:`ll.sisyphus.Job.smtpclass` for specifying how to connect to the
+	SMTP server for sending the email report.
+
+
 Changes in 5.82.2 (released 2025-12-09)
 ---------------------------------------
 

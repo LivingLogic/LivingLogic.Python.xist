@@ -242,12 +242,15 @@ Email
 
 It is possible to send an email when a job fails. For this, the options
 :option:`--fromemail`, :option:`--toemail` and :option:`--smtphost` (or the
-appropriate class attributes) have to be set. If the job terminates because of
-an exception or exceeds its maximum runtime (and the option
-:option:`--noisykills` is set) or any of the calls to :meth:`~Job.log` include
-the tag ``email`` or ``external``, an email will be sent. This email includes
-the last 10 logging calls and the final exception (if there is any) in plain
-text and HTML format as well as as a JSON attachment.
+appropriate class attributes) have to be set. For specifying which method to
+use for connecting to the SMTP server, the class attribute ``smtpclass`` can
+be set (to e.g. :class:`smtplib.SMTP` or :class:`smtplib.SMTP_SSL`.
+
+If the job terminates because of an exception or exceeds its maximum runtime
+(and the option :option:`--noisykills` is set) or any of the calls to
+:meth:`~Job.log` include the tag ``email`` or ``external``, an email will be
+sent. This email includes the last 10 logging calls and the final exception
+(if there is any) in plain text and HTML format as well as as a JSON attachment.
 
 
 Mattermost
@@ -765,16 +768,31 @@ class Job:
 		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
 		``yes`` or ``1``)
 
-
 	Command line arguments take precedence over instance attributes (if
 	:func:`executewithargs` is used) and those take precedence over class
 	attributes.
 
-	Furthermore the following class attribute can be set to customize the
-	help message:
+	Furthermore the following "options" can only be set as class attributes:
 
 	:attr:`argdescription`
 		Description for the help message of the command line argument parser.
+
+	:attr:`smtpclass`
+		Class for connecting to the SMTP server. Use it like this:
+
+		.. sourcecode:: python
+
+			smtpclass = smtplib.SMTP
+
+		or
+
+		.. sourcecode:: python
+
+			smtpclass = smtplib.SMTP_SSL
+
+		This specifies which class to use for sending the report email.
+
+		The default is :class:`smtplib.SMTP`.
 	"""
 
 	projectname = None
@@ -788,6 +806,7 @@ class Job:
 	smtpport = 0
 	smtpuser = None
 	smtppassword = None
+	smtpclass = smtplib.SMTP
 
 	mattermost_url = None
 	mattermost_channel = None
@@ -2483,7 +2502,7 @@ class EmailLogger(Logger):
 				msg["From"] = self.job.fromemail
 				msg["Subject"] = emailsubject
 				try:
-					server = smtplib.SMTP(self.job.smtphost, self.job.smtpport)
+					server = self.job.smtpclass(self.job.smtphost, self.job.smtpport)
 					if self.job.smtpuser and self.job.smtppassword:
 						server.login(self.job.smtpuser, self.job.smtppassword)
 					server.send_message(msg)
