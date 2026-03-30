@@ -8,6 +8,15 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.84 (relase 2026-03-30)
+-----------------------------------
+
+*	Fixed the vSQL comparison operators ``>``, ``>=``, ``<`` and ``>=`` to return
+	``null`` when exactly one of the operands is ``null``.
+
+*	Fixed the vSQL function ``bool(bool)`` to return ``0`` when ``null`` is passed.
+
+
 Changes in 5.83 (released 2026-02-05)
 -------------------------------------
 
