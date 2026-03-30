@@ -48,8 +48,8 @@ Changes in 5.82 (released 2025-12-01)
 *	The method :meth:`ll.vsql.Query.register_vsql` has been renamed to
 	:meth:`ll.vsql.Query.from_vsql`.
 
-*	Methods of :class:`ll.vsql.Query` that returned the qury object before
-	now return the newlich registered expression objects.
+*	Methods of :class:`ll.vsql.Query` that returned the query object before
+	now return the newly registered expression objects.
 
 
 Changes in 5.81 (released 2025-11-21)
