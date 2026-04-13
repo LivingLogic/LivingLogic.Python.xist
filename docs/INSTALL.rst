@@ -30,7 +30,7 @@ To use XIST you need the following software packages:
 	.. _links: http://links.twibright.com/
 	.. _oracledb: https://oracle.github.io/python-oracledb/
 	.. _pytest: https://docs.pytest.org/
-	.. _execnet: https://codespeak.net/execnet/
+	.. _execnet: https://execnet.readthedocs.io/
 
 
 Installation
