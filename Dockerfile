@@ -21,7 +21,7 @@ RUN apt-get install -y \
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install modules required by XIST or for building the documentation
-RUN pip install cssutils oracledb CherryPy Sphinx sphinxcontrib.jquery pygll
+RUN pip install cssutils oracledb CherryPy Sphinx sphinxcontrib.jquery linklint pygll
 
 # Pass version info into the container
 ARG CI_COMMIT_TAG
