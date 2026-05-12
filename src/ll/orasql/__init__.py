@@ -598,7 +598,7 @@ class Connection(Connection):
 		"""
 		Generator that yields the sequences, tables, primary keys, foreign keys,
 		table and columns comments, unique constraints, indexes, views, functions,
-		procedures, packages, types and jobsin the current users schema
+		procedures, packages, types and jobs in the current users schema
 		(or all users schemas) in a specified order.
 
 		``mode`` specifies the order in which objects will be yielded:
