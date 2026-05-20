@@ -16,6 +16,12 @@ Changes in 5.84 (relase 2026-03-30)
 
 *	Fixed the vSQL function ``bool(BOOL)`` to return ``0`` when ``null`` is passed.
 
+*	Added :attr:`ll.sisyphus.Job.smtpstarttls` (and the corresponding
+	command line option :option:`--smtpstarttls`) for upgrading the SMTP
+	connection to TLS via ``STARTTLS`` before logging in. This is required
+	by SMTP servers that only advertise the ``AUTH`` extension after the
+	connection has been upgraded to TLS (e.g. on the submission port 587).
+
 
 Changes in 5.83 (released 2026-02-05)
 -------------------------------------

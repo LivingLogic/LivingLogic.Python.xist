@@ -574,6 +574,16 @@ class Job:
 
 		The password used to log into the SMTP server.
 
+	.. option:: --smtpstarttls <flag>
+
+		If true, :meth:`~smtplib.SMTP.starttls` will be called on the SMTP
+		connection before logging in. This is required by SMTP servers that only
+		advertise the ``AUTH`` extension after the connection has been upgraded
+		to TLS (e.g. on the submission port 587). The default is ``False``.
+
+		(Allowed ``<flag>`` values are ``false``, ``no``, ``0``, ``true``,
+		``yes`` or ``1``)
+
 	.. option:: --mattermost_url <url>
 
 		The URL where log entries can be posted to a Mattermost chat. For
@@ -806,6 +816,7 @@ class Job:
 	smtpport = 0
 	smtpuser = None
 	smtppassword = None
+	smtpstarttls = False
 	smtpclass = smtplib.SMTP
 
 	mattermost_url = None
@@ -1309,6 +1320,7 @@ class Job:
 		p.add_argument(      "--smtpport", dest="smtpport", metavar="PORT", help="The port number used for the connection to the SMTP server (default: %(default)s)", type=int, default=self.smtpport)
 		p.add_argument(      "--smtpuser", dest="smtpuser", metavar="USER", help="The user name used to log into the SMTP server. (default: %(default)s)", default=self.smtpuser)
 		p.add_argument(      "--smtppassword", dest="smtppassword", metavar="PASSWORD", help="The password used to log into the SMTP server. (default: %(default)s)", default=self.smtppassword)
+		p.add_argument(      "--smtpstarttls", dest="smtpstarttls", help="Upgrade the SMTP connection to TLS via STARTTLS before logging in? (default: %(default)s)", action=misc.FlagAction, default=self.smtpstarttls)
 		p.add_argument(      "--mattermost_url", dest="mattermost_url", metavar="URL", help="URL for logging to mattermost chat channel. (default: %(default)s)", default=self.mattermost_url)
 		p.add_argument(      "--mattermost_channel", dest="mattermost_channel", metavar="ID", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_channel)
 		p.add_argument(      "--mattermost_token", dest="mattermost_token", metavar="AUTH", help="Channel id for logging to mattermost chat. (default: %(default)s)", default=self.mattermost_token)
@@ -1356,6 +1368,7 @@ class Job:
 		self.smtpport = ns.smtpport
 		self.smtpuser = ns.smtpuser
 		self.smtppassword = ns.smtppassword
+		self.smtpstarttls = ns.smtpstarttls
 		self.mattermost_url = ns.mattermost_url
 		self.mattermost_channel = ns.mattermost_channel
 		self.mattermost_token = ns.mattermost_token
@@ -2503,6 +2516,8 @@ class EmailLogger(Logger):
 				msg["Subject"] = emailsubject
 				try:
 					server = self.job.smtpclass(self.job.smtphost, self.job.smtpport)
+					if self.job.smtpstarttls:
+						server.starttls()
 					if self.job.smtpuser and self.job.smtppassword:
 						server.login(self.job.smtpuser, self.job.smtppassword)
 					server.send_message(msg)
