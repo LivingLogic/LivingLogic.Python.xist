@@ -8,8 +8,8 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.85 (relase 2026-05-20)
------------------------------------
+Changes in 5.85 (released 2026-05-20)
+-------------------------------------
 
 *	Added :attr:`ll.sisyphus.Job.smtpstarttls` (and the corresponding
 	command line option ``--smtpstarttls``) for upgrading the SMTP
@@ -18,8 +18,8 @@ Changes in 5.85 (relase 2026-05-20)
 	connection has been upgraded to TLS (e.g. on the submission port 587).
 
 
-Changes in 5.84 (relase 2026-03-30)
------------------------------------
+Changes in 5.84 (released 2026-03-30)
+-------------------------------------
 
 *	Fixed the vSQL comparison operators ``>``, ``>=``, ``<`` and ``>=`` to return
 	``null`` when exactly one of the operands is ``null``.
