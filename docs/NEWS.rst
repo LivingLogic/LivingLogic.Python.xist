@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.86 (released 2026-06-??)
+Changes in 5.86 (released 2026-06-02)
 -------------------------------------
 
 *	:meth:`ll.orasql.Cursor.execute` now supports t-strings. Each interpolated
