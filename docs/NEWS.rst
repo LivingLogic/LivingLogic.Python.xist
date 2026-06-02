@@ -16,7 +16,7 @@ Changes in 5.86 (released 2026-06-02)
 	so e.g. ``cursor.execute(t"select * from person where firstname = {name}")``
 	is safe from SQL injection. With the format spec ``l`` the value will
 	instead be embedded literally into the SQL statement (e.g.
-	``t"select * from {tablename}"``).
+	``t"select * from {tablename:l}"``).
 
 *	Since we're using t-strings Python 3.14 is required now.
 
