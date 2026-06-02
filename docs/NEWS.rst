@@ -8,6 +8,19 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.86 (released 2026-06-??)
+-------------------------------------
+
+*	:meth:`ll.orasql.Cursor.execute` now supports t-strings. Each interpolated
+	value in the t-string will be passed to the database as a bind parameter,
+	so e.g. ``cursor.execute(t"select * from person where firstname = {name}")``
+	is safe from SQL injection. With the format spec ``l`` the value will
+	instead be embedded literally into the SQL statement (e.g.
+	``t"select * from {tablename}"``).
+
+*	Since we're using t-strings Python 3.14 is required now.
+
+
 Changes in 5.85 (released 2026-05-20)
 -------------------------------------
 

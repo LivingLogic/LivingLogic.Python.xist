@@ -230,6 +230,7 @@ Module content
 """
 
 import sys, datetime, itertools, re, pathlib, abc
+from string import templatelib
 
 from ll import color, misc, ul4c, ul4on
 
@@ -314,13 +315,20 @@ def sql(value:Any) -> str:
 		raise TypeError(f"unknown type {type(value)!r}")
 
 
-def comment(s:str) -> str:
+def add_comment(sqlsource: templatelib.Template, comment:str) -> templatelib.Template:
 	"""
-	Return an SQL comment with the content ``s``.
+	Append the comment `comment` to the template `sqlsource`.
 
-	I.e. ``comment("foo")`` returns ``"/* foo */"``.
+	If `sqlsource` already ends in the comment, it is not added again.
+
+	I.e. ``add_comment(t"bar", "foo")`` returns ``t"bar /* foo */"``.
 	"""
-	return f"/* {s.replace('/*', '/ *').replace('*/', '* /')} */"
+	if comment is not None:
+		comment = f"/* {comment.replace('/*', '/ *').replace('*/', '* /')} */"
+
+		if not sqlsource.strings[-1].endswith(comment):
+			sqlsource += templatelib.Template(f" {c}")
+	return sqlsource
 
 
 class Repr:
@@ -878,22 +886,18 @@ class Query(Repr):
 		_ll_repr_attrs_ = ["expr", "comment"]
 		context = None
 		query : Query
-		expr : str
+		expr : templatelib.Template
 		comment : str | None
 
 		def __init__(self, query, expr : str, comment : str | None = None):
 			self.query = query
+			if not isinstance(expr, templatelib.Template):
+				expr = templatelib.Template(expr)
 			self.expr = expr
 			self.comment = comment
 
-		def sqlsource(self) -> str:
-			sqlsource = self.expr
-
-			if self.comment is not None:
-				c = comment(self.comment)
-				if not sqlsource.endswith(c):
-					sqlsource += f" {c}"
-			return sqlsource
+		def sqlsource(self) -> templatelib.Template:
+			return add_comment(self.expr, self.comment)
 
 	class VSQLExpr(Repr):
 		_ll_repr_attrs_ = ["expr", "comment"]
@@ -907,14 +911,10 @@ class Query(Repr):
 			self.expr = query._vsql(expr, self.context)
 			self.comment = comment
 
-		def sqlsource(self) -> str:
+		def sqlsource(self) -> templatelib.Template:
 			sqlsource = self.expr.sqlsource(self.query)
-
-			if self.comment is not None:
-				c = comment(self.comment)
-				if not sqlsource.endswith(c):
-					sqlsource += f" {c}"
-			return sqlsource
+			sqlsource = templatelib.Template(sqlsource)
+			return add_comment(sqlsource, self.comment)
 
 		def conform(self, value):
 			"""
@@ -941,7 +941,7 @@ class Query(Repr):
 		def sqlsource(self) -> str:
 			sqlsource = super().sqlsource()
 			if self.alias is not None:
-				sqlsource += f" as {self.alias}"
+				sqlsource += templatelib.Template(f" as {self.alias}")
 			return sqlsource
 
 	class VSQLSelectExpr(VSQLExpr):
@@ -956,7 +956,7 @@ class Query(Repr):
 		def sqlsource(self) -> str:
 			sqlsource = super().sqlsource()
 			if self.alias is not None:
-				sqlsource += f" as {self.alias}"
+				sqlsource += templatelib.Template(f" as {self.alias}")
 			return sqlsource
 
 	class SQLAggregatedSelectExpr(SQLSelectExpr):
@@ -986,18 +986,18 @@ class Query(Repr):
 			self.comment = comment
 			self.alias = alias
 
-		def sqlsource(self) -> str:
+		def sqlsource(self) -> templatelib.Template:
 			if self.expr is None:
-				sqlsource = "count(*)"
+				sqlsource = t"count(*)"
 			else:
 				sqlsource = Query.VSQLExpr.sqlsource(self) # We don't want the alias
 
 			if self.aggregate is Aggregate.COUNT:
-				sqlsource = "count(*)"
+				sqlsource = t"count(*)"
 			elif self.aggregate is not Aggregate.GROUP:
-				sqlsource = f"{self.aggregate.value}({sqlsource})"
+				sqlsource = templatelib.Template(f"{self.aggregate.value}(") + sqlsource + t")"
 			if self.alias is not None:
-				sqlsource += f" as {self.alias}"
+				sqlsource += templatelib.Template(f" as {self.alias}")
 			return sqlsource
 
 	class SQLFromExpr(SQLExpr):
@@ -1009,10 +1009,10 @@ class Query(Repr):
 			super().__init__(query, expr, comment)
 			self.alias = alias
 
-		def sqlsource(self) -> str:
+		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.alias is not None:
-				sqlsource += f" {self.alias}"
+				sqlsource += templatelib.Template(f" {self.alias}")
 			return sqlsource
 
 	class SQLWhereExpr(SQLExpr):
@@ -1027,8 +1027,8 @@ class Query(Repr):
 			if self.expr.datatype is not DataType.BOOL:
 				self.expr = FuncAST.make("bool", self.expr)
 
-		def sqlsource(self) -> str:
-			return f"{super().sqlsource()} = 1"
+		def sqlsource(self) -> templatelib.Template:
+			return super().sqlsource() + t" = 1"
 
 	class SQLGroupByExpr(SQLExpr):
 		context = "groupby"
@@ -1048,12 +1048,12 @@ class Query(Repr):
 			self.dir = dir
 			self.nulls = nulls
 
-		def sqlsource(self) -> str:
+		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.dir is not None:
-				sqlsource += f" {self.dir}"
+				sqlsource += templatelib.Template(f" {self.dir}")
 			if self.nulls is not None:
-				sqlsource += f" nulls {self.nulls}"
+				sqlsource += templatelib.Template(f" nulls {self.nulls}")
 			return sqlsource
 
 	class VSQLOrderByExpr(VSQLExpr):
@@ -1068,12 +1068,12 @@ class Query(Repr):
 			self.dir = dir
 			self.nulls = nulls
 
-		def sqlsource(self) -> str:
+		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.dir is not None:
-				sqlsource += f" {self.dir}"
+				sqlsource += templatelib.Template(f" {self.dir}")
 			if self.nulls is not None:
-				sqlsource += f" nulls {self.nulls}"
+				sqlsource += templatelib.Template(f" nulls {self.nulls}")
 			return sqlsource
 
 	comment : str | None
@@ -1525,88 +1525,88 @@ class Query(Repr):
 		if self.comment:
 			a(comment(self.comment), None)
 
-		a("select", None, +1)
+		a(t"select", None, +1)
 		first = True
 		for expr in self.fields.values():
 			if first:
 				first = False
 			else:
-				a(",", None)
+				a(t",", None)
 			a(expr.sqlsource())
 		for expr in self.aggregated_fields.values():
 			if first:
 				first = False
 			else:
-				a(",", None)
+				a(t",", None)
 			a(expr.sqlsource())
 		if first:
-			a("42")
+			a(t"42")
 		a(None, -1)
 
-		a("from", None, +1)
+		a(t"from", None, +1)
 		first = True
 		for expr in self._from.values():
 			if first:
 				first = False
 			else:
-				a(",", None)
+				a(t",", None)
 			a(expr.sqlsource())
 		if first:
-			a("dual")
+			a(t"dual")
 		a(None, -1)
 
 		if self._where:
-			a("where", None, +1)
+			a(t"where", None, +1)
 			for (i, expr) in enumerate(self._where.values()):
 				if i:
-					a(" and", None)
+					a(t" and", None)
 				a(expr.sqlsource())
 			a(None, -1)
 
 		if self._groupby:
-			a("group by", None, +1)
+			a(t"group by", None, +1)
 			first = True
 			for expr in self._groupby.values():
 				if first:
 					first = False
 				else:
-					a(",", None)
+					a(t",", None)
 				a(expr.sqlsource())
 			a(None, -1)
 
 		if self._orderby:
-			a("order by", None, +1)
+			a(t"order by", None, +1)
 			for (i, expr) in enumerate(self._orderby):
 				if i:
-					a(",", None)
+					a(t",", None)
 				a(expr.sqlsource())
 			a(None, -1)
 
 		if self._offset is not None:
-			a("offset ", str(self._offset), " rows", None)
+			a(templatelib.Template(f"offset {self._offset} rows"), None)
 		if self._limit is not None:
-			a("fetch next ", str(self._limit), " rows only", None)
+			a(templatelib.Template(f"fetch next {self._limit} rows only"), None)
 
-		source = []
+		source = t""
 		first = True
 		level = 0
 		for part in tokens:
 			if part is None:
 				if indent:
-					source.append("\n")
+					source += t"\n"
 					first = True
 			elif isinstance(part, int):
 				level += part
 			else:
 				if first:
 					if indent:
-						source.append(level*indent)
+						source += templatelib.Template(level*indent)
 					else:
-						source.append(" ")
-				source.append(part)
+						source += t" "
+				source += part
 				first = False
 
-		return "".join(source)
+		return source
 
 
 class Rule(Repr):

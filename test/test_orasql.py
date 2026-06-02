@@ -463,3 +463,70 @@ def test_decimal():
 		c.execute("select cast(42 as integer) from dual")
 		r = c.fetchone()
 		assert type(r[0]) is int
+
+
+@pytest.mark.db
+def test_execute_tstring_bindparameter():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# Interpolated values are passed as bind parameters
+		value = "gurk"
+		c.execute(t"select {value} from dual")
+		r = c.fetchone()
+		assert r[0] == "gurk"
+
+		# Multiple interpolations get separate bind parameters
+		x = 17
+		y = 23
+		c.execute(t"select {x} + {y} from dual")
+		r = c.fetchone()
+		assert r[0] == 40
+
+		# ``None`` gets bound as ``null``
+		none = None
+		c.execute(t"select nvl({none}, 'gurk') from dual")
+		r = c.fetchone()
+		assert r[0] == "gurk"
+
+
+@pytest.mark.db
+def test_execute_tstring_literal():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# Interpolations with the format spec ``l`` are embedded literally
+		# into the SQL statement (a table name can't be a bind parameter)
+		tablename = "dual"
+		c.execute(t"select 42 from {tablename:l}")
+		r = c.fetchone()
+		assert r[0] == 42
+
+
+@pytest.mark.db
+def test_execute_tstring_mixed():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# Bind parameters and literal interpolations can be mixed
+		value = 42
+		c.execute(t"select {value} from {'dual':l}")
+		r = c.fetchone()
+		assert r[0] == 42
+
+
+@pytest.mark.db
+def test_execute_tstring_parameter_names():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# Generated bind parameter names skip names that are already used
+		# by additional keyword arguments (``{x}`` must become ``:p2`` here)
+		x = 17
+		c.execute(t"select {x} + :p1 from dual", p1=23)
+		r = c.fetchone()
+		assert r[0] == 40

@@ -36,6 +36,7 @@ __ https://oracle.github.io/python-oracledb/
 import sys, os, urllib.request, urllib.parse, urllib.error, datetime, itertools
 import io, errno, re, unicodedata, decimal, inspect, collections
 from collections import abc
+from string import templatelib
 
 from oracledb import *
 from oracledb import __version__ as __oracledb_version__
@@ -533,21 +534,20 @@ class Connection(Connection):
 			def do(table):
 				if table not in done:
 					done.add(table)
-					query = f"""
+					cursor.execute(t"""
 						select
 							ac1.table_name,
 							decode(ac1.owner, user, null, ac1.owner) as owner
 						from
-							{ddprefix}_constraints ac1,
-							{ddprefix}_constraints ac2
+							{ddprefix:l}_constraints ac1,
+							{ddprefix:l}_constraints ac2
 						where
 							ac1.constraint_type = 'R' and
-							ac2.table_name = :name and
-							ac2.owner = nvl(:owner, user) and
+							ac2.table_name = {table.name} and
+							ac2.owner = nvl({table.owner}, user) and
 							ac1.r_constraint_name = ac2.constraint_name and
 							ac1.r_owner = ac2.owner
-					"""
-					cursor.execute(query, name=table.name, owner=table.owner)
+					""")
 					for rec in cursor.fetchall():
 						try:
 							t2 = tables[(rec.table_name, rec.owner)]
@@ -683,19 +683,17 @@ class Connection(Connection):
 
 	def _getobject(self, name, owner=None):
 		cursor = self.cursor()
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				object_name,
 				decode(owner, user, null, owner) as owner,
 				object_type
 			from
-				{ddprefix}_objects
+				{cursor.ddprefix():l}_objects
 			where
-				object_name = :object_name and
-				owner = nvl(:owner, user)
-		"""
-		cursor.execute(query, object_name=name, owner=owner)
+				object_name = {name} and
+				owner = nvl({owner}, user)
+		""")
 		rec = cursor.fetchone()
 		if rec is not None:
 			type = rec.object_type.lower()
@@ -724,8 +722,8 @@ class Connection(Connection):
 		cursor = self.cursor()
 		ddprefix = cursor.ddprefix()
 		if "." in name:
-			name = name.split(".")
-			query = f"""
+			(package_name, object_name) = name.split(".")
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name || '.' || procedure_name as object_name,
@@ -734,11 +732,11 @@ class Connection(Connection):
 							select
 								count(*)
 							from
-								{ddprefix}_arguments
+								{ddprefix:l}_arguments
 							where
-								owner = nvl(:owner, user) and
-								lower(object_name) = lower(:object_name) and
-								lower(package_name) = lower(:package_name) and
+								owner = nvl({owner}, user) and
+								lower(object_name) = lower({object_name}) and
+								lower(package_name) = lower({package_name}) and
 								argument_name is null
 						),
 						0,
@@ -746,26 +744,24 @@ class Connection(Connection):
 						'function'
 					) as object_type
 				from
-					{ddprefix}_procedures
+					{ddprefix:l}_procedures
 				where
-					lower(procedure_name) = lower(:object_name) and
-					lower(owner) = lower(nvl(:owner, user)) and
-					lower(object_name) = lower(:package_name)
-			"""
-			cursor.execute(query, object_name=name[1], package_name=name[0], owner=owner)
+					lower(procedure_name) = lower({object_name}) and
+					lower(owner) = lower(nvl({owner}, user)) and
+					lower(object_name) = lower({package_name})
+			""")
 		else:
-			query = f"""
+			cursor.execute(t"""
 				select
 					object_name,
 					decode(owner, user, null, owner) as owner,
 					object_type
 				from
-					{ddprefix}_objects
+					{ddprefix:l}_objects
 				where
-					lower(object_name) = lower(:object_name) and
-					lower(owner) = lower(nvl(:owner, user))
-			"""
-			cursor.execute(query, object_name=name, owner=owner)
+					lower(object_name) = lower({name}) and
+					lower(owner) = lower(nvl({owner}, user))
+			""")
 
 		for rec in cursor:
 			type = rec.object_type.lower()
@@ -870,6 +866,65 @@ class Cursor(Cursor):
 		return self.connection._ddprefixargs
 
 	def execute(self, statement, parameters=None, **kwargs):
+		"""
+		Executes the statement ``statement`` against the database.
+
+		This works similar to :meth:`oracledb.Cursor.execute`, but results are
+		wrapped in :class:`Record` objects, and t-strings are supported for
+		``statement``.
+
+		If ``statement`` is a t-string (i.e. a
+		:class:`string.templatelib.Template`), each interpolated value will be
+		passed to the database as a bind parameter, i.e.::
+
+			cursor.execute(t"select * from person where firstname = {name}")
+
+		is equivalent to::
+
+			cursor.execute(
+				"select * from person where firstname = :p1",
+				p1=name
+			)
+
+		The generated parameter names are ``p1``, ``p2``, etc. (skipping any
+		names that are already used in ``parameters`` or ``kwargs``).
+
+		However, if an interpolation uses the format spec ``l``, its value will
+		not be passed as a bind parameter, but will be embedded literally into
+		the SQL statement (which of course should only be done with trusted
+		values, as this opens the door for SQL injection)::
+
+			tablename = "person"
+			cursor.execute(t"select count(*) from {tablename:l}")
+
+		executes::
+
+			select count(*) from person
+
+		Both types of interpolations can be combined in one statement and can
+		be mixed with additional bind parameters passed via ``parameters`` or
+		``kwargs``.
+		"""
+		if isinstance(statement, templatelib.Template):
+			real_statement = []
+			args = {}
+			first_index = 1
+			for part in statement:
+				if isinstance(part, str):
+					# Literal snippet
+					real_statement.append(part)
+				elif part.format_spec == "l":
+					# Embed value a a literal part of the query
+					real_statement.append(str(part.value))
+				else:
+					# Use value as a parameter (with an unused parameter name)
+					param_name = f"p{first_index}"
+					while param_name in kwargs or (isinstance(parameters, dict) and param_name in parameters):
+						first_index += 1
+						param_name = f"p{first_index}"
+					real_statement.append(f":{param_name}")
+					kwargs[param_name] = part.value
+			statement = "".join(real_statement)
 		if parameters is not None:
 			result = super().execute(statement, parameters, **kwargs)
 		else:
@@ -915,28 +970,26 @@ class Cache:
 	@property
 	def dependencies(self):
 		if self._dependencies is None:
-			self.cursor.execute(
-				f"""
-					select
-						type,
-						decode(owner, user, null, owner) as owner,
-						name,
-						referenced_type,
-						decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
-						referenced_name
-					from
-						{self.ddprefix}_dependencies
-					where
-						type != 'NON-EXISTENT' and
-						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y') and
-						referenced_owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
-					order by
-						owner,
-						name,
-						referenced_owner,
-						referenced_name
-				"""
-			)
+			self.cursor.execute(f"""
+				select
+					type,
+					decode(owner, user, null, owner) as owner,
+					name,
+					referenced_type,
+					decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
+					referenced_name
+				from
+					{self.ddprefix}_dependencies
+				where
+					type != 'NON-EXISTENT' and
+					owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y') and
+					referenced_owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+				order by
+					owner,
+					name,
+					referenced_owner,
+					referenced_name
+			""")
 			self._dependencies = self.cursor.fetchall()
 		return self._dependencies
 
@@ -959,71 +1012,65 @@ class Cache:
 	@property
 	def indexes(self):
 		if self._indexes is None:
-			self.cursor.execute(
-				f"""
-					select
-						decode(owner, user, null, owner) as owner,
-						index_name,
-						index_type,
-						parameters
-					from
-						{self.ddprefix}_indexes
-					where
-						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
-					order by
-						owner,
-						index_name
-				"""
-			)
+			self.cursor.execute(f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					index_name,
+					index_type,
+					parameters
+				from
+					{self.ddprefix}_indexes
+				where
+					owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+				order by
+					owner,
+					index_name
+			""")
 			self._indexes = {(r.owner, r.index_name) : r for r in self.cursor}
 		return self._indexes
 
 	@property
 	def mviews(self):
 		if self._mviews is None:
-			self.cursor.execute(
-				f"""
-					select
-						decode(owner, user, null, owner) as owner,
-						mview_name
-					from
-						{self.ddprefix}_mviews
-					where
-						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
-					order by
-						owner,
-						mview_name
-				"""
-			)
+			self.cursor.execute(f"""
+				select
+					decode(owner, user, null, owner) as owner,
+					mview_name
+				from
+					{self.ddprefix}_mviews
+				where
+					owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y')
+				order by
+					owner,
+					mview_name
+			""")
 			self._mviews = {(r.owner, r.index_name) : r for r in self.cursor}
 		return self._mviews
 
 	@property
 	def constraints(self):
 		if self._constraints is None:
-			self.cursor.execute(
-				f"""
-					select
-						constraint_type,
-						decode(owner, user, null, owner) as owner,
-						constraint_name,
-						table_name,
-						decode(r_owner, user, null, r_owner) as r_owner,
-						r_constraint_name,
-						decode(index_owner, user, null, index_owner) as index_owner,
-						index_name
-					from
-						{self.ddprefix}_constraints
-					where
-						owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y') and
-						generated = 'USER NAME'
-					order by
-						r_owner,
-						r_constraint_name,
-						owner,
-						constraint_name
-				"""
-			)
+			self.cursor.execute(f"""
+				select
+					constraint_type,
+					decode(owner, user, null, owner) as owner,
+					constraint_name,
+					table_name,
+					decode(r_owner, user, null, r_owner) as r_owner,
+					r_constraint_name,
+					decode(index_owner, user, null, index_owner) as index_owner,
+					index_name
+				from
+					{self.ddprefix}_constraints
+				where
+					owner not in (select username from {self.ddprefix}_users where oracle_maintained = 'Y') and
+					generated = 'USER NAME'
+				order by
+					r_owner,
+					r_constraint_name,
+					owner,
+					constraint_name
+			""")
 			self._constraints = self.cursor.fetchall()
 		return self._constraints
 
@@ -1050,18 +1097,16 @@ class MixinNormalDates:
 	"""
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				sys_extract_utc(from_tz(cast(created as timestamp), dbtimezone))
 			from
-				{ddprefix}_objects
+				{cursor.ddprefix():l}_objects
 			where
-				lower(object_type) = :type and
-				object_name = :name and
-				owner = nvl(:owner, user)
-		"""
-		cursor.execute(query, type=self.__class__.type, name=self.name, owner=self.owner)
+				lower(object_type) = {self.__class__.type} and
+				object_name = {self.name} and
+				owner = nvl({self.owner}, user)
+		""")
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -1069,18 +1114,16 @@ class MixinNormalDates:
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				sys_extract_utc(from_tz(cast(last_ddl_time as timestamp), dbtimezone))
 			from
-				{ddprefix}_objects
+				{cursor.ddprefix():l}_objects
 			where
-				lower(object_type) = :type and
-				object_name = :name and
-				owner = nvl(:owner, user)
-		"""
-		cursor.execute(query, type=self.__class__.type, name=self.name, owner=self.owner)
+				lower(object_type) = {self.__class__.type} and
+				object_name = {self.name} and
+				owner = nvl({self.owner}, user)
+		""")
 		row = cursor.fetchone()
 		if row is None:
 			raise SQLObjectNotFoundError(self)
@@ -1094,37 +1137,33 @@ class MixinCodeSQL:
 	"""
 	def exists(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_source
+				{cursor.ddprefix():l}_source
 			where
-				type = :type and
-				owner = nvl(:owner, user) and
-				name = :name
-		"""
-		cursor.execute(query, type=self.__class__.type.upper(), owner=self.owner, name=self.name)
+				type = {self.__class__.type.upper()} and
+				owner = nvl({self.owner}, user) and
+				name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				text
 			from
-				{ddprefix}_source
+				{cursor.ddprefix():l}_source
 			where
-				type = :type and
-				owner = nvl(:owner, user) and
-				name = :name
+				type = {self.__class__.type.upper()} and
+				owner = nvl({self.owner}, user) and
+				name = {self.name}
 			order by
 				line
-		"""
-		cursor.execute(query, type=self.__class__.type.upper(), owner=self.owner, name=self.name)
+		""")
 		code = "\n".join((rec.text or "").rstrip() for rec in cursor) # sqlplus strips trailing spaces when executing SQL scripts, so we do that too
 		if not code:
 			return ""
@@ -1384,24 +1423,22 @@ class OwnedSchemaObject(SchemaObject):
 			key = (self.type.upper(), self.owner, self.name)
 			records = cache.references[key]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					referenced_type,
 					decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
 					referenced_name
 				from
-					{ddprefix}_dependencies
+					{cursor.ddprefix():l}_dependencies
 				where
-					type=upper(:type) and
-					name=:name and
-					owner=nvl(:owner, user) and
+					type=upper({self.type}) and
+					name={self.name} and
+					owner=nvl({self.owner}, user) and
 					type != 'NON-EXISTENT'
 				order by
 					referenced_owner,
 					referenced_name
-			"""
-			cursor.execute(query, type=self.type, name=self.name, owner=self.owner)
+			""")
 			records = cursor.fetchall()
 		for rec in records:
 			try:
@@ -1417,24 +1454,22 @@ class OwnedSchemaObject(SchemaObject):
 			key = (self.type.upper(), self.owner, self.name)
 			records = cache.referencedby[key]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					type,
 					decode(owner, user, null, owner) as owner,
 					name
 				from
-					{ddprefix}_dependencies
+					{cursor.ddprefix():l}_dependencies
 				where
-					referenced_type = :type and
-					referenced_name = :name and
-					referenced_owner = nvl(:owner, user) and
+					referenced_type = {self.type.upper()} and
+					referenced_name = {self.name} and
+					referenced_owner = nvl({self.owner}, user) and
 					type != 'NON-EXISTENT'
 				order by
 					owner,
 					name
-			"""
-			cursor.execute(query, type=self.type.upper(), name=self.name, owner=self.owner)
+			""")
 			records = cursor.fetchall()
 		for rec in records:
 			try:
@@ -1456,70 +1491,66 @@ class OwnedSchemaObject(SchemaObject):
 		cursor = connection.cursor()
 		ddprefix = cursor.ddprefix()
 		if owner is None:
-			query = """
+			cursor.execute(t"""
 				select
 					null as owner,
 					object_name
 				from
 					user_objects
 				where
-					object_type = :type and
+					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
 					object_name not like 'DR$%'
 				order by
 					object_name
-			"""
-			cursor.execute(query, type=cls.type.upper())
+			""")
 		elif owner is ALL:
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name
 				from
-					{ddprefix}_objects
+					{ddprefix:l}_objects
 				where
-					object_type = :type and
+					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
 					object_name not like 'DR$%'
 				order by
 					owner,
 					object_name
-			"""
-			cursor.execute(query, type=cls.type.upper())
+			""")
 		elif isinstance(owner, str):
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name
 				from
-					{ddprefix}_objects
+					{ddprefix:l}_objects
 				where
-					object_type = :type and
+					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
 					object_name not like 'DR$%' and
-					owner = :owner
+					owner = {owner}
 				order by
 					owner,
 					object_name
-			"""
-			cursor.execute(query, type=cls.type.upper(), owner=owner)
+			""")
 		else:
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					object_name
 				from
-					{ddprefix}_objects
+					{ddprefix:l}_objects
 				where
-					object_type = :type and
+					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
 					object_name not like 'DR$%' and
-					owner in ({', '.join(sqlstr(o) for o in owner)})
+					owner in ({', '.join(sqlstr(o) for o in owner):l})
 				order by
 					owner,
 					object_name
-			"""
-			cursor.execute(query, type=cls.type.upper())
+			""")
 		for row in cursor:
 			yield (row.object_name, row.owner)
 
@@ -1538,18 +1569,16 @@ class OwnedSchemaObject(SchemaObject):
 		Generator that yields all synonyms for this object.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(owner, user, null, owner) as owner,
 				synonym_name
 			from
-				{ddprefix}_synonyms
+				{cursor.ddprefix():l}_synonyms
 			where
-				table_owner=nvl(:owner, user) and
-				table_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				table_owner=nvl({self.owner}, user) and
+				table_name={self.name}
+		""")
 		for rec in cursor:
 			yield Synonym(rec.synonym_name, rec.owner, connection)
 
@@ -1559,7 +1588,7 @@ class OwnedSchemaObject(SchemaObject):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		if self.owner is None:
-			query = """
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					privilege,
@@ -1570,18 +1599,16 @@ class OwnedSchemaObject(SchemaObject):
 					user_tab_privs
 				where
 					owner = user and
-					table_name = :name
+					table_name = {self.name}
 				order by
 					grantor,
 					privilege,
 					grantee
-			"""
-			cursor.execute(query, name=self.name)
+			""")
 		else:
-			ddprefix = cursor.ddprefix()
 			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
-			if ddprefix == "all":
-				query = """
+			if cursor.ddprefix() == "all":
+				cursor.execute(t"""
 					select
 						decode(table_schema, user, null, table_schema) as owner,
 						privilege,
@@ -1591,16 +1618,16 @@ class OwnedSchemaObject(SchemaObject):
 					from
 						all_tab_privs
 					where
-						table_schema = nvl(:owner, user) and
-						table_name = :name
+						table_schema = nvl({self.owner}, user) and
+						table_name = {self.name}
 					order by
 						grantor,
 						table_name,
 						privilege,
 						grantee
-				"""
+				""")
 			else:
-				query = """
+				cursor.execute(t"""
 					select
 						decode(owner, user, null, owner) as owner,
 						privilege,
@@ -1610,15 +1637,14 @@ class OwnedSchemaObject(SchemaObject):
 					from
 						dba_tab_privs
 					where
-						owner = nvl(:owner, user) and
-						table_name = :name
+						owner = nvl({self.owner}, user) and
+						table_name = {self.name}
 					order by
 						grantor,
 						table_name,
 						privilege,
 						grantee
-				"""
-			cursor.execute(query, name=self.name, owner=self.owner)
+				""")
 		for rec in cursor:
 			yield Privilege(rec.privilege, rec.object, rec.grantor, rec.grantee, rec.owner, connection)
 
@@ -1631,17 +1657,15 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 
 	def _createsql(self, connection, term, copyvalue):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				*
 			from
-				{ddprefix}_sequences
+				{cursor.ddprefix():l}_sequences
 			where
-				sequence_owner = nvl(:owner, user) and
-				sequence_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				sequence_owner = nvl({self.owner}, user) and
+				sequence_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -1669,17 +1693,15 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_sequences
+				{cursor.ddprefix():l}_sequences
 			where
-				sequence_owner = nvl(:owner, user) and
-				sequence_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				sequence_owner = nvl({self.owner}, user) and
+				sequence_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -1767,25 +1789,24 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 
 		# Find the fields that where used for an inline primary key constraint,
 		# as we want to regenerate it as part of the create table statement
-		query = f"""
+		cursor.execute(t"""
 			select
 				column_name
 			from
-				{ddprefix}_constraints c,
-				{ddprefix}_cons_columns cc
+				{ddprefix:l}_constraints c,
+				{ddprefix:l}_cons_columns cc
 			where
 				c.constraint_type = 'P' and
 				c.generated = 'GENERATED NAME' and
-				c.owner = nvl(:owner, user) and
-				c.table_name = :name and
+				c.owner = nvl({self.owner}, user) and
+				c.table_name = {self.name} and
 				c.constraint_name = cc.constraint_name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		_inlinepkfields = {rec.column_name for rec in cursor}
 
 		(organization, logging, compression) = self._info(connection)
 
-		query = f"""
+		cursor.execute(t"""
 			select
 				c.column_name,
 				c.data_type,
@@ -1797,18 +1818,17 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				c.nullable,
 				decode(l.compression, 'NO', null, 'NONE', null, l.compression) as compression
 			from
-				{ddprefix}_tab_columns c,
-				{ddprefix}_lobs l
+				{ddprefix:l}_tab_columns c,
+				{ddprefix:l}_lobs l
 			where
-				c.owner = nvl(:owner, user) and
-				c.table_name = :name and
+				c.owner = nvl({self.owner}, user) and
+				c.table_name = {self.name} and
 				c.owner = l.owner(+) and
 				c.table_name = l.table_name(+) and
 				c.column_name = l.column_name(+)
 			order by
 				column_id asc
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		recs = cursor.fetchall()
 		code = [f"create table {self.getfullname()}\n(\n"]
 		for (i, rec) in enumerate(recs):
@@ -1844,17 +1864,15 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		(connection, cursor) = self.getcursor(connection)
 		if self.ismview(connection):
 			return False
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_tables
+				{cursor.ddprefix():l}_tables
 			where
-				owner = nvl(:owner, user) and
-				table_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				table_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -1882,17 +1900,15 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 			rec = cache.mviews.get((self.owner, self.name), None)
 		else:
 			(connection, cursor) = self.getcursor(connection)
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					mview_name
 				from
-					{ddprefix}_mviews
+					{cursor.ddprefix():l}_mviews
 				where
-					owner = nvl(:owner, user) and
-					mview_name = :name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
+					owner = nvl({self.owner}, user) and
+					mview_name = {self.name}
+			""")
 			rec = cursor.fetchone()
 		if rec is not None:
 			rec = MaterializedView(self.name, self.owner, connection)
@@ -1906,19 +1922,17 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 
 	def _info(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				logging,
 				iot_type,
 				compress_for
 			from
-				{ddprefix}_tables
+				{cursor.ddprefix():l}_tables
 			where
-				owner = nvl(:owner, user) and
-				table_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				table_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -1991,25 +2005,27 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 			"""
 			cursor.execute(query)
 		elif isinstance(owner, str):
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					table_name
 				from
-					{ddprefix}_tables
+					{ddprefix:l}_tables
 				where
 					table_name not like 'BIN$%' and
-					table_name not like 'DR$%'
+					table_name not like 'DR$%' and
+					owner = {owner}
 				minus
 					select decode(owner, user, null, owner) as owner,
 					mview_name as table_name
 				from
-					{ddprefix}_mviews
+					{ddprefix:l}_mviews
+				where
+					owner = {owner}
 				order by
 					owner,
 					table_name
-			"""
-			cursor.execute(query, owner=owner)
+			""")
 		else:
 			query = f"""
 				select
@@ -2042,19 +2058,17 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		Generator that yields all column objects of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				column_name
 			from
-				{ddprefix}_tab_columns
+				{cursor.ddprefix():l}_tab_columns
 			where
-				owner=nvl(:owner, user) and
-				table_name=:name
+				owner=nvl({self.owner}, user) and
+				table_name={self.name}
 			order by
 				column_id
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		for rec in cursor:
 			yield Column(f"{self.name}.{rec.column_name}", self.owner, connection)
 
@@ -2078,39 +2092,35 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 		Generator that yields all column comments of this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				column_name
 			from
-				{ddprefix}_tab_columns
+				{cursor.ddprefix():l}_tab_columns
 			where
-				owner = nvl(:owner, user) and
-				table_name = :name
+				owner = nvl({self.owner}, user) and
+				table_name = {self.name}
 			order by
 				column_id
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		for rec in cursor:
 			yield ColumnComment(f"{self.name}.{rec.column_name}", self.owner, connection)
 
 	def _iterconstraints(self, connection, cond):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_type,
 				constraint_name
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
 				generated = 'USER NAME' and
-				constraint_type {cond} and
-				owner = nvl(:owner, user) and
-				table_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				constraint_type {cond:l} and
+				owner = nvl({self.owner}, user) and
+				table_name = {self.name}
+		""")
 		types = {"P": PrimaryKey, "U": UniqueConstraint, "R": ForeignKey, "C": CheckConstraint}
 		for rec in cursor:
 			yield types[rec.constraint_type](rec.constraint_name, rec.owner, connection)
@@ -2173,17 +2183,15 @@ class TableComment(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				comments
 			from
-				{ddprefix}_tab_comments
+				{cursor.ddprefix():l}_tab_comments
 			where
-				owner=nvl(:owner, user) and
-				table_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				table_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -2192,17 +2200,15 @@ class TableComment(OwnedSchemaObject):
 		Return the comment text for this table.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				comments
 			from
-				{ddprefix}_tab_comments
+				{cursor.ddprefix():l}_tab_comments
 			where
-				owner = nvl(:owner, user) and
-				table_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				table_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2241,19 +2247,17 @@ class ColumnComment(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		tcname = self.name.split(".")
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		(table_name, column_name) = self.name.split(".")
+		cursor.execute(t"""
 			select
 				comments
 			from
-				{ddprefix}_col_comments
+				{cursor.ddprefix():l}_col_comments
 			where
-				owner=nvl(:owner, user) and
-				table_name=:tname and
-				column_name=:cname
-		"""
-		cursor.execute(query, owner=self.owner, tname=tcname[0], cname=tcname[1])
+				owner=nvl({self.owner}, user) and
+				table_name={table_name} and
+				column_name={column_name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -2262,19 +2266,17 @@ class ColumnComment(OwnedSchemaObject):
 		Return the comment text for this column.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		tcname = self.name.split(".")
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		(table_name, column_name) = self.name.split(".")
+		cursor.execute(t"""
 			select
 				comments
 			from
-				{ddprefix}_col_comments
+				{cursor.ddprefix():l}_col_comments
 			where
-				owner = nvl(:owner, user) and
-				table_name = :tname and
-				column_name = :cname
-		"""
-		cursor.execute(query, owner=self.owner, tname=tcname[0], cname=tcname[1])
+				owner = nvl({self.owner}, user) and
+				table_name = {table_name} and
+				column_name = {column_name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2313,35 +2315,31 @@ class Constraint(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
-				constraint_type = :type and
-				constraint_name = :name and
-				owner = nvl(:owner, user)
-		"""
-		cursor.execute(query, type=self.constraint_type, name=self.name, owner=self.owner)
+				constraint_type = {self.constraint_type} and
+				constraint_name = {self.name} and
+				owner = nvl({self.owner}, user)
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def cdate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				sys_extract_utc(from_tz(cast(last_change as timestamp), dbtimezone))
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
-				constraint_type = :type and
-				constraint_name = :name and
-				owner = nvl(:owner, user)
-		"""
-		cursor.execute(query, type=self.constraint_type, name=self.name, owner=self.owner)
+				constraint_type = {self.constraint_type} and
+				constraint_name = {self.name} and
+				owner = nvl({self.owner}, user)
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2349,18 +2347,16 @@ class Constraint(OwnedSchemaObject):
 
 	def udate(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				sys_extract_utc(from_tz(cast(last_change as timestamp), dbtimezone))
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
-				constraint_type=:type and
-				constraint_name=:name and
-				owner=nvl(:owner, user)
-		"""
-		cursor.execute(query, type=self.constraint_type, name=self.name, owner=self.owner)
+				constraint_type={self.constraint_type} and
+				constraint_name={self.name} and
+				owner=nvl({self.owner}, user)
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2368,18 +2364,16 @@ class Constraint(OwnedSchemaObject):
 
 	def _sql(self, connection, term, command):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				table_name
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
-				constraint_type = :type and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
+				constraint_type = {self.constraint_type} and
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2406,18 +2400,16 @@ class Constraint(OwnedSchemaObject):
 		Return whether this constraint is enabled.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				status
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
-				constraint_type = :type and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
+				constraint_type = {self.constraint_type} and
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec[0] == "ENABLED"
 
@@ -2426,7 +2418,7 @@ class Constraint(OwnedSchemaObject):
 		cursor = connection.cursor()
 		ddprefix = cursor.ddprefix()
 		if owner is None:
-			query = """
+			cursor.execute(t"""
 				select
 					null as owner,
 					constraint_name
@@ -2434,62 +2426,58 @@ class Constraint(OwnedSchemaObject):
 					user_constraints
 				where
 					generated = 'USER NAME' and
-					constraint_type = :type and
+					constraint_type = {cls.constraint_type} and
 					constraint_name not like 'BIN$%'
 				order by
 					constraint_name
-			"""
-			cursor.execute(query, type=cls.constraint_type)
+			""")
 		elif owner is ALL:
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix}_constraints
+					{ddprefix:l}_constraints
 				where
 					generated = 'USER NAME' and
-					constraint_type = :type and
+					constraint_type = {cls.constraint_type} and
 					constraint_name not like 'BIN$%'
 				order by
 					owner,
 					constraint_name
-			"""
-			cursor.execute(query, type=cls.constraint_type)
+			""")
 		elif isinstance(owner, str):
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix}_constraints
+					{ddprefix:l}_constraints
 				where
 					generated = 'USER NAME' and
-					constraint_type = :type and
+					constraint_type = {cls.constraint_type} and
 					constraint_name not like 'BIN$%' and
-					owner = :owner
+					owner = {owner}
 				order by
 					owner,
 					constraint_name
-			"""
-			cursor.execute(query, type=cls.constraint_type, owner=owner)
+			""")
 		else:
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix}_constraints
+					{ddprefix:l}_constraints
 				where
 					generated = 'USER NAME' and
-					constraint_type = :type and
+					constraint_type = {cls.constraint_type} and
 					constraint_name not like 'BIN$%' and
-					owner in ({', '.join(sqlstr(o) for o in owner)})
+					owner in ({', '.join(sqlstr(o) for o in owner):l})
 				order by
 					owner,
 					constraint_name
-			"""
-			cursor.execute(query, type=cls.constraint_type)
+			""")
 		for rec in cursor:
 			yield (rec.constraint_name, rec.owner)
 
@@ -2506,18 +2494,16 @@ class Constraint(OwnedSchemaObject):
 		if cache is not None:
 			rec = cache.constraints_by_constraint[(self.owner, self.name)]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					table_name
 				from
-					{ddprefix}_constraints
+					{cursor.ddprefix():l}_constraints
 				where
-					constraint_type=:type and
-					owner=nvl(:owner, user) and
-					constraint_name=:name
-			"""
-			cursor.execute(query, type=self.constraint_type, owner=self.owner, name=self.name)
+					constraint_type={self.constraint_type} and
+					owner=nvl({self.owner}, user) and
+					constraint_name={self.name}
+			""")
 			rec = cursor.fetchone()
 		return Table(rec.table_name, self.owner, connection)
 
@@ -2535,7 +2521,7 @@ class PrimaryKey(Constraint):
 		"""
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_name,
@@ -2543,36 +2529,34 @@ class PrimaryKey(Constraint):
 				r_owner,
 				r_constraint_name
 			from
-				{ddprefix}_constraints
+				{ddprefix:l}_constraints
 			where
 				constraint_type = 'P' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
+		""")
 		rec2 = cursor.fetchone()
 		if rec2 is None:
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec2.table_name, rec2.owner)
-		query = f"""
+		cursor.execute(t"""
 			select
 				column_name
 			from
-				{ddprefix}_cons_columns
+				{ddprefix:l}_cons_columns
 			where
-				owner=nvl(:owner, user) and
-				constraint_name=:name
+				owner=nvl({self.owner}, user) and
+				constraint_name={self.name}
 			order by
 				position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		for rec in cursor:
 			yield Column(f"{tablename}.{rec.column_name}", self.owner, connection)
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(owner, user, null, owner) as owner,
 				constraint_name,
@@ -2580,28 +2564,26 @@ class PrimaryKey(Constraint):
 				r_owner,
 				r_constraint_name
 			from
-				{ddprefix}_constraints
+				{ddprefix:l}_constraints
 			where
 				constraint_type = 'P' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
+		""")
 		rec2 = cursor.fetchone()
 		if rec2 is None:
 			raise SQLObjectNotFoundError(self)
-		query = f"""
+		cursor.execute(t"""
 			select
 				column_name
 			from
-				{ddprefix}_cons_columns
+				{ddprefix:l}_cons_columns
 			where
-				owner=nvl(:owner, user) and
-				constraint_name=:name
+				owner=nvl({self.owner}, user) and
+				constraint_name={self.name}
 			order by
 				position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		tablename = getfullname(rec2.table_name, rec2.owner)
 		pkname = getfullname(self.name, None)
 		fields = ", ".join(r.column_name for r in cursor)
@@ -2617,19 +2599,17 @@ class PrimaryKey(Constraint):
 		if cache is not None:
 			recs = [r for r in cache.constraints_by_referenced_constraint[(self.owner, self.name)] if r.constraint_type == "R"]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix}_constraints
+					{cursor.ddprefix():l}_constraints
 				where
 					constraint_type='R' and
-					r_owner=nvl(:owner, user) and
-					r_constraint_name=:name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
+					r_owner=nvl({self.owner}, user) and
+					r_constraint_name={self.name}
+			""")
 			recs = cursor.fetchall()
 		for rec in recs:
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
@@ -2650,48 +2630,45 @@ class ForeignKey(Constraint):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
 		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(r_owner, user, null, r_owner) as r_owner,
 				r_constraint_name,
 				table_name
 			from
-				{ddprefix}_constraints
+				{ddprefix:l}_constraints
 			where
 				constraint_type = 'R' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
-		query = f"""
+		cursor.execute(t"""
 			select
 				column_name
 			from
-				{ddprefix}_cons_columns
+				{ddprefix:l}_cons_columns
 			where
-				owner=nvl(:owner, user) and
-				constraint_name=:name
+				owner=nvl({self.owner}, user) and
+				constraint_name={self.name}
 			order by
 				position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		fields1 = ", ".join(r.column_name for r in cursor)
-		query = f"""
+		cursor.execute(t"""
 			select
 				table_name,
 				column_name
 			from
-				{ddprefix}_cons_columns
+				{ddprefix:l}_cons_columns
 			where
-				owner=nvl(:owner, user) and
-				constraint_name=:name
+				owner=nvl({rec.r_owner}, user) and
+				constraint_name={rec.r_constraint_name}
 			order by
 				position
-		"""
-		cursor.execute(query, owner=rec.r_owner, name=rec.r_constraint_name)
+		""")
 		fields2 = ", ".join(f"{getfullname(r.table_name, rec.r_owner)}({r.column_name})" for r in cursor)
 		tablename = getfullname(rec.table_name, self.owner)
 		fkname = getfullname(self.name, None)
@@ -2723,22 +2700,21 @@ class ForeignKey(Constraint):
 			rec = cache.constraints_by_constraint[(rec.r_owner, rec.r_constraint_name)]
 		else:
 			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					c2.constraint_type,
 					decode(c1.r_owner, user, null, c1.r_owner) as owner,
 					c2.constraint_name
 				from
-					{ddprefix}_constraints c1,
-					{ddprefix}_constraints c2
+					{ddprefix:l}_constraints c1,
+					{ddprefix:l}_constraints c2
 				where
 					c1.constraint_type = 'R' and
-					c1.owner = nvl(:owner, user) and
-					c1.constraint_name = :name and
+					c1.owner = nvl({self.owner}, user) and
+					c1.constraint_name = {self.name} and
 					c1.r_owner = c2.owner and
 					c1.r_constraint_name = c2.constraint_name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
+			""")
 			rec = cursor.fetchone()
 		types = {"P": PrimaryKey, "U": UniqueConstraint}
 		return types[rec.constraint_type](rec.constraint_name, rec.owner, connection)
@@ -2748,21 +2724,19 @@ class ForeignKey(Constraint):
 		Return an iterator over the columns this foreign key consists of.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(owner, user, null, owner) as owner,
 				table_name,
 				column_name
 			from
-				{ddprefix}_cons_columns
+				{cursor.ddprefix():l}_cons_columns
 			where
-				constraint_name=:name and
-				owner=nvl(:owner, user)
+				constraint_name={self.name} and
+				owner=nvl({self.owner}, user)
 			order by
 				position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		for r in cursor:
 			yield Column(f"{r.table_name}.{r.column_name}", r.owner, connection)
 
@@ -2777,35 +2751,32 @@ class UniqueConstraint(Constraint):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				table_name
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
 				constraint_type='U' and
-				owner=nvl(:owner, user) and
-				constraint_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				constraint_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		tablename = getfullname(rec.table_name, self.owner)
 		uniquename = getfullname(self.name, None)
-		query = """
+		cursor.execute(t"""
 			select
 				column_name
 			from
 				all_cons_columns
 			where
-				owner = nvl(:owner, user) and
-				constraint_name = :name
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
 			order by
 				position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		fields = ", ".join(r.column_name for r in cursor)
 		code = f"alter table {tablename} add constraint {uniquename} unique({fields})"
 		if term:
@@ -2819,19 +2790,17 @@ class UniqueConstraint(Constraint):
 		if cache is not None:
 			recs = [r for r in cache.constraints_by_referenced_constraint[(self.owner, self.name)] if r.constraint_type == "R"]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix}_constraints
+					{cursor.ddprefix():l}_constraints
 				where
 					constraint_type = 'R' and
-					r_owner = nvl(:owner, user) and
-					r_constraint_name = :name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
+					r_owner = nvl({self.owner}, user) and
+					r_constraint_name = {self.name}
+			""")
 			recs = cursor.fetchall()
 		for rec in recs:
 			yield ForeignKey(rec.constraint_name, rec.owner, connection)
@@ -2843,19 +2812,17 @@ class UniqueConstraint(Constraint):
 		if cache is not None:
 			recs = [cache.constraints_by_constraint[(self.owner, self.name)]]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					table_name
 				from
-					{ddprefix}_constraints
+					{cursor.ddprefix():l}_constraints
 				where
 					constraint_type = 'U' and
-					owner = nvl(:owner, user) and
-					constraint_name = :name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
+					owner = nvl({self.owner}, user) and
+					constraint_name = {self.name}
+			""")
 			recs = cursor.fetchall()
 		for rec in recs:
 			yield Table(rec.table_name, rec.owner, connection)
@@ -2871,19 +2838,17 @@ class CheckConstraint(Constraint):
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		# Add constraint_type to the query, so we don't pick up another constraint by accident
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				table_name,
 				search_condition
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
 				constraint_type = 'C' and
-				owner = nvl(:owner, user) and
-				constraint_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2905,19 +2870,17 @@ class CheckConstraint(Constraint):
 		if cache is not None:
 			recs = [cache.constraints_by_constraint[(self.owner, self.name)]]
 		else:
-			ddprefix = cursor.ddprefix()
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					table_name
 				from
-					{ddprefix}_constraints
+					{cursor.ddprefix():l}_constraints
 				where
 					constraint_type = 'C' and
-					owner = nvl(:owner, user) and
-					constraint_name = :name
-			"""
-			cursor.execute(query, owner=self.owner, name=self.name)
+					owner = nvl({self.owner}, user) and
+					constraint_name = {self.name}
+			""")
 			recs = cursor.fetchall()
 		for rec in recs:
 			yield Table(rec.table_name, rec.owner, connection)
@@ -2933,17 +2896,15 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		(connection, cursor) = self.getcursor(connection)
 		if self.isconstraint(connection):
 			return False
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_indexes
+				{cursor.ddprefix():l}_indexes
 			where
-				owner = nvl(:owner, user) and
-				index_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				index_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -2952,7 +2913,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		if self.isconstraint(connection):
 			return ""
 		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				index_name,
 				table_name,
@@ -2963,12 +2924,11 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 				ityp_name,
 				parameters
 			from
-				{ddprefix}_indexes
+				{ddprefix:l}_indexes
 			where
-				owner = nvl(:owner, user) and
-				index_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				index_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -2976,23 +2936,22 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		indexname = self.getfullname()
 		unique = " unique" if rec.uniqueness == "UNIQUE" else ""
 		logging = " nologging" if rec.logging=="NO" else ""
-		query = f"""
+		cursor.execute(t"""
 			select
 				aie.column_expression,
 				aic.column_name
 			from
-				{ddprefix}_ind_columns aic,
-				{ddprefix}_ind_expressions aie
+				{ddprefix:l}_ind_columns aic,
+				{ddprefix:l}_ind_expressions aie
 			where
 				aic.index_owner = aie.index_owner(+) and
 				aic.index_name = aie.index_name(+) and
 				aic.column_position = aie.column_position(+) and
-				aic.index_owner = nvl(:owner, user) and
-				aic.index_name = :name
+				aic.index_owner = nvl({self.owner}, user) and
+				aic.index_name = {self.name}
 			order by
 				aic.column_position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		fields = ", ".join(r.column_expression or r.column_name for r in cursor)
 		code = f"create{unique} index {indexname} on {tablename} ({fields}){logging}"
 		if rec.index_type == "DOMAIN":
@@ -3094,7 +3053,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 			"""
 			cursor.execute(query)
 		elif isinstance(owner, str):
-			query = f"""
+			cursor.execute(t"""
 				select
 					decode(owner, user, null, owner) as owner,
 					index_name
@@ -3104,27 +3063,26 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 							owner,
 							index_name
 						from
-							{ddprefix}_indexes
+							{ddprefix:l}_indexes
 						where
 							index_type not in ('LOB', 'IOT - TOP') and
-							owner = :owner
+							owner = {owner}
 						minus
 						select
 							index_owner,
 							index_name
 						from
-							{ddprefix}_constraints
+							{ddprefix:l}_constraints
 						where
 							constraint_type in ('U', 'P') and
-							index_owner = :owner
+							index_owner = {owner}
 					)
 				where
 					index_name not like 'BIN$%'
 				order by
 					owner,
 					index_name
-			"""
-			cursor.execute(query, owner=owner)
+			""")
 		else:
 			query = f"""
 				select
@@ -3175,18 +3133,16 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		otherwise return :const:`None`.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				constraint_type
 			from
-				{ddprefix}_constraints
+				{cursor.ddprefix():l}_constraints
 			where
-				owner = nvl(:owner, user) and
-				constraint_name = :name and
+				owner = nvl({self.owner}, user) and
+				constraint_name = {self.name} and
 				constraint_type in ('U', 'P')
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		rec = cursor.fetchone()
 		if rec is not None:
 			rec = {"U": UniqueConstraint, "P": PrimaryKey}[rec.constraint_type](self.name, self.owner, connection)
@@ -3206,19 +3162,17 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 				rec = cache.indexes[self.owner, self.name]
 			else:
 				(connection, cursor) = self.getcursor(connection)
-				ddprefix = cursor.ddprefix()
 				# If this is a domain index, reference the preferences defined there
-				query = f"""
+				cursor.execute(t"""
 					select
 						index_type,
 						parameters
 					from
-						{ddprefix}_indexes
+						{cursor.ddprefix():l}_indexes
 					where
-						owner = nvl(:owner, user) and
-						index_name = :name
-				"""
-				cursor.execute(query, owner=self.owner, name=self.name)
+						owner = nvl({self.owner}, user) and
+						index_name = {self.name}
+				""")
 				rec = cursor.fetchone()
 			if rec.index_type == "DOMAIN":
 				parameters = re.split('\\b(datastore|memory|lexer|stoplist|wordlist)\\b', rec.parameters, flags=re.IGNORECASE)
@@ -3242,18 +3196,16 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		Return the :class:`Table` ``self`` belongs to.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				table_name,
 				decode(table_owner, user, null, table_owner) as table_owner
 			from
-				{ddprefix}_indexes
+				{cursor.ddprefix():l}_indexes
 			where
-				owner=nvl(:owner, user) and
-				index_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				index_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		return Table(rec.table_name, rec.table_owner, connection)
 
@@ -3264,23 +3216,22 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 		(connection, cursor) = self.getcursor(connection)
 		table = self.table(connection)
 		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				aie.column_expression,
 				aic.column_name
 			from
-				{ddprefix}_ind_columns aic,
-				{ddprefix}_ind_expressions aie
+				{ddprefix:l}_ind_columns aic,
+				{ddprefix:l}_ind_expressions aie
 			where
 				aic.index_owner = aie.index_owner(+) and
 				aic.index_name = aie.index_name(+) and
 				aic.column_position = aie.column_position(+) and
-				aic.index_owner = nvl(:owner, user) and
-				aic.index_name = :name
+				aic.index_owner = nvl({self.owner}, user) and
+				aic.index_name = {self.name}
 			order by
 				aic.column_position
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 
 		for rec in cursor:
 			if rec.column_expression is not None:
@@ -3296,35 +3247,31 @@ class Synonym(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_synonyms
+				{cursor.ddprefix():l}_synonyms
 			where
-				owner=nvl(:owner, user) and
-				synonym_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				synonym_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				decode(table_owner, user, null, table_owner) as table_owner,
 				table_name,
 				db_link
 			from
-				{ddprefix}_synonyms
+				{cursor.ddprefix():l}_synonyms
 			where
-				owner = nvl(:owner, user) and
-				synonym_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				synonym_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3374,19 +3321,17 @@ class Synonym(OwnedSchemaObject):
 		Return the object for which ``self`` is a synonym.
 		"""
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				table_owner,
 				table_name,
 				db_link
 			from
-				{ddprefix}_synonyms
+				{cursor.ddprefix():l}_synonyms
 			where
-				owner=nvl(:owner, user) and
-				synonym_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				synonym_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3457,33 +3402,29 @@ class View(MixinNormalDates, OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_views
+				{cursor.ddprefix():l}_views
 			where
-				owner=nvl(:owner, user) and
-				view_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				view_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				text
 			from
-				{ddprefix}_views
+				{cursor.ddprefix():l}_views
 			where
-				owner=nvl(:owner, user) and
-				view_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				view_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3523,33 +3464,29 @@ class MaterializedView(View):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_mviews
+				{cursor.ddprefix():l}_mviews
 			where
-				owner=nvl(:owner, user) and
-				mview_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				mview_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				*
 			from
-				{ddprefix}_mviews
+				{cursor.ddprefix():l}_mviews
 			where
-				owner = nvl(:owner, user) and
-				mview_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				mview_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3593,33 +3530,29 @@ class Library(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				file_spec
 			from
-				{ddprefix}_libraries
+				{cursor.ddprefix():l}_libraries
 			where
-				owner = nvl(:owner, user) and
-				library_name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				library_name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				file_spec
 			from
-				{ddprefix}_libraries
+				{cursor.ddprefix():l}_libraries
 			where
-				owner=nvl(:owner, user) and
-				library_name=:name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner=nvl({self.owner}, user) and
+				library_name={self.name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -3686,69 +3619,65 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 			ddprefix = cursor.ddprefix()
 			if "." in self.name:
 				(package_name, procedure_name) = self.name.split(".")
-				query = f"""
+				cursor.execute(t"""
 					select
 						object_name
 					from
-						{ddprefix}_procedures
+						{ddprefix:l}_procedures
 					where
-						owner = nvl(:owner, user) and
-						object_name = :package_name and
-						procedure_name = :procedure_name
-				"""
-				cursor.execute(query, owner=self.owner, package_name=package_name, procedure_name=procedure_name)
+						owner = nvl({self.owner}, user) and
+						object_name = {package_name} and
+						procedure_name = {procedure_name}
+				""")
 			else:
 				package_name = None
 				procedure_name = self.name
-				query = f"""
+				cursor.execute(t"""
 					select
 						object_name
 					from
-						{ddprefix}_procedures
+						{ddprefix:l}_procedures
 					where
-						owner = nvl(:owner, user) and
-						object_name = :name and
+						owner = nvl({self.owner}, user) and
+						object_name = {procedure_name} and
 						procedure_name is null
-				"""
-				cursor.execute(query, owner=self.owner, name=procedure_name)
+				""")
 			if cursor.fetchone() is None:
 				raise SQLObjectNotFoundError(self)
 			self._argsbypos = []
 			self._argsbyname = {}
 			if package_name is not None:
-				query = f"""
+				cursor.execute(t"""
 					select
 						lower(argument_name) as name,
 						lower(in_out) as in_out,
 						lower(data_type) as datatype
 					from
-						{ddprefix}_arguments
+						{ddprefix:l}_arguments
 					where
-						owner = nvl(:owner, user) and
-						package_name = :package_name and
-						object_name = :procedure_name and
+						owner = nvl({self.owner}, user) and
+						package_name = {package_name} and
+						object_name = {procedure_name} and
 						data_level = 0
 					order by
 						sequence
-				"""
-				cursor.execute(query, owner=self.owner, package_name=package_name, procedure_name=procedure_name)
+				""")
 			else:
-				query = f"""
+				cursor.execute(t"""
 					select
 						lower(argument_name) as name,
 						lower(in_out) as in_out,
 						lower(data_type) as datatype
 					from
-						{ddprefix}_arguments
+						{ddprefix:l}_arguments
 					where
-						owner = nvl(:owner, user) and
+						owner = nvl({self.owner}, user) and
 						package_name is null and
-						object_name = :procedure_name and
+						object_name = {procedure_name} and
 						data_level = 0
 					order by
 						sequence
-				"""
-				cursor.execute(query, owner=self.owner, procedure_name=procedure_name)
+				""")
 			i = 0 # argument position (skip return value)
 			for record in cursor:
 				arginfo = Argument(record.name, i, record.datatype, "in" in record.in_out, "out" in record.in_out)
@@ -3959,37 +3888,33 @@ class JavaSource(MixinNormalDates, OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_source
+				{cursor.ddprefix():l}_source
 			where
 				type = 'JAVA SOURCE' and
-				owner = nvl(:owner, user) and
-				name = :name
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+				owner = nvl({self.owner}, user) and
+				name = {self.name}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				text
 			from
-				{ddprefix}_source
+				{cursor.ddprefix():l}_source
 			where
 				type = 'JAVA SOURCE' and
-				owner = nvl(:owner, user) and
-				name = :name
+				owner = nvl({self.owner}, user) and
+				name = {self.name}
 			order by
 				line
-		"""
-		cursor.execute(query, owner=self.owner, name=self.name)
+		""")
 		code = "\n".join((rec.text or "").rstrip() for rec in cursor)
 		code = code.strip()
 
@@ -4147,8 +4072,7 @@ class Privilege:
 				"""
 			cursor.execute(query)
 		elif isinstance(owner, str):
-			ddprefix = cursor.ddprefix()
-			query = """
+			cursor.execute(t"""
 				select
 					decode(table_schema, user, null, table_schema) as owner,
 					privilege,
@@ -4156,15 +4080,14 @@ class Privilege:
 					decode(grantor, user, null, grantor) as grantor,
 					grantee
 				from
-					{ddprefix}_tab_privs
+					{cursor.ddprefix():l}_tab_privs
 				where
-					table_schema = :owner
+					table_schema = {owner}
 				order by
 					table_schema,
 					table_name,
 					privilege
-			"""
-			cursor.execute(query, owner=owner)
+			""")
 		else:
 			ddprefix = cursor.ddprefix()
 			# The column names in ``ALL_TAB_PRIVS`` and ``DBA_TAB_PRIVS`` are different, so we have to use two different queries
@@ -4250,39 +4173,36 @@ class Column(OwnedSchemaObject):
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
 		name = self.name.split(".")
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				1
 			from
-				{ddprefix}_tab_columns
+				{cursor.ddprefix():l}_tab_columns
 			where
-				owner = nvl(:owner, user) and
-				table_name = :table_name and
-				column_name = :column_name
-		"""
-		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
+				owner = nvl({self.owner}, user) and
+				table_name = {name[0]} and
+				column_name = {name[1]}
+		""")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def _getcolumnrecord(self, cursor):
-		name = self.name.split(".")
+		(table_name, column_name) = self.name.split(".")
 		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				*
 			from
-				{ddprefix}_tab_columns c,
-				{ddprefix}_lobs l
+				{ddprefix:l}_tab_columns c,
+				{ddprefix:l}_lobs l
 			where
-				c.owner = nvl(:owner, user) and
-				c.table_name = :table_name and
-				c.column_name = :column_name and
+				c.owner = nvl({self.owner}, user) and
+				c.table_name = {table_name} and
+				c.column_name = {column_name} and
 				c.owner = l.owner(+) and
 				c.table_name = l.table_name(+) and
 				c.column_name = l.column_name(+)
-		"""
-		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -4435,20 +4355,18 @@ class Column(OwnedSchemaObject):
 		"""
 		The comment for this column.
 		"""
-		name = self.name.split(".")
+		(table_name, column_name) = self.name.split(".")
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"""
+		cursor.execute(t"""
 			select
 				comments
 			from
-				{ddprefix}_col_comments
+				{cursor.ddprefix():l}_col_comments
 			where
-				owner = nvl(:owner, user) and
-				table_name = :table_name and
-				column_name = :column_name
-		"""
-		cursor.execute(query, owner=self.owner, table_name=name[0], column_name=name[1])
+				owner = nvl({self.owner}, user) and
+				table_name = {table_name} and
+				column_name = {column_name}
+		""")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -4468,9 +4386,7 @@ class User(SchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"select 1 from {ddprefix}_users where username = :username"
-		cursor.execute(query, username=self.name)
+		cursor.execute(t"select 1 from {cursor.ddprefix():l}_users where username = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -4503,22 +4419,20 @@ class Preference(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		query = "select 1 from ctx_preferences where pre_owner = nvl(:owner, user) and pre_name = :name"
-		cursor.execute(query, owner=self.owner, name=self.name)
+		cursor.execute(t"select 1 from ctx_preferences where pre_owner = nvl({self.owner}, user) and pre_name = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		query = "select pre_object from ctx_preferences where pre_owner = nvl(:owner, user) and pre_name = :name"
-		cursor.execute(query, owner=self.owner, name=self.name)
+		cursor.execute(t"select pre_object from ctx_preferences where pre_owner = nvl({self.owner}, user) and pre_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
 		name = self.getfullname()
 		code = ["begin\n"]
 		code.append(f"\tctx_ddl.create_preference({sqlliteral(name)}, {sqlliteral(rec.pre_object)});\n")
-		cursor.execute("select prv_attribute, prv_value from ctx_preference_values where prv_owner=nvl(:owner, user) and prv_preference=:name", owner=self.owner, name=self.name)
+		cursor.execute(t"select prv_attribute, prv_value from ctx_preference_values where prv_owner=nvl({self.owner}, user) and prv_preference={self.name}")
 		for rec in cursor:
 			code.append(f"\tctx_ddl.set_attribute({sqlliteral(name)}, {sqlliteral(rec.prv_attribute)}, {sqlliteral(rec.prv_value)});\n")
 		code.append("end;\n")
@@ -4551,8 +4465,7 @@ class Preference(OwnedSchemaObject):
 				query = "select pre_owner as owner, pre_name from ctx_preferences order by pre_owner, pre_name"
 				cursor.execute(query)
 			elif isinstance(owner, str):
-				query = "select decode(pre_owner, user, null, pre_owner) as owner, pre_name from ctx_preferences where pre_owner = :owner order by pre_name"
-				cursor.execute(query, owner=owner)
+				cursor.execute(t"select decode(pre_owner, user, null, pre_owner) as owner, pre_name from ctx_preferences where pre_owner = {owner} order by pre_name")
 			else:
 				query = f"select pre_owner as owner, pre_name from ctx_preferences where pre_owner in ({', '.join(sqlstr(o) for o in owner)}) order by pre_owner, pre_name"
 				cursor.execute(query)
@@ -4582,17 +4495,13 @@ class JobClass(SchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"select 1 from {ddprefix}_scheduler_job_classes where job_class_name = :name"
-		cursor.execute(query, name=self.name)
+		cursor.execute(t"select 1 from {cursor.ddprefix():l}_scheduler_job_classes where job_class_name = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"select * from {ddprefix}_scheduler_job_classes where job_class_name = :name"
-		cursor.execute(query, name=self.name)
+		cursor.execute(t"select * from {cursor.ddprefix():l}_scheduler_job_classes where job_class_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -4666,9 +4575,7 @@ class JobClass(SchemaObject):
 
 	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"select decode(owner, user, null, owner) as owner, job_name from {ddprefix}_scheduler_jobs where job_class = :name"
-		cursor.execute(query, name=self.name)
+		cursor.execute(t"select decode(owner, user, null, owner) as owner, job_name from {cursor.ddprefix():l}_scheduler_jobs where job_class = {self.name}")
 		for rec in cursor:
 			yield Job(rec.job_name, rec.owner, connection)
 
@@ -4681,17 +4588,14 @@ class Job(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"select 1 from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
-		cursor.execute(query, owner=self.owner, name=self.name)
+		cursor.execute(t"select 1 from {cursor.ddprefix():l}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
-		query = f"select * from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
-		cursor.execute(query, owner=self.owner, name=self.name)
+		cursor.execute(t"select * from {ddprefix:l}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -4717,8 +4621,7 @@ class Job(OwnedSchemaObject):
 		code.append(f"\t\tcomments=>{sqlliteral(rec.comments)}\n")
 		code.append(f"\t);\n")
 
-		query = f"select argument_position, argument_type, value from {ddprefix}_scheduler_job_args where owner = nvl(:owner, user) and job_name = :job_name order by argument_position"
-		cursor.execute(query, owner=self.owner, job_name=rec.job_name)
+		cursor.execute(t"select argument_position, argument_type, value from {ddprefix:l}_scheduler_job_args where owner = nvl({self.owner}, user) and job_name = {rec.job_name} order by argument_position")
 		for rec2 in cursor:
 			code.append(f"\n")
 			code.append(f"\tsys.dbms_scheduler.set_job_argument_value(\n")
@@ -4770,9 +4673,7 @@ class Job(OwnedSchemaObject):
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs order by owner, job_name"
 			cursor.execute(query)
 		elif isinstance(owner, str):
-			ddprefix = cursor.ddprefix()
-			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner = :owner order by job_name"
-			cursor.execute(query, owner=owner)
+			cursor.execute(t"select owner, job_name from {cursor.ddprefix():l}_scheduler_jobs where owner = {owner} order by job_name")
 		else:
 			ddprefix = cursor.ddprefix()
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner in ({', '.join(sqlstr(o) for o in owner)}) order by owner, job_name"
@@ -4790,9 +4691,7 @@ class Job(OwnedSchemaObject):
 
 	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		ddprefix = cursor.ddprefix()
-		query = f"select job_class from {ddprefix}_scheduler_jobs where owner = nvl(:owner, user) and job_name = :name"
-		cursor.execute(query, owner=self.owner, name=self.name)
+		cursor.execute(t"select job_class from {cursor.ddprefix():l}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
