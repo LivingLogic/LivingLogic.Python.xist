@@ -530,3 +530,52 @@ def test_execute_tstring_parameter_names():
 		c.execute(t"select {x} + :p1 from dual", p1=23)
 		r = c.fetchone()
 		assert r[0] == 40
+
+
+@pytest.mark.db
+def test_execute_tstring_recursive():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# Interpolated t-strings are embedded recursively (using the format
+		# spec ``l``), with their own interpolations turned into bind parameters
+		value = "gurk"
+		condition = t"{value} = 'gurk'"
+		c.execute(t"select 42 from dual where {condition:l}")
+		r = c.fetchone()
+		assert r[0] == 42
+
+		# Recursive t-strings can mix bind parameters and literal interpolations
+		tablename = "dual"
+		x = 17
+		y = 23
+		inner = t"{x} + {y} from {tablename:l}"
+		c.execute(t"select {inner:l}")
+		r = c.fetchone()
+		assert r[0] == 40
+
+		# Bind parameter names are generated across nesting levels
+		a = 1
+		b = 2
+		inner = t"{b}"
+		c.execute(t"select {a} + {inner:l} from dual")
+		r = c.fetchone()
+		assert r[0] == 3
+
+
+@pytest.mark.db
+def test_execute_tstring_recursive_deep():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# t-strings can be nested across more than one level
+		a = 1
+		b = 2
+		d = 4
+		innermost = t"{b} + {d}"
+		inner = t"{a} + {innermost:l}"
+		c.execute(t"select {inner:l} from dual")
+		r = c.fetchone()
+		assert r[0] == 7

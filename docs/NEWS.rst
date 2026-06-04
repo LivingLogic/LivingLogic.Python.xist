@@ -8,6 +8,26 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.86 (released 2026-06-04)
+-------------------------------------
+
+*	:meth:`ll.orasql.Cursor.execute` now supports recursive t-strings. I.e.
+	interpolations whose value itself is a t-string will be interpreted
+	recursively. As with literal interpolations, this only happens when the
+	format spec ``l`` (and no conversion) is used, so::
+
+		name = "Doe"
+		condition = t"lastname = {name}"
+		cursor.execute(t"select * from person where {condition:l}")
+
+	is equivalent to::
+
+		cursor.execute(
+			"select * from person where lastname = :p1",
+			p1=name
+		)
+
+
 Changes in 5.86 (released 2026-06-02)
 -------------------------------------
 

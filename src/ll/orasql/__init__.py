@@ -901,21 +901,54 @@ class Cursor(Cursor):
 
 			select count(*) from person
 
+		A literal value is embedded by converting it to a string via
+		:class:`str`, with one exception: ``None`` is embedded as nothing at
+		all (i.e. it contributes an empty string to the statement), so
+		``t"select 42 from dual{where:l}"`` produces ``select 42 from dual``
+		when ``where`` is ``None``. This makes it easy to conditionally include
+		parts of a statement. Note that this means ``None`` is *not* embedded
+		as the SQL keyword ``null``; to get a SQL ``NULL`` use a normal bind
+		parameter interpolation instead, i.e. ``t"select {None} from dual"``
+		(which binds ``None`` as ``null``).
+
+		Interpolations can also be t-strings themselves. In this case the nested
+		t-string will be embedded into the SQL statement recursively, with its
+		own interpolations turned into bind parameters (or literal parts) in the
+		same way. As with literal values, this recursive embedding only happens
+		when the interpolation uses the format spec ``l`` and no conversion::
+
+			name = "Doe"
+			condition = t"lastname = {name}"
+			cursor.execute(t"select * from person where {condition:l}")
+
+		is equivalent to::
+
+			cursor.execute(
+				"select * from person where lastname = :p1",
+				p1=name
+			)
+
 		Both types of interpolations can be combined in one statement and can
 		be mixed with additional bind parameters passed via ``parameters`` or
 		``kwargs``.
 		"""
 		if isinstance(statement, templatelib.Template):
 			real_statement = []
-			args = {}
 			first_index = 1
-			for part in statement:
+
+			def append(part):
+				nonlocal first_index
+
 				if isinstance(part, str):
-					# Literal snippet
 					real_statement.append(part)
-				elif part.format_spec == "l":
-					# Embed value a a literal part of the query
-					real_statement.append(str(part.value))
+				elif part.conversion is None and part.format_spec == "l":
+					if isinstance(part.value, templatelib.Template):
+						# Embed template content recursively
+						for subpart in part.value:
+							append(subpart)
+					elif part.value is not None:
+						# Embed value as a literal part of the query
+						real_statement.append(str(part.value))
 				else:
 					# Use value as a parameter (with an unused parameter name)
 					param_name = f"p{first_index}"
@@ -924,6 +957,10 @@ class Cursor(Cursor):
 						param_name = f"p{first_index}"
 					real_statement.append(f":{param_name}")
 					kwargs[param_name] = part.value
+
+			for part in statement:
+				append(part)
+
 			statement = "".join(real_statement)
 		if parameters is not None:
 			result = super().execute(statement, parameters, **kwargs)
