@@ -34,18 +34,22 @@ person_table.add_field("createdat", vsql.DataType.DATETIME, "{a}.per_createdat")
 p = vsql.Field("p", vsql.DataType.STR, "1 = 1", "2 = 2", refgroup=person_table)
 
 
+def raw_sql(query):
+	return "".join(p for p in query.sqlsource() if isinstance(p, str))
+
+
 ###
 ### Tests
 ###
 
 def test_query_comment(db, vsql_data):
 	q = vsql.Query("foo")
-	assert "/* foo */" in q.sqlsource()
+	assert "/* foo */" in raw_sql(q)
 
 
 def test_query_badcomment(db, vsql_data):
 	q = vsql.Query("/* foo */")
-	assert q.sqlsource().count("*/") == 1
+	assert raw_sql(q).count("*/") == 1
 
 
 def test_query_simple(db, vsql_data):
@@ -149,9 +153,10 @@ def test_query_first_last_by_century(db, vsql_data):
 def test_query_sql(db, vsql_data):
 	q = vsql.Query()
 	q.select_sql("upper(per_firstname)")
+	q.select_sql(t"replace(per_lastname, {'e'}, {'x'})")
 	q.from_sql("vsql_person")
 	q.where_sql("per_firstname like 'A%'")
 	q.orderby_sql("per_firstname asc nulls last")
 	rs = [list(r) for r in execute(db, q)]
 
-	assert rs == [["ALBERT"], ["ANGELA"]]
+	assert rs == [["ALBERT", "Einstxin"], ["ANGELA", "Mxrkxl"]]
