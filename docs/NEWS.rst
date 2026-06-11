@@ -52,7 +52,10 @@ Changes in 5.86 (released 2026-06-02)
 
 *	:meth:`ll.orasql.Cursor.execute` now supports t-strings. Each interpolated
 	value in the t-string will be passed to the database as a bind parameter,
-	so e.g. ``cursor.execute(t"select * from person where firstname = {name}")``
+	so e.g. ::
+
+		cursor.execute(t"select * from person where firstname = {name}")
+
 	is safe from SQL injection. With the format spec ``l`` the value will
 	instead be embedded literally into the SQL statement (e.g.
 	``t"select * from {tablename:l}"``).
