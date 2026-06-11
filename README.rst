@@ -35,6 +35,9 @@ XIST also includes the following modules and packages:
 	-	Query results will be put into :class:`~ll.orasql.Record` objects,
 		where database fields are accessible as object attributes.
 
+	-	Queries can be passed as t-strings, where each interpolated value will
+		be passed to the database as a bind parameter.
+
 	-	The :class:`~ll.orasql.Connection` class provides methods for iterating
 		through the database metadata.
 
