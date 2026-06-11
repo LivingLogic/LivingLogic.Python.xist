@@ -21,8 +21,8 @@ Changes to :mod:`ll.vsql`
 *	The method :meth:`ll.vsql.query.register_vsql` has been renamed to
 	:meth:`ll.vsql.query.from_vsql`.
 
-*	Methods of :class:`ll.vsql.Query` that returned the qury object before
-	now return the newlich registered expression objects. So instead of
+*	Methods of :class:`ll.vsql.Query` that returned the query object before
+	now return the newly registered expression objects. So instead of
 	chaining method call, methods must be called separately now.
 
 
@@ -32,9 +32,8 @@ Migrating to version 5.76
 Changes to :mod:`ll.ul4c`
 -------------------------
 
-*	The output infrastructure for UL4 (which was using generator before) has
-		been switched to a stream API. The new API is incompatible with the old one.
-
+*	The output infrastructure for UL4 (which was using generators before) has
+	been switched to a stream API. The new API is incompatible with the old one.
 
 
 Migrating to version 5.73
