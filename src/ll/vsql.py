@@ -7,7 +7,6 @@
 ## All Rights Reserved
 
 from __future__ import annotations
-from urllib.request import install_opener
 
 """
 Normally an object-relational mapper consist of:
