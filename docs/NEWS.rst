@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.87 (released 2026-06-??)
+Changes in 5.87 (released 2026-06-11)
 -------------------------------------
 
 *	The format specifier that is used for embeddding literal SQL into t-strings
