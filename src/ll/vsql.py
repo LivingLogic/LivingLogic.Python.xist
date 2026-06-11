@@ -334,33 +334,8 @@ def add_comment(sqlsource: templatelib.Template, comment:str | None) -> template
 		comment = format_comment(comment)
 
 		if not sqlsource.strings[-1].endswith(comment):
-			sqlsource = t"{sqlsource:l} {comment:l}"
+			sqlsource = t"{sqlsource:q} {comment:q}"
 	return sqlsource
-
-
-def flatten_tstring(template: templatelib.Template) -> templatelib.Template:
-	"""
-	Embed interpolations with the format spec ``"l"`` or ``"q"`` into the
-	t-string, returning a flattened version.
-
-	The embedding is done recursively following the rules of
-	:meth:`orasql.Cursor.execute`; all other parts are kept unchanged.
-	"""
-	def parts(template):
-		for part in template:
-			if isinstance(part, str):
-				yield part
-			elif part.conversion is None and part.format_spec == "p":
-				if isinstance(part.value, templatelib.Template):
-					yield from parts(part.value)
-				elif part.value is not None:
-					yield str(part.value)
-			elif part.conversion is None and part.format_spec == "l":
-				yield orasql.sqlliteral(part.value)
-			else:
-				yield part
-
-	return templatelib.Template(*parts(template))
 
 
 def to_tstring(obj: T_sql | None) -> templatelib.Template | None:
@@ -369,7 +344,7 @@ def to_tstring(obj: T_sql | None) -> templatelib.Template | None:
 
 	``None`` is returned unchanged, a :class:`str` is wrapped in a
 	:class:`!templatelib.Template`, and an existing t-string is flattened via
-	:func:`flatten_tstring`.
+	:func:`orasql.flatten_tstring`.
 	"""
 
 	if obj is None:
@@ -377,7 +352,7 @@ def to_tstring(obj: T_sql | None) -> templatelib.Template | None:
 	elif isinstance(obj, str):
 		return templatelib.Template(obj)
 	else:
-		return flatten_tstring(obj)
+		return orasql.flatten_tstring(obj)
 
 
 def tstring_replace(obj: T_sql, search:str, replace:str):
@@ -396,7 +371,7 @@ def tstring_replace(obj: T_sql, search:str, replace:str):
 
 class TStringHasher:
 	def __init__(self, template: templatelib.Template):
-		self.template = flatten_tstring(template)
+		self.template = orasql.flatten_tstring(template)
 
 	def __eq__(self, other):
 		if not isinstance(other, self.__class__):
@@ -1028,7 +1003,7 @@ class Query(Repr):
 		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.alias is not None:
-				sqlsource = t"{sqlsource:l} as {self.alias:l}"
+				sqlsource = t"{sqlsource:q} as {self.alias:q}"
 			return sqlsource
 
 	class VSQLSelectExpr(VSQLExpr):
@@ -1043,7 +1018,7 @@ class Query(Repr):
 		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.alias is not None:
-				sqlsource = t"{sqlsource:l} as {self.alias:l}"
+				sqlsource = t"{sqlsource:q} as {self.alias:q}"
 			return sqlsource
 
 	class SQLAggregatedSelectExpr(SQLSelectExpr):
@@ -1083,9 +1058,9 @@ class Query(Repr):
 				sqlsource = t"count(*)"
 			elif self.aggregate is not Aggregate.GROUP:
 				name = templatelib.Template(self.aggregate.value)
-				sqlsource = t"{name:l}({sqlsource:l})"
+				sqlsource = t"{name:q}({sqlsource:q})"
 			if self.alias is not None:
-				sqlsource = t"{sqlsource:l} as {self.alias:l}"
+				sqlsource = t"{sqlsource:q} as {self.alias:q}"
 			return sqlsource
 
 	class SQLFromExpr(SQLExpr):
@@ -1100,7 +1075,7 @@ class Query(Repr):
 		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.alias is not None:
-				sqlsource = t"{sqlsource:l} {self.alias:l}"
+				sqlsource = t"{sqlsource:q} {self.alias:q}"
 			return sqlsource
 
 	class SQLWhereExpr(SQLExpr):
@@ -1116,7 +1091,7 @@ class Query(Repr):
 				self.expr = FuncAST.make("bool", self.expr)
 
 		def sqlsource(self) -> templatelib.Template:
-			return t"{super().sqlsource():l} = 1"
+			return t"{super().sqlsource():q} = 1"
 
 	class SQLGroupByExpr(SQLExpr):
 		context = "groupby"
@@ -1139,9 +1114,9 @@ class Query(Repr):
 		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.dir is not None:
-				sqlsource = t"{sqlsource:l} {self.dir:l}"
+				sqlsource = t"{sqlsource:q} {self.dir:q}"
 			if self.nulls is not None:
-				sqlsource = t"{sqlsource:l} nulls {self.nulls:l}"
+				sqlsource = t"{sqlsource:q} nulls {self.nulls:q}"
 			return sqlsource
 
 	class VSQLOrderByExpr(VSQLExpr):
@@ -1159,9 +1134,9 @@ class Query(Repr):
 		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
 			if self.dir is not None:
-				sqlsource = t"{sqlsource:l} {self.dir:l}"
+				sqlsource = t"{sqlsource:q} {self.dir:q}"
 			if self.nulls is not None:
-				sqlsource = t"{sqlsource:l} nulls {self.nulls:l}"
+				sqlsource = t"{sqlsource:q} nulls {self.nulls:q}"
 			return sqlsource
 
 	comment : str | None
@@ -1246,7 +1221,7 @@ class Query(Repr):
 
 		self._identifier_aliases[identifier] = newalias
 		sql = fieldref.parent.field.refgroup.tablesql
-		hasher = TStringHasher(t"{sql:l} {newalias:l}")
+		hasher = TStringHasher(t"{sql:q} {newalias:q}")
 		self._from[hasher] = self.SQLFromExpr(self, sql, comment=fieldref.parent.source(), alias=newalias)
 		return newalias
 
@@ -1281,7 +1256,7 @@ class Query(Repr):
 
 		self._identifier_aliases[identifier] = newalias
 		sql = field.refgroup.tablesql
-		hasher = TStringHasher(t"{sql:l} {newalias:l}")
+		hasher = TStringHasher(t"{sql:q} {newalias:q}")
 		self._from[hasher] = self.SQLFromExpr(self, sql, identifier, newalias)
 		return newalias
 
@@ -1434,7 +1409,7 @@ class Query(Repr):
 			if a == alias:
 				raise ValueError(f"duplicate table alias {alias!r}")
 		sqlexpr = self.SQLFromExpr(self, tablename, comment, alias)
-		hasher = TStringHasher(t"{tablename:l} {alias:l}")
+		hasher = TStringHasher(t"{tablename:q} {alias:q}")
 		self._from[hasher] = sqlexpr
 		return sqlexpr
 
@@ -1471,7 +1446,7 @@ class Query(Repr):
 		self._where[hasher] = sqlexpr
 		return sqlexpr
 
-	def groupby_vsql(self, expr:T_sql, comment : str | None = None) -> Query.VSQLGroupByExpr:
+	def groupby_vsql(self, expr:str, comment : str | None = None) -> Query.VSQLGroupByExpr:
 		"""
 		Add the grouping vSQL expression ``expr`` to the list of expression to group by.
 
@@ -1710,7 +1685,7 @@ class Query(Repr):
 				source += part
 				first = False
 
-		return flatten_tstring(source)
+		return orasql.flatten_tstring(source)
 
 
 class Rule(Repr):
@@ -2124,7 +2099,7 @@ class AST(Repr):
 
 	def sqlsource(self, query:Query) -> templatelib.Template:
 		sqlsource = self._sqlsource(query)
-		return flatten_tstring(sqlsource)
+		return orasql.flatten_tstring(sqlsource)
 
 	def fieldrefs(self) -> Generator[FieldRefAST, None, None]:
 		"""
@@ -2584,7 +2559,7 @@ class IntAST(_ConstWithValueAST):
 	datatype = DataType.INT
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"{self.value:l}"
+		return t"{self.value:q}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2602,7 +2577,7 @@ class NumberAST(_ConstWithValueAST):
 	datatype = DataType.NUMBER
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"{repr(self.value):l}"
+		return t"{repr(self.value):q}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2621,7 +2596,7 @@ class StrAST(_ConstWithValueAST):
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		s = self.value.replace("'", "''")
-		return t"'{s:l}'"
+		return t"'{s:q}'"
 
 
 @ul4on.register("de.livinglogic.vsql.clob")
@@ -2654,7 +2629,7 @@ class ColorAST(_ConstWithValueAST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		c = self.value
 		c = str((c.r() << 24) + (c.g() << 16) + (c.b() << 8) + c.a())
-		return t"{c:l}"
+		return t"{c:q}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2674,7 +2649,7 @@ class DateAST(_ConstWithValueAST):
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		s = f"to_date('{self.value:%Y-%m-%d}', 'YYYY-MM-DD')"
-		return t"{s:l}"
+		return t"{s:q}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2698,7 +2673,7 @@ class DateTimeAST(_ConstWithValueAST):
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		s = f"to_date('{self.value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')";
-		return t"{s:l}"
+		return t"{s:q}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2730,15 +2705,15 @@ class _SeqAST(AST):
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		if self.datatype is self.nulltype:
-			return t"{self.nodevalue:l}"
+			return t"{self.nodevalue:q}"
 		else:
 			(prefix, suffix) = self.sqltypes[self.datatype]
-			result = t"{prefix:l}"
+			result = t"{prefix:q}"
 			for (i, item) in enumerate(self.items):
 				if i:
 					result += t", "
 				result += item._sqlsource(query)
-			result += t"{suffix:l}"
+			result += t"{suffix:q}"
 			return result
 
 	def _ll_repr_(self) -> Generator[str, None, None]:
@@ -2979,12 +2954,12 @@ class FieldRefAST(AST):
 		if full_identifier.startswith("params."):
 			# If the innermost field is "params" we need special treatment
 			s = f"livingapi_pkg.reqparam_{self.parent.identifier}('{self.identifier}') /* {self.source()} */"
-			return t"{s:l}"
+			return t"{s:q}"
 		elif alias is None:
-			return t"{self.field.fieldsql:l} {format_comment(self.source()):l}"
+			return t"{self.field.fieldsql:q} {format_comment(self.source()):q}"
 		else:
 			fieldsql = tstring_replace(self.field.fieldsql, "{a}", alias)
-			return t"{fieldsql:l} {format_comment(self.source()):l}"
+			return t"{fieldsql:q} {format_comment(self.source()):q}"
 
 	def validate(self) -> None:
 		self.error = Error.FIELD if self.field is None else None

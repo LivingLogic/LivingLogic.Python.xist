@@ -16,7 +16,9 @@
 	classes :class:`Procedure` and :class:`Function`).
 
 *	Query results will be put into :class:`Record` objects, where database
-	fields are accessible as object attributes.
+	fields are accessible as object attributes. Queries can be passed as
+	t-strings, where each interpolated value will be passed to the database as
+	a bind parameter.
 
 *	The :class:`Connection` class provides methods for iterating through the
 	database metadata.
@@ -116,6 +118,17 @@ def sqlliteral(value):
 	The following types are supported: ``None``, :class:`int`, :class:`float`,
 	:class:`datetime.date`, :class:`datetime.datetime` and :class:`str`.
 	All other types raise a :exc:`TypeError`.
+
+	For example::
+
+		>>> print(orasql.sqlliteral(None))
+		null
+		>>> print(orasql.sqlliteral('foo'))
+		'foo'
+		>>> print(orasql.sqlliteral("foo'bar"))
+		'foo''bar'
+		>>> print(orasql.sqlliteral(datetime.date(2000, 2, 29)))
+		to_date('2000-02-29', 'YYYY-MM-DD')
 	"""
 
 	if value is None:
@@ -131,6 +144,31 @@ def sqlliteral(value):
 		return f"'{value}'"
 	else:
 		raise TypeError(f"unknown type {type(value)!r}")
+
+
+def flatten_tstring(template: templatelib.Template) -> templatelib.Template:
+	"""
+	Embed interpolations with the format spec ``"l"`` or ``"q"`` into the
+	t-string, returning a flattened version.
+
+	The embedding is done recursively following the rules of
+	:meth:`Cursor.execute`; all other parts are kept unchanged.
+	"""
+	def parts(template):
+		for part in template:
+			if isinstance(part, str):
+				yield part
+			elif part.conversion is None and part.format_spec == "q":
+				if isinstance(part.value, templatelib.Template):
+					yield from parts(part.value)
+				elif part.value is not None:
+					yield str(part.value)
+			elif part.conversion is None and part.format_spec == "l":
+				yield orasql.sqlliteral(part.value)
+			else:
+				yield part
+
+	return templatelib.Template(*parts(template))
 
 
 class Args(dict):
