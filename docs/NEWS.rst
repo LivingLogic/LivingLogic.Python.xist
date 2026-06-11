@@ -8,20 +8,36 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.86 (released 2026-06-04)
+Changes in 5.87 (released 2026-06-??)
 -------------------------------------
+
+*	The format specifier that is used for embeddding literal SQL into t-strings
+	for :meth:`ll.orasql.Cursor.execute` has been changed from ``l`` to ``q``
+	(this matches what :mod:`psycopg` uses).
+
+*	The format specifier ``l`` now embeds the values as the appropriate SQL
+	literal so ::
+
+		cursor.execute(t"select * from person where lastname = {'Doe':l}")
+
+	is equivalent to ::
+
+		cursor.execute("select * from person where lastname = 'Doe'")
+
+	(without using a bind variable).
 
 *	:meth:`ll.orasql.Cursor.execute` now supports recursive t-strings. I.e.
 	interpolations whose value itself is a t-string will be interpreted
-	recursively. As with literal interpolations, this only happens when the
-	format spec ``l`` (and no conversion) is used, so::
+	recursively. As with other literal interpolations, this only happens when
+	the format spec ``q`` (and no conversion) is used, so::
 
 		name = "Doe"
 		condition = t"lastname = {name}"
-		cursor.execute(t"select * from person where {condition:l}")
+		cursor.execute(t"select * from person where {condition:q}")
 
 	is equivalent to::
 
+		name = "Doe"
 		cursor.execute(
 			"select * from person where lastname = :p1",
 			p1=name

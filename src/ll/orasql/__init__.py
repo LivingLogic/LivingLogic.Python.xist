@@ -110,12 +110,22 @@ def makeurl(name):
 
 
 def sqlliteral(value):
+	"""
+	Convert `value` to an SQL literal.
+
+	The following types are supported: ``None``, :class:`int`, :class:`float`,
+	:class:`datetime.date`, :class:`datetime.datetime` and :class:`str`.
+	All other types raise a :exc:`TypeError`.
+	"""
+
 	if value is None:
 		return "null"
-	elif isinstance(value, int):
+	elif isinstance(value, (int, float)):
 		return str(value)
 	elif isinstance(value, datetime.datetime):
 		return f"to_date('{value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')"
+	elif isinstance(value, datetime.date):
+		return f"to_date('{value:%Y-%m-%d}', 'YYYY-MM-DD')"
 	elif isinstance(value, str):
 		value = value.replace("'", "''")
 		return f"'{value}'"
@@ -539,8 +549,8 @@ class Connection(Connection):
 							ac1.table_name,
 							decode(ac1.owner, user, null, ac1.owner) as owner
 						from
-							{ddprefix:l}_constraints ac1,
-							{ddprefix:l}_constraints ac2
+							{ddprefix:q}_constraints ac1,
+							{ddprefix:q}_constraints ac2
 						where
 							ac1.constraint_type = 'R' and
 							ac2.table_name = {table.name} and
@@ -689,7 +699,7 @@ class Connection(Connection):
 				decode(owner, user, null, owner) as owner,
 				object_type
 			from
-				{cursor.ddprefix():l}_objects
+				{cursor.ddprefix():q}_objects
 			where
 				object_name = {name} and
 				owner = nvl({owner}, user)
@@ -732,7 +742,7 @@ class Connection(Connection):
 							select
 								count(*)
 							from
-								{ddprefix:l}_arguments
+								{ddprefix:q}_arguments
 							where
 								owner = nvl({owner}, user) and
 								lower(object_name) = lower({object_name}) and
@@ -744,7 +754,7 @@ class Connection(Connection):
 						'function'
 					) as object_type
 				from
-					{ddprefix:l}_procedures
+					{ddprefix:q}_procedures
 				where
 					lower(procedure_name) = lower({object_name}) and
 					lower(owner) = lower(nvl({owner}, user)) and
@@ -757,7 +767,7 @@ class Connection(Connection):
 					decode(owner, user, null, owner) as owner,
 					object_type
 				from
-					{ddprefix:l}_objects
+					{ddprefix:q}_objects
 				where
 					lower(object_name) = lower({name}) and
 					lower(owner) = lower(nvl({owner}, user))
@@ -874,62 +884,123 @@ class Cursor(Cursor):
 		``statement``.
 
 		If ``statement`` is a t-string (i.e. a
-		:class:`string.templatelib.Template`), each interpolated value will be
-		passed to the database as a bind parameter, i.e.::
+		:class:`string.templatelib.Template` object), each interpolated value
+		will be passed to the database as a bind parameter, i.e.::
 
-			cursor.execute(t"select * from person where firstname = {name}")
+			name = "Doe"
+			cursor.execute(t"select * from person where lastname = {name}")
 
 		is equivalent to::
 
+			name = "Doe"
 			cursor.execute(
-				"select * from person where firstname = :p1",
+				"select * from person where lastname = :p1",
 				p1=name
 			)
 
 		The generated parameter names are ``p1``, ``p2``, etc. (skipping any
 		names that are already used in ``parameters`` or ``kwargs``).
 
-		However, if an interpolation uses the format spec ``l``, its value will
+		However, if an interpolation uses the format spec ``q``, its value will
 		not be passed as a bind parameter, but will be embedded literally into
 		the SQL statement (which of course should only be done with trusted
 		values, as this opens the door for SQL injection)::
 
 			tablename = "person"
-			cursor.execute(t"select count(*) from {tablename:l}")
+			cursor.execute(t"select count(*) from {tablename:q}")
 
-		executes::
+		is equivalent to ::
 
-			select count(*) from person
+			cursor.execute("select count(*) from person")
 
 		A literal value is embedded by converting it to a string via
 		:class:`str`, with one exception: ``None`` is embedded as nothing at
-		all (i.e. it contributes an empty string to the statement), so
-		``t"select 42 from dual{where:l}"`` produces ``select 42 from dual``
-		when ``where`` is ``None``. This makes it easy to conditionally include
-		parts of a statement. Note that this means ``None`` is *not* embedded
-		as the SQL keyword ``null``; to get a SQL ``NULL`` use a normal bind
-		parameter interpolation instead, i.e. ``t"select {None} from dual"``
-		(which binds ``None`` as ``null``).
+		all (i.e. it contributes an empty string to the statement), so ::
+		
+			where = None
+			cursor.execute(t"select 42 from dual{where:q}")
+
+		is equivalent to ::
+
+			cursor.execute("select 42 from dual")
+
+		This makes it easy to conditionally include parts of a statement.
+		Note that this means ``None`` is *not* embedded as the SQL keyword
+		``null``; to get a SQL ``NULL`` use a normal bind parameter
+		interpolation instead, i.e. ``t"select {None} from dual"`` (which binds
+		``None`` as ``null``).
+
+		The format spec ``l`` works similar to ``q`` in that the value is
+		embedded literally into the SQL statement instead of being passed as a
+		bind parameter. However, instead of simply converting the value to a
+		string, it is converted to a proper SQL literal via :func:`sqlliteral`,
+		so ::
+
+			name = "Doe"
+			cursor.execute(t"select * from person where lastname = {name:l}")
+
+		is equivalent to ::
+
+			cursor.execute("select * from person where lastname = 'Doe'")
+
+		In contrast to ``q``, here ``None`` *is* embedded as the SQL keyword
+		``null``. The supported types are those handled by :func:`sqlliteral`
+		(``None``, :class:`int`, :class:`float`, :class:`datetime.date`,
+		:class:`datetime.datetime` and :class:`str`); any other type raises a
+		:exc:`TypeError`. As with ``q``, this embeds the value directly into the
+		statement, so it should only be done with trusted values.
+
+		For a normal value comparison in a query you would normally use a bind
+		parameter interpolation (i.e. ``{name}``), which is safer and allows the
+		database to reuse the execution plan. ``l`` is useful in those places
+		where Oracle does *not* allow bind parameters, but the value still has to
+		be embedded into the statement with proper quoting and type conversion.
+		This is most often the case in DDL statements, e.g. when adding a check
+		constraint::
+
+			mindate = datetime.date(2000, 1, 1)
+			cursor.execute(t'''
+				alter table person
+				add constraint person_birthday_ck
+				check (birthday >= {mindate:l})
+			''')
+
+		is equivalent to::
+
+			cursor.execute(
+				"alter table person "
+				"add constraint person_birthday_ck "
+				"check (birthday >= to_date('2000-01-01', 'YYYY-MM-DD'))"
+			)
+
+		Using a bind parameter (``{mindate}``) here would fail, since Oracle
+		doesn't allow bind parameters in DDL, and using ``q`` would embed the
+		date as the invalid SQL fragment ``2000-01-01``. The same applies to
+		other positions that require literals, such as partition bounds or
+		``default`` clauses. ``l`` also takes care of quoting strings correctly,
+		so ``{"O'Brien":l}`` produces the properly escaped literal ``'O''Brien'``
+		instead of the broken ``O'Brien`` that ``q`` would produce.
 
 		Interpolations can also be t-strings themselves. In this case the nested
 		t-string will be embedded into the SQL statement recursively, with its
 		own interpolations turned into bind parameters (or literal parts) in the
-		same way. As with literal values, this recursive embedding only happens
-		when the interpolation uses the format spec ``l`` and no conversion::
+		same way. Like the embedding of other literal values, this recursive
+		embedding is triggered by the format spec ``q`` (with no conversion)::
 
 			name = "Doe"
 			condition = t"lastname = {name}"
-			cursor.execute(t"select * from person where {condition:l}")
+			cursor.execute(t"select * from person where {condition:q}")
 
 		is equivalent to::
 
+			name = "Doe"
 			cursor.execute(
 				"select * from person where lastname = :p1",
 				p1=name
 			)
 
-		Both types of interpolations can be combined in one statement and can
-		be mixed with additional bind parameters passed via ``parameters`` or
+		All types of interpolations can be combined in one statement and can be
+		mixed with additional bind parameters passed via ``parameters`` or
 		``kwargs``.
 		"""
 		if isinstance(statement, templatelib.Template):
@@ -941,7 +1012,7 @@ class Cursor(Cursor):
 
 				if isinstance(part, str):
 					real_statement.append(part)
-				elif part.conversion is None and part.format_spec == "l":
+				elif part.conversion is None and part.format_spec == "q":
 					if isinstance(part.value, templatelib.Template):
 						# Embed template content recursively
 						for subpart in part.value:
@@ -949,6 +1020,9 @@ class Cursor(Cursor):
 					elif part.value is not None:
 						# Embed value as a literal part of the query
 						real_statement.append(str(part.value))
+				elif part.conversion is None and part.format_spec == "l":
+					# Embed value the appropriate SQL literal
+					real_statement.append(sqlliteral(part.value))
 				else:
 					# Use value as a parameter (with an unused parameter name)
 					param_name = f"p{first_index}"
@@ -1138,7 +1212,7 @@ class MixinNormalDates:
 			select
 				sys_extract_utc(from_tz(cast(created as timestamp), dbtimezone))
 			from
-				{cursor.ddprefix():l}_objects
+				{cursor.ddprefix():q}_objects
 			where
 				lower(object_type) = {self.__class__.type} and
 				object_name = {self.name} and
@@ -1155,7 +1229,7 @@ class MixinNormalDates:
 			select
 				sys_extract_utc(from_tz(cast(last_ddl_time as timestamp), dbtimezone))
 			from
-				{cursor.ddprefix():l}_objects
+				{cursor.ddprefix():q}_objects
 			where
 				lower(object_type) = {self.__class__.type} and
 				object_name = {self.name} and
@@ -1178,7 +1252,7 @@ class MixinCodeSQL:
 			select
 				1
 			from
-				{cursor.ddprefix():l}_source
+				{cursor.ddprefix():q}_source
 			where
 				type = {self.__class__.type.upper()} and
 				owner = nvl({self.owner}, user) and
@@ -1193,7 +1267,7 @@ class MixinCodeSQL:
 			select
 				text
 			from
-				{cursor.ddprefix():l}_source
+				{cursor.ddprefix():q}_source
 			where
 				type = {self.__class__.type.upper()} and
 				owner = nvl({self.owner}, user) and
@@ -1466,7 +1540,7 @@ class OwnedSchemaObject(SchemaObject):
 					decode(referenced_owner, user, null, referenced_owner) as referenced_owner,
 					referenced_name
 				from
-					{cursor.ddprefix():l}_dependencies
+					{cursor.ddprefix():q}_dependencies
 				where
 					type=upper({self.type}) and
 					name={self.name} and
@@ -1497,7 +1571,7 @@ class OwnedSchemaObject(SchemaObject):
 					decode(owner, user, null, owner) as owner,
 					name
 				from
-					{cursor.ddprefix():l}_dependencies
+					{cursor.ddprefix():q}_dependencies
 				where
 					referenced_type = {self.type.upper()} and
 					referenced_name = {self.name} and
@@ -1547,7 +1621,7 @@ class OwnedSchemaObject(SchemaObject):
 					decode(owner, user, null, owner) as owner,
 					object_name
 				from
-					{ddprefix:l}_objects
+					{ddprefix:q}_objects
 				where
 					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
@@ -1562,7 +1636,7 @@ class OwnedSchemaObject(SchemaObject):
 					decode(owner, user, null, owner) as owner,
 					object_name
 				from
-					{ddprefix:l}_objects
+					{ddprefix:q}_objects
 				where
 					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
@@ -1578,12 +1652,12 @@ class OwnedSchemaObject(SchemaObject):
 					decode(owner, user, null, owner) as owner,
 					object_name
 				from
-					{ddprefix:l}_objects
+					{ddprefix:q}_objects
 				where
 					object_type = {cls.type.upper()} and
 					object_name not like 'BIN$%' and
 					object_name not like 'DR$%' and
-					owner in ({', '.join(sqlstr(o) for o in owner):l})
+					owner in ({', '.join(sqlstr(o) for o in owner):q})
 				order by
 					owner,
 					object_name
@@ -1611,7 +1685,7 @@ class OwnedSchemaObject(SchemaObject):
 				decode(owner, user, null, owner) as owner,
 				synonym_name
 			from
-				{cursor.ddprefix():l}_synonyms
+				{cursor.ddprefix():q}_synonyms
 			where
 				table_owner=nvl({self.owner}, user) and
 				table_name={self.name}
@@ -1698,7 +1772,7 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 			select
 				*
 			from
-				{cursor.ddprefix():l}_sequences
+				{cursor.ddprefix():q}_sequences
 			where
 				sequence_owner = nvl({self.owner}, user) and
 				sequence_name = {self.name}
@@ -1734,7 +1808,7 @@ class Sequence(MixinNormalDates, OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_sequences
+				{cursor.ddprefix():q}_sequences
 			where
 				sequence_owner = nvl({self.owner}, user) and
 				sequence_name = {self.name}
@@ -1830,8 +1904,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 			select
 				column_name
 			from
-				{ddprefix:l}_constraints c,
-				{ddprefix:l}_cons_columns cc
+				{ddprefix:q}_constraints c,
+				{ddprefix:q}_cons_columns cc
 			where
 				c.constraint_type = 'P' and
 				c.generated = 'GENERATED NAME' and
@@ -1855,8 +1929,8 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				c.nullable,
 				decode(l.compression, 'NO', null, 'NONE', null, l.compression) as compression
 			from
-				{ddprefix:l}_tab_columns c,
-				{ddprefix:l}_lobs l
+				{ddprefix:q}_tab_columns c,
+				{ddprefix:q}_lobs l
 			where
 				c.owner = nvl({self.owner}, user) and
 				c.table_name = {self.name} and
@@ -1905,7 +1979,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_tables
+				{cursor.ddprefix():q}_tables
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {self.name}
@@ -1941,7 +2015,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				select
 					mview_name
 				from
-					{cursor.ddprefix():l}_mviews
+					{cursor.ddprefix():q}_mviews
 				where
 					owner = nvl({self.owner}, user) and
 					mview_name = {self.name}
@@ -1965,7 +2039,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				iot_type,
 				compress_for
 			from
-				{cursor.ddprefix():l}_tables
+				{cursor.ddprefix():q}_tables
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {self.name}
@@ -2047,7 +2121,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 					decode(owner, user, null, owner) as owner,
 					table_name
 				from
-					{ddprefix:l}_tables
+					{ddprefix:q}_tables
 				where
 					table_name not like 'BIN$%' and
 					table_name not like 'DR$%' and
@@ -2056,7 +2130,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 					select decode(owner, user, null, owner) as owner,
 					mview_name as table_name
 				from
-					{ddprefix:l}_mviews
+					{ddprefix:q}_mviews
 				where
 					owner = {owner}
 				order by
@@ -2099,7 +2173,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 			select
 				column_name
 			from
-				{cursor.ddprefix():l}_tab_columns
+				{cursor.ddprefix():q}_tab_columns
 			where
 				owner=nvl({self.owner}, user) and
 				table_name={self.name}
@@ -2133,7 +2207,7 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 			select
 				column_name
 			from
-				{cursor.ddprefix():l}_tab_columns
+				{cursor.ddprefix():q}_tab_columns
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {self.name}
@@ -2151,10 +2225,10 @@ class Table(MixinNormalDates, OwnedSchemaObject):
 				constraint_type,
 				constraint_name
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				generated = 'USER NAME' and
-				constraint_type {cond:l} and
+				constraint_type {cond:q} and
 				owner = nvl({self.owner}, user) and
 				table_name = {self.name}
 		""")
@@ -2224,7 +2298,7 @@ class TableComment(OwnedSchemaObject):
 			select
 				comments
 			from
-				{cursor.ddprefix():l}_tab_comments
+				{cursor.ddprefix():q}_tab_comments
 			where
 				owner=nvl({self.owner}, user) and
 				table_name={self.name}
@@ -2241,7 +2315,7 @@ class TableComment(OwnedSchemaObject):
 			select
 				comments
 			from
-				{cursor.ddprefix():l}_tab_comments
+				{cursor.ddprefix():q}_tab_comments
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {self.name}
@@ -2289,7 +2363,7 @@ class ColumnComment(OwnedSchemaObject):
 			select
 				comments
 			from
-				{cursor.ddprefix():l}_col_comments
+				{cursor.ddprefix():q}_col_comments
 			where
 				owner=nvl({self.owner}, user) and
 				table_name={table_name} and
@@ -2308,7 +2382,7 @@ class ColumnComment(OwnedSchemaObject):
 			select
 				comments
 			from
-				{cursor.ddprefix():l}_col_comments
+				{cursor.ddprefix():q}_col_comments
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {table_name} and
@@ -2356,7 +2430,7 @@ class Constraint(OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type = {self.constraint_type} and
 				constraint_name = {self.name} and
@@ -2371,7 +2445,7 @@ class Constraint(OwnedSchemaObject):
 			select
 				sys_extract_utc(from_tz(cast(last_change as timestamp), dbtimezone))
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type = {self.constraint_type} and
 				constraint_name = {self.name} and
@@ -2388,7 +2462,7 @@ class Constraint(OwnedSchemaObject):
 			select
 				sys_extract_utc(from_tz(cast(last_change as timestamp), dbtimezone))
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type={self.constraint_type} and
 				constraint_name={self.name} and
@@ -2405,7 +2479,7 @@ class Constraint(OwnedSchemaObject):
 			select
 				table_name
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type = {self.constraint_type} and
 				owner = nvl({self.owner}, user) and
@@ -2441,7 +2515,7 @@ class Constraint(OwnedSchemaObject):
 			select
 				status
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type = {self.constraint_type} and
 				owner = nvl({self.owner}, user) and
@@ -2474,7 +2548,7 @@ class Constraint(OwnedSchemaObject):
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix:l}_constraints
+					{ddprefix:q}_constraints
 				where
 					generated = 'USER NAME' and
 					constraint_type = {cls.constraint_type} and
@@ -2489,7 +2563,7 @@ class Constraint(OwnedSchemaObject):
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix:l}_constraints
+					{ddprefix:q}_constraints
 				where
 					generated = 'USER NAME' and
 					constraint_type = {cls.constraint_type} and
@@ -2505,12 +2579,12 @@ class Constraint(OwnedSchemaObject):
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{ddprefix:l}_constraints
+					{ddprefix:q}_constraints
 				where
 					generated = 'USER NAME' and
 					constraint_type = {cls.constraint_type} and
 					constraint_name not like 'BIN$%' and
-					owner in ({', '.join(sqlstr(o) for o in owner):l})
+					owner in ({', '.join(sqlstr(o) for o in owner):q})
 				order by
 					owner,
 					constraint_name
@@ -2535,7 +2609,7 @@ class Constraint(OwnedSchemaObject):
 				select
 					table_name
 				from
-					{cursor.ddprefix():l}_constraints
+					{cursor.ddprefix():q}_constraints
 				where
 					constraint_type={self.constraint_type} and
 					owner=nvl({self.owner}, user) and
@@ -2566,7 +2640,7 @@ class PrimaryKey(Constraint):
 				r_owner,
 				r_constraint_name
 			from
-				{ddprefix:l}_constraints
+				{ddprefix:q}_constraints
 			where
 				constraint_type = 'P' and
 				owner = nvl({self.owner}, user) and
@@ -2580,7 +2654,7 @@ class PrimaryKey(Constraint):
 			select
 				column_name
 			from
-				{ddprefix:l}_cons_columns
+				{ddprefix:q}_cons_columns
 			where
 				owner=nvl({self.owner}, user) and
 				constraint_name={self.name}
@@ -2601,7 +2675,7 @@ class PrimaryKey(Constraint):
 				r_owner,
 				r_constraint_name
 			from
-				{ddprefix:l}_constraints
+				{ddprefix:q}_constraints
 			where
 				constraint_type = 'P' and
 				owner = nvl({self.owner}, user) and
@@ -2614,7 +2688,7 @@ class PrimaryKey(Constraint):
 			select
 				column_name
 			from
-				{ddprefix:l}_cons_columns
+				{ddprefix:q}_cons_columns
 			where
 				owner=nvl({self.owner}, user) and
 				constraint_name={self.name}
@@ -2641,7 +2715,7 @@ class PrimaryKey(Constraint):
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{cursor.ddprefix():l}_constraints
+					{cursor.ddprefix():q}_constraints
 				where
 					constraint_type='R' and
 					r_owner=nvl({self.owner}, user) and
@@ -2673,7 +2747,7 @@ class ForeignKey(Constraint):
 				r_constraint_name,
 				table_name
 			from
-				{ddprefix:l}_constraints
+				{ddprefix:q}_constraints
 			where
 				constraint_type = 'R' and
 				owner = nvl({self.owner}, user) and
@@ -2686,7 +2760,7 @@ class ForeignKey(Constraint):
 			select
 				column_name
 			from
-				{ddprefix:l}_cons_columns
+				{ddprefix:q}_cons_columns
 			where
 				owner=nvl({self.owner}, user) and
 				constraint_name={self.name}
@@ -2699,7 +2773,7 @@ class ForeignKey(Constraint):
 				table_name,
 				column_name
 			from
-				{ddprefix:l}_cons_columns
+				{ddprefix:q}_cons_columns
 			where
 				owner=nvl({rec.r_owner}, user) and
 				constraint_name={rec.r_constraint_name}
@@ -2743,8 +2817,8 @@ class ForeignKey(Constraint):
 					decode(c1.r_owner, user, null, c1.r_owner) as owner,
 					c2.constraint_name
 				from
-					{ddprefix:l}_constraints c1,
-					{ddprefix:l}_constraints c2
+					{ddprefix:q}_constraints c1,
+					{ddprefix:q}_constraints c2
 				where
 					c1.constraint_type = 'R' and
 					c1.owner = nvl({self.owner}, user) and
@@ -2767,7 +2841,7 @@ class ForeignKey(Constraint):
 				table_name,
 				column_name
 			from
-				{cursor.ddprefix():l}_cons_columns
+				{cursor.ddprefix():q}_cons_columns
 			where
 				constraint_name={self.name} and
 				owner=nvl({self.owner}, user)
@@ -2792,7 +2866,7 @@ class UniqueConstraint(Constraint):
 			select
 				table_name
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type='U' and
 				owner=nvl({self.owner}, user) and
@@ -2832,7 +2906,7 @@ class UniqueConstraint(Constraint):
 					decode(owner, user, null, owner) as owner,
 					constraint_name
 				from
-					{cursor.ddprefix():l}_constraints
+					{cursor.ddprefix():q}_constraints
 				where
 					constraint_type = 'R' and
 					r_owner = nvl({self.owner}, user) and
@@ -2854,7 +2928,7 @@ class UniqueConstraint(Constraint):
 					decode(owner, user, null, owner) as owner,
 					table_name
 				from
-					{cursor.ddprefix():l}_constraints
+					{cursor.ddprefix():q}_constraints
 				where
 					constraint_type = 'U' and
 					owner = nvl({self.owner}, user) and
@@ -2880,7 +2954,7 @@ class CheckConstraint(Constraint):
 				table_name,
 				search_condition
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				constraint_type = 'C' and
 				owner = nvl({self.owner}, user) and
@@ -2912,7 +2986,7 @@ class CheckConstraint(Constraint):
 					decode(owner, user, null, owner) as owner,
 					table_name
 				from
-					{cursor.ddprefix():l}_constraints
+					{cursor.ddprefix():q}_constraints
 				where
 					constraint_type = 'C' and
 					owner = nvl({self.owner}, user) and
@@ -2937,7 +3011,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_indexes
+				{cursor.ddprefix():q}_indexes
 			where
 				owner = nvl({self.owner}, user) and
 				index_name = {self.name}
@@ -2961,7 +3035,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 				ityp_name,
 				parameters
 			from
-				{ddprefix:l}_indexes
+				{ddprefix:q}_indexes
 			where
 				owner = nvl({self.owner}, user) and
 				index_name = {self.name}
@@ -2978,8 +3052,8 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 				aie.column_expression,
 				aic.column_name
 			from
-				{ddprefix:l}_ind_columns aic,
-				{ddprefix:l}_ind_expressions aie
+				{ddprefix:q}_ind_columns aic,
+				{ddprefix:q}_ind_expressions aie
 			where
 				aic.index_owner = aie.index_owner(+) and
 				aic.index_name = aie.index_name(+) and
@@ -3100,7 +3174,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 							owner,
 							index_name
 						from
-							{ddprefix:l}_indexes
+							{ddprefix:q}_indexes
 						where
 							index_type not in ('LOB', 'IOT - TOP') and
 							owner = {owner}
@@ -3109,7 +3183,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 							index_owner,
 							index_name
 						from
-							{ddprefix:l}_constraints
+							{ddprefix:q}_constraints
 						where
 							constraint_type in ('U', 'P') and
 							index_owner = {owner}
@@ -3174,7 +3248,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 			select
 				constraint_type
 			from
-				{cursor.ddprefix():l}_constraints
+				{cursor.ddprefix():q}_constraints
 			where
 				owner = nvl({self.owner}, user) and
 				constraint_name = {self.name} and
@@ -3205,7 +3279,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 						index_type,
 						parameters
 					from
-						{cursor.ddprefix():l}_indexes
+						{cursor.ddprefix():q}_indexes
 					where
 						owner = nvl({self.owner}, user) and
 						index_name = {self.name}
@@ -3238,7 +3312,7 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 				table_name,
 				decode(table_owner, user, null, table_owner) as table_owner
 			from
-				{cursor.ddprefix():l}_indexes
+				{cursor.ddprefix():q}_indexes
 			where
 				owner=nvl({self.owner}, user) and
 				index_name={self.name}
@@ -3258,8 +3332,8 @@ class Index(MixinNormalDates, OwnedSchemaObject):
 				aie.column_expression,
 				aic.column_name
 			from
-				{ddprefix:l}_ind_columns aic,
-				{ddprefix:l}_ind_expressions aie
+				{ddprefix:q}_ind_columns aic,
+				{ddprefix:q}_ind_expressions aie
 			where
 				aic.index_owner = aie.index_owner(+) and
 				aic.index_name = aie.index_name(+) and
@@ -3288,7 +3362,7 @@ class Synonym(OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_synonyms
+				{cursor.ddprefix():q}_synonyms
 			where
 				owner=nvl({self.owner}, user) and
 				synonym_name={self.name}
@@ -3304,7 +3378,7 @@ class Synonym(OwnedSchemaObject):
 				table_name,
 				db_link
 			from
-				{cursor.ddprefix():l}_synonyms
+				{cursor.ddprefix():q}_synonyms
 			where
 				owner = nvl({self.owner}, user) and
 				synonym_name = {self.name}
@@ -3364,7 +3438,7 @@ class Synonym(OwnedSchemaObject):
 				table_name,
 				db_link
 			from
-				{cursor.ddprefix():l}_synonyms
+				{cursor.ddprefix():q}_synonyms
 			where
 				owner=nvl({self.owner}, user) and
 				synonym_name={self.name}
@@ -3443,7 +3517,7 @@ class View(MixinNormalDates, OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_views
+				{cursor.ddprefix():q}_views
 			where
 				owner=nvl({self.owner}, user) and
 				view_name={self.name}
@@ -3457,7 +3531,7 @@ class View(MixinNormalDates, OwnedSchemaObject):
 			select
 				text
 			from
-				{cursor.ddprefix():l}_views
+				{cursor.ddprefix():q}_views
 			where
 				owner=nvl({self.owner}, user) and
 				view_name={self.name}
@@ -3505,7 +3579,7 @@ class MaterializedView(View):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_mviews
+				{cursor.ddprefix():q}_mviews
 			where
 				owner=nvl({self.owner}, user) and
 				mview_name={self.name}
@@ -3519,7 +3593,7 @@ class MaterializedView(View):
 			select
 				*
 			from
-				{cursor.ddprefix():l}_mviews
+				{cursor.ddprefix():q}_mviews
 			where
 				owner = nvl({self.owner}, user) and
 				mview_name = {self.name}
@@ -3571,7 +3645,7 @@ class Library(OwnedSchemaObject):
 			select
 				file_spec
 			from
-				{cursor.ddprefix():l}_libraries
+				{cursor.ddprefix():q}_libraries
 			where
 				owner = nvl({self.owner}, user) and
 				library_name = {self.name}
@@ -3585,7 +3659,7 @@ class Library(OwnedSchemaObject):
 			select
 				file_spec
 			from
-				{cursor.ddprefix():l}_libraries
+				{cursor.ddprefix():q}_libraries
 			where
 				owner=nvl({self.owner}, user) and
 				library_name={self.name}
@@ -3660,7 +3734,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 					select
 						object_name
 					from
-						{ddprefix:l}_procedures
+						{ddprefix:q}_procedures
 					where
 						owner = nvl({self.owner}, user) and
 						object_name = {package_name} and
@@ -3673,7 +3747,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 					select
 						object_name
 					from
-						{ddprefix:l}_procedures
+						{ddprefix:q}_procedures
 					where
 						owner = nvl({self.owner}, user) and
 						object_name = {procedure_name} and
@@ -3690,7 +3764,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 						lower(in_out) as in_out,
 						lower(data_type) as datatype
 					from
-						{ddprefix:l}_arguments
+						{ddprefix:q}_arguments
 					where
 						owner = nvl({self.owner}, user) and
 						package_name = {package_name} and
@@ -3706,7 +3780,7 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 						lower(in_out) as in_out,
 						lower(data_type) as datatype
 					from
-						{ddprefix:l}_arguments
+						{ddprefix:q}_arguments
 					where
 						owner = nvl({self.owner}, user) and
 						package_name is null and
@@ -3929,7 +4003,7 @@ class JavaSource(MixinNormalDates, OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_source
+				{cursor.ddprefix():q}_source
 			where
 				type = 'JAVA SOURCE' and
 				owner = nvl({self.owner}, user) and
@@ -3944,7 +4018,7 @@ class JavaSource(MixinNormalDates, OwnedSchemaObject):
 			select
 				text
 			from
-				{cursor.ddprefix():l}_source
+				{cursor.ddprefix():q}_source
 			where
 				type = 'JAVA SOURCE' and
 				owner = nvl({self.owner}, user) and
@@ -4117,7 +4191,7 @@ class Privilege:
 					decode(grantor, user, null, grantor) as grantor,
 					grantee
 				from
-					{cursor.ddprefix():l}_tab_privs
+					{cursor.ddprefix():q}_tab_privs
 				where
 					table_schema = {owner}
 				order by
@@ -4214,7 +4288,7 @@ class Column(OwnedSchemaObject):
 			select
 				1
 			from
-				{cursor.ddprefix():l}_tab_columns
+				{cursor.ddprefix():q}_tab_columns
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {name[0]} and
@@ -4230,8 +4304,8 @@ class Column(OwnedSchemaObject):
 			select
 				*
 			from
-				{ddprefix:l}_tab_columns c,
-				{ddprefix:l}_lobs l
+				{ddprefix:q}_tab_columns c,
+				{ddprefix:q}_lobs l
 			where
 				c.owner = nvl({self.owner}, user) and
 				c.table_name = {table_name} and
@@ -4398,7 +4472,7 @@ class Column(OwnedSchemaObject):
 			select
 				comments
 			from
-				{cursor.ddprefix():l}_col_comments
+				{cursor.ddprefix():q}_col_comments
 			where
 				owner = nvl({self.owner}, user) and
 				table_name = {table_name} and
@@ -4423,7 +4497,7 @@ class User(SchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute(t"select 1 from {cursor.ddprefix():l}_users where username = {self.name}")
+		cursor.execute(t"select 1 from {cursor.ddprefix():q}_users where username = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
@@ -4532,13 +4606,13 @@ class JobClass(SchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute(t"select 1 from {cursor.ddprefix():l}_scheduler_job_classes where job_class_name = {self.name}")
+		cursor.execute(t"select 1 from {cursor.ddprefix():q}_scheduler_job_classes where job_class_name = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute(t"select * from {cursor.ddprefix():l}_scheduler_job_classes where job_class_name = {self.name}")
+		cursor.execute(t"select * from {cursor.ddprefix():q}_scheduler_job_classes where job_class_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -4612,7 +4686,7 @@ class JobClass(SchemaObject):
 
 	def referencedby(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute(t"select decode(owner, user, null, owner) as owner, job_name from {cursor.ddprefix():l}_scheduler_jobs where job_class = {self.name}")
+		cursor.execute(t"select decode(owner, user, null, owner) as owner, job_name from {cursor.ddprefix():q}_scheduler_jobs where job_class = {self.name}")
 		for rec in cursor:
 			yield Job(rec.job_name, rec.owner, connection)
 
@@ -4625,14 +4699,14 @@ class Job(OwnedSchemaObject):
 
 	def exists(self, connection=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute(t"select 1 from {cursor.ddprefix():l}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
+		cursor.execute(t"select 1 from {cursor.ddprefix():q}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
 		rec = cursor.fetchone()
 		return rec is not None
 
 	def createsql(self, connection=None, term=True):
 		(connection, cursor) = self.getcursor(connection)
 		ddprefix = cursor.ddprefix()
-		cursor.execute(t"select * from {ddprefix:l}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
+		cursor.execute(t"select * from {ddprefix:q}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)
@@ -4658,7 +4732,7 @@ class Job(OwnedSchemaObject):
 		code.append(f"\t\tcomments=>{sqlliteral(rec.comments)}\n")
 		code.append(f"\t);\n")
 
-		cursor.execute(t"select argument_position, argument_type, value from {ddprefix:l}_scheduler_job_args where owner = nvl({self.owner}, user) and job_name = {rec.job_name} order by argument_position")
+		cursor.execute(t"select argument_position, argument_type, value from {ddprefix:q}_scheduler_job_args where owner = nvl({self.owner}, user) and job_name = {rec.job_name} order by argument_position")
 		for rec2 in cursor:
 			code.append(f"\n")
 			code.append(f"\tsys.dbms_scheduler.set_job_argument_value(\n")
@@ -4710,7 +4784,7 @@ class Job(OwnedSchemaObject):
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs order by owner, job_name"
 			cursor.execute(query)
 		elif isinstance(owner, str):
-			cursor.execute(t"select owner, job_name from {cursor.ddprefix():l}_scheduler_jobs where owner = {owner} order by job_name")
+			cursor.execute(t"select owner, job_name from {cursor.ddprefix():q}_scheduler_jobs where owner = {owner} order by job_name")
 		else:
 			ddprefix = cursor.ddprefix()
 			query = f"select owner, job_name from {ddprefix}_scheduler_jobs where owner in ({', '.join(sqlstr(o) for o in owner)}) order by owner, job_name"
@@ -4728,7 +4802,7 @@ class Job(OwnedSchemaObject):
 
 	def references(self, connection=None, cache=None):
 		(connection, cursor) = self.getcursor(connection)
-		cursor.execute(t"select job_class from {cursor.ddprefix():l}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
+		cursor.execute(t"select job_class from {cursor.ddprefix():q}_scheduler_jobs where owner = nvl({self.owner}, user) and job_name = {self.name}")
 		rec = cursor.fetchone()
 		if rec is None:
 			raise SQLObjectNotFoundError(self)

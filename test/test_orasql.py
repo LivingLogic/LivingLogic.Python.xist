@@ -497,12 +497,44 @@ def test_execute_tstring_literal():
 		db = orasql.connect(dbname)
 		c = db.cursor()
 
-		# Interpolations with the format spec ``l`` are embedded literally
+		# Interpolations with the format spec ``q`` are embedded literally
 		# into the SQL statement (a table name can't be a bind parameter)
 		tablename = "dual"
-		c.execute(t"select 42 from {tablename:l}")
+		c.execute(t"select 42 from {tablename:q}")
 		r = c.fetchone()
 		assert r[0] == 42
+
+
+@pytest.mark.db
+def test_execute_tstring_sqlliteral():
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		# Interpolations with the format spec ``l`` are embedded into the SQL
+		# statement as a proper SQL literal (a string in single quotes here)
+		value = "gurk"
+		c.execute(t"select {value:l} from dual")
+		r = c.fetchone()
+		assert r[0] == "gurk"
+
+		# Strings are quoted properly (embedded single quotes get doubled)
+		value = "gu'rk"
+		c.execute(t"select {value:l} from dual")
+		r = c.fetchone()
+		assert r[0] == "gu'rk"
+
+		# Numbers are embedded literally
+		value = 42
+		c.execute(t"select {value:l} from dual")
+		r = c.fetchone()
+		assert r[0] == 42
+
+		# In contrast to ``q``, ``None`` is embedded as the SQL keyword ``null``
+		value = None
+		c.execute(t"select nvl({value:l}, 'gurk') from dual")
+		r = c.fetchone()
+		assert r[0] == "gurk"
 
 
 @pytest.mark.db
@@ -513,7 +545,7 @@ def test_execute_tstring_mixed():
 
 		# Bind parameters and literal interpolations can be mixed
 		value = 42
-		c.execute(t"select {value} from {'dual':l}")
+		c.execute(t"select {value} from {'dual':q}")
 		r = c.fetchone()
 		assert r[0] == 42
 
@@ -539,10 +571,10 @@ def test_execute_tstring_recursive():
 		c = db.cursor()
 
 		# Interpolated t-strings are embedded recursively (using the format
-		# spec ``l``), with their own interpolations turned into bind parameters
+		# spec ``q``), with their own interpolations turned into bind parameters
 		value = "gurk"
 		condition = t"{value} = 'gurk'"
-		c.execute(t"select 42 from dual where {condition:l}")
+		c.execute(t"select 42 from dual where {condition:q}")
 		r = c.fetchone()
 		assert r[0] == 42
 
@@ -550,8 +582,8 @@ def test_execute_tstring_recursive():
 		tablename = "dual"
 		x = 17
 		y = 23
-		inner = t"{x} + {y} from {tablename:l}"
-		c.execute(t"select {inner:l}")
+		inner = t"{x} + {y} from {tablename:q}"
+		c.execute(t"select {inner:q}")
 		r = c.fetchone()
 		assert r[0] == 40
 
@@ -559,7 +591,7 @@ def test_execute_tstring_recursive():
 		a = 1
 		b = 2
 		inner = t"{b}"
-		c.execute(t"select {a} + {inner:l} from dual")
+		c.execute(t"select {a} + {inner:q} from dual")
 		r = c.fetchone()
 		assert r[0] == 3
 
@@ -575,7 +607,7 @@ def test_execute_tstring_recursive_deep():
 		b = 2
 		d = 4
 		innermost = t"{b} + {d}"
-		inner = t"{a} + {innermost:l}"
-		c.execute(t"select {inner:l} from dual")
+		inner = t"{a} + {innermost:q}"
+		c.execute(t"select {inner:q} from dual")
 		r = c.fetchone()
 		assert r[0] == 7

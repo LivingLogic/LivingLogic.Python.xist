@@ -8,6 +8,16 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.87
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	The format specifier that is used for embeddding literal SQL into t-strings
+	for :meth:`ll.orasql.Cursor.execute` has been changed from ``l`` to ``q``.
+
+
 Migrating to version 5.82
 =========================
 
