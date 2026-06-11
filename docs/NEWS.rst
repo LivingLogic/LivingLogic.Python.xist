@@ -29,13 +29,13 @@ Changes in 5.87 (released 2026-06-??)
 *	:meth:`ll.orasql.Cursor.execute` now supports recursive t-strings. I.e.
 	interpolations whose value itself is a t-string will be interpreted
 	recursively. As with other literal interpolations, this only happens when
-	the format spec ``q`` (and no conversion) is used, so::
+	the format spec ``q`` (and no conversion) is used, so ::
 
 		name = "Doe"
 		condition = t"lastname = {name}"
 		cursor.execute(t"select * from person where {condition:q}")
 
-	is equivalent to::
+	is equivalent to ::
 
 		name = "Doe"
 		cursor.execute(
