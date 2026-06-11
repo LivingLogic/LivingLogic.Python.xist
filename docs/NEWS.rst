@@ -43,6 +43,9 @@ Changes in 5.87 (released 2026-06-??)
 			p1=name
 		)
 
+*	:mod:`ll.vsql` has been updated to support t-string for the "raw SQL" parts
+	of queries.
+
 
 Changes in 5.86 (released 2026-06-02)
 -------------------------------------
