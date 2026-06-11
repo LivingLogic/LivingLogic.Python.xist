@@ -343,34 +343,23 @@ def add_comment(sqlsource: templatelib.Template, comment:str | None) -> template
 
 def flatten_tstring(template: templatelib.Template) -> templatelib.Template:
 	"""
-	Recursively inline nested t-strings into a single flat t-string.
+	Embed interpolations with the format spec ``"l"`` or ``"q"`` into the
+	t-string, returning a flattened version.
 
-	For an interpolation that has no conversion and the format spec ``"l"``, its
-	value is inlined into the result depending on its type:
-
-	*	if the value is a :class:`!templatelib.Template`, its parts replace the
-		interpolation in the result;
-
-	*	if the value is :const:`None`, the interpolation is dropped (i.e. it
-		contributes nothing);
-
-	*	otherwise (a :class:`str` or any other value) the value is embedded
-		directly as a literal string.
-
-	All other parts (literal strings and non literal interpolations) are kept
-	unchanged.
-
-	I.e. ``flatten_tstring(t"a{t'b{c}d':l}e")`` returns ``t"ab{c}de"``.
+	The embedding is done recursively following the rules of
+	:meth:`orasql.Cursor.execute`; all other parts are kept unchanged.
 	"""
 	def parts(template):
 		for part in template:
 			if isinstance(part, str):
 				yield part
-			elif part.conversion is None and part.format_spec == "l":
+			elif part.conversion is None and part.format_spec == "p":
 				if isinstance(part.value, templatelib.Template):
 					yield from parts(part.value)
 				elif part.value is not None:
 					yield str(part.value)
+			elif part.conversion is None and part.format_spec == "l":
+				yield orasql.sqlliteral(part.value)
 			else:
 				yield part
 
