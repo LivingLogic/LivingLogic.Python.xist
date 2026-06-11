@@ -6,8 +6,6 @@
 ##
 ## All Rights Reserved
 
-from __future__ import annotations
-
 """
 Normally an object-relational mapper consist of:
 
