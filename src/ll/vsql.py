@@ -2477,7 +2477,7 @@ class NoneAST(ConstAST):
 		return cls("None")
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"null"
+		return t"{null}"
 
 	@classmethod
 	def fromul4(cls, node:ul4c.ConstAST, **vars: Field) -> AST:
@@ -2541,7 +2541,8 @@ class BoolAST(_ConstWithValueAST):
 		return cls(value, "True" if value else "False")
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"1" if self.value else t"0"
+		v = t"1" if self.value else t"0"
+		return t"{v}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2559,7 +2560,7 @@ class IntAST(_ConstWithValueAST):
 	datatype = DataType.INT
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"{self.value:q}"
+		return t"{self.value}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2577,7 +2578,7 @@ class NumberAST(_ConstWithValueAST):
 	datatype = DataType.NUMBER
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"{repr(self.value):q}"
+		return t"{self.value}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2595,8 +2596,7 @@ class StrAST(_ConstWithValueAST):
 	datatype = DataType.STR
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		s = self.value.replace("'", "''")
-		return t"'{s:q}'"
+		return t"{self.value}"
 
 
 @ul4on.register("de.livinglogic.vsql.clob")
@@ -2612,8 +2612,7 @@ class CLOBAST(_ConstWithValueAST):
 	datatype = DataType.CLOB
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		s = self.value.replace("'", "''")
-		return t"'{s}'"
+		return t"{self.value}"
 
 
 @ul4on.register("de.livinglogic.vsql.color")
@@ -2628,8 +2627,8 @@ class ColorAST(_ConstWithValueAST):
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		c = self.value
-		c = str((c.r() << 24) + (c.g() << 16) + (c.b() << 8) + c.a())
-		return t"{c:q}"
+		c = (c.r() << 24) + (c.g() << 16) + (c.b() << 8) + c.a()
+		return t"{c}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2648,8 +2647,7 @@ class DateAST(_ConstWithValueAST):
 	datatype = DataType.DATE
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		s = f"to_date('{self.value:%Y-%m-%d}', 'YYYY-MM-DD')"
-		return t"{s:q}"
+		return t"{self.value}"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2672,8 +2670,7 @@ class DateTimeAST(_ConstWithValueAST):
 		return cls(value, ul4c._repr(value))
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		s = f"to_date('{self.value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')";
-		return t"{s:q}"
+		return t"{self.value}"
 
 	@property
 	def nodevalue(self) -> str:
