@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in HEAD (released 2026-06-??)
+-------------------------------------
+
+*	Use the "official" function :func:`oracledb.enquote_literal` for formatting
+	Oracle SQL literals in :func:`ll.orasql.sqlliteral`.
+
+
 Changes in 5.87 (released 2026-06-11)
 -------------------------------------
 

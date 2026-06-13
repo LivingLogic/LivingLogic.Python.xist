@@ -140,8 +140,7 @@ def sqlliteral(value):
 	elif isinstance(value, datetime.date):
 		return f"to_date('{value:%Y-%m-%d}', 'YYYY-MM-DD')"
 	elif isinstance(value, str):
-		value = value.replace("'", "''")
-		return f"'{value}'"
+		return enquote_literal(value)
 	else:
 		raise TypeError(f"unknown type {type(value)!r}")
 
