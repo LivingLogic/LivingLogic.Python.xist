@@ -20,7 +20,9 @@ test: install
 
 build:
 	rm -rf dist/*
-	python$(PYVERSION) setup.py sdist --formats=gztar bdist_wheel
+	# setuptools-scm is installed, which would add all GIT controlled files to the package
+	# we dont want that, so set `SETUPTOOLS_SCM_IGNORE_VCS_ROOTS`
+	SETUPTOOLS_SCM_IGNORE_VCS_ROOTS=$(CURDIR) python$(PYVERSION) -m build
 
 dist: build
 	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
@@ -32,8 +34,7 @@ upload: build
 
 livinglogic:
 	rm -rf dist/*
-	python$(PYVERSION) setup.py sdist --formats=bztar,gztar,zip
-	python$(PYVERSION) setup.py bdist_wheel
+	python$(PYVERSION) -m build
 	python$(PYVERSION) -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.tar.bz2 dist/*.zip dist/*.whl ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
 
 
