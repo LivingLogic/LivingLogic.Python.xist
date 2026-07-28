@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in HEAD (released 2026-06-??)
+Changes in 5.88 (released 2026-07-28)
 -------------------------------------
 
 *	:class:`vsql.Query` now supports interpolated values in the vSQL snippets,
@@ -40,6 +40,9 @@ Changes in HEAD (released 2026-06-??)
 		 ' /* p1 */, (12 * 3))\nfrom\n\tdual\n']
 
 	This t-string is directly supported by :meth:`ll.orasql.Cursor.execute`.
+
+*	Fixed a bug in the check for duplicate aliases in
+	:meth:`ll.vsql.Query.from_sql`.
 
 *	Use the "official" function :func:`oracledb.enquote_literal` for formatting
 	Oracle SQL literals in :func:`ll.orasql.sqlliteral`.
