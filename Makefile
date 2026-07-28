@@ -1,12 +1,12 @@
-.PHONY: install develop parser test build dist upload windist winupload livinglogic
+.PHONY: install develop parser test  dist upload windist winupload livinglogic
 
 
 install:
-	python$(PYVERSION) setup.py install
+	python setup.py install
 
 
 develop:
-	python$(PYVERSION) setup.py develop
+	python setup.py develop
 
 
 parser:
@@ -15,17 +15,17 @@ parser:
 
 
 test: install
-	python$(PYVERSION) -mpytest
+	python -mpytest
 
 
 build:
 	rm -rf dist/*
 	# setuptools-scm is installed, which would add all GIT controlled files to the package
 	# we dont want that, so set `SETUPTOOLS_SCM_IGNORE_VCS_ROOTS`
-	SETUPTOOLS_SCM_IGNORE_VCS_ROOTS=$(CURDIR) python$(PYVERSION) -m build
+	SETUPTOOLS_SCM_IGNORE_VCS_ROOTS=$(CURDIR) python -m build
 
 dist: build
-	LL_URL_SSH_PYTHON=python3.2 python$(PYVERSION) -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
+	LL_URL_SSH_PYTHON=python3.2 python -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
 
 
 upload: build
@@ -34,19 +34,19 @@ upload: build
 
 livinglogic:
 	rm -rf dist/*
-	python$(PYVERSION) -m build
-	python$(PYVERSION) -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.tar.bz2 dist/*.zip dist/*.whl ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
+	python -m build
+	LL_URL_SSH_PYTHON=python3 python -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.whl ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
 
 
 windist:
-	python$(PYVERSION) setup.py bdist --formats=wininst
-	python -mll.scripts.ucp -vyes -cno -ulivpython -glivpython dist/*.exe ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
+	python setup.py bdist --formats=wininst
+	LL_URL_SSH_PYTHON=python3 python -mll.scripts.ucp -vyes -cno -ulivpython -glivpython dist/*.exe ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
 
 
 winupload:
-	python$(PYVERSION) setup.py bdist --formats=wininst upload
+	python setup.py bdist --formats=wininst upload
 
 
 winlivinglogic:
-	python$(PYVERSION) setup.py bdist --formats=wininst
-	python$(PYVERSION) -mll.scripts.ucp -vyes -cno -uintranet -gintranet dist/*.exe ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
+	python setup.py bdist --formats=wininst
+	LL_URL_SSH_PYTHON=python3 python -mll.scripts.ucp -vyes -cno -uintranet -gintranet dist/*.exe ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
