@@ -842,6 +842,91 @@ class Field(Repr):
 		self.joinsql = to_tstring(joinsql)
 		self.refgroup = refgroup
 
+	@classmethod
+	def for_value(cls, identifier, value, datatype=None):
+		"""
+		Create a :class:`Field` object for the constant value ``value``.
+
+		The resulting field has no ``joinsql`` and no ``refgroup``, its
+		``fieldsql`` is a t-string containing ``value`` itself, i.e. the value
+		will end up as a bind parameter in the generated SQL.
+
+		Arguments are:
+
+		``identifier`` : :class:`str`
+			The UL4 identifier of the field.
+
+		``value``
+			The Python value the field should deliver.
+
+		``datatype`` : :class:`DataType` or ``None``
+			The vSQL datatype of the field. If this is ``None``, the datatype
+			will be deduced from the type of ``value``: For example :class:`int`
+			values give ``INT``, :class:`str` values give ``STR`` (or ``CLOB``
+			for strings of 4000 characters or more) and :class:`datetime.timedelta`
+			values give ``DATEDELTA`` or ``DATETIMEDELTA`` depending on whether
+			the value has a time part. Lists and sets are only supported when
+			they are empty or contain only ``None``, since the item type can't
+			be deduced otherwise.
+
+		``value`` will be converted to the Python value that is appropriate for
+		the SQL type used for storing that vSQL datatype, e.g. a
+		:class:`datetime.timedelta` will be converted to a number of days.
+
+		A :exc:`TypeError` will be raised if no datatype was given and the type
+		of ``value`` doesn't map to a vSQL datatype.
+		"""
+		if datatype is None:
+			match value:
+				case None:
+					datatype = DataType.NULL
+				case bool():
+					datatype = DataType.BOOL
+				case int():
+					datatype = DataType.INT
+				case float():
+					datatype = DataType.NUMBER
+				case str():
+					datatype = DataType.STR if len(value) < 4000 else DataType.CLOB
+				case color.Color():
+					datatype = DataType.COLOR
+				case datetime.datetime():
+					datatype = DataType.DATETIME
+				case datetime.date():
+					datatype = DataType.DATE
+				case datetime.timedelta():
+					datatype = DataType.DATETIMEDELTA if value.seconds or value.microseconds else DataType.DATEDELTA
+				case misc.monthdelta():
+					datatype = DataType.MONTHDELTA
+				case list():
+					types = {type(item) for item in value if item is not None}
+					if not types:
+						datatype = DataType.NULLLIST
+					else:
+						raise TypeError(f"Can't convert list containing {types!r} to a vSQL datatype")
+				case set():
+					types = {type(item) for item in value if item is not None}
+					if not types:
+						datatype = DataType.NULLSET
+					else:
+						raise TypeError(f"Can't convert set containing {types!r} to a vSQL datatype")
+				case _:
+					raise TypeError(f"Can't convert {value!r} to a vSQL datatype")
+		match datatype:
+			case DataType.BOOL:
+				value = int(value)
+			case DataType.COLOR:
+				value = ColorAST._sqlvalue(value)
+			case DataType.DATEDELTA:
+				value = value.days
+			case DataType.DATETIMEDELTA:
+				value = value.days + value.seconds/86400
+			case DataType.MONTHDELTA:
+				value = value.months()
+			case DataType.NULLLIST:
+				value = len(value)
+		return cls(identifier, datatype, t"{value}")
+
 	def _ll_repr_(self) -> Generator[str, None, None]:
 		yield f"identifier={self.identifier!r}"
 		if self.datatype is not None:
@@ -1232,7 +1317,7 @@ class Query(Repr):
 		``identifier`` must belong to one of the fields passed to the constructor
 		and it should reference a table.
 
-		:func:`from_vsql` will then make sure that this referenced table will
+		:meth:`from_vsql` will then make sure that this referenced table will
 		be added to the "from" list, even if it is never referenced explicitely
 		in any of the "from" and "where" clauses.
 		"""
@@ -1260,7 +1345,7 @@ class Query(Repr):
 		self._from[hasher] = self.SQLFromExpr(self, sql, identifier, newalias)
 		return newalias
 
-	def _vsql(self, expr:str, context:str) -> None:
+	def _vsql(self, expr:T_sql, context:str) -> None:
 		"""
 		Compiles ``expr`` to a vSQL :class:`AST` and register all field references in it.
 
@@ -1276,7 +1361,7 @@ class Query(Repr):
 			self._register(fieldref)
 		return vsqlexpr
 
-	def select_vsql(self, expr:str, comment : str | None = None, alias : str | None = None) -> Query.VSQLSelectExpr:
+	def select_vsql(self, expr:T_sql, comment : str | None = None, alias : str | None = None) -> Query.VSQLSelectExpr:
 		"""
 		Add the vSQL expression ``expr`` to the list of expression to select.
 
@@ -1324,7 +1409,7 @@ class Query(Repr):
 		self.fields[hasher] = sqlexpr
 		return sqlexpr
 
-	def aggregate_vsql(self, expr:str, comment : str | None = None, alias : str | None = None) -> Query.VSQLAggregatedSelectExpr:
+	def aggregate_vsql(self, expr:T_sql, comment : str | None = None, alias : str | None = None) -> Query.VSQLAggregatedSelectExpr:
 		"""
 		Add the aggregating vSQL expression ``expr`` to the list of expression to select.
 
@@ -1398,14 +1483,17 @@ class Query(Repr):
 		"""
 		Add a table to the list of tables to select from.
 
-		This adds the table in "raw" SQL form.
+		Note that this adds ``tablename`` directly as "raw" SQL. To add a table
+		in vSQL form use :meth:`from_vsql` instead.
 
-		There's no need to add to the "from" list in vSQL form, since this
-		is done automatically in :meth:`select_vsql`, :meth:`where_vsql` or
-		:meth:`orderby_vsql`.
+		However there's usually no need to call :meth:`from_vsql`, since tables
+		referenced by vSQL expressions are added to the "from" list automatically
+		by :meth:`select_vsql`, :meth:`where_vsql` or :meth:`orderby_vsql`.
+		:meth:`from_vsql` is only required for tables that are never referenced
+		explicitely in any of those expressions.
 		"""
-		for f in self._from:
-			(n, a) = f.strings[-1].rsplit(" ", 1)
+		for f in self._from.values():
+			a = f.alias.strings[-1].rpartition(" ")[-1]
 			if a == alias:
 				raise ValueError(f"duplicate table alias {alias!r}")
 		sqlexpr = self.SQLFromExpr(self, tablename, comment, alias)
@@ -1413,7 +1501,7 @@ class Query(Repr):
 		self._from[hasher] = sqlexpr
 		return sqlexpr
 
-	def where_vsql(self, expr:str) -> Query.VSQLWhereExpr:
+	def where_vsql(self, expr:T_sql) -> Query.VSQLWhereExpr:
 		"""
 		Add vSQL condition ``expr`` to the ``where`` clause.
 
@@ -1446,7 +1534,7 @@ class Query(Repr):
 		self._where[hasher] = sqlexpr
 		return sqlexpr
 
-	def groupby_vsql(self, expr:str, comment : str | None = None) -> Query.VSQLGroupByExpr:
+	def groupby_vsql(self, expr:T_sql, comment : str | None = None) -> Query.VSQLGroupByExpr:
 		"""
 		Add the grouping vSQL expression ``expr`` to the list of expression to group by.
 
@@ -1479,7 +1567,7 @@ class Query(Repr):
 		self._groupby[hasher] = sqlexpr
 		return sqlexpr
 
-	def _extract_orderby(self, expr:str) -> tuple[str, str | None, str | None]:
+	def _extract_orderby(self, expr:T_sql) -> tuple[str, str | None, str | None]:
 		expr = to_tstring(expr)
 		if expr.strings[-1].endswith(" nulls last"):
 			nulls = "last"
@@ -1540,7 +1628,7 @@ class Query(Repr):
 		self._orderby.append(vsqlexpr)
 		return vsqlexpr
 
-	def orderby_sql(self, expr:str, comment : str | None = None) -> Query.SQLOrderByExpr:
+	def orderby_sql(self, expr:T_sql, comment : str | None = None) -> Query.SQLOrderByExpr:
 		"""
 		Add the "order by" SQL expression ``expr`` to this query.
 
@@ -1583,7 +1671,7 @@ class Query(Repr):
 		"""
 		self._limit = limit
 
-	def sqlsource(self, indent="\t") -> str:
+	def sqlsource(self, indent="\t") -> templatelib.Template:
 		"""
 		Return the SQL source code for this query.
 
@@ -2082,7 +2170,7 @@ class AST(Repr):
 		raise TypeError(f"Can't compile UL4 expression of type {misc.format_class(node)}!")
 
 	@classmethod
-	def fromsource(cls, source:str, **vars: Field) -> AST:
+	def fromsource(cls, source:T_sql, **vars: Field) -> AST:
 		"""
 		Create a vSQL expression from it source code.
 
@@ -2092,8 +2180,42 @@ class AST(Repr):
 
 		``vars`` contains the "root" variables that can be referenced in
 		the vSQL expression.
+
+		If source is a t-string and contains interpolated values, those
+		will be retained as interpolations using the matching vSQL datatype
+		for the compiler. The type will be determined automatically from the
+		value if possible but can be specified via the format_spec in the
+		interpolation, i.e. you can use ``t"'%' + {search:str} + '%'"``.
 		"""
-		template = ul4c.Template(f"<?return {source}?>")
+		# If the source contains interpolalated values (i.e. bind parameters)
+		# we convert to a temporary field of the correct type.
+		# The fields ``fieldsql`` will contain the interpolated value.
+		def new_var(part):
+			index = 1
+			while True:
+				name = f"p{index}"
+				if name not in vars:
+					if not part.format_spec:
+						datatype = None
+					else:
+						spec = part.format_spec.upper()
+						if spec not in DataType.__members__:
+							raise ValueError(f"unknown vSQL datatype {spec!r}")
+						datatype = DataType[spec]
+					vars[name] = Field.for_value(name, part.value, datatype)
+					return name
+				index += 1
+
+		source = to_tstring(source)
+		compilable_source = ""
+		for part in source:
+			if isinstance(part, str):
+				compilable_source += part
+			else:
+				name = new_var(part)
+				compilable_source += name
+
+		template = ul4c.Template(f"<?return {compilable_source}?>")
 		expr = template.content[-1].obj
 		return cls.fromul4(expr, **vars)
 
@@ -2155,8 +2277,10 @@ class AST(Repr):
 			namepos = len(spectemplate.values)
 			name = None
 
+		# Turn all interpolated values in sequences for ``itertools.product()`` to work
 		specs = tuple(v if isinstance(v, set | list | tuple) else (v,) for v in spectemplate.values)
 
+		# Iterate through all type combinations (names will just create one variant)
 		for spec in itertools.product(*specs):
 			newspec = list(spec)
 			for (i, type) in enumerate(spec):

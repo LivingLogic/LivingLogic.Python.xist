@@ -11,6 +11,36 @@ see :ref:`MIGRATION`.
 Changes in HEAD (released 2026-06-??)
 -------------------------------------
 
+*	:class:`vsql.Query` now supports interpolated values in the vSQL snippets,
+	i.e. now you can do::
+
+		import datetime
+		from ll import vsql
+		q = vsql.Query()
+
+		string1 = "foo"
+		string2 = "bar"
+		now = datetime.datetime.now()
+
+		# Define the expression we want
+		q.select_vsql(t"({string1}.upper() + {string2}.lower())[:3]")
+		q.select_vsql(t"{now} + years(3)")
+
+		# Output the SQL query
+		print(list(q.sqlsource()))
+
+	This outputs::
+
+		['select\n\tvsqlimpl_pkg.slice_str((upper(',
+		 Interpolation('foo', 'value', None, ''),
+		 ' /* p1 */) || lower(',
+		 Interpolation('bar', 'value', None, ''),
+		 ' /* p2 */)), null, 3),\n\tvsqlimpl_pkg.add_datetime_months(',
+		 Interpolation(datetime.datetime(2026, 7, 28, 19, 2, 51, 610021), 'value', None, ''),
+		 ' /* p1 */, (12 * 3))\nfrom\n\tdual\n']
+
+	This t-string is directly supported by :meth:`ll.orasql.Cursor.execute`.
+
 *	Use the "official" function :func:`oracledb.enquote_literal` for formatting
 	Oracle SQL literals in :func:`ll.orasql.sqlliteral`.
 

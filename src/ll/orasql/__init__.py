@@ -980,12 +980,13 @@ class Cursor(Cursor):
 
 			cursor.execute("select * from person where lastname = 'Doe'")
 
-		In contrast to ``q``, here ``None`` *is* embedded as the SQL keyword
-		``null``. The supported types are those handled by :func:`sqlliteral`
-		(``None``, :class:`int`, :class:`float`, :class:`datetime.date`,
-		:class:`datetime.datetime` and :class:`str`); any other type raises a
-		:exc:`TypeError`. As with ``q``, this embeds the value directly into the
-		statement, so it should only be done with trusted values.
+		In contrast to ``q``, here ``"Doe"`` *is* embedded as the SQL string
+		constant ``'Doe'``. The supported types are those handled by
+		:func:`sqlliteral` (``None``, :class:`int`, :class:`float`,
+		:class:`datetime.date`, :class:`datetime.datetime` and :class:`str`);
+		any other type raises a :exc:`TypeError`. As with ``q``, this embeds the
+		value directly into the statement, so it should only be done with trusted
+		values.
 
 		For a normal value comparison in a query you would normally use a bind
 		parameter interpolation (i.e. ``{name}``), which is safer and allows the
