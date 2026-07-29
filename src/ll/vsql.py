@@ -440,7 +440,7 @@ class Repr:
 				if value is not None:
 					yield f"{name}={value!r}"
 
-	def _repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter", cycle:bool) -> None:
+	def _repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter", cycle:bool) -> None:
 		if cycle:
 			p.text(f"{self._ll_repr_prefix_()} ... {self._ll_repr_suffix_()}>")
 		else:
@@ -449,7 +449,7 @@ class Repr:
 				p.breakable()
 				p.text(self._ll_repr_suffix_())
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		"""
 		Implement the body of the :meth:`_repr_pretty_` method.
 
@@ -810,8 +810,17 @@ class Field(Repr):
 	fieldsql : templatelib.Template
 	joinsql : templatelib.Template | None
 	refgroup : Group | None
+	description : str | None
 
-	def __init__(self, identifier:str | None=None, datatype:DataType=DataType.NULL, fieldsql:T_sql | None=None, joinsql:T_sql | None=None, refgroup:Group | None=None):
+	def __init__(
+		self,
+		identifier: str | None = None,
+		datatype: DataType = DataType.NULL,
+		fieldsql: T_sql | None = None,
+		joinsql: T_sql | None = None,
+		refgroup: Group | None = None,
+		description: str | None = None
+	):
 		"""
 		Create a :class:`Field` instance.
 
@@ -835,15 +844,25 @@ class Field(Repr):
 
 		``refgroup``
 			The :class:`Group` object that represents the target table.
+
+		``description``
+			This is a description of the field and is ignored by the code generation.
+			However it can be used for automatic documentation generation.
 		"""
 		self.identifier = identifier
 		self.datatype = datatype
 		self.fieldsql = to_tstring(fieldsql)
 		self.joinsql = to_tstring(joinsql)
 		self.refgroup = refgroup
+		self.description = description
 
 	@classmethod
-	def for_value(cls, identifier, value, datatype=None):
+	def for_value(
+		cls,
+		identifier: str,
+		value: Any,
+		datatype: str | None = None
+	) -> Field:
 		"""
 		Create a :class:`Field` object for the constant value ``value``.
 
@@ -938,7 +957,7 @@ class Field(Repr):
 		if self.refgroup is not None:
 			yield f"refgroup.tablesql={self.refgroup.tablesql!r}"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		p.breakable()
 		p.text("identifier=")
 		p.pretty(self.identifier)
@@ -958,14 +977,14 @@ class Field(Repr):
 			p.text("refgroup.tablesql=")
 			p.pretty(self.refgroup.tablesql)
 
-	def ul4ondump(self, encoder:ul4on.Encoder) -> None:
+	def ul4ondump(self, encoder: ul4on.Encoder) -> None:
 		encoder.dump(self.identifier)
 		encoder.dump(self.datatype.value if self.datatype is not None else None)
 		encoder.dump(self.fieldsql)
 		encoder.dump(self.joinsql)
 		encoder.dump(self.refgroup)
 
-	def ul4onload(self, decoder:ul4on.Decoder) -> None:
+	def ul4onload(self, decoder: ul4on.Decoder) -> None:
 		self.identifier = decoder.load()
 		datatype = decoder.load()
 		self.datatype = DataType(datatype) if datatype is not None else None
@@ -986,19 +1005,22 @@ class Group(Repr):
 	tablesql : str
 	fields : dict[str, Field]
 
-	def __init__(self, tablesql:T_sql | None=None, **fields:Field | tuple[DataType, T_sql] | tuple[DataType, T_sql, T_sql, Group]):
+	def __init__(
+		self,
+		tablesql: T_sql | None = None,
+		**fields: Field
+	):
 		self.tablesql = to_tstring(tablesql)
 		self.fields = {}
-		for (fieldname, fielddata) in fields.items():
-			if not isinstance(fielddata, Field):
-				fielddata = Field(fieldname, *fielddata)
-			self.fields[fieldname] = fielddata
+		for (identifier, field) in fields.items():
+			field.identifier = identifier
+			self.fields[identifier] = field
 
 	def _ll_repr_(self) -> Generator[str, None, None]:
 		yield f"tablesql={self.tablesql!r}"
 		yield f"with {len(self.fields):,} fields"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		p.breakable()
 		p.text("tablesql=")
 		p.pretty(self.tablesql)
@@ -1011,18 +1033,25 @@ class Group(Repr):
 		else:
 			raise KeyError(key)
 
-	def add_field(self, identifier:str, datatype:DataType, fieldsql:T_sql, joinsql:T_sql | None=None, refgroup:Group | None=None) -> None:
+	def add_field(
+		self,
+		identifier: str,
+		datatype: DataType,
+		fieldsql: T_sql,
+		joinsql: T_sql | None = None,
+		refgroup: Group | None = None
+	) -> None:
 		"""
 		Create a :class:`Field` object from the arguments and add it to the fields of the group.
 		"""
 		field = Field(identifier, datatype, fieldsql, joinsql, refgroup)
 		self.fields[identifier] = field
 
-	def ul4ondump(self, encoder:ul4on.Encoder) -> None:
+	def ul4ondump(self, encoder: ul4on.Encoder) -> None:
 		encoder.dump(self.tablesql)
 		encoder.dump(self.fields)
 
-	def ul4onload(self, decoder:ul4on.Decoder) -> None:
+	def ul4onload(self, decoder: ul4on.Decoder) -> None:
 		self.tablesql = decoder.load()
 		self.fields = decoder.load()
 
@@ -1039,7 +1068,7 @@ class Query(Repr):
 		expr : templatelib.Template
 		comment : str | None
 
-		def __init__(self, query, expr : T_sql, comment : str | None = None):
+		def __init__(self, query, expr: T_sql, comment: str | None = None):
 			self.query = query
 			self.expr = to_tstring(expr)
 			self.comment = comment
@@ -1054,7 +1083,7 @@ class Query(Repr):
 		expr : AST
 		comment : str | None
 
-		def __init__(self, query, expr : str, comment : str | None = None):
+		def __init__(self, query, expr: str, comment: str | None = None):
 			self.query = query
 			self.expr = query._vsql(expr, self.context)
 			self.comment = comment
@@ -1236,7 +1265,7 @@ class Query(Repr):
 	_limit = int | None
 	_identifier_aliases : dict[str, str]
 
-	def __init__(self, comment:str | None=None, **vars:Field):
+	def __init__(self, comment: str | None = None, **vars: Field):
 		"""
 		Create a new empty :class:`!Query` object.
 
@@ -1266,7 +1295,7 @@ class Query(Repr):
 		self._limit = None
 		self._identifier_aliases = {}
 
-	def _register(self, fieldref:FieldRefAST) -> str | None:
+	def _register(self, fieldref: FieldRefAST) -> str | None:
 		"""
 		Registers the :class:`FieldRefAST` object `fieldref`.
 
@@ -1310,7 +1339,7 @@ class Query(Repr):
 		self._from[hasher] = self.SQLFromExpr(self, sql, comment=fieldref.parent.source(), alias=newalias)
 		return newalias
 
-	def from_vsql(self, identifier:str) -> str | None:
+	def from_vsql(self, identifier: str) -> str | None:
 		"""
 		Registers the field identifier ``identifier`` as a table to select from.
 
@@ -1345,7 +1374,7 @@ class Query(Repr):
 		self._from[hasher] = self.SQLFromExpr(self, sql, identifier, newalias)
 		return newalias
 
-	def _vsql(self, expr:T_sql, context:str) -> None:
+	def _vsql(self, expr: T_sql, context: str) -> None:
 		"""
 		Compiles ``expr`` to a vSQL :class:`AST` and register all field references in it.
 
@@ -1361,7 +1390,12 @@ class Query(Repr):
 			self._register(fieldref)
 		return vsqlexpr
 
-	def select_vsql(self, expr:T_sql, comment : str | None = None, alias : str | None = None) -> Query.VSQLSelectExpr:
+	def select_vsql(
+		self,
+		expr: T_sql,
+		comment: str | None = None,
+		alias: str | None = None
+	) -> Query.VSQLSelectExpr:
 		"""
 		Add the vSQL expression ``expr`` to the list of expression to select.
 
@@ -1385,7 +1419,12 @@ class Query(Repr):
 		self.fields[hasher] = vsqlexpr
 		return vsqlexpr
 
-	def select_sql(self, expr:T_sql, comment=None, alias=None) -> Query.SQLSelectExpr:
+	def select_sql(
+		self,
+		expr: T_sql,
+		comment: str | None = None,
+		alias: str | None = None
+	) -> Query.SQLSelectExpr:
 		"""
 		Add the SQL expression ``expr`` to the list of expression to select.
 
@@ -1409,7 +1448,12 @@ class Query(Repr):
 		self.fields[hasher] = sqlexpr
 		return sqlexpr
 
-	def aggregate_vsql(self, expr:T_sql, comment : str | None = None, alias : str | None = None) -> Query.VSQLAggregatedSelectExpr:
+	def aggregate_vsql(
+		self,
+		expr: T_sql,
+		comment: str | None = None,
+		alias: str | None = None
+	) -> Query.VSQLAggregatedSelectExpr:
 		"""
 		Add the aggregating vSQL expression ``expr`` to the list of expression to select.
 
@@ -1455,7 +1499,12 @@ class Query(Repr):
 			self.groupby_vsql(vsqlexpr.expr.source())
 		return vsqlexpr
 
-	def aggregate_sql(self, expr:T_sql, comment : str | None, alias : T_sql | None = None) -> Query.SQLAggregatedSelectExpr:
+	def aggregate_sql(
+		self,
+		expr: T_sql,
+		comment: str | None,
+		alias: T_sql | None = None
+	) -> Query.SQLAggregatedSelectExpr:
 		"""
 		Add the aggregating SQL expression ``expr`` to the list of expression to select.
 
@@ -1479,7 +1528,12 @@ class Query(Repr):
 		self.aggregated_fields[hasher] = sqlexpr
 		return sqlexpr
 
-	def from_sql(self, tablename, comment=None, alias=None) -> Query.SQLFromExpr:
+	def from_sql(
+		self,
+		tablename: T_sql,
+		comment: str | None = None,
+		alias: str | None = None
+	) -> Query.SQLFromExpr:
 		"""
 		Add a table to the list of tables to select from.
 
@@ -1501,7 +1555,7 @@ class Query(Repr):
 		self._from[hasher] = sqlexpr
 		return sqlexpr
 
-	def where_vsql(self, expr:T_sql) -> Query.VSQLWhereExpr:
+	def where_vsql(self, expr: T_sql) -> Query.VSQLWhereExpr:
 		"""
 		Add vSQL condition ``expr`` to the ``where`` clause.
 
@@ -1519,7 +1573,7 @@ class Query(Repr):
 		self._where[hasher] = vsqlexpr
 		return vsqlexpr
 
-	def where_sql(self, expr:T_sql, comment:str|None=None) -> Query.SQLWhereExpr:
+	def where_sql(self, expr: T_sql, comment: str | None = None) -> Query.SQLWhereExpr:
 		"""
 		Add vSQL condition ``expr`` to the ``where`` clause.
 
@@ -1534,7 +1588,7 @@ class Query(Repr):
 		self._where[hasher] = sqlexpr
 		return sqlexpr
 
-	def groupby_vsql(self, expr:T_sql, comment : str | None = None) -> Query.VSQLGroupByExpr:
+	def groupby_vsql(self, expr: T_sql, comment: str | None = None) -> Query.VSQLGroupByExpr:
 		"""
 		Add the grouping vSQL expression ``expr`` to the list of expression to group by.
 
@@ -1550,7 +1604,7 @@ class Query(Repr):
 		self._groupby[hasher] = vsqlexpr
 		return vsqlexpr
 
-	def groupby_sql(self, expr:T_sql, comment : str | None = None) -> Query.SQLGroupByExpr:
+	def groupby_sql(self, expr: T_sql, comment : str | None = None) -> Query.SQLGroupByExpr:
 		"""
 		Add the grouping SQL expression ``expr`` to the list of expression to group by.
 
@@ -1567,7 +1621,7 @@ class Query(Repr):
 		self._groupby[hasher] = sqlexpr
 		return sqlexpr
 
-	def _extract_orderby(self, expr:T_sql) -> tuple[str, str | None, str | None]:
+	def _extract_orderby(self, expr: T_sql) -> tuple[str, str | None, str | None]:
 		expr = to_tstring(expr)
 		if expr.strings[-1].endswith(" nulls last"):
 			nulls = "last"
@@ -1587,7 +1641,7 @@ class Query(Repr):
 			dir = None
 		return (expr, dir, nulls)
 
-	def orderby_vsql(self, expr:T_sql, comment : str | None = None) -> Query.VSQLOrderByExpr:
+	def orderby_vsql(self, expr: T_sql, comment: str | None = None) -> Query.VSQLOrderByExpr:
 		r"""
 		Add the "order by" vSQL expression ``expr`` to this query.
 
@@ -1628,7 +1682,7 @@ class Query(Repr):
 		self._orderby.append(vsqlexpr)
 		return vsqlexpr
 
-	def orderby_sql(self, expr:T_sql, comment : str | None = None) -> Query.SQLOrderByExpr:
+	def orderby_sql(self, expr: T_sql, comment: str | None = None) -> Query.SQLOrderByExpr:
 		"""
 		Add the "order by" SQL expression ``expr`` to this query.
 
@@ -1671,7 +1725,7 @@ class Query(Repr):
 		"""
 		self._limit = limit
 
-	def sqlsource(self, indent="\t") -> templatelib.Template:
+	def sqlsource(self, indent: str = "\t") -> templatelib.Template:
 		"""
 		Return the SQL source code for this query.
 
@@ -1780,14 +1834,15 @@ class Rule(Repr):
 	"""
 	:class:`!Rule` is used to store a type specific vSQL grammar rule.
 
-	I.e. one rule object stores the information that:
+	I.e. one rule object stores the information about the integer addution
+	``INT <- INT + INT`` that:
 
-	- there's and addition operator;
+	- there's an addition operator;
 	- that adds two ``INT`` values;
 	- with a result of type ``INT``;
 	- and the SQL code to generate for that operation.
 
-	For more information see :meth:`AST.add_rules`.
+	For more information see :meth:`__init__` and :meth:`AST.add_rules`.
 	"""
 	_re_specials = re.compile(r"{([st])(\d)}")
 	_re_sep = re.compile(r"\W+")
@@ -1805,14 +1860,51 @@ class Rule(Repr):
 		"datetimeset":  "datetimelist",
 	}
 
-	def __init__(self, astcls, spectemplate, spec, source, vsqltokens):
-		# The interpolations in ``spectemplate`` are the types and a function/method/attribute name,
-		# e.g. for the method call ``INT <- STR.find(STR)`` the interpolations are
-		# ``DataType.INT`` - the result type
-		# ``DataType.STR`` - The type the method is called on
-		# ``find`` - The name of the method
-		# ``DataType.STR`` - the type of the argument
-		# On the right hand side types might be a single type or multiple ones
+	def __init__(
+		self,
+		astcls: Type[AST],
+		spectemplate: templatelib.Template,
+		spec: tuple[DataType | str, ...],
+		source: templatelib.Template,
+	):
+		"""
+		Create a :class:`!Rule` instance.
+
+		Normally the user doesn't call :meth:`!__init__` directly, but uses
+		:meth:`AST.add_rules`, which creates one :class:`!Rule` object for each
+		combination of operand types.
+
+		Arguments are:
+
+		``astcls``
+			The :class:`AST` subclass this rule belongs to (e.g. :class:`AddAST`
+			for the addition operator).
+
+		``spectemplate``
+			The t-string that was passed to :meth:`AST.add_rules`. Since this may
+			still contain union types, it is only used to reconstruct the vSQL
+			source code of the operation (i.e. the attribute ``vsqlsource``).
+
+		``spec``
+			One concrete variant of ``spectemplate``, i.e. a tuple of the
+			interpolated values with all union types resolved to a single
+			:class:`DataType`. The first item always is the result type, the
+			remaining ones are the operand types and (for functions, methods and
+			attributes) the name.
+
+			For example for the method call ``INT <- STR.find(STR)`` ``spec`` is
+			``(DataType.INT, DataType.STR, "find", DataType.STR)``, i.e.
+
+			- ``DataType.INT`` is the result type;
+			- ``DataType.STR`` is the type the method is called on;
+			- ``"find"`` is the name of the method;
+			- ``DataType.STR`` is the type of the argument.
+
+		``source``
+			The t-string specifying the SQL source code that should be generated
+			for this operation (see :meth:`AST.add_rules` for the supported
+			interpolations).
+		"""
 
 		# What we need is:
 		# - The result type: ``INT`` (i.e. the first interpolation)
@@ -1848,7 +1940,7 @@ class Rule(Repr):
 		yield f"source={self.source}"
 		yield f"vsqlsource={self.str_vsqlsource()}"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		p.breakable()
 		p.text("result=")
 		p.text(self.result.name)
@@ -1893,7 +1985,11 @@ class Rule(Repr):
 		return tuple(final_source)
 
 	@classmethod
-	def _make_vsqlsource(cls, signature:tuple[DataType, ...], spectemplate:templatelib.Template) -> tuple[DataType | str, ...]:
+	def _make_vsqlsource(
+		cls,
+		signature: tuple[DataType, ...],
+		spectemplate: templatelib.Template
+	) -> tuple[DataType | str, ...]:
 		final_source = []
 
 		def append(text):
@@ -2018,7 +2114,8 @@ class AST(Repr):
 		The datatype is an instance attribute that represents the datatype of the
 		expression.
 
-		If the datatype can't be determined because of errors `datatype` will be `None`.
+		If the datatype can't be determined because of errors ``datatype`` will be
+		``None``.
 	"""
 
 	nodetype = None
@@ -2295,7 +2392,7 @@ class AST(Repr):
 			yield tuple(newspec)
 
 	@classmethod
-	def add_rules(cls, spectemplate:templatelib.Template, source:templatelib.Template) -> None:
+	def add_rules(cls, spectemplate: templatelib.Template, source: templatelib.Template) -> None:
 		"""
 		Register new syntax rules for this AST class.
 
@@ -2314,8 +2411,7 @@ class AST(Repr):
 			Datatypes
 				A datatype is given by interpolating the appropriate :class:`DataType`
 				member directly (e.g. ``{dt.INT}`` or ``{dt.STR}``, where ``dt`` is an
-				alias for :class:`DataType`). A string like ``{'T1'}`` refers to
-				another type in the spec.
+				alias for :class:`DataType`).
 
 			Union types
 				A set, list or tuple of :class:`DataType` members (e.g.
@@ -2323,6 +2419,9 @@ class AST(Repr):
 				types in the collection is allowed. Some predefined unions are
 				available as module level variables (e.g. ``{INTLIKE}`` or
 				``{NUMBERLIKE}``).
+
+			References to other datatypes or union types
+				A string like ``{'T1'}`` refers to another type in the spec.
 
 			Names
 				The name of a function, method or attribute is given as a (lowercase)
@@ -2341,15 +2440,17 @@ class AST(Repr):
 
 			``t"{dt.INT} <- {(dt.BOOL, dt.INT)} + {(dt.BOOL, dt.INT)}"``
 				This is equivalent to the four rules:
-				``t"{dt.INT} <- {dt.BOOL} + {dt.BOOL}"``,
-				``t"{dt.INT} <- {dt.INT} + {dt.BOOL}"``,
-				``t"{dt.INT} <- {dt.BOOL} + {dt.INT}"`` and
-				``t"{dt.INT} <- {dt.INT} + {dt.INT}"``.
+				
+				- ``t"{dt.INT} <- {dt.BOOL} + {dt.BOOL}"``,
+				- ``t"{dt.INT} <- {dt.INT} + {dt.BOOL}"``,
+				- ``t"{dt.INT} <- {dt.BOOL} + {dt.INT}"`` and
+				- ``t"{dt.INT} <- {dt.INT} + {dt.INT}"``.
 
 			``t"{'T1'} <- {(dt.BOOL, dt.INT)} + {'T1'}"``
-				This is equivalent to the two rules
-				``t"{dt.BOOL} <- {dt.BOOL} + {dt.BOOL}"`` and
-				``t"{dt.INT} <- {dt.INT} + {dt.INT}"``.
+				This is equivalent to the two rules:
+
+				- ``t"{dt.BOOL} <- {dt.BOOL} + {dt.BOOL}"`` and
+				- ``t"{dt.INT} <- {dt.INT} + {dt.INT}"``.
 
 			Note that each rule will only be registered once. So the following
 			code::
@@ -2396,18 +2497,31 @@ class AST(Repr):
 				)
 
 			This registers four rules for equality comparison between ``STR`` and
-			``CLOB`` objects. The generated SQL source code for comparisons
-			between ``STR`` and ``STR`` will be
+			``CLOB`` objects. The generated SQL source code for comparisons will be
 
 			.. sourcecode:: sql
 
 				vsqlimpl_pkg.eq_str_str(value1, value2)
 
-			and for ``CLOB``/``CLOB`` comparison it will be
+			or
+
+			.. sourcecode:: sql
+
+				vsqlimpl_pkg.eq_str_clob(value1, value2)
+
+			or
+
+			.. sourcecode:: sql
+
+				vsqlimpl_pkg.eq_clob_str(value1, value2)
+
+			or
 
 			.. sourcecode:: sql
 
 				vsqlimpl_pkg.eq_clob_clob(value1, value2)
+
+			depending on the types of the arguments.
 		"""
 
 		for spec in cls._specs(spectemplate):
@@ -2415,7 +2529,7 @@ class AST(Repr):
 			if cls.rules is None:
 				cls.rules = {}
 			if key not in cls.rules:
-				cls._add_rule(Rule(cls, spectemplate, spec, source, None))
+				cls._add_rule(Rule(cls, spectemplate, spec, source))
 
 	def validate(self) -> None:
 		"""
@@ -2431,7 +2545,7 @@ class AST(Repr):
 		"""
 		pass
 
-	def check_valid(self, context:str | None=None) -> None:
+	def check_valid(self, context: str | None=None) -> None:
 		"""
 		Makes sure that ``self`` is valid.
 
@@ -2478,7 +2592,7 @@ class AST(Repr):
 			yield f"error={self.error.name}"
 		yield f"source={self.source()!r}"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		if self.datatype is not None:
 			p.breakable()
 			p.text(f"datatype={self.datatype.name}")
@@ -2635,7 +2749,7 @@ class _ConstWithValueAST(ConstAST):
 		yield from super()._ll_repr_()
 		yield f"value={self.value!r}"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("value=")
@@ -2846,7 +2960,7 @@ class _SeqAST(AST):
 		yield from super()._ll_repr_()
 		yield f"with {len(self.items):,} items"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		for item in self.items:
 			p.breakable()
@@ -3121,7 +3235,7 @@ class FieldRefAST(AST):
 		if self.field is not None:
 			yield f"field={self.field!r}"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("identifier=")
@@ -3211,7 +3325,7 @@ class BinaryAST(AST):
 		yield self.obj1
 		yield self.obj2
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("obj1=")
@@ -3586,7 +3700,7 @@ class UnaryAST(AST):
 	def children(self) -> Generator[AST, None, None]:
 		yield self.obj
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("obj=")
@@ -3713,7 +3827,7 @@ class IfAST(AST):
 		yield self.objcond
 		yield self.objelse
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("objif=")
@@ -3820,7 +3934,7 @@ class SliceAST(AST):
 		yield self.index1 if self.index1 is None else NoneAST("")
 		yield self.index2 if self.index2 is None else NoneAST("")
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("obj=")
@@ -3908,7 +4022,7 @@ class AttrAST(AST):
 		yield from super()._ll_repr_()
 		yield f"attrname={self.attrname!r}"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("obj=")
@@ -4005,7 +4119,7 @@ class FuncAST(AST):
 		yield f"name={self.name!r}"
 		yield f"with {len(self.args):,} arguments"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		for (i, arg) in enumerate(self.args):
 			p.breakable()
@@ -4106,7 +4220,7 @@ class MethAST(AST):
 		yield f"name={self.name!r}"
 		yield f"with {len(self.args):,} arguments"
 
-	def _ll_repr_pretty_(self, p:"IPython.lib.pretty.PrettyPrinter") -> None:
+	def _ll_repr_pretty_(self, p: "IPython.lib.pretty.PrettyPrinter") -> None:
 		super()._ll_repr_pretty_(p)
 		p.breakable()
 		p.text("obj=")
