@@ -13,20 +13,21 @@ dbname = os.environ.get("LL_ORASQL_TEST_CONNECT") # Need a connectstring as envi
 ### Definition of vSQL records and tables
 ###
 
-vsql_group = vsql.Group("vsql_test")
-vsql_group.add_field("identifier", vsql.DataType.STR, "{a}.vs_identifier")
-vsql_group.add_field("v_bool", vsql.DataType.BOOL, "{a}.vs_bool")
-vsql_group.add_field("v_int", vsql.DataType.INT, "{a}.vs_int")
-vsql_group.add_field("v_number", vsql.DataType.NUMBER, "{a}.vs_number")
-vsql_group.add_field("v_str", vsql.DataType.STR, "{a}.vs_str")
-vsql_group.add_field("v_clob", vsql.DataType.CLOB, "{a}.vs_clob")
-vsql_group.add_field("v_date", vsql.DataType.DATE, "{a}.vs_date")
-vsql_group.add_field("v_datetime", vsql.DataType.DATETIME, "{a}.vs_datetime")
-vsql_group.add_field("v_datedelta", vsql.DataType.DATEDELTA, "{a}.vs_int")
-vsql_group.add_field("v_datetimedelta", vsql.DataType.DATETIMEDELTA, "{a}.vs_number")
-vsql_group.add_field("v_monthdelta", vsql.DataType.MONTHDELTA, "{a}.vs_int")
-vsql_group.add_field("v_color", vsql.DataType.COLOR, "{a}.vs_int")
-
+vsql_group = vsql.Group(
+	"vsql_test",
+	identifier=vsql.Field(..., vsql.DataType.STR, "{a}.vs_identifier", description="The identifier"),
+	v_bool=vsql.Field(..., vsql.DataType.BOOL, "{a}.vs_bool", description="The bool attribute"),
+	v_int=vsql.Field(..., vsql.DataType.INT, "{a}.vs_int", description="The int attribute"),
+	v_number=vsql.Field(..., vsql.DataType.NUMBER, "{a}.vs_number", description="The number attribute"),
+	v_str=vsql.Field(..., vsql.DataType.STR, "{a}.vs_str", description="The str attribute"),
+	v_clob=vsql.Field(..., vsql.DataType.CLOB, "{a}.vs_clob", description="The clob attribute"),
+	v_date=vsql.Field(..., vsql.DataType.DATE, "{a}.vs_date", description="The date attribute"),
+	v_datetime=vsql.Field(..., vsql.DataType.DATETIME, "{a}.vs_datetime", description="The datetime attribute"),
+	v_datedelta=vsql.Field(..., vsql.DataType.DATEDELTA, "{a}.vs_int", description="The datedelta attribute"),
+	v_datetimedelta=vsql.Field(..., vsql.DataType.DATETIMEDELTA, "{a}.vs_number", description="The datetimedelta attribute"),
+	v_monthdelta=vsql.Field(..., vsql.DataType.MONTHDELTA, "{a}.vs_int", description="The monthdelta attribute"),
+	v_color=vsql.Field(..., vsql.DataType.COLOR, "{a}.vs_int", description="The color attribute"),
+)
 
 vsql_r = vsql.Field(
 	"r",
@@ -34,6 +35,7 @@ vsql_r = vsql.Field(
 	"?",
 	"1 = 1",
 	vsql_group,
+	"Loop variable over all records"
 )
 
 

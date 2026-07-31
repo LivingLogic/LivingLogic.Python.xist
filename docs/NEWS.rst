@@ -8,6 +8,13 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.89 (released 2026-0?-??)
+-------------------------------------
+
+*	Added the attribute :attr:`ll.vsql.Field.description` which isn't used anywhere
+	but can be used by external tools for documentation.
+
+
 Changes in 5.88 (released 2026-07-28)
 -------------------------------------
 
