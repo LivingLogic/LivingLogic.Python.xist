@@ -145,7 +145,7 @@ def test_bool_datedelta2(vsql_db, vsql_data):
 
 
 def test_bool_datedelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("True * r.v_datedelta", where="r.identifier == 'datedelta'") == 12
+	assert vsql_db.expr("True * r.v_datedelta", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(12)
 
 
 def test_int_datedelta1(vsql_db, vsql_data):
@@ -157,7 +157,7 @@ def test_int_datedelta2(vsql_db, vsql_data):
 
 
 def test_int_datedelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("2 * r.v_datedelta", where="r.identifier == 'datedelta'") == 24
+	assert vsql_db.expr("2 * r.v_datedelta", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(24)
 
 
 def test_bool_datetimedelta1(vsql_db, vsql_data):
@@ -169,7 +169,7 @@ def test_bool_datetimedelta2(vsql_db, vsql_data):
 
 
 def test_bool_datetimedelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("True * r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == 1 + 12/24 + 34/24/60 + 56/24/60/60
+	assert vsql_db.expr("True * r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(1, (12 * 60 + 34) * 60 + 56)
 
 
 def test_int_datetimedelta1(vsql_db, vsql_data):
@@ -181,7 +181,7 @@ def test_int_datetimedelta2(vsql_db, vsql_data):
 
 
 def test_int_datetimedelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("2 * r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == 2 * (1 + 12/24 + 34/24/60 + 56/24/60/60)
+	assert vsql_db.expr("2 * r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(2, 2 * ((12 * 60 + 34) * 60 + 56))
 
 
 def test_bool_monthdelta1(vsql_db, vsql_data):
@@ -193,7 +193,7 @@ def test_bool_monthdelta2(vsql_db, vsql_data):
 
 
 def test_bool_monthdelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("True * r.v_monthdelta", where="r.identifier == 'monthdelta'") == 3
+	assert vsql_db.expr("True * r.v_monthdelta", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(3)
 
 
 def test_int_monthdelta1(vsql_db, vsql_data):
@@ -205,11 +205,11 @@ def test_int_monthdelta2(vsql_db, vsql_data):
 
 
 def test_int_monthdelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("2 * r.v_monthdelta", where="r.identifier == 'monthdelta'") == 6
+	assert vsql_db.expr("2 * r.v_monthdelta", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(6)
 
 
 def test_number_datetimedelta3(vsql_db, vsql_data):
-	assert vsql_db.expr("2.5 * r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == 2.5 * (1 + 12/24 + 34/24/60 + 56/24/60/60)
+	assert vsql_db.expr("2.5 * r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, round(2.5 * (86400 + (12 * 60 + 34) * 60 + 56)))
 
 
 def test_str_bool1(vsql_db, vsql_data):

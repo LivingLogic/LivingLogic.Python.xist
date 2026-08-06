@@ -42,7 +42,7 @@ def test_datedelta1(vsql_db, vsql_data):
 
 
 def test_datedelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("-r.v_datedelta", where="r.identifier == 'datedelta'") == -12
+	assert vsql_db.expr("-r.v_datedelta", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(-12)
 
 
 def test_datetimedelta1(vsql_db, vsql_data):
@@ -50,7 +50,7 @@ def test_datetimedelta1(vsql_db, vsql_data):
 
 
 def test_datetimedelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("-r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == -(1 + 12/24 + 34/24/60 + 56/24/60/60)
+	assert vsql_db.expr("-r.v_datetimedelta", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, -(86400 + (12 * 60 + 34) * 60 + 56))
 
 
 def test_monthdelta1(vsql_db, vsql_data):
@@ -58,4 +58,4 @@ def test_monthdelta1(vsql_db, vsql_data):
 
 
 def test_monthdelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("-r.v_monthdelta", where="r.identifier == 'monthdelta'") == -3
+	assert vsql_db.expr("-r.v_monthdelta", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(-3)

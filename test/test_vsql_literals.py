@@ -44,14 +44,17 @@ def test_literal_string(vsql_db, vsql_data):
 	assert vsql_db.expr("'foo'") == "foo"
 	assert vsql_db.expr("'\x01\xff\u3042'") == "\x01\xff\u3042"
 	assert vsql_db.expr("'\\a\\b\\t\\n\\f\\r\\\"\\'\\\\'") == "\a\b\t\n\f\r\"'\\"
-	assert vsql_db.expr("'\\x00\\xff\\u3042'") == "\x00\xff\u3042"
+	if vsql_db.supports_nul:
+		assert vsql_db.expr("'\\x00\\xff\\u3042'") == "\x00\xff\u3042"
+	else:
+		assert vsql_db.expr("'\\xff\\u3042'") == "\xff\u3042"
 	assert vsql_db.expr("'\\U0001f389'") == "🎉"
 	# FIXME: This doesn't work yet, because UL4 inherits the 16-bit limitation of ANTLR 3
 	# assert vsql_db.expr("'🎉'") == "🎉"
 
 
 def test_literal_date(vsql_db, vsql_data):
-	assert vsql_db.expr("@(2000-02-29)") == datetime.datetime(2000, 2, 29)
+	assert vsql_db.expr("@(2000-02-29)") == vsql_db.type_for_date(2000, 2, 29)
 	assert vsql_db.expr("@(2000-02-29T12:34:56)") == datetime.datetime(2000, 2, 29, 12, 34, 56)
 
 

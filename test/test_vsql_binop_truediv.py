@@ -54,12 +54,12 @@ def test_number_number(vsql_db, vsql_data):
 
 
 def test_datetimedelta_bool(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta / True", where="r.identifier == 'datetimedelta'") == 1 + 12/24 + 34/24/60 + 56/24/60/60
+	assert vsql_db.expr("r.v_datetimedelta / True", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(1, (12 * 60 + 34) * 60 + 56)
 
 
 def test_datetimedelta_int(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta / 2", where="r.identifier == 'datetimedelta'") == (1 + 12/24 + 34/24/60 + 56/24/60/60) / 2
+	assert vsql_db.expr("r.v_datetimedelta / 2", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, (86400 + (12 * 60 + 34) * 60 + 56) / 2)
 
 
 def test_datetimedelta_number(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta / 12.5", where="r.identifier == 'datetimedelta'") == (1 + 12/24 + 34/24/60 + 56/24/60/60) / 12.5
+	assert vsql_db.expr("r.v_datetimedelta / 12.5", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, (86400 + (12 * 60 + 34) * 60 + 56) / 12.5)

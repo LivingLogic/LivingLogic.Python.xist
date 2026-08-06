@@ -51,11 +51,11 @@ def test_numberlist_int(vsql_db, vsql_data):
 
 
 def test_datelist_bool(vsql_db, vsql_data):
-	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01), @(2000-03-02)][True]") == datetime.datetime(2000, 3, 1)
+	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01), @(2000-03-02)][True]") == vsql_db.type_for_date(2000, 3, 1)
 
 
 def test_datelist_int(vsql_db, vsql_data):
-	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01), @(2000-03-02)][2]") == datetime.datetime(2000, 3, 2)
+	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01), @(2000-03-02)][2]") == vsql_db.type_for_date(2000, 3, 2)
 
 
 def test_datetimelist_bool(vsql_db, vsql_data):

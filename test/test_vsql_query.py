@@ -129,7 +129,7 @@ def test_query_sql(vsql_db, vsql_data):
 	q = vsql_db.query()
 	q.select_sql("upper(per_firstname)")
 	q.select_sql(t"replace(per_lastname, {'e'}, {'x'})")
-	q.from_sql("vsql_person")
+	q.from_sql(vsql_db.person_table.tablesql)
 	q.where_sql("per_firstname like 'A%'")
 	q.orderby_sql("per_firstname asc nulls last")
 	rs = [list(r) for r in vsql_db.execute(q)]

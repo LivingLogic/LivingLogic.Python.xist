@@ -1,4 +1,4 @@
-import os, datetime, filelock
+import os, datetime, decimal, filelock
 
 import psycopg
 from psycopg import rows, sql
@@ -18,6 +18,9 @@ dbname_postgres = os.environ.get("LL_PYSQL_TEST_CONNECT_POSTGRES") # Need a conn
 ###
 
 class VSQLDB:
+	# Whether the database can store the character ``U+0000`` in string values
+	supports_nul = True
+
 	def query(self, comment=None, **vars):
 		return vsql.Query(comment, self.dbtype, **vars)
 
@@ -51,9 +54,9 @@ class VSQLOracle(VSQLDB):
 	test_table.add_field("v_clob", vsql.DataType.CLOB, "{a}.vs_clob", description="The clob attribute")
 	test_table.add_field("v_date", vsql.DataType.DATE, "{a}.vs_date", description="The date attribute")
 	test_table.add_field("v_datetime", vsql.DataType.DATETIME, "{a}.vs_datetime", description="The datetime attribute")
-	test_table.add_field("v_datedelta", vsql.DataType.DATEDELTA, "{a}.vs_int", description="The datedelta attribute")
-	test_table.add_field("v_datetimedelta", vsql.DataType.DATETIMEDELTA, "{a}.vs_number", description="The datetimedelta attribute")
-	test_table.add_field("v_monthdelta", vsql.DataType.MONTHDELTA, "{a}.vs_int", description="The monthdelta attribute")
+	test_table.add_field("v_datedelta", vsql.DataType.DATEDELTA, "{a}.vs_datedelta", description="The datedelta attribute")
+	test_table.add_field("v_datetimedelta", vsql.DataType.DATETIMEDELTA, "{a}.vs_datetimedelta", description="The datetimedelta attribute")
+	test_table.add_field("v_monthdelta", vsql.DataType.MONTHDELTA, "{a}.vs_monthdelta", description="The monthdelta attribute")
 	test_table.add_field("v_color", vsql.DataType.COLOR, "{a}.vs_int", description="The color attribute")
 
 	field_table = vsql.Group("vsql_field")
@@ -79,6 +82,22 @@ class VSQLOracle(VSQLDB):
 
 	r = vsql.Field("r", vsql.DataType.STR, "?", "1 = 1", test_table, "Loop variable over all records")
 
+	type_for_bool = int
+	type_for_date = datetime.datetime
+	type_for_datetime = datetime.datetime
+
+	@staticmethod
+	def type_for_datedelta(days=0):
+		return days
+
+	@staticmethod
+	def type_for_datetimedelta(days=0, seconds=0):
+		return days + seconds/86400
+
+	@staticmethod
+	def type_for_monthdelta(months=0):
+		return months
+
 	def __init__(self):
 		self.db = orasql.connect(dbname_oracle, readlobs=True)
 
@@ -93,6 +112,9 @@ class VSQLOracle(VSQLDB):
 class VSQLPostgres(VSQLDB):
 	dbtype = vsql.DBType.POSTGRES
 
+	# PostgreSQL rejects ``U+0000`` in ``text`` values
+	supports_nul = False
+
 	test_table = vsql.Group("vsql_test.vsql_test")
 	test_table.add_field("identifier", vsql.DataType.STR, "{a}.vs_identifier", description="The identifier")
 	test_table.add_field("v_bool", vsql.DataType.BOOL, "{a}.vs_bool", description="The bool attribute")
@@ -102,15 +124,15 @@ class VSQLPostgres(VSQLDB):
 	test_table.add_field("v_clob", vsql.DataType.CLOB, "{a}.vs_clob", description="The clob attribute")
 	test_table.add_field("v_date", vsql.DataType.DATE, "{a}.vs_date", description="The date attribute")
 	test_table.add_field("v_datetime", vsql.DataType.DATETIME, "{a}.vs_datetime", description="The datetime attribute")
-	test_table.add_field("v_datedelta", vsql.DataType.DATEDELTA, "{a}.vs_int", description="The datedelta attribute")
-	test_table.add_field("v_datetimedelta", vsql.DataType.DATETIMEDELTA, "{a}.vs_number", description="The datetimedelta attribute")
-	test_table.add_field("v_monthdelta", vsql.DataType.MONTHDELTA, "{a}.vs_int", description="The monthdelta attribute")
+	test_table.add_field("v_datedelta", vsql.DataType.DATEDELTA, "{a}.vs_datedelta", description="The datedelta attribute")
+	test_table.add_field("v_datetimedelta", vsql.DataType.DATETIMEDELTA, "{a}.vs_datetimedelta", description="The datetimedelta attribute")
+	test_table.add_field("v_monthdelta", vsql.DataType.MONTHDELTA, "{a}.vs_monthdelta", description="The monthdelta attribute")
 	test_table.add_field("v_color", vsql.DataType.COLOR, "{a}.vs_int", description="The color attribute")
 
 	field_table = vsql.Group("vsql_test.vsql_field")
-	test_table.add_field("id", vsql.DataType.STR, "{a}.fld_id")
-	test_table.add_field("name", vsql.DataType.STR, "{a}.fld_name")
-	test_table.add_field("parent", vsql.DataType.STR, "{a}.fld_id_super", "{m}.fld_id_super = {d}.fld_id", field_table)
+	field_table.add_field("id", vsql.DataType.STR, "{a}.fld_id")
+	field_table.add_field("name", vsql.DataType.STR, "{a}.fld_name")
+	field_table.add_field("parent", vsql.DataType.STR, "{a}.fld_id_super", "{m}.fld_id_super = {d}.fld_id", field_table)
 
 	person_table = vsql.Group("vsql_test.vsql_person")
 	person_table.add_field("id", vsql.DataType.STR, "{a}.per_id")
@@ -130,12 +152,36 @@ class VSQLPostgres(VSQLDB):
 
 	r = vsql.Field("r", vsql.DataType.STR, "?", "1 = 1", test_table, "Loop variable over all records")
 
+	type_for_bool = bool
+	type_for_date = datetime.date
+	type_for_datetime = datetime.datetime
+
+	@staticmethod
+	def type_for_datedelta(days=0):
+		return datetime.timedelta(days=days)
+
+	@staticmethod
+	def type_for_datetimedelta(days=0, seconds=0):
+		return datetime.timedelta(days=days, seconds=seconds)
+
+	@staticmethod
+	def type_for_monthdelta(months=0):
+		# ``psycopg`` converts the year/month part of an ``interval`` into days
+		# (using 365 days per year and 30 days per month)
+		years = int(months/12)
+		return datetime.timedelta(days=years * 365 + (months - 12 * years) * 30)
+
 	def __init__(self):
 		self.db = psycopg.connect(dbname_postgres, row_factory=rows.namedtuple_row)
 
-	# def execute(self, query):
-	# 	# self.db.rollback() # If the previous test failed, get rid of broken transaction
-	# 	super().execute(query)
+	def extract_result(self, value):
+		# ``psycopg`` returns ``numeric`` values as ``decimal.Decimal``, but the
+		# tests (and the Oracle implementation) use :class:`float`
+		if isinstance(value, decimal.Decimal):
+			value = float(value)
+		elif isinstance(value, list):
+			value = [self.extract_result(item) for item in value]
+		return value
 
 	def execute(self, query):
 		self.db.rollback() # If the previous test failed, get rid of broken transaction
@@ -143,18 +189,18 @@ class VSQLPostgres(VSQLDB):
 
 
 vsql_db_params = [
-	# pytest.param("oracle", marks=pytest.mark.oracle),
+	pytest.param("oracle", marks=pytest.mark.oracle),
 	pytest.param("postgres", marks=pytest.mark.postgres),
 ]
 
 
 all_vsql_dbs = dict(
-	# oracle=VSQLOracle(),
+	oracle=VSQLOracle(),
 	postgres=VSQLPostgres(),
 )
 
 
-@pytest.fixture(scope="module", params=all_vsql_dbs)
+@pytest.fixture(scope="module", params=vsql_db_params)
 def vsql_db(request):
 	return all_vsql_dbs[request.param]
 

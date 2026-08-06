@@ -56,7 +56,7 @@ def test_date_date1(vsql_db, vsql_data):
 
 
 def test_date_date2(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_date and @(2000-02-20)", where="r.identifier == 'date'") == datetime.datetime(2000, 2, 20)
+	assert vsql_db.expr("r.v_date and @(2000-02-20)", where="r.identifier == 'date'") == vsql_db.type_for_date(2000, 2, 20)
 
 
 def test_datetime_datetime1(vsql_db, vsql_data):
@@ -72,7 +72,7 @@ def test_datedelta_datedelta1(vsql_db, vsql_data):
 
 
 def test_datedelta_datedelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta and days(10)", where="r.identifier == 'datedelta'") == 10
+	assert vsql_db.expr("r.v_datedelta and days(10)", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(10)
 
 
 def test_datetimedelta_datetimedelta1(vsql_db, vsql_data):
@@ -80,7 +80,7 @@ def test_datetimedelta_datetimedelta1(vsql_db, vsql_data):
 
 
 def test_datetimedelta_datetimedelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta and hours(12)", where="r.identifier == 'datetimedelta'") == 0.5
+	assert vsql_db.expr("r.v_datetimedelta and hours(12)", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, 12 * 60 * 60)
 
 
 def test_intlist_intlist1(vsql_db, vsql_data):
@@ -128,7 +128,7 @@ def test_nulllist_datelist1(vsql_db, vsql_data):
 
 
 def test_nulllist_datelist2(vsql_db, vsql_data):
-	assert vsql_db.expr("[None] and [@(2000-02-29), @(2000-03-01)]") == [datetime.datetime(2000, 2, 29), datetime.datetime(2000, 3, 1)]
+	assert vsql_db.expr("[None] and [@(2000-02-29), @(2000-03-01)]") == [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 3, 1)]
 
 
 def test_nulllist_datetimelist1(vsql_db, vsql_data):

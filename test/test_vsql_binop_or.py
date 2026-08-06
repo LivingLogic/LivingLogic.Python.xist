@@ -13,8 +13,13 @@ import pytest
 ### Tests
 ###
 
-d1 = datetime.datetime(2000, 2, 29)
-d2 = datetime.datetime(2000, 3, 1)
+def d1(vsql_db):
+	return vsql_db.type_for_date(2000, 2, 29)
+
+
+def d2(vsql_db):
+	return vsql_db.type_for_date(2000, 3, 1)
+
 
 dt1 = datetime.datetime(2000, 2, 29, 12, 34, 56)
 dt2 = datetime.datetime(2000, 3, 1, 12, 34, 56)
@@ -73,11 +78,11 @@ def test_clob_clob1(vsql_db, vsql_data):
 
 
 def test_date_date1(vsql_db, vsql_data):
-	assert vsql_db.expr("@(2000-02-29) or r.v_date", where="r.identifier == 'none'") == d1
+	assert vsql_db.expr("@(2000-02-29) or r.v_date", where="r.identifier == 'none'") == d1(vsql_db)
 
 
 def test_date_date2(vsql_db, vsql_data):
-	assert vsql_db.expr("@(2000-02-29) or r.v_date", where="r.identifier == 'date'") == d1
+	assert vsql_db.expr("@(2000-02-29) or r.v_date", where="r.identifier == 'date'") == d1(vsql_db)
 
 
 def test_datetime_datetime1(vsql_db, vsql_data):
@@ -89,19 +94,19 @@ def test_datetime_datetime2(vsql_db, vsql_data):
 
 
 def test_datedelta_datedelta1(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta or days(10)", where="r.identifier == 'none'") == 10
+	assert vsql_db.expr("r.v_datedelta or days(10)", where="r.identifier == 'none'") == vsql_db.type_for_datedelta(10)
 
 
 def test_datedelta_datedelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta or days(10)", where="r.identifier == 'datedelta'") == 12
+	assert vsql_db.expr("r.v_datedelta or days(10)", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(12)
 
 
 def test_datetimedelta_datetimedelta1(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta or hours(12)", where="r.identifier == 'none'") == 0.5
+	assert vsql_db.expr("r.v_datetimedelta or hours(12)", where="r.identifier == 'none'") == vsql_db.type_for_datetimedelta(0, 12 * 60 * 60)
 
 
 def test_datetimedelta_datetimedelta2(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta or hours(12)", where="r.identifier == 'datetimedelta'") == pytest.approx(1.5242592592592592)
+	assert vsql_db.expr("r.v_datetimedelta or hours(12)", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(1, (12 * 60 + 34) * 60 + 56)
 
 
 def test_intlist_intlist1(vsql_db, vsql_data):
@@ -153,7 +158,7 @@ def test_nulllist_cloblist2(vsql_db, vsql_data):
 
 
 def test_nulllist_datelist1(vsql_db, vsql_data):
-	assert vsql_db.expr("[] or [@(2000-02-29), @(2000-03-01)]") == [d1, d2]
+	assert vsql_db.expr("[] or [@(2000-02-29), @(2000-03-01)]") == [d1(vsql_db), d2(vsql_db)]
 
 
 def test_nulllist_datelist2(vsql_db, vsql_data):
@@ -201,11 +206,11 @@ def test_cloblist_nulllist2(vsql_db, vsql_data):
 
 
 def test_datelist_nulllist1(vsql_db, vsql_data):
-	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01)] or []") == [d1, d2]
+	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01)] or []") == [d1(vsql_db), d2(vsql_db)]
 
 
 def test_datelist_nulllist2(vsql_db, vsql_data):
-	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01)] or [None]") == [d1, d2]
+	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01)] or [None]") == [d1(vsql_db), d2(vsql_db)]
 
 
 def test_datetimelist_nulllist1(vsql_db, vsql_data):

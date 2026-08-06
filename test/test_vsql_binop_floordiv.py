@@ -54,28 +54,28 @@ def test_number_number(vsql_db, vsql_data):
 
 
 def test_datedelta_bool(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta // True", where="r.identifier == 'datedelta'") == 12
+	assert vsql_db.expr("r.v_datedelta // True", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(12)
 
 
 def test_datedelta_int(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta // 5", where="r.identifier == 'datedelta'") == 2
+	assert vsql_db.expr("r.v_datedelta // 5", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(2)
 
 
 def test_monthdelta_bool(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_monthdelta // True", where="r.identifier == 'monthdelta'") == 3
+	assert vsql_db.expr("r.v_monthdelta // True", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(3)
 
 
 def test_monthdelta_int(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_monthdelta // 2", where="r.identifier == 'monthdelta'") == 1
+	assert vsql_db.expr("r.v_monthdelta // 2", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(1)
 
 
 def test_datetimedelta_bool(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta // True", where="r.identifier == 'datetimedelta'") == 1
+	assert vsql_db.expr("r.v_datetimedelta // True", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datedelta(1)
 
 
 def test_datetimedelta_int(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta // 2", where="r.identifier == 'datetimedelta'") == 0
+	assert vsql_db.expr("r.v_datetimedelta // 2", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datedelta(0)
 
 
 def test_datetimedelta_number(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta // 12.5", where="r.identifier == 'datetimedelta'") == 0
+	assert vsql_db.expr("r.v_datetimedelta // 12.5", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datedelta(0)

@@ -11,10 +11,21 @@ import datetime
 ### Tests
 ###
 
-d1 = datetime.datetime(2000, 2, 29)
-d2 = datetime.datetime(2000, 3, 1)
-d3 = datetime.datetime(2000, 3, 2)
-d4 = datetime.datetime(2000, 3, 3)
+def d1(vsql_db):
+	return vsql_db.type_for_date(2000, 2, 29)
+
+
+def d2(vsql_db):
+	return vsql_db.type_for_date(2000, 3, 1)
+
+
+def d3(vsql_db):
+	return vsql_db.type_for_date(2000, 3, 2)
+
+
+def d4(vsql_db):
+	return vsql_db.type_for_date(2000, 3, 3)
+
 
 dt1 = datetime.datetime(2000, 2, 29, 12, 34, 56)
 dt2 = datetime.datetime(2000, 3, 1, 12, 34, 56)
@@ -199,11 +210,11 @@ def test_numberlist_14(vsql_db, vsql_data):
 
 
 def test_datelist_1(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[1:3]") == [d2, d3]
+	assert vsql_db.expr(f"{date_list}[1:3]") == [d2(vsql_db), d3(vsql_db)]
 
 
 def test_datelist_2(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[-3:-1]") == [d2, d3]
+	assert vsql_db.expr(f"{date_list}[-3:-1]") == [d2(vsql_db), d3(vsql_db)]
 
 
 def test_datelist_3(vsql_db, vsql_data):
@@ -215,11 +226,11 @@ def test_datelist_4(vsql_db, vsql_data):
 
 
 def test_datelist_5(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[1:]") == [d2, d3, d4]
+	assert vsql_db.expr(f"{date_list}[1:]") == [d2(vsql_db), d3(vsql_db), d4(vsql_db)]
 
 
 def test_datelist_6(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[-3:]") == [d2, d3, d4]
+	assert vsql_db.expr(f"{date_list}[-3:]") == [d2(vsql_db), d3(vsql_db), d4(vsql_db)]
 
 
 def test_datelist_7(vsql_db, vsql_data):
@@ -227,19 +238,19 @@ def test_datelist_7(vsql_db, vsql_data):
 
 
 def test_datelist_8(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[-10:]") == [d1, d2, d3, d4]
+	assert vsql_db.expr(f"{date_list}[-10:]") == [d1(vsql_db), d2(vsql_db), d3(vsql_db), d4(vsql_db)]
 
 
 def test_datelist_9(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[:3]") == [d1, d2, d3]
+	assert vsql_db.expr(f"{date_list}[:3]") == [d1(vsql_db), d2(vsql_db), d3(vsql_db)]
 
 
 def test_datelist_10(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[:-1]") == [d1, d2, d3]
+	assert vsql_db.expr(f"{date_list}[:-1]") == [d1(vsql_db), d2(vsql_db), d3(vsql_db)]
 
 
 def test_datelist_11(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[:10]") == [d1, d2, d3, d4]
+	assert vsql_db.expr(f"{date_list}[:10]") == [d1(vsql_db), d2(vsql_db), d3(vsql_db), d4(vsql_db)]
 
 
 def test_datelist_12(vsql_db, vsql_data):
@@ -247,11 +258,11 @@ def test_datelist_12(vsql_db, vsql_data):
 
 
 def test_datelist_13(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[:]") == [d1, d2, d3, d4]
+	assert vsql_db.expr(f"{date_list}[:]") == [d1(vsql_db), d2(vsql_db), d3(vsql_db), d4(vsql_db)]
 
 
 def test_datelist_14(vsql_db, vsql_data):
-	assert vsql_db.expr(f"{date_list}[None:None]") == [d1, d2, d3, d4]
+	assert vsql_db.expr(f"{date_list}[None:None]") == [d1(vsql_db), d2(vsql_db), d3(vsql_db), d4(vsql_db)]
 
 
 def test_datetimelist_1(vsql_db, vsql_data):

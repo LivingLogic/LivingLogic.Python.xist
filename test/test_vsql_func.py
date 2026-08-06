@@ -6,13 +6,15 @@ To run the tests, :mod:`pytest` is required.
 
 import math, datetime
 
+import pytest
+
 
 ###
 ### Tests
 ###
 
 def test_today(vsql_db, vsql_data):
-	assert vsql_db.expr("today()") >= datetime.datetime(2000, 2, 29)
+	assert vsql_db.expr("today()") >= vsql_db.type_for_date(2000, 2, 29)
 
 
 def test_now(vsql_db, vsql_data):
@@ -490,11 +492,11 @@ def test_repr_datetimeset(vsql_db, vsql_data):
 
 
 def test_date_int(vsql_db, vsql_data):
-	assert vsql_db.expr("date(2000, 2, 29)") == datetime.datetime(2000, 2, 29)
+	assert vsql_db.expr("date(2000, 2, 29)") == vsql_db.type_for_date(2000, 2, 29)
 
 
 def test_date_datetime(vsql_db, vsql_data):
-	assert vsql_db.expr("date(@(2000-02-29T12:34:56))") == datetime.datetime(2000, 2, 29)
+	assert vsql_db.expr("date(@(2000-02-29T12:34:56))") == vsql_db.type_for_date(2000, 2, 29)
 
 
 def test_datetime_int3(vsql_db, vsql_data):
@@ -582,51 +584,51 @@ def test_len_datetimeset(vsql_db, vsql_data):
 
 
 def test_timedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("timedelta()") == False
+	assert vsql_db.expr("timedelta()") == vsql_db.type_for_datedelta(0)
 
 
 def test_timedelta_int1(vsql_db, vsql_data):
-	assert vsql_db.expr("timedelta(42)") == 42
+	assert vsql_db.expr("timedelta(42)") == vsql_db.type_for_datedelta(42)
 
 
 def test_timedelta_int2(vsql_db, vsql_data):
-	assert vsql_db.expr("timedelta(42, 12)") == 42 + 12/24/60/60
+	assert vsql_db.expr("timedelta(42, 12)") == vsql_db.type_for_datetimedelta(42, 12)
 
 
 def test_monthdelta(vsql_db, vsql_data):
-	assert vsql_db.expr("monthdelta()") == 0
+	assert vsql_db.expr("monthdelta()") == vsql_db.type_for_monthdelta(0)
 
 
 def test_monthdelta_int(vsql_db, vsql_data):
-	assert vsql_db.expr("monthdelta(42)") == 42
+	assert vsql_db.expr("monthdelta(42)") == vsql_db.type_for_monthdelta(42)
 
 
 def test_years(vsql_db, vsql_data):
-	assert vsql_db.expr("years(25)") == 25 * 12
+	assert vsql_db.expr("years(25)") == vsql_db.type_for_monthdelta(25 * 12)
 
 
 def test_months(vsql_db, vsql_data):
-	assert vsql_db.expr("months(3)") == 3
+	assert vsql_db.expr("months(3)") == vsql_db.type_for_monthdelta(3)
 
 
 def test_weeks(vsql_db, vsql_data):
-	assert vsql_db.expr("weeks(3)") == 3 * 7
+	assert vsql_db.expr("weeks(3)") == vsql_db.type_for_datedelta(3 * 7)
 
 
 def test_days(vsql_db, vsql_data):
-	assert vsql_db.expr("days(12)") == 12
+	assert vsql_db.expr("days(12)") == vsql_db.type_for_datedelta(12)
 
 
 def test_hours(vsql_db, vsql_data):
-	assert vsql_db.expr("hours(8)") == 8/24
+	assert vsql_db.expr("hours(8)") == vsql_db.type_for_datetimedelta(0, 8 * 60 * 60)
 
 
 def test_minutes(vsql_db, vsql_data):
-	assert vsql_db.expr("minutes(45)") == 45/24/60
+	assert vsql_db.expr("minutes(45)") == vsql_db.type_for_datetimedelta(0, 45 * 60)
 
 
 def test_seconds(vsql_db, vsql_data):
-	assert vsql_db.expr("seconds(60)") == pytest.approx(60/24/60/60)
+	assert vsql_db.expr("seconds(60)") == vsql_db.type_for_datetimedelta(0, 60)
 
 
 def test_md5(vsql_db, vsql_data):
@@ -670,7 +672,7 @@ def test_list_strlist(vsql_db, vsql_data):
 
 
 def test_list_datelist(vsql_db, vsql_data):
-	assert vsql_db.expr("list([@(2000-02-29), @(2000-03-01), None])") == [datetime.datetime(2000, 2, 29), datetime.datetime(2000, 3, 1), None]
+	assert vsql_db.expr("list([@(2000-02-29), @(2000-03-01), None])") == [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 3, 1), None]
 
 
 def test_list_datetimelist(vsql_db, vsql_data):
@@ -690,7 +692,7 @@ def test_list_strset(vsql_db, vsql_data):
 
 
 def test_list_dateset(vsql_db, vsql_data):
-	assert vsql_db.expr("list({@(2000-02-29), None})") == [datetime.datetime(2000, 2, 29), None]
+	assert vsql_db.expr("list({@(2000-02-29), None})") == [vsql_db.type_for_date(2000, 2, 29), None]
 
 
 def test_list_datetimeset(vsql_db, vsql_data):
@@ -714,7 +716,7 @@ def test_set_strlist(vsql_db, vsql_data):
 
 
 def test_set_datelist(vsql_db, vsql_data):
-	assert set(vsql_db.expr("set([@(2000-02-29), @(2000-03-01), None, @(2000-03-01), @(2000-02-29)])")) == {datetime.datetime(2000, 2, 29), datetime.datetime(2000, 3, 1), None}
+	assert set(vsql_db.expr("set([@(2000-02-29), @(2000-03-01), None, @(2000-03-01), @(2000-02-29)])")) == {vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 3, 1), None}
 
 
 def test_set_datetimelist(vsql_db, vsql_data):
@@ -734,7 +736,7 @@ def test_set_strset(vsql_db, vsql_data):
 
 
 def test_set_dateset(vsql_db, vsql_data):
-	assert set(vsql_db.expr("set({@(2000-02-29), None})")) == {datetime.datetime(2000, 2, 29), None}
+	assert set(vsql_db.expr("set({@(2000-02-29), None})")) == {vsql_db.type_for_date(2000, 2, 29), None}
 
 
 def test_set_datetimeset(vsql_db, vsql_data):

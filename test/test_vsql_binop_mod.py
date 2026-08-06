@@ -4,6 +4,8 @@ Tests for the vSQL modulo operator ``%``.
 To run the tests, :mod:`pytest` is required.
 """
 
+import pytest
+
 
 ###
 ### Tests

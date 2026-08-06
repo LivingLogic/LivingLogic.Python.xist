@@ -17,8 +17,14 @@ d2_v = "@(2000-03-01)"
 dt1_v = "@(2000-02-29T12:34:56)"
 dt2_v = "@(2000-03-01T12:34:56)"
 
-d1 = datetime.datetime(2000, 2, 29)
-d2 = datetime.datetime(2000, 3, 1)
+
+def d1(vsql_db):
+	return vsql_db.type_for_date(2000, 2, 29)
+
+
+def d2(vsql_db):
+	return vsql_db.type_for_date(2000, 3, 1)
+
 
 dt1 = datetime.datetime(2000, 2, 29, 12, 34, 56)
 dt2 = datetime.datetime(2000, 3, 1, 12, 34, 56)
@@ -102,61 +108,61 @@ def test_strlist_strlist(vsql_db, vsql_data):
 
 def test_datelist_datelist(vsql_db, vsql_data):
 	result = vsql_db.expr("[@(2000-02-29), @(2000-03-01)] + [@(2000-03-02), @(2000-03-03)]")
-	assert (
-		result == [datetime.datetime(2000, 2, 29), datetime.datetime(2000, 3, 1), datetime.datetime(2000, 3, 2), datetime.datetime(2000, 3, 3)] or
-		result == [datetime.date(2000, 2, 29), datetime.date(2000, 3, 1), datetime.date(2000, 3, 2), datetime.date(2000, 3, 3)]
-	)
+	expected = [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 3, 1), vsql_db.type_for_date(2000, 3, 2), vsql_db.type_for_date(2000, 3, 3)]
+	assert result == expected
 
 def test_datetimelist_datetimelist(vsql_db, vsql_data):
-	assert vsql_db.expr("[@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)] + [@(2000-03-02T12:34:56), @(2000-03-03T12:34:56)]") == [datetime.datetime(2000, 2, 29, 12, 34, 56), datetime.datetime(2000, 3, 1, 12, 34, 56), datetime.datetime(2000, 3, 2, 12, 34, 56), datetime.datetime(2000, 3, 3, 12, 34, 56)]
+	result = vsql_db.expr("[@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)] + [@(2000-03-02T12:34:56), @(2000-03-03T12:34:56)]")
+	expected = [vsql_db.type_for_datetime(2000, 2, 29, 12, 34, 56), vsql_db.type_for_datetime(2000, 3, 1, 12, 34, 56), vsql_db.type_for_datetime(2000, 3, 2, 12, 34, 56), vsql_db.type_for_datetime(2000, 3, 3, 12, 34, 56)]
+	assert result == expected
 
 
 def test_date_datedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_date + days(1)", where="r.identifier == 'date'") in {datetime.datetime(2000, 3, 1), datetime.date(2000, 3, 1)}
+	assert vsql_db.expr("r.v_date + days(1)", where="r.identifier == 'date'") == vsql_db.type_for_date(2000, 3, 1)
 
 
 def test_date_monthdelta(vsql_db, vsql_data):
-	assert vsql_db.expr("@(2000-01-31) + months(1)") in {datetime.datetime(2000, 2, 29), datetime.date(2000, 2, 29)}
+	assert vsql_db.expr("@(2000-01-31) + months(1)") == vsql_db.type_for_date(2000, 2, 29)
 
 
 def test_datetime_datedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetime + days(1)", where="r.identifier == 'datetime'") == datetime.datetime(2000, 3, 1, 12, 34, 56)
+	assert vsql_db.expr("r.v_datetime + days(1)", where="r.identifier == 'datetime'") == vsql_db.type_for_datetime(2000, 3, 1, 12, 34, 56)
 
 
 def test_datetime_datetimedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetime + timedelta(1, 1)", where="r.identifier == 'datetime'") == datetime.datetime(2000, 3, 1, 12, 34, 57)
+	assert vsql_db.expr("r.v_datetime + timedelta(1, 1)", where="r.identifier == 'datetime'") == vsql_db.type_for_datetime(2000, 3, 1, 12, 34, 57)
 
 
 def test_datetime_monthdelta(vsql_db, vsql_data):
-	assert vsql_db.expr("@(2000-01-31T12:34:56) + months(1)") == datetime.datetime(2000, 2, 29, 12, 34, 56)
+	assert vsql_db.expr("@(2000-01-31T12:34:56) + months(1)") == vsql_db.type_for_datetime(2000, 2, 29, 12, 34, 56)
 
 
 def test_monthdelta_date(vsql_db, vsql_data):
-	assert vsql_db.expr("months(1) + @(2000-01-31)") == datetime.datetime(2000, 2, 29)
+	assert vsql_db.expr("months(1) + @(2000-01-31)") == vsql_db.type_for_date(2000, 2, 29)
 
 
 def test_monthdelta_datetime(vsql_db, vsql_data):
-	assert vsql_db.expr("months(1) + @(2000-01-31T12:34:56)") == datetime.datetime(2000, 2, 29,12, 34, 56)
+	assert vsql_db.expr("months(1) + @(2000-01-31T12:34:56)") == vsql_db.type_for_datetime(2000, 2, 29,12, 34, 56)
 
 
 def test_datedelta_datedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta + days(12)", where="r.identifier == 'datedelta'") == 24
+	assert vsql_db.expr("r.v_datedelta + days(12)", where="r.identifier == 'datedelta'") == vsql_db.type_for_datedelta(24)
 
 
 def test_datedelta_datetimedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datedelta + timedelta(1, 1)", where="r.identifier == 'datedelta'") == 13.0 + 1/24/60/60
+	assert vsql_db.expr("r.v_datedelta + timedelta(1, 1)", where="r.identifier == 'datedelta'") == vsql_db.type_for_datetimedelta(13, 1)
 
 
 def test_datetimedelta_datedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta + days(12)", where="r.identifier == 'datetimedelta'") == 13 + 12/24 + 34/24/60 + 56/24/60/60
+	assert vsql_db.expr("r.v_datetimedelta + days(12)", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(13, (12 * 60 + 34) * 60 + 56)
 
 
 def test_datetimedelta_datetimedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta + timedelta(2, (12 * 60 + 34) * 60 + 56)", where="r.identifier == 'datetimedelta'") == 3 + 2 * (12/24 + 34/24/60 + 56/24/60/60)
+	assert vsql_db.expr("r.v_datetimedelta + timedelta(2, (12 * 60 + 34) * 60 + 56)", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(3, 2 * ((12 * 60 + 34) * 60 + 56))
 
 
 def test_monthdelta_monthdelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_monthdelta + months(9)", where="r.identifier == 'monthdelta'") == 12
+	assert vsql_db.expr("r.v_monthdelta + months(9)", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(12)
 
 
 def test_nulllist_nulllist1(vsql_db, vsql_data):
@@ -192,11 +198,11 @@ def test_nulllist_strlist2(vsql_db, vsql_data):
 
 
 def test_nulllist_datelist1(vsql_db, vsql_data):
-	assert vsql_db.expr(f"[] + [{d1_v}, None, {d2_v}]") == [d1, None, d2]
+	assert vsql_db.expr(f"[] + [{d1_v}, None, {d2_v}]") == [d1(vsql_db), None, d2(vsql_db)]
 
 
 def test_nulllist_datelist2(vsql_db, vsql_data):
-	assert vsql_db.expr(f"[None, None] + [{d1_v}, None, {d2_v}]") == [None, None, d1, None, d2]
+	assert vsql_db.expr(f"[None, None] + [{d1_v}, None, {d2_v}]") == [None, None, d1(vsql_db), None, d2(vsql_db)]
 
 
 def test_nulllist_datetimelist1(vsql_db, vsql_data):
@@ -232,11 +238,11 @@ def test_strlist_nulllist2(vsql_db, vsql_data):
 
 
 def test_datelist_nulllist1(vsql_db, vsql_data):
-	assert vsql_db.expr(f"[{d1_v}, None, {d2_v}] + []") == [d1, None, d2]
+	assert vsql_db.expr(f"[{d1_v}, None, {d2_v}] + []") == [d1(vsql_db), None, d2(vsql_db)]
 
 
 def test_datelist_nulllist2(vsql_db, vsql_data):
-	assert vsql_db.expr(f"[{d1_v}, None, {d2_v}] + [None, None]") == [d1, None, d2, None, None]
+	assert vsql_db.expr(f"[{d1_v}, None, {d2_v}] + [None, None]") == [d1(vsql_db), None, d2(vsql_db), None, None]
 
 
 def test_datetimelist_nulllist1(vsql_db, vsql_data):

@@ -76,7 +76,7 @@ def test_dateset_dateset1(vsql_db, vsql_data):
 
 
 def test_dateset_dateset2(vsql_db, vsql_data):
-	assert vsql_db.expr("{@(2000-02-29), @(2000-03-01)} & {@(2000-03-01), @(2000-03-02)}") == [datetime.datetime(2000, 3, 1)]
+	assert vsql_db.expr("{@(2000-02-29), @(2000-03-01)} & {@(2000-03-01), @(2000-03-02)}") == [vsql_db.type_for_date(2000, 3, 1)]
 
 
 def test_datetimeset_datetimeset1(vsql_db, vsql_data):
