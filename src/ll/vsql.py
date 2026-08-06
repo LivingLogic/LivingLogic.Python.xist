@@ -285,6 +285,10 @@ fields = dict(
 ### Helper functions and classes
 ###
 
+class DBType(misc.StrEnum):
+	ORACLE = "oracle"
+	POSTGRES = "postgres"
+
 
 class sqlliteral(str):
 	"""
@@ -294,9 +298,11 @@ class sqlliteral(str):
 	pass
 
 
-def sql(value:Any) -> templatelib.Template:
+def sql(value:Any, dbtype:DBType = DBType.ORACLE) -> templatelib.Template:
 	"""
 	Return an SQL expression for the Python value ``value``.
+
+	``dbtype`` specifies the SQL dialect to use.
 	"""
 	if value is None:
 		return t"null"
@@ -305,7 +311,15 @@ def sql(value:Any) -> templatelib.Template:
 	elif isinstance(value, int):
 		return templatelib.Template(str(value))
 	elif isinstance(value, datetime.datetime):
-		return templatelib.Template(f"to_date('{value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')")
+		if dbtype is DBType.ORACLE:
+			return templatelib.Template(f"to_date('{value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')")
+		else:
+			return templatelib.Template(f"timestamp '{value:%Y-%m-%d %H:%M:%S}'")
+	elif isinstance(value, datetime.date):
+		if dbtype is DBType.ORACLE:
+			return templatelib.Template(f"to_date('{value:%Y-%m-%d}', 'YYYY-MM-DD')")
+		else:
+			return templatelib.Template(f"date '{value:%Y-%m-%d}'")
 	elif isinstance(value, str):
 		if value:
 			value = value.replace("'", "''")
@@ -1008,13 +1022,10 @@ class Group(Repr):
 	def __init__(
 		self,
 		tablesql: T_sql | None = None,
-		**fields: Field
+		*fields: Field
 	):
 		self.tablesql = to_tstring(tablesql)
-		self.fields = {}
-		for (identifier, field) in fields.items():
-			field.identifier = identifier
-			self.fields[identifier] = field
+		self.fields = {field.identifier: field for field in fields}
 
 	def _ll_repr_(self) -> Generator[str, None, None]:
 		yield f"tablesql={self.tablesql!r}"
@@ -1039,12 +1050,13 @@ class Group(Repr):
 		datatype: DataType,
 		fieldsql: T_sql,
 		joinsql: T_sql | None = None,
-		refgroup: Group | None = None
+		refgroup: Group | None = None,
+		description: str | None = None
 	) -> None:
 		"""
 		Create a :class:`Field` object from the arguments and add it to the fields of the group.
 		"""
-		field = Field(identifier, datatype, fieldsql, joinsql, refgroup)
+		field = Field(identifier, datatype, fieldsql, joinsql, refgroup, description)
 		self.fields[identifier] = field
 
 	def ul4ondump(self, encoder: ul4on.Encoder) -> None:
@@ -1171,6 +1183,10 @@ class Query(Repr):
 			if self.aggregate is Aggregate.COUNT:
 				sqlsource = t"count(*)"
 			elif self.aggregate is not Aggregate.GROUP:
+				# Postgres has no ``sum()`` for its native ``boolean`` type,
+				# so a vSQL ``BOOL`` value has to be converted to a number first.
+				if self.aggregate is Aggregate.SUM and self.expr.datatype is DataType.BOOL and self.query.dbtype is DBType.POSTGRES:
+					sqlsource = t"{sqlsource:q}::int::bigint"
 				name = templatelib.Template(self.aggregate.value)
 				sqlsource = t"{name:q}({sqlsource:q})"
 			if self.alias is not None:
@@ -1205,7 +1221,12 @@ class Query(Repr):
 				self.expr = FuncAST.make("bool", self.expr)
 
 		def sqlsource(self) -> templatelib.Template:
-			return t"{super().sqlsource():q} = 1"
+			# In Oracle a vSQL ``BOOL`` value is a number, so it has to be
+			# converted into a real condition. In Postgres it already is one.
+			if self.query.dbtype is DBType.ORACLE:
+				return t"{super().sqlsource():q} = 1"
+			else:
+				return super().sqlsource()
 
 	class SQLGroupByExpr(SQLExpr):
 		context = "groupby"
@@ -1254,6 +1275,7 @@ class Query(Repr):
 			return sqlsource
 
 	comment : str | None
+	dbtype : DBType
 	vars : dict[str, Field]
 	fields : dict[TStringHasher, SQLSelectExpr | VSQLSelectExpr] # Key is the SQL source
 	aggregated_fields : dict[TStringHasher, SQLAggregatedSelectExpr | VSQLAggregatedSelectExpr] # Key is the SQL source
@@ -1265,7 +1287,7 @@ class Query(Repr):
 	_limit = int | None
 	_identifier_aliases : dict[str, str]
 
-	def __init__(self, comment: str | None = None, **vars: Field):
+	def __init__(self, comment: str | None = None, dbtype: DBType = DBType.ORACLE, **vars: Field):
 		"""
 		Create a new empty :class:`!Query` object.
 
@@ -1273,6 +1295,11 @@ class Query(Repr):
 
 		``comment`` : :class:`str` or ``None``
 			A comment that will be included in the generated SQL.
+
+		``dbtype`` : :class:`DBType`
+			The database this query will be executed in. This decides which of
+			the SQL sources of the vSQL syntax rules will be used and which SQL
+			dialect will be used for the query itself.
 
 		``vars`` : :class:`Field`
 			These are the top level variables that will be availabe for vSQL
@@ -1284,7 +1311,8 @@ class Query(Repr):
 			table, so it has a ``joinsql`` and a ``refgroup``.
 		"""
 		self.comment = comment
-		self.vars = {name: field for (name, field) in vars.items() if field is not None}
+		self.dbtype = DBType(dbtype)
+		self.vars = {identifier: field for (identifier, field) in vars.items() if field is not None}
 		self.fields = {}
 		self.aggregated_fields = {}
 		self._from = {}
@@ -1764,17 +1792,20 @@ class Query(Repr):
 			a(t"42")
 		a(None, -1)
 
-		a(t"from", None, +1)
-		first = True
-		for expr in self._from.values():
+		# Postgres doesn't have (and doesn't need) ``dual``, so for a query
+		# without any tables we drop the "from" clause completely.
+		if self._from or self.dbtype is DBType.ORACLE:
+			a(t"from", None, +1)
+			first = True
+			for expr in self._from.values():
+				if first:
+					first = False
+				else:
+					a(t",", None)
+				a(expr.sqlsource())
 			if first:
-				first = False
-			else:
-				a(t",", None)
-			a(expr.sqlsource())
-		if first:
-			a(t"dual")
-		a(None, -1)
+				a(t"dual")
+			a(None, -1)
 
 		if self._where:
 			a(t"where", None, +1)
@@ -1803,10 +1834,16 @@ class Query(Repr):
 				a(expr.sqlsource())
 			a(None, -1)
 
-		if self._offset is not None:
-			a(templatelib.Template(f"offset {self._offset} rows"), None)
-		if self._limit is not None:
-			a(templatelib.Template(f"fetch next {self._limit} rows only"), None)
+		if self.dbtype is DBType.ORACLE:
+			if self._offset is not None:
+				a(templatelib.Template(f"offset {self._offset} rows"), None)
+			if self._limit is not None:
+				a(templatelib.Template(f"fetch next {self._limit} rows only"), None)
+		else:
+			if self._limit is not None:
+				a(templatelib.Template(f"limit {self._limit}"), None)
+			if self._offset is not None:
+				a(templatelib.Template(f"offset {self._offset}"), None)
 
 		source = t""
 		first = True
@@ -1849,15 +1886,22 @@ class Rule(Repr):
 	_re_tokenize = re.compile(r"\b[A-Z_0-9]+\b")
 
 	# Mappings of vSQL datatypes to other datatypes for creating the SQL source
+	# (for each database type, since the two databases use different
+	# representations for the vSQL datatypes: Oracle stores ``BOOL`` as a number
+	# and has no separate type for ``DATE``/``DATETIME``, whereas Postgres uses
+	# the native types ``boolean``, ``date`` and ``timestamp``)
 	source_aliases = {
-		"bool":         "int",
-		"date":         "datetime",
-		"datelist":     "datetimelist",
-		"intset":       "intlist",
-		"numberset":    "numberlist",
-		"strset":       "strlist",
-		"dateset":      "datetimelist",
-		"datetimeset":  "datetimelist",
+		DBType.ORACLE: {
+			"bool":         "int",
+			"date":         "datetime",
+			"datelist":     "datetimelist",
+			"intset":       "intlist",
+			"numberset":    "numberlist",
+			"strset":       "strlist",
+			"dateset":      "datetimelist",
+			"datetimeset":  "datetimelist",
+		},
+		DBType.POSTGRES: {},
 	}
 
 	def __init__(
@@ -1865,7 +1909,7 @@ class Rule(Repr):
 		astcls: Type[AST],
 		spectemplate: templatelib.Template,
 		spec: tuple[DataType | str, ...],
-		source: templatelib.Template,
+		**sources: templatelib.Template,
 	):
 		"""
 		Create a :class:`!Rule` instance.
@@ -1900,10 +1944,11 @@ class Rule(Repr):
 			- ``"find"`` is the name of the method;
 			- ``DataType.STR`` is the type of the argument.
 
-		``source``
-			The t-string specifying the SQL source code that should be generated
-			for this operation (see :meth:`AST.add_rules` for the supported
-			interpolations).
+		``sources``
+			One t-string for each database type, specifying the SQL source code
+			that should be generated for this operation in that database. The
+			argument name is the value of the appropriate :class:`DBType` member
+			(see :meth:`AST.add_rules` for the supported interpolations).
 		"""
 
 		# What we need is:
@@ -1916,7 +1961,9 @@ class Rule(Repr):
 		self.name = misc.first(p for p in spec if isinstance(p, str))
 		self.key = spec[1:]
 		self.signature = tuple(p for p in spec if isinstance(p, DataType))[1:]
-		self.source = self._make_source(self.signature, source)
+		self.source = {
+			DBType(dbtype): self._make_source(DBType(dbtype), self.signature, source) for (dbtype, source) in sources.items()
+		}
 		self.vsqlsource = self._make_vsqlsource(self.signature, spectemplate)
 
 	def _key(self) -> str:
@@ -1962,7 +2009,8 @@ class Rule(Repr):
 		p.pretty(self.str_vsqlsource())
 
 	@classmethod
-	def _make_source(cls, signature:tuple[DataType, ...], source:templatelib.Template) -> tuple[int | str, ...]:
+	def _make_source(cls, dbtype:DBType, signature:tuple[DataType, ...], source:templatelib.Template) -> tuple[int | str, ...]:
+		aliases = cls.source_aliases[dbtype]
 		final_source = []
 
 		def append(text):
@@ -1980,7 +2028,7 @@ class Rule(Repr):
 					append(pos)
 				else:
 					type = signature[pos-1].name.lower()
-					type = cls.source_aliases.get(type, type)
+					type = aliases.get(type, type)
 					append(type)
 		return tuple(final_source)
 
@@ -2025,9 +2073,14 @@ class Rule(Repr):
 			for p in self.key
 		)
 
-		source = ", ".join(misc.javaexpr(s) for s in self.source)
+		# The Java implementation has to support all databases, so we pass the
+		# SQL source for each of them.
+		sources = ", ".join(
+			f"VSQLDBType.{dbtype.name}, List.of({', '.join(misc.javaexpr(s) for s in source)})"
+			for (dbtype, source) in self.source.items()
+		)
 
-		return f"addRule(rules, VSQLDataType.{self.result.name}, List.of({key}), List.of({source}));"
+		return f"addRule(rules, VSQLDataType.{self.result.name}, List.of({key}), Map.of({sources}));"
 
 	def oracle_fields(self) -> dict[str, int | str | sqlliteral]:
 		fields = {}
@@ -2041,7 +2094,7 @@ class Rule(Repr):
 		wantlit = True
 		index = 1
 
-		for part in self.source:
+		for part in self.source[DBType.ORACLE]:
 			if wantlit:
 				if isinstance(part, int):
 					index += 1 # skip this field
@@ -2066,7 +2119,9 @@ class Rule(Repr):
 		fieldnames = []
 		fieldvalues = []
 		for (fieldname, fieldvalue) in self.oracle_fields().items():
-			fieldvalue = sql(fieldvalue)
+			# ``sql()`` returns a t-string without any interpolations,
+			# so we can simply concatenate its literal parts.
+			fieldvalue = "".join(sql(fieldvalue, DBType.ORACLE).strings)
 			if fieldvalue != "null":
 				fieldnames.append(fieldname)
 				fieldvalues.append(fieldvalue)
@@ -2392,15 +2447,15 @@ class AST(Repr):
 			yield tuple(newspec)
 
 	@classmethod
-	def add_rules(cls, spectemplate: templatelib.Template, source: templatelib.Template) -> None:
+	def add_rules(cls, spectemplate: templatelib.Template, **sources: templatelib.Template) -> None:
 		"""
 		Register new syntax rules for this AST class.
 
 		These rules are used for type checking and type inference and for
 		converting the vSQL AST into SQL source code.
 
-		Both arguments are template strings (t-strings). The arguments
-		``spectemplate`` and ``source`` have the following meaning:
+		All arguments are template strings (t-strings). The arguments
+		``spectemplate`` and ``sources`` have the following meaning:
 
 		``spectemplate``
 			``spectemplate`` specifies the allowed combinations of operand types and
@@ -2468,18 +2523,31 @@ class AST(Repr):
 			``t"{dt.NUMBER} <- {dt.BOOL} + {dt.BOOL}"`` since the first call already
 			registered a rule for the signature ``BOOL BOOL``.
 
-		``source``
-			``source`` specifies the SQL source that will be generated for this
-			expression. Two types of interpolations are supported: ``{'s1'}`` means
+		``sources``
+			Each keyword argument specifies the SQL source that will be generated
+			for this expression in one of the supported databases. The argument
+			name is the value of the appropriate :class:`DBType` member (i.e.
+			``oracle`` or ``postgres``), so a rule normally passes both an
+			``oracle`` and a ``postgres`` source.
+
+			Two types of interpolations are supported: ``{'s1'}`` means
 			"embed the source code of the first operand in this spot" (and ``{'s2'}``
 			etc. accordingly) and ``{'t1'}`` embeds the type name (in lowercase) in
 			this spot (and ``{'t2'}`` etc. accordingly).
+
+			Note that the type name embedded by ``{'t1'}`` depends on the database,
+			since both databases use different representations for the vSQL
+			datatypes (see :attr:`Rule.source_aliases`). For example for a ``BOOL``
+			operand ``{'t1'}`` embeds ``int`` for Oracle (where a vSQL ``BOOL``
+			value is stored as the number 0 or 1), but ``bool`` for Postgres
+			(which uses its native ``boolean`` type).
 
 			Example 1::
 
 				AttrAST.add_rules(
 					t"{dt.INT} <- {dt.DATE}.{'year'}",
-					t"extract(year from {'s1'})"
+					oracle=t"extract(year from {'s1'})",
+					postgres=t"extract(year from {'s1'})::bigint"
 				)
 
 			This specifies that a ``DATE`` value has an attribute ``year`` and that
@@ -2489,15 +2557,25 @@ class AST(Repr):
 
 				extract(year from value)
 
+			for Oracle and
+
+			.. sourcecode:: sql
+
+				extract(year from value)::bigint
+
+			for Postgres.
+
 			Example 2::
 
 				EQAST.add_rules(
 					t"{dt.BOOL} <- {(dt.STR, dt.CLOB)} == {(dt.STR, dt.CLOB)}",
-					t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})"
+					oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})",
+					postgres=t"({'s1'} is not distinct from {'s2'})"
 				)
 
 			This registers four rules for equality comparison between ``STR`` and
-			``CLOB`` objects. The generated SQL source code for comparisons will be
+			``CLOB`` objects. The generated Oracle source code for comparisons will
+			be
 
 			.. sourcecode:: sql
 
@@ -2521,7 +2599,12 @@ class AST(Repr):
 
 				vsqlimpl_pkg.eq_clob_clob(value1, value2)
 
-			depending on the types of the arguments.
+			depending on the types of the arguments. Since both types are stored as
+			text in Postgres, all four rules generate the same Postgres source code
+
+			.. sourcecode:: sql
+
+				(value1 is not distinct from value2)
 		"""
 
 		for spec in cls._specs(spectemplate):
@@ -2529,7 +2612,7 @@ class AST(Repr):
 			if cls.rules is None:
 				cls.rules = {}
 			if key not in cls.rules:
-				cls._add_rule(Rule(cls, spectemplate, spec, source))
+				cls._add_rule(Rule(cls, spectemplate, spec, **sources))
 
 	def validate(self) -> None:
 		"""
@@ -2779,7 +2862,10 @@ class BoolAST(_ConstWithValueAST):
 		return cls(value, "True" if value else "False")
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		return t"1" if self.value else t"0"
+		if query.dbtype is DBType.ORACLE:
+			return t"1" if self.value else t"0"
+		else:
+			return t"true" if self.value else t"false"
 
 	@property
 	def nodevalue(self) -> str:
@@ -2888,7 +2974,10 @@ class DateAST(_ConstWithValueAST):
 	datatype = DataType.DATE
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		s = f"to_date('{self.value:%Y-%m-%d}', 'YYYY-MM-DD')"
+		if query.dbtype is DBType.ORACLE:
+			s = f"to_date('{self.value:%Y-%m-%d}', 'YYYY-MM-DD')"
+		else:
+			s = f"date '{self.value:%Y-%m-%d}'"
 		return t"{s:q}"
 
 	@property
@@ -2912,7 +3001,10 @@ class DateTimeAST(_ConstWithValueAST):
 		return cls(value, ul4c._repr(value))
 
 	def _sqlsource(self, query:Query) -> templatelib.Template:
-		s = f"to_date('{self.value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')";
+		if query.dbtype is DBType.ORACLE:
+			s = f"to_date('{self.value:%Y-%m-%d %H:%M:%S}', 'YYYY-MM-DD HH24:MI:SS')"
+		else:
+			s = f"timestamp '{self.value:%Y-%m-%d %H:%M:%S}'"
 		return t"{s:q}"
 
 	@property
@@ -2947,7 +3039,7 @@ class _SeqAST(AST):
 		if self.datatype is self.nulltype:
 			return t"{self.nodevalue:q}"
 		else:
-			(prefix, suffix) = self.sqltypes[self.datatype]
+			(prefix, suffix) = self.sqltypes[query.dbtype][self.datatype]
 			result = t"{prefix:q}"
 			for (i, item) in enumerate(self.items):
 				if i:
@@ -2993,12 +3085,22 @@ class ListAST(_SeqAST):
 	precedence = 20
 
 	sqltypes = {
-		DataType.INTLIST: ("integers(", ")"),
-		DataType.NUMBERLIST: ("numbers(", ")"),
-		DataType.STRLIST: ("varchars(", ")"),
-		DataType.CLOBLIST: ("clobs(", ")"),
-		DataType.DATELIST: ("dates(", ")"),
-		DataType.DATETIMELIST: ("dates(", ")"),
+		DBType.ORACLE: {
+			DataType.INTLIST: ("integers(", ")"),
+			DataType.NUMBERLIST: ("numbers(", ")"),
+			DataType.STRLIST: ("varchars(", ")"),
+			DataType.CLOBLIST: ("clobs(", ")"),
+			DataType.DATELIST: ("dates(", ")"),
+			DataType.DATETIMELIST: ("dates(", ")"),
+		},
+		DBType.POSTGRES: {
+			DataType.INTLIST: ("array[", "]::bigint[]"),
+			DataType.NUMBERLIST: ("array[", "]::numeric[]"),
+			DataType.STRLIST: ("array[", "]::text[]"),
+			DataType.CLOBLIST: ("array[", "]::text[]"),
+			DataType.DATELIST: ("array[", "]::date[]"),
+			DataType.DATETIMELIST: ("array[", "]::timestamp[]"),
+		},
 	}
 
 	def __init__(self, *content:AST | str):
@@ -3065,11 +3167,20 @@ class SetAST(_SeqAST):
 	precedence = 20
 
 	sqltypes = {
-		DataType.INTSET: ("vsqlimpl_pkg.set_intlist(integers(", "))"),
-		DataType.NUMBERSET: ("vsqlimpl_pkg.set_numberlist(numbers(", "))"),
-		DataType.STRSET: ("vsqlimpl_pkg.set_strlist(varchars(", "))"),
-		DataType.DATESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
-		DataType.DATETIMESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
+		DBType.ORACLE: {
+			DataType.INTSET: ("vsqlimpl_pkg.set_intlist(integers(", "))"),
+			DataType.NUMBERSET: ("vsqlimpl_pkg.set_numberlist(numbers(", "))"),
+			DataType.STRSET: ("vsqlimpl_pkg.set_strlist(varchars(", "))"),
+			DataType.DATESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
+			DataType.DATETIMESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
+		},
+		DBType.POSTGRES: {
+			DataType.INTSET: ("vsqlimpl.set_intlist(array[", "]::bigint[])"),
+			DataType.NUMBERSET: ("vsqlimpl.set_numberlist(array[", "]::numeric[])"),
+			DataType.STRSET: ("vsqlimpl.set_strlist(array[", "]::text[])"),
+			DataType.DATESET: ("vsqlimpl.set_datelist(array[", "]::date[])"),
+			DataType.DATETIMESET: ("vsqlimpl.set_datetimelist(array[", "]::timestamp[])"),
+		},
 	}
 
 	def __init__(self, *content:AST | str):
@@ -3193,7 +3304,8 @@ class FieldRefAST(AST):
 		full_identifier = self.full_identifier
 		if full_identifier.startswith("params."):
 			# If the innermost field is "params" we need special treatment
-			s = f"livingapi_pkg.reqparam_{self.parent.identifier}('{self.identifier}') /* {self.source()} */"
+			package = "livingapi_pkg." if query.dbtype is DBType.ORACLE else "livingapi."
+			s = f"{package}reqparam_{self.parent.identifier}('{self.identifier}') /* {self.source()} */"
 			return t"{s:q}"
 		elif alias is None:
 			return t"{self.field.fieldsql:q} {format_comment(self.source()):q}"
@@ -3312,7 +3424,7 @@ class BinaryAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.obj1.datatype, self.obj2.datatype)]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if child == 1:
 				result += self.obj1._sqlsource(query)
 			elif child == 2:
@@ -3690,7 +3802,7 @@ class UnaryAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.obj.datatype, )]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if child == 1:
 				result += self.obj._sqlsource(query)
 			else:
@@ -3811,7 +3923,7 @@ class IfAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.objif.datatype, self.objcond.datatype, self.objelse.datatype)]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if child == 1:
 				result += self.objif._sqlsource(query)
 			elif child == 2:
@@ -3918,7 +4030,7 @@ class SliceAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.obj.datatype, self.index1.datatype, self.index2.datatype)]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if child == 1:
 				result += self.obj._sqlsource(query)
 			elif child == 2:
@@ -4004,7 +4116,7 @@ class AttrAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.obj.datatype, self.attrname)]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if child == 1:
 				result += self.obj._sqlsource(query)
 			else:
@@ -4074,7 +4186,7 @@ class FuncAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.name,) + tuple(c.datatype for c in self.args)]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if isinstance(child, int):
 				result += self.args[child-1]._sqlsource(query)
 			else:
@@ -4170,7 +4282,7 @@ class MethAST(AST):
 	def _sqlsource(self, query:Query) -> templatelib.Template:
 		rule = self.rules[(self.obj.datatype, self.name) + tuple(c.datatype for c in self.args)]
 		result = t""
-		for child in rule.source:
+		for child in rule.source[query.dbtype]:
 			if isinstance(child, int):
 				if child == 1:
 					result += self.obj._sqlsource(query)
@@ -4298,653 +4410,743 @@ ANY = (dt.NULL, dt.BOOL, dt.INT, dt.NUMBER, dt.COLOR, dt.GEO, dt.DATE, dt.DATETI
 
 # Field references and constants (will not be used for generating source,
 # but for checking that the node type is valid and that they have no child nodes)
-FieldRefAST.add_rules(t"{dt.NULL}", t"")
-NoneAST.add_rules(t"{dt.NULL}", t"")
-BoolAST.add_rules(t"{dt.BOOL}", t"")
-IntAST.add_rules(t"{dt.INT}", t"")
-NumberAST.add_rules(t"{dt.NUMBER}", t"")
-StrAST.add_rules(t"{dt.STR}", t"")
-CLOBAST.add_rules(t"{dt.CLOB}", t"")
-ColorAST.add_rules(t"{dt.COLOR}", t"")
-DateAST.add_rules(t"{dt.DATE}", t"")
-DateTimeAST.add_rules(t"{dt.DATETIME}", t"")
+FieldRefAST.add_rules(t"{dt.NULL}", oracle=t"", postgres=t"")
+NoneAST.add_rules(t"{dt.NULL}", oracle=t"", postgres=t"")
+BoolAST.add_rules(t"{dt.BOOL}", oracle=t"", postgres=t"")
+IntAST.add_rules(t"{dt.INT}", oracle=t"", postgres=t"")
+NumberAST.add_rules(t"{dt.NUMBER}", oracle=t"", postgres=t"")
+StrAST.add_rules(t"{dt.STR}", oracle=t"", postgres=t"")
+CLOBAST.add_rules(t"{dt.CLOB}", oracle=t"", postgres=t"")
+ColorAST.add_rules(t"{dt.COLOR}", oracle=t"", postgres=t"")
+DateAST.add_rules(t"{dt.DATE}", oracle=t"", postgres=t"")
+DateTimeAST.add_rules(t"{dt.DATETIME}", oracle=t"", postgres=t"")
 
 # Function ``today()``
-FuncAST.add_rules(t"{dt.DATE} <- {'today'}()", t"trunc(sysdate)")
+FuncAST.add_rules(t"{dt.DATE} <- {'today'}()", oracle=t"trunc(sysdate)", postgres=t"current_date")
 
 # Function ``now()``
-FuncAST.add_rules(t"{dt.DATETIME} <- {'now'}()", t"sysdate")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'now'}()", oracle=t"sysdate", postgres=t"localtimestamp")
 
 # Function ``bool()``
-FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}()", t"0")
-FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({dt.NULL})", t"0")
-FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({dt.BOOL})", t"nvl({'s1'}, 0)")
-FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({(dt.INT, dt.NUMBER, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA, dt.NULLLIST, dt.NULLSET)})", t"(case when nvl({'s1'}, 0) = 0 then 0 else 1 end)")
-FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({(dt.DATE, dt.DATETIME, dt.STR, dt.COLOR, dt.GEO)})", t"(case when {'s1'} is null then 0 else 1 end)")
-FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({ANY})", t"vsqlimpl_pkg.bool_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}()", oracle=t"0", postgres=t"false")
+FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({dt.NULL})", oracle=t"0", postgres=t"false")
+FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({dt.BOOL})", oracle=t"nvl({'s1'}, 0)", postgres=t"coalesce({'s1'}, false)")
+FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({(dt.INT, dt.NUMBER, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA, dt.NULLLIST, dt.NULLSET)})", oracle=t"(case when nvl({'s1'}, 0) = 0 then 0 else 1 end)", postgres=t"(coalesce({'s1'}, '0') <> '0')")
+FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({(dt.DATE, dt.DATETIME, dt.STR, dt.COLOR, dt.GEO)})", oracle=t"(case when {'s1'} is null then 0 else 1 end)", postgres=t"vsqlimpl.bool_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.BOOL} <- {'bool'}({ANY})", oracle=t"vsqlimpl_pkg.bool_{'t1'}({'s1'})", postgres=t"vsqlimpl.bool_{'t1'}({'s1'})")
 
 # Function ``int()``
-FuncAST.add_rules(t"{dt.INT} <- {'int'}()", t"0")
-FuncAST.add_rules(t"{dt.INT} <- {'int'}({INTLIKE})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.INT} <- {'int'}({(dt.NUMBER, dt.STR, dt.CLOB)})", t"vsqlimpl_pkg.int_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.INT} <- {'int'}()", oracle=t"0", postgres=t"0")
+FuncAST.add_rules(t"{dt.INT} <- {'int'}({dt.BOOL})", oracle=t"{'s1'}", postgres=t"{'s1'}::int::bigint")
+FuncAST.add_rules(t"{dt.INT} <- {'int'}({dt.INT})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.INT} <- {'int'}({dt.NUMBER})", oracle=t"vsqlimpl_pkg.int_number({'s1'})", postgres=t"trunc({'s1'})::bigint")
+FuncAST.add_rules(t"{dt.INT} <- {'int'}({TEXT})", oracle=t"vsqlimpl_pkg.int_{'t1'}({'s1'})", postgres=t"vsqlimpl.int_{'t1'}({'s1'})")
 
 # Function ``float()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'float'}()", t"0.0")
-FuncAST.add_rules(t"{dt.NUMBER} <- {'float'}({NUMBERLIKE})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.NUMBER} <- {'float'}({TEXT})", t"vsqlimpl_pkg.float_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'float'}()", oracle=t"0.0", postgres=t"0.0")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'float'}({NUMBERLIKE})", oracle=t"{'s1'}", postgres=t"vsqlimpl.number_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'float'}({TEXT})", oracle=t"vsqlimpl_pkg.float_{'t1'}({'s1'})", postgres=t"vsqlimpl.number_{'t1'}({'s1'})")
 
 # Function ``geo()``
-FuncAST.add_rules(t"{dt.GEO} <- {'geo'}({NUMBERLIKE}, {NUMBERLIKE})", t"vsqlimpl_pkg.geo_number_number_str({'s1'}, {'s2'}, null)")
-FuncAST.add_rules(t"{dt.GEO} <- {'geo'}({NUMBERLIKE}, {NUMBERLIKE}, {dt.STR})", t"vsqlimpl_pkg.geo_number_number_str({'s1'}, {'s2'}, {'s3'})")
+FuncAST.add_rules(t"{dt.GEO} <- {'geo'}({NUMBERLIKE}, {NUMBERLIKE})", oracle=t"vsqlimpl_pkg.geo_number_number_str({'s1'}, {'s2'}, null)", postgres=t"vsqlimpl.geo_number_number_str(vsqlimpl.number_{'t1'}({'s1'}), vsqlimpl.number_{'t2'}({'s2'}), null)")
+FuncAST.add_rules(t"{dt.GEO} <- {'geo'}({NUMBERLIKE}, {NUMBERLIKE}, {dt.STR})", oracle=t"vsqlimpl_pkg.geo_number_number_str({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.geo_number_number_str(vsqlimpl.number_{'t1'}({'s1'}), vsqlimpl.number_{'t2'}({'s2'}), {'s3'})")
 
 # Function ``str()``
-FuncAST.add_rules(t"{dt.STR} <- {'str'}()", t"null")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NULL})", t"null")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.STR})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.CLOB} <- {'str'}({dt.CLOB})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.BOOL})", t"(case {'s1'} when 0 then 'False' when null then 'None' else 'True' end)")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.INT})", t"to_char({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NUMBER})", t"vsqlimpl_pkg.str_number({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.GEO})", t"vsqlimpl_pkg.repr_geo({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATE})", t"to_char({'s1'}, 'YYYY-MM-DD')")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATETIME})", t"to_char({'s1'}, 'YYYY-MM-DD HH24:MI:SS')")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NULLLIST})", t"vsqlimpl_pkg.repr_nulllist({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATELIST})", t"vsqlimpl_pkg.repr_datelist({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({LIST})", t"vsqlimpl_pkg.repr_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NULLSET})", t"vsqlimpl_pkg.repr_nullset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.INTSET})", t"vsqlimpl_pkg.repr_intset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NUMBERSET})", t"vsqlimpl_pkg.repr_numberset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.STRSET})", t"vsqlimpl_pkg.repr_strset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATESET})", t"vsqlimpl_pkg.repr_dateset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATETIMESET})", t"vsqlimpl_pkg.repr_datetimeset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'str'}({ANY})", t"vsqlimpl_pkg.str_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}()", oracle=t"null", postgres=t"null")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NULL})", oracle=t"null", postgres=t"null")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.STR})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.CLOB} <- {'str'}({dt.CLOB})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.BOOL})", oracle=t"(case {'s1'} when 0 then 'False' when null then 'None' else 'True' end)", postgres=t"(case {'s1'} when false then 'False' when null then 'None' else 'True' end)")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.INT})", oracle=t"to_char({'s1'})", postgres=t"{'s1'}::text")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NUMBER})", oracle=t"vsqlimpl_pkg.str_number({'s1'})", postgres=t"vsqlimpl.str_number({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.GEO})", oracle=t"vsqlimpl_pkg.repr_geo({'s1'})", postgres=t"vsqlimpl.repr_geo({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATE})", oracle=t"to_char({'s1'}, 'YYYY-MM-DD')", postgres=t"to_char({'s1'}, 'YYYY-MM-DD')")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATETIME})", oracle=t"to_char({'s1'}, 'YYYY-MM-DD HH24:MI:SS')", postgres=t"to_char({'s1'}, 'YYYY-MM-DD HH24:MI:SS')")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NULLLIST})", oracle=t"vsqlimpl_pkg.repr_nulllist({'s1'})", postgres=t"vsqlimpl.repr_nulllist({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATELIST})", oracle=t"vsqlimpl_pkg.repr_datelist({'s1'})", postgres=t"vsqlimpl.repr_datelist({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({LIST})", oracle=t"vsqlimpl_pkg.repr_{'t1'}({'s1'})", postgres=t"vsqlimpl.repr_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NULLSET})", oracle=t"vsqlimpl_pkg.repr_nullset({'s1'})", postgres=t"vsqlimpl.repr_nullset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.INTSET})", oracle=t"vsqlimpl_pkg.repr_intset({'s1'})", postgres=t"vsqlimpl.repr_intset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.NUMBERSET})", oracle=t"vsqlimpl_pkg.repr_numberset({'s1'})", postgres=t"vsqlimpl.repr_numberset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.STRSET})", oracle=t"vsqlimpl_pkg.repr_strset({'s1'})", postgres=t"vsqlimpl.repr_strset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATESET})", oracle=t"vsqlimpl_pkg.repr_dateset({'s1'})", postgres=t"vsqlimpl.repr_dateset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({dt.DATETIMESET})", oracle=t"vsqlimpl_pkg.repr_datetimeset({'s1'})", postgres=t"vsqlimpl.repr_datetimeset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'str'}({ANY})", oracle=t"vsqlimpl_pkg.str_{'t1'}({'s1'})", postgres=t"vsqlimpl.str_{'t1'}({'s1'})")
 
 # Function ``repr()``
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.NULL})", t"'None'")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.BOOL})", t"(case {'s1'} when 0 then 'False' when null then 'None' else 'True' end)")
-FuncAST.add_rules(t"{dt.CLOB} <- {'repr'}({[dt.CLOB, dt.CLOBLIST]})", t"vsqlimpl_pkg.repr_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATE})", t"vsqlimpl_pkg.repr_date({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATELIST})", t"vsqlimpl_pkg.repr_datelist({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.NULLSET})", t"vsqlimpl_pkg.repr_nullset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.INTSET})", t"vsqlimpl_pkg.repr_intset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.NUMBERSET})", t"vsqlimpl_pkg.repr_numberset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.STRSET})", t"vsqlimpl_pkg.repr_strset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATESET})", t"vsqlimpl_pkg.repr_dateset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATETIMESET})", t"vsqlimpl_pkg.repr_datetimeset({'s1'})")
-FuncAST.add_rules(t"{dt.STR} <- {'repr'}({ANY})", t"vsqlimpl_pkg.repr_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.NULL})", oracle=t"'None'", postgres=t"'None'")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.BOOL})", oracle=t"(case {'s1'} when 0 then 'False' when null then 'None' else 'True' end)", postgres=t"(case {'s1'} when false then 'False' when null then 'None' else 'True' end)")
+FuncAST.add_rules(t"{dt.CLOB} <- {'repr'}({[dt.CLOB, dt.CLOBLIST]})", oracle=t"vsqlimpl_pkg.repr_{'t1'}({'s1'})", postgres=t"vsqlimpl.repr_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATE})", oracle=t"vsqlimpl_pkg.repr_date({'s1'})", postgres=t"vsqlimpl.repr_date({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATELIST})", oracle=t"vsqlimpl_pkg.repr_datelist({'s1'})", postgres=t"vsqlimpl.repr_datelist({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.NULLSET})", oracle=t"vsqlimpl_pkg.repr_nullset({'s1'})", postgres=t"vsqlimpl.repr_nullset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.INTSET})", oracle=t"vsqlimpl_pkg.repr_intset({'s1'})", postgres=t"vsqlimpl.repr_intset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.NUMBERSET})", oracle=t"vsqlimpl_pkg.repr_numberset({'s1'})", postgres=t"vsqlimpl.repr_numberset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.STRSET})", oracle=t"vsqlimpl_pkg.repr_strset({'s1'})", postgres=t"vsqlimpl.repr_strset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATESET})", oracle=t"vsqlimpl_pkg.repr_dateset({'s1'})", postgres=t"vsqlimpl.repr_dateset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({dt.DATETIMESET})", oracle=t"vsqlimpl_pkg.repr_datetimeset({'s1'})", postgres=t"vsqlimpl.repr_datetimeset({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'repr'}({ANY})", oracle=t"vsqlimpl_pkg.repr_{'t1'}({'s1'})", postgres=t"vsqlimpl.repr_{'t1'}({'s1'})")
 
 # Function ``date()``
-FuncAST.add_rules(t"{dt.DATE} <- {'date'}({dt.INT}, {dt.INT}, {dt.INT})", t"vsqlimpl_pkg.date_int({'s1'}, {'s2'}, {'s3'})")
-FuncAST.add_rules(t"{dt.DATE} <- {'date'}({dt.DATETIME})", t"trunc({'s1'})")
+FuncAST.add_rules(t"{dt.DATE} <- {'date'}({dt.INT}, {dt.INT}, {dt.INT})", oracle=t"vsqlimpl_pkg.date_int({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.date_int({'s1'}, {'s2'}, {'s3'})")
+FuncAST.add_rules(t"{dt.DATE} <- {'date'}({dt.DATETIME})", oracle=t"trunc({'s1'})", postgres=t"{'s1'}::date")
 
 # Function ``datetime()``
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT})", t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'})")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT}, {dt.INT})", t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'})")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT}, {dt.INT}, {dt.INT})", t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'}, {'s5'})")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT}, {dt.INT}, {dt.INT}, {dt.INT})", t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'}, {'s5'}, {'s6'})")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE}, {dt.INT})", t"({'s1'} + {'s2'}/24)")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE}, {dt.INT}, {dt.INT})", t"({'s1'} + {'s2'}/24 + {'s3'}/24/60)")
-FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE}, {dt.INT}, {dt.INT}, {dt.INT})", t"({'s1'} + {'s2'}/24 + {'s3'}/24/60 + {'s4'}/24/60/60)")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT})", oracle=t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.datetime_int({'s1'}, {'s2'}, {'s3'})")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT}, {dt.INT})", oracle=t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'})", postgres=t"vsqlimpl.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'})")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT}, {dt.INT}, {dt.INT})", oracle=t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'}, {'s5'})", postgres=t"vsqlimpl.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'}, {'s5'})")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.INT}, {dt.INT}, {dt.INT}, {dt.INT}, {dt.INT}, {dt.INT})", oracle=t"vsqlimpl_pkg.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'}, {'s5'}, {'s6'})", postgres=t"vsqlimpl.datetime_int({'s1'}, {'s2'}, {'s3'}, {'s4'}, {'s5'}, {'s6'})")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE})", oracle=t"{'s1'}", postgres=t"{'s1'}::timestamp")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE}, {dt.INT})", oracle=t"({'s1'} + {'s2'}/24)", postgres=t"({'s1'} + {'s2'} * interval '1 hour')")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE}, {dt.INT}, {dt.INT})", oracle=t"({'s1'} + {'s2'}/24 + {'s3'}/24/60)", postgres=t"({'s1'} + {'s2'} * interval '1 hour' + {'s3'} * interval '1 minute')")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'datetime'}({dt.DATE}, {dt.INT}, {dt.INT}, {dt.INT})", oracle=t"({'s1'} + {'s2'}/24 + {'s3'}/24/60 + {'s4'}/24/60/60)", postgres=t"({'s1'} + {'s2'} * interval '1 hour' + {'s3'} * interval '1 minute' + {'s4'} * interval '1 second')")
 
 # Function ``len()``
-FuncAST.add_rules(t"{dt.INT} <- {'len'}({TEXT})", t"nvl(length({'s1'}), 0)")
-FuncAST.add_rules(t"{dt.INT} <- {'len'}({dt.NULLLIST})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.INT} <- {'len'}({LIST})", t"vsqlimpl_pkg.len_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.INT} <- {'len'}({dt.NULLSET})", t"case when {'s1'} > 0 then 1 else {'s1'} end")
-FuncAST.add_rules(t"{dt.INT} <- {'len'}({SET})", t"vsqlimpl_pkg.len_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.INT} <- {'len'}({TEXT})", oracle=t"nvl(length({'s1'}), 0)", postgres=t"coalesce(length({'s1'}), 0)::bigint")
+FuncAST.add_rules(t"{dt.INT} <- {'len'}({dt.NULLLIST})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.INT} <- {'len'}({LIST})", oracle=t"vsqlimpl_pkg.len_{'t1'}({'s1'})", postgres=t"coalesce(cardinality({'s1'}), 0)::bigint")
+FuncAST.add_rules(t"{dt.INT} <- {'len'}({dt.NULLSET})", oracle=t"case when {'s1'} > 0 then 1 else {'s1'} end", postgres=t"case when {'s1'} > 0 then 1 else {'s1'} end")
+FuncAST.add_rules(t"{dt.INT} <- {'len'}({SET})", oracle=t"vsqlimpl_pkg.len_{'t1'}({'s1'})", postgres=t"coalesce(cardinality({'s1'}), 0)::bigint")
 
 # Function ``timedelta()``
-FuncAST.add_rules(t"{dt.DATEDELTA} <- {'timedelta'}()", t"0")
-FuncAST.add_rules(t"{dt.DATEDELTA} <- {'timedelta'}({dt.INT})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'timedelta'}({dt.INT}, {dt.INT})", t"({'s1'} + {'s2'}/86400)")
+FuncAST.add_rules(t"{dt.DATEDELTA} <- {'timedelta'}()", oracle=t"0", postgres=t"interval '0'")
+FuncAST.add_rules(t"{dt.DATEDELTA} <- {'timedelta'}({dt.INT})", oracle=t"{'s1'}", postgres=t"({'s1'} * interval '1 day')")
+FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'timedelta'}({dt.INT}, {dt.INT})", oracle=t"({'s1'} + {'s2'}/86400)", postgres=t"({'s1'} * interval '1 day' + {'s2'} * interval '1 second')")
 
 # Function ``monthdelta()``
-FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'monthdelta'}()", t"0")
-FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'monthdelta'}({dt.INT})", t"{'s1'}")
+FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'monthdelta'}()", oracle=t"0", postgres=t"interval '0'")
+FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'monthdelta'}({dt.INT})", oracle=t"{'s1'}", postgres=t"({'s1'} * interval '1 month')")
 
 # Function ``years()``
-FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'years'}({dt.INT})", t"(12 * {'s1'})")
+FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'years'}({dt.INT})", oracle=t"(12 * {'s1'})", postgres=t"({'s1'} * interval '1 year')")
 
 # Function ``months()``
-FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'months'}({dt.INT})", t"{'s1'}")
+FuncAST.add_rules(t"{dt.MONTHDELTA} <- {'months'}({dt.INT})", oracle=t"{'s1'}", postgres=t"({'s1'} * interval '1 month')")
 
 # Function ``weeks()``
-FuncAST.add_rules(t"{dt.DATEDELTA} <- {'weeks'}({dt.INT})", t"(7 * {'s1'})")
+FuncAST.add_rules(t"{dt.DATEDELTA} <- {'weeks'}({dt.INT})", oracle=t"(7 * {'s1'})", postgres=t"({'s1'} * interval '7 days')")
 
 # Function ``days()``
-FuncAST.add_rules(t"{dt.DATEDELTA} <- {'days'}({dt.INT})", t"{'s1'}")
+FuncAST.add_rules(t"{dt.DATEDELTA} <- {'days'}({dt.INT})", oracle=t"{'s1'}", postgres=t"({'s1'} * interval '1 day')")
 
 # Function ``hours()``
-FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'hours'}({dt.INT})", t"({'s1'} / 24)")
+FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'hours'}({dt.INT})", oracle=t"({'s1'} / 24)", postgres=t"({'s1'} * interval '1 hour')")
 
 # Function ``minutes()``
-FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'minutes'}({dt.INT})", t"({'s1'} / 1440)")
+FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'minutes'}({dt.INT})", oracle=t"({'s1'} / 1440)", postgres=t"({'s1'} * interval '1 minute')")
 
 # Function ``seconds()``
-FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'seconds'}({dt.INT})", t"({'s1'} / 86400)")
+FuncAST.add_rules(t"{dt.DATETIMEDELTA} <- {'seconds'}({dt.INT})", oracle=t"({'s1'} / 86400)", postgres=t"({'s1'} * interval '1 second')")
 
 # Function `md5()``
-FuncAST.add_rules(t"{dt.STR} <- {'md5'}({dt.STR})", t"lower(rawtohex(dbms_crypto.hash(utl_raw.cast_to_raw({'s1'}), 2)))")
+FuncAST.add_rules(t"{dt.STR} <- {'md5'}({dt.STR})", oracle=t"lower(rawtohex(dbms_crypto.hash(utl_raw.cast_to_raw({'s1'}), 2)))", postgres=t"md5({'s1'})")
 
 # Function `random()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'random'}()", t"dbms_random.value")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'random'}()", oracle=t"dbms_random.value", postgres=t"random()::numeric")
 
 # Function `randrange()``
-FuncAST.add_rules(t"{dt.INT} <- {'randrange'}({dt.INT}, {dt.INT})", t"floor(dbms_random.value({'s1'}, {'s2'}))")
+FuncAST.add_rules(t"{dt.INT} <- {'randrange'}({dt.INT}, {dt.INT})", oracle=t"floor(dbms_random.value({'s1'}, {'s2'}))", postgres=t"floor({'s1'} + random() * ({'s2'} - {'s1'}))::bigint")
 
 # Function `seq()``
-FuncAST.add_rules(t"{dt.INT} <- {'seq'}()", t"vsqlimpl_pkg.seq()")
+FuncAST.add_rules(t"{dt.INT} <- {'seq'}()", oracle=t"vsqlimpl_pkg.seq()", postgres=t"vsqlimpl.seq()")
 
 # Function `rgb()``
-FuncAST.add_rules(t"{dt.COLOR} <- {'rgb'}({NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE})", t"vsqlimpl_pkg.rgb({'s1'}, {'s2'}, {'s3'})")
-FuncAST.add_rules(t"{dt.COLOR} <- {'rgb'}({NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE})", t"vsqlimpl_pkg.rgb({'s1'}, {'s2'}, {'s3'}, {'s4'})")
+FuncAST.add_rules(t"{dt.COLOR} <- {'rgb'}({NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE})", oracle=t"vsqlimpl_pkg.rgb({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.rgb(vsqlimpl.number_{'t1'}({'s1'}), vsqlimpl.number_{'t2'}({'s2'}), vsqlimpl.number_{'t3'}({'s3'}))")
+FuncAST.add_rules(t"{dt.COLOR} <- {'rgb'}({NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE}, {NUMBERLIKE})", oracle=t"vsqlimpl_pkg.rgb({'s1'}, {'s2'}, {'s3'}, {'s4'})", postgres=t"vsqlimpl.rgb(vsqlimpl.number_{'t1'}({'s1'}), vsqlimpl.number_{'t2'}({'s2'}), vsqlimpl.number_{'t3'}({'s3'}), vsqlimpl.number_{'t4'}({'s4'}))")
 
 # Function `list()``
-FuncAST.add_rules(t"{dt.STRLIST} <- {'list'}({TEXT})", t"vsqlimpl_pkg.list_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{'T1'} <- {'list'}({[dt.NULLLIST, *LIST]})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.NULLLIST} <- {'list'}({dt.NULLSET})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.INTLIST} <- {'list'}({dt.INTSET})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.NUMBERLIST} <- {'list'}({dt.NUMBERSET})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.STRLIST} <- {'list'}({dt.STRSET})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.DATELIST} <- {'list'}({dt.DATESET})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.DATETIMELIST} <- {'list'}({dt.DATETIMESET})", t"{'s1'}")
+FuncAST.add_rules(t"{dt.STRLIST} <- {'list'}({TEXT})", oracle=t"vsqlimpl_pkg.list_{'t1'}({'s1'})", postgres=t"vsqlimpl.list_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{'T1'} <- {'list'}({[dt.NULLLIST, *LIST]})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.NULLLIST} <- {'list'}({dt.NULLSET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.INTLIST} <- {'list'}({dt.INTSET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.NUMBERLIST} <- {'list'}({dt.NUMBERSET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.STRLIST} <- {'list'}({dt.STRSET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.DATELIST} <- {'list'}({dt.DATESET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.DATETIMELIST} <- {'list'}({dt.DATETIMESET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
 
 # Function `set()``
-FuncAST.add_rules(t"{dt.STRSET} <- {'set'}({TEXT})", t"vsqlimpl_pkg.set_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{'T1'} <- {'set'}({SET})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.NULLSET} <- {'set'}({dt.NULLLIST})", t"case when {'s1'} > 0 then 1 else {'s1'} end")
-FuncAST.add_rules(t"{dt.INTSET} <- {'set'}({dt.INTLIST})", t"vsqlimpl_pkg.set_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.NUMBERSET} <- {'set'}({dt.NUMBERLIST})", t"vsqlimpl_pkg.set_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.STRSET} <- {'set'}({dt.STRLIST})", t"vsqlimpl_pkg.set_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.DATESET} <- {'set'}({dt.DATELIST})", t"vsqlimpl_pkg.set_{'t1'}({'s1'})")
-FuncAST.add_rules(t"{dt.DATETIMESET} <- {'set'}({dt.DATETIMELIST})", t"vsqlimpl_pkg.set_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.STRSET} <- {'set'}({TEXT})", oracle=t"vsqlimpl_pkg.set_{'t1'}({'s1'})", postgres=t"vsqlimpl.set_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{'T1'} <- {'set'}({SET})", oracle=t"{'s1'}", postgres=t"{'s1'}")
+FuncAST.add_rules(t"{dt.NULLSET} <- {'set'}({dt.NULLLIST})", oracle=t"case when {'s1'} > 0 then 1 else {'s1'} end", postgres=t"case when {'s1'} > 0 then 1 else {'s1'} end")
+FuncAST.add_rules(t"{dt.INTSET} <- {'set'}({dt.INTLIST})", oracle=t"vsqlimpl_pkg.set_{'t1'}({'s1'})", postgres=t"vsqlimpl.set_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBERSET} <- {'set'}({dt.NUMBERLIST})", oracle=t"vsqlimpl_pkg.set_{'t1'}({'s1'})", postgres=t"vsqlimpl.set_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.STRSET} <- {'set'}({dt.STRLIST})", oracle=t"vsqlimpl_pkg.set_{'t1'}({'s1'})", postgres=t"vsqlimpl.set_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.DATESET} <- {'set'}({dt.DATELIST})", oracle=t"vsqlimpl_pkg.set_{'t1'}({'s1'})", postgres=t"vsqlimpl.set_{'t1'}({'s1'})")
+FuncAST.add_rules(t"{dt.DATETIMESET} <- {'set'}({dt.DATETIMELIST})", oracle=t"vsqlimpl_pkg.set_{'t1'}({'s1'})", postgres=t"vsqlimpl.set_{'t1'}({'s1'})")
 
 # Function ``dist()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'dist'}({dt.GEO}, {dt.GEO})", t"vsqlimpl_pkg.dist_geo_geo({'s1'}, {'s2'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'dist'}({dt.GEO}, {dt.GEO})", oracle=t"vsqlimpl_pkg.dist_geo_geo({'s1'}, {'s2'})", postgres=t"vsqlimpl.dist_geo_geo({'s1'}, {'s2'})")
 
 # Function ``abs()``
-FuncAST.add_rules(t"{dt.INT} <- {'abs'}({dt.BOOL})", t"{'s1'}")
-FuncAST.add_rules(t"{dt.INT} <- {'abs'}({dt.INT})", t"abs({'s1'})")
-FuncAST.add_rules(t"{dt.NUMBER} <- {'abs'}({dt.NUMBER})", t"abs({'s1'})")
+FuncAST.add_rules(t"{dt.INT} <- {'abs'}({dt.BOOL})", oracle=t"{'s1'}", postgres=t"{'s1'}::int::bigint")
+FuncAST.add_rules(t"{dt.INT} <- {'abs'}({dt.INT})", oracle=t"abs({'s1'})", postgres=t"abs({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'abs'}({dt.NUMBER})", oracle=t"abs({'s1'})", postgres=t"abs({'s1'})")
 
 # Function ``cos()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'cos'}({NUMBERLIKE})", t"cos({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'cos'}({NUMBERLIKE})", oracle=t"cos({'s1'})", postgres=t"cos(vsqlimpl.number_{'t1'}({'s1'}))::numeric")
 
 # Function ``sin()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'sin'}({NUMBERLIKE})", t"sin({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'sin'}({NUMBERLIKE})", oracle=t"sin({'s1'})", postgres=t"sin(vsqlimpl.number_{'t1'}({'s1'}))::numeric")
 
 # Function ``tan()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'tan'}({NUMBERLIKE})", t"tan({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'tan'}({NUMBERLIKE})", oracle=t"tan({'s1'})", postgres=t"tan(vsqlimpl.number_{'t1'}({'s1'}))::numeric")
 
 # Function ``sqrt()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'sqrt'}({NUMBERLIKE})", t"sqrt(case when {'s1'} >= 0 then {'s1'} else null end)")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'sqrt'}({NUMBERLIKE})", oracle=t"sqrt(case when {'s1'} >= 0 then {'s1'} else null end)", postgres=t"sqrt(case when vsqlimpl.number_{'t1'}({'s1'}) >= 0 then vsqlimpl.number_{'t1'}({'s1'}) else null end)")
 
 # Function ``request_id()``
-FuncAST.add_rules(t"{dt.STR} <- {'request_id'}()", t"livingapi_pkg.reqid")
+FuncAST.add_rules(t"{dt.STR} <- {'request_id'}()", oracle=t"livingapi_pkg.reqid", postgres=t"livingapi.reqid()")
 
 # Function ``request_method()``
-FuncAST.add_rules(t"{dt.STR} <- {'request_method'}()", t"livingapi_pkg.reqmethod")
+FuncAST.add_rules(t"{dt.STR} <- {'request_method'}()", oracle=t"livingapi_pkg.reqmethod", postgres=t"livingapi.reqmethod()")
 
 # Function ``request_url()``
-FuncAST.add_rules(t"{dt.STR} <- {'request_url'}()", t"livingapi_pkg.requrl")
+FuncAST.add_rules(t"{dt.STR} <- {'request_url'}()", oracle=t"livingapi_pkg.requrl", postgres=t"livingapi.requrl()")
 
 # Function ``request_header_str()``
-FuncAST.add_rules(t"{dt.STR} <- {'request_header_str'}({dt.STR})", t"livingapi_pkg.reqheader_str({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'request_header_str'}({dt.STR})", oracle=t"livingapi_pkg.reqheader_str({'s1'})", postgres=t"livingapi.reqheader_str({'s1'})")
 
 # Function ``request_header_strlist()``
-FuncAST.add_rules(t"{dt.STRLIST} <- {'request_header_strlist'}({dt.STR})", t"livingapi_pkg.reqheader_str({'s1'})")
+FuncAST.add_rules(t"{dt.STRLIST} <- {'request_header_strlist'}({dt.STR})", oracle=t"livingapi_pkg.reqheader_str({'s1'})", postgres=t"livingapi.reqheader_str({'s1'})")
 
 # Function ``request_cookie()``
-FuncAST.add_rules(t"{dt.STR} <- {'request_cookie'}({dt.STR})", t"livingapi_pkg.reqcookie_str({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'request_cookie'}({dt.STR})", oracle=t"livingapi_pkg.reqcookie_str({'s1'})", postgres=t"livingapi.reqcookie_str({'s1'})")
 
 # Function ``request_param_str()``
-FuncAST.add_rules(t"{dt.STR} <- {'request_param_str'}({dt.STR})", t"livingapi_pkg.reqparam_str({'s1'})")
+FuncAST.add_rules(t"{dt.STR} <- {'request_param_str'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_str({'s1'})", postgres=t"livingapi.reqparam_str({'s1'})")
 
 # Function ``request_param_strlist()``
-FuncAST.add_rules(t"{dt.STRLIST} <- {'request_param_strlist'}({dt.STR})", t"livingapi_pkg.reqparam_strlist({'s1'})")
+FuncAST.add_rules(t"{dt.STRLIST} <- {'request_param_strlist'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_strlist({'s1'})", postgres=t"livingapi.reqparam_strlist({'s1'})")
 
 # Function ``request_param_int()``
-FuncAST.add_rules(t"{dt.INT} <- {'request_param_int'}({dt.STR})", t"livingapi_pkg.reqparam_int({'s1'})")
+FuncAST.add_rules(t"{dt.INT} <- {'request_param_int'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_int({'s1'})", postgres=t"livingapi.reqparam_int({'s1'})")
 
 # Function ``request_param_intlist()``
-FuncAST.add_rules(t"{dt.INTLIST} <- {'request_param_intlist'}({dt.STR})", t"livingapi_pkg.reqparam_intlist({'s1'})")
+FuncAST.add_rules(t"{dt.INTLIST} <- {'request_param_intlist'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_intlist({'s1'})", postgres=t"livingapi.reqparam_intlist({'s1'})")
 
 # Function ``request_param_float()``
-FuncAST.add_rules(t"{dt.NUMBER} <- {'request_param_float'}({dt.STR})", t"livingapi_pkg.reqparam_float({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBER} <- {'request_param_float'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_float({'s1'})", postgres=t"livingapi.reqparam_float({'s1'})")
 
 # Function ``request_param_floatlist()``
-FuncAST.add_rules(t"{dt.NUMBERLIST} <- {'request_param_floatlist'}({dt.STR})", t"livingapi_pkg.reqparam_floatlist({'s1'})")
+FuncAST.add_rules(t"{dt.NUMBERLIST} <- {'request_param_floatlist'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_floatlist({'s1'})", postgres=t"livingapi.reqparam_floatlist({'s1'})")
 
 # Function ``request_param_date()``
-FuncAST.add_rules(t"{dt.DATE} <- {'request_param_date'}({dt.STR})", t"livingapi_pkg.reqparam_date({'s1'})")
+FuncAST.add_rules(t"{dt.DATE} <- {'request_param_date'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_date({'s1'})", postgres=t"livingapi.reqparam_date({'s1'})")
 
 # Function ``request_param_datelist()``
-FuncAST.add_rules(t"{dt.DATELIST} <- {'request_param_datelist'}({dt.STR})", t"livingapi_pkg.reqparam_datelist({'s1'})")
+FuncAST.add_rules(t"{dt.DATELIST} <- {'request_param_datelist'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_datelist({'s1'})", postgres=t"livingapi.reqparam_datelist({'s1'})")
 
 # Function ``request_param_datetime()``
-FuncAST.add_rules(t"{dt.DATETIME} <- {'request_param_datetime'}({dt.STR})", t"livingapi_pkg.reqparam_datetime({'s1'})")
+FuncAST.add_rules(t"{dt.DATETIME} <- {'request_param_datetime'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_datetime({'s1'})", postgres=t"livingapi.reqparam_datetime({'s1'})")
 
 # Function ``request_param_datetimelist()``
-FuncAST.add_rules(t"{dt.DATETIMELIST} <- {'request_param_datetimelist'}({dt.STR})", t"livingapi_pkg.reqparam_datetimelist({'s1'})")
+FuncAST.add_rules(t"{dt.DATETIMELIST} <- {'request_param_datetimelist'}({dt.STR})", oracle=t"livingapi_pkg.reqparam_datetimelist({'s1'})", postgres=t"livingapi.reqparam_datetimelist({'s1'})")
 
 # Function ``search()``
-FuncAST.add_rules(t"{dt.STR} <- {'search'}()", t"livingapi_pkg.global_search")
+FuncAST.add_rules(t"{dt.STR} <- {'search'}()", oracle=t"livingapi_pkg.global_search", postgres=t"livingapi.global_search()")
 
 # Function ``lang()``
-FuncAST.add_rules(t"{dt.STR} <- {'lang'}()", t"livingapi_pkg.global_lang")
+FuncAST.add_rules(t"{dt.STR} <- {'lang'}()", oracle=t"livingapi_pkg.global_lang", postgres=t"livingapi.global_lang()")
 
 # Function ``mode()``
-FuncAST.add_rules(t"{dt.STR} <- {'mode'}()", t"livingapi_pkg.global_mode")
+FuncAST.add_rules(t"{dt.STR} <- {'mode'}()", oracle=t"livingapi_pkg.global_mode", postgres=t"livingapi.global_mode()")
 
 # Method ``lower()``
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'lower'}()", t"lower({'s1'})")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'lower'}()", oracle=t"lower({'s1'})", postgres=t"lower({'s1'})")
 
 # Method ``upper()``
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'upper'}()", t"upper({'s1'})")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'upper'}()", oracle=t"upper({'s1'})", postgres=t"upper({'s1'})")
 
 # Method ``startswith()``
-MethAST.add_rules(t"{dt.BOOL} <- {TEXT}.{'startswith'}({[dt.STR, dt.STRLIST]})", t"vsqlimpl_pkg.startswith_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.BOOL} <- {TEXT}.{'startswith'}({[dt.STR, dt.STRLIST]})", oracle=t"vsqlimpl_pkg.startswith_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.startswith_{'t1'}_{'t2'}({'s1'}, {'s2'})")
 
 # Method ``endswith()``
-MethAST.add_rules(t"{dt.BOOL} <- {TEXT}.{'endswith'}({[dt.STR, dt.STRLIST]})", t"vsqlimpl_pkg.endswith_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.BOOL} <- {TEXT}.{'endswith'}({[dt.STR, dt.STRLIST]})", oracle=t"vsqlimpl_pkg.endswith_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.endswith_{'t1'}_{'t2'}({'s1'}, {'s2'})")
 
 # Method ``strip()``
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'strip'}()", t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, null, 1, 1)")
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'strip'}({dt.STR}) ", t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, {'s2'}, 1, 1)")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'strip'}()", oracle=t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, null, 1, 1)", postgres=t"vsqlimpl.strip_{'t1'}({'s1'}, null, true, true)")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'strip'}({dt.STR}) ", oracle=t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, {'s2'}, 1, 1)", postgres=t"vsqlimpl.strip_{'t1'}({'s1'}, {'s2'}, true, true)")
 
 # Method ``lstrip()``
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'lstrip'}()", t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, null, 1, 0)")
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'lstrip'}({dt.STR}) ", t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, {'s2'}, 1, 0)")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'lstrip'}()", oracle=t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, null, 1, 0)", postgres=t"vsqlimpl.strip_{'t1'}({'s1'}, null, true, false)")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'lstrip'}({dt.STR}) ", oracle=t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, {'s2'}, 1, 0)", postgres=t"vsqlimpl.strip_{'t1'}({'s1'}, {'s2'}, true, false)")
 
 # Method ``rstrip()``
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'rstrip'}()", t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, null, 0, 1)")
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'rstrip'}({dt.STR}) ", t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, {'s2'}, 0, 1)")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'rstrip'}()", oracle=t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, null, 0, 1)", postgres=t"vsqlimpl.strip_{'t1'}({'s1'}, null, false, true)")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'rstrip'}({dt.STR}) ", oracle=t"vsqlimpl_pkg.strip_{'t1'}({'s1'}, {'s2'}, 0, 1)", postgres=t"vsqlimpl.strip_{'t1'}({'s1'}, {'s2'}, false, true)")
 
 # Method ``find()``
-MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT})", t"(instr({'s1'}, {'s2'}) - 1)")
-MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {dt.NULL})", t"(instr({'s1'}, {'s2'}) - 1)")
-MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {dt.NULL}, {dt.NULL})", t"(instr({'s1'}, {'s2'}) - 1)")
-MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {[dt.NULL, dt.INT]})", t"vsqlimpl_pkg.find_{'t1'}_{'t2'}({'s1'}, {'s2'}, {'s3'}, null)")
-MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {[dt.NULL, dt.INT]}, {[dt.NULL, dt.INT]})", t"vsqlimpl_pkg.find_{'t1'}_{'t2'}({'s1'}, {'s2'}, {'s3'}, {'s4'})")
+MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT})", oracle=t"(instr({'s1'}, {'s2'}) - 1)", postgres=t"(strpos({'s1'}, {'s2'})::bigint - 1)")
+MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {dt.NULL})", oracle=t"(instr({'s1'}, {'s2'}) - 1)", postgres=t"(strpos({'s1'}, {'s2'})::bigint - 1)")
+MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {dt.NULL}, {dt.NULL})", oracle=t"(instr({'s1'}, {'s2'}) - 1)", postgres=t"(strpos({'s1'}, {'s2'})::bigint - 1)")
+MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {[dt.NULL, dt.INT]})", oracle=t"vsqlimpl_pkg.find_{'t1'}_{'t2'}({'s1'}, {'s2'}, {'s3'}, null)", postgres=t"vsqlimpl.find_{'t1'}_{'t2'}({'s1'}, {'s2'}, {'s3'}, null)")
+MethAST.add_rules(t"{dt.INT} <- {TEXT}.{'find'}({TEXT}, {[dt.NULL, dt.INT]}, {[dt.NULL, dt.INT]})", oracle=t"vsqlimpl_pkg.find_{'t1'}_{'t2'}({'s1'}, {'s2'}, {'s3'}, {'s4'})", postgres=t"vsqlimpl.find_{'t1'}_{'t2'}({'s1'}, {'s2'}, {'s3'}, {'s4'})")
 
 # Method ``replace()``
-MethAST.add_rules(t"{'T1'} <- {TEXT}.{'replace'}({dt.STR}, {dt.STR})", t"replace({'s1'}, {'s2'}, {'s3'})")
+MethAST.add_rules(t"{'T1'} <- {TEXT}.{'replace'}({dt.STR}, {dt.STR})", oracle=t"replace({'s1'}, {'s2'}, {'s3'})", postgres=t"replace({'s1'}, {'s2'}, {'s3'})")
 
 # Method ``split()``
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}()", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}()", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)")
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL})", t"vsqlimpl_pkg.split_{'t1'}_str(null, null)")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL})", t"vsqlimpl_pkg.split_{'t1'}_str(null, null)")
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})")
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR}, {dt.NULL})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR}, {dt.NULL})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})")
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL}, {[dt.BOOL, dt.INT]})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null, {'s3'})")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL}, {[dt.BOOL, dt.INT]})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null, {'s3'})")
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR}, {[dt.BOOL, dt.INT]})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR}, {[dt.BOOL, dt.INT]})", t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}()", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null)")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}()", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null)")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str(null, null)", postgres=t"vsqlimpl.split_{'t1'}_str(null, null)")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str(null, null)", postgres=t"vsqlimpl.split_{'t1'}_str(null, null)")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR}, {dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR}, {dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL}, {dt.BOOL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null, {'s3'}::int::bigint)")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL}, {dt.INT})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null, {'s3'})")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL}, {dt.BOOL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null, {'s3'}::int::bigint)")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL}, {dt.INT})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null, {'s3'})")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR}, {dt.BOOL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'}::int::bigint)")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR}, {dt.INT})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR}, {dt.BOOL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'}::int::bigint)")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR}, {dt.INT})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'}, {'s3'})")
 
 # Method ``join()``
-MethAST.add_rules(t"{dt.STR} <- {dt.STR}.{'join'}({[dt.STR, dt.STRLIST]})", t"vsqlimpl_pkg.join_str_{'t2'}({'s1'}, {'s2'})")
-MethAST.add_rules(t"{dt.CLOB} <- {dt.STR}.{'join'}({[dt.CLOB, dt.CLOBLIST]})", t"vsqlimpl_pkg.join_str_{'t2'}({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.STR} <- {dt.STR}.{'join'}({[dt.STR, dt.STRLIST]})", oracle=t"vsqlimpl_pkg.join_str_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.join_str_{'t2'}({'s1'}, {'s2'})")
+MethAST.add_rules(t"{dt.CLOB} <- {dt.STR}.{'join'}({[dt.CLOB, dt.CLOBLIST]})", oracle=t"vsqlimpl_pkg.join_str_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.join_str_{'t2'}({'s1'}, {'s2'})")
 
 # Method ``lum()``
-MethAST.add_rules(t"{dt.NUMBER} <- {dt.COLOR}.{'lum'}()", t"vsqlimpl_pkg.lum({'s1'})")
+MethAST.add_rules(t"{dt.NUMBER} <- {dt.COLOR}.{'lum'}()", oracle=t"vsqlimpl_pkg.lum({'s1'})", postgres=t"vsqlimpl.lum({'s1'})")
 
 # Method ``week()``
-MethAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'week'}()", t"to_number(to_char({'s1'}, 'IW'))")
+MethAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'week'}()", oracle=t"to_number(to_char({'s1'}, 'IW'))", postgres=t"extract(week from {'s1'})::bigint")
 
 # Attributes
-AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'year'}", t"extract(year from {'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'month'}", t"extract(month from {'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'day'}", t"extract(day from {'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIME}.{'hour'}", t"to_number(to_char({'s1'}, 'HH24'))")
-AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIME}.{'minute'}", t"to_number(to_char({'s1'}, 'MI'))")
-AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIME}.{'second'}", t"to_number(to_char({'s1'}, 'SS'))")
-AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'weekday'}", t"vsqlimpl_pkg.attr_date_weekday({'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'yearday'}", t"to_number(to_char({'s1'}, 'DDD'))")
-AttrAST.add_rules(t"{dt.INT} <- {dt.DATEDELTA}.{'days'}", t"{'s1'}")
-AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIMEDELTA}.{'days'}", t"trunc({'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIMEDELTA}.{'seconds'}", t"trunc(mod({'s1'}, 1) * 86400 + 0.5)")
-AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_days'}", t"{'s1'}")
-AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_hours'}", t"({'s1'} * 24)")
-AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_minutes'}", t"({'s1'} * 1440)")
-AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_seconds'}", t"({'s1'} * 86400)")
-AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'r'}", t"vsqlimpl_pkg.attr_color_r({'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'g'}", t"vsqlimpl_pkg.attr_color_g({'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'b'}", t"vsqlimpl_pkg.attr_color_b({'s1'})")
-AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'a'}", t"vsqlimpl_pkg.attr_color_a({'s1'})")
-AttrAST.add_rules(t"{dt.NUMBER} <- {dt.GEO}.{'lat'}", t"vsqlimpl_pkg.attr_geo_lat({'s1'})")
-AttrAST.add_rules(t"{dt.NUMBER} <- {dt.GEO}.{'long'}", t"vsqlimpl_pkg.attr_geo_long({'s1'})")
-AttrAST.add_rules(t"{dt.STR} <- {dt.GEO}.{'info'}", t"vsqlimpl_pkg.attr_geo_info({'s1'})")
+AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'year'}", oracle=t"extract(year from {'s1'})", postgres=t"extract(year from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'month'}", oracle=t"extract(month from {'s1'})", postgres=t"extract(month from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'day'}", oracle=t"extract(day from {'s1'})", postgres=t"extract(day from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIME}.{'hour'}", oracle=t"to_number(to_char({'s1'}, 'HH24'))", postgres=t"extract(hour from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIME}.{'minute'}", oracle=t"to_number(to_char({'s1'}, 'MI'))", postgres=t"extract(minute from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIME}.{'second'}", oracle=t"to_number(to_char({'s1'}, 'SS'))", postgres=t"trunc(extract(second from {'s1'}))::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'weekday'}", oracle=t"vsqlimpl_pkg.attr_date_weekday({'s1'})", postgres=t"(extract(isodow from {'s1'})::bigint - 1)")
+AttrAST.add_rules(t"{dt.INT} <- {[dt.DATE, dt.DATETIME]}.{'yearday'}", oracle=t"to_number(to_char({'s1'}, 'DDD'))", postgres=t"extract(doy from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {dt.DATEDELTA}.{'days'}", oracle=t"{'s1'}", postgres=t"extract(day from {'s1'})::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIMEDELTA}.{'days'}", oracle=t"trunc({'s1'})", postgres=t"trunc(extract(epoch from {'s1'}) / 86400)::bigint")
+AttrAST.add_rules(t"{dt.INT} <- {dt.DATETIMEDELTA}.{'seconds'}", oracle=t"trunc(mod({'s1'}, 1) * 86400 + 0.5)", postgres=t"trunc(mod(extract(epoch from {'s1'}), 86400) + 0.5)::bigint")
+AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_days'}", oracle=t"{'s1'}", postgres=t"(extract(epoch from {'s1'}) / 86400)")
+AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_hours'}", oracle=t"({'s1'} * 24)", postgres=t"(extract(epoch from {'s1'}) / 3600)")
+AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_minutes'}", oracle=t"({'s1'} * 1440)", postgres=t"(extract(epoch from {'s1'}) / 60)")
+AttrAST.add_rules(t"{dt.NUMBER} <- {dt.DATETIMEDELTA}.{'total_seconds'}", oracle=t"({'s1'} * 86400)", postgres=t"extract(epoch from {'s1'})")
+AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'r'}", oracle=t"vsqlimpl_pkg.attr_color_r({'s1'})", postgres=t"vsqlimpl.attr_color_r({'s1'})")
+AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'g'}", oracle=t"vsqlimpl_pkg.attr_color_g({'s1'})", postgres=t"vsqlimpl.attr_color_g({'s1'})")
+AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'b'}", oracle=t"vsqlimpl_pkg.attr_color_b({'s1'})", postgres=t"vsqlimpl.attr_color_b({'s1'})")
+AttrAST.add_rules(t"{dt.INT} <- {dt.COLOR}.{'a'}", oracle=t"vsqlimpl_pkg.attr_color_a({'s1'})", postgres=t"vsqlimpl.attr_color_a({'s1'})")
+AttrAST.add_rules(t"{dt.NUMBER} <- {dt.GEO}.{'lat'}", oracle=t"vsqlimpl_pkg.attr_geo_lat({'s1'})", postgres=t"vsqlimpl.attr_geo_lat({'s1'})")
+AttrAST.add_rules(t"{dt.NUMBER} <- {dt.GEO}.{'long'}", oracle=t"vsqlimpl_pkg.attr_geo_long({'s1'})", postgres=t"vsqlimpl.attr_geo_long({'s1'})")
+AttrAST.add_rules(t"{dt.STR} <- {dt.GEO}.{'info'}", oracle=t"vsqlimpl_pkg.attr_geo_info({'s1'})", postgres=t"vsqlimpl.attr_geo_info({'s1'})")
 
 # Equality comparison (A == B)
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULL} == {dt.NULL}", t"1")
-EQAST.add_rules(t"{dt.BOOL} <- {ANY} == {dt.NULL}", t"(case when {'s1'} is null then 1 else 0 end)")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULL} == {ANY}", t"(case when {'s2'} is null then 1 else 0 end)")
-EQAST.add_rules(t"{dt.BOOL} <- {INTLIKE} == {INTLIKE}", t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} == {NUMBERLIKE}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.GEO} == {dt.GEO}", t"vsqlimpl_pkg.eq_str_str({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.COLOR} == {dt.COLOR}", t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {TEXT} == {TEXT}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} == {'T1'}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATEDELTA, dt.MONTHDELTA, dt.COLOR]} == {'T1'}", t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} == {dt.DATETIMEDELTA}", t"vsqlimpl_pkg.eq_datetimedelta_datetimedelta({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} == {[dt.NULLLIST, *LIST]}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} == {dt.NULLLIST}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} == {[dt.INTLIST, dt.NUMBERLIST]}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} == {[dt.STRLIST, dt.CLOBLIST]}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} == {[dt.DATELIST, dt.DATETIMELIST]}", t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.NULLSET}", t"vsqlimpl_pkg.eq_nullset_nullset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.INTSET}", t"vsqlimpl_pkg.eq_nullset_intset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.NUMBERSET}", t"vsqlimpl_pkg.eq_nullset_numberset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.STRSET}", t"vsqlimpl_pkg.eq_nullset_strset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.DATESET}", t"vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.DATETIMESET}", t"vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} == {dt.NULLSET}", t"vsqlimpl_pkg.eq_intset_nullset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} == {dt.NULLSET}", t"vsqlimpl_pkg.eq_numberset_nullset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} == {dt.NULLSET}", t"vsqlimpl_pkg.eq_strset_nullset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.DATESET} == {dt.NULLSET}", t"vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMESET} == {dt.NULLSET}", t"vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} == {dt.INTSET}", t"vsqlimpl_pkg.eq_intset_intset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} == {dt.NUMBERSET}", t"vsqlimpl_pkg.eq_numberset_numberset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} == {dt.STRSET}", t"vsqlimpl_pkg.eq_strset_strset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATESET, dt.DATETIMESET]} == {[dt.DATESET, dt.DATETIMESET]}", t"vsqlimpl_pkg.eq_datetimeset_datetimeset({'s1'}, {'s2'})")
-EQAST.add_rules(t"{dt.BOOL} <- {ANY} == {ANY}", t"(case when {'s1'} is null and {'s2'} is null then 1 else 0 end)")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULL} == {dt.NULL}", oracle=t"1", postgres=t"true")
+EQAST.add_rules(t"{dt.BOOL} <- {ANY} == {dt.NULL}", oracle=t"(case when {'s1'} is null then 1 else 0 end)", postgres=t"({'s1'} is null)")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULL} == {ANY}", oracle=t"(case when {'s2'} is null then 1 else 0 end)", postgres=t"({'s2'} is null)")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} == {dt.BOOL}", oracle=t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint is not distinct from {'s2'}::int::bigint)")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} == {dt.INT}", oracle=t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.INT} == {dt.BOOL}", oracle=t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'}::int::bigint)")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.INT} == {dt.INT}", oracle=t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} == {NUMBERLIKE}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) is not distinct from vsqlimpl.number_{'t2'}({'s2'}))")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.GEO} == {dt.GEO}", oracle=t"vsqlimpl_pkg.eq_str_str({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.COLOR} == {dt.COLOR}", oracle=t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {TEXT} == {TEXT}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} == {'T1'}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATEDELTA, dt.MONTHDELTA, dt.COLOR]} == {'T1'}", oracle=t"vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} == {dt.DATETIMEDELTA}", oracle=t"vsqlimpl_pkg.eq_datetimedelta_datetimedelta({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} == {[dt.NULLLIST, *LIST]}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} == {dt.NULLLIST}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} == {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'}::numeric[] is not distinct from {'s2'}::numeric[])")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} == {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'} is not distinct from {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} == {[dt.DATELIST, dt.DATETIMELIST]}", oracle=t"vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'}::timestamp[] is not distinct from {'s2'}::timestamp[])")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.NULLSET}", oracle=t"vsqlimpl_pkg.eq_nullset_nullset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_nullset_nullset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.INTSET}", oracle=t"vsqlimpl_pkg.eq_nullset_intset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_nullset_intset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.NUMBERSET}", oracle=t"vsqlimpl_pkg.eq_nullset_numberset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_nullset_numberset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.STRSET}", oracle=t"vsqlimpl_pkg.eq_nullset_strset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_nullset_strset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.DATESET}", oracle=t"vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_nullset_dateset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} == {dt.DATETIMESET}", oracle=t"vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_nullset_datetimeset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} == {dt.NULLSET}", oracle=t"vsqlimpl_pkg.eq_intset_nullset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_intset_nullset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} == {dt.NULLSET}", oracle=t"vsqlimpl_pkg.eq_numberset_nullset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_numberset_nullset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} == {dt.NULLSET}", oracle=t"vsqlimpl_pkg.eq_strset_nullset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_strset_nullset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.DATESET} == {dt.NULLSET}", oracle=t"vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_dateset_nullset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMESET} == {dt.NULLSET}", oracle=t"vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_datetimeset_nullset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} == {dt.INTSET}", oracle=t"vsqlimpl_pkg.eq_intset_intset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_intset_intset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} == {dt.NUMBERSET}", oracle=t"vsqlimpl_pkg.eq_numberset_numberset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_numberset_numberset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} == {dt.STRSET}", oracle=t"vsqlimpl_pkg.eq_strset_strset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_strset_strset({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {[dt.DATESET, dt.DATETIMESET]} == {[dt.DATESET, dt.DATETIMESET]}", oracle=t"vsqlimpl_pkg.eq_datetimeset_datetimeset({'s1'}, {'s2'})", postgres=t"vsqlimpl.eq_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+EQAST.add_rules(t"{dt.BOOL} <- {ANY} == {ANY}", oracle=t"(case when {'s1'} is null and {'s2'} is null then 1 else 0 end)", postgres=t"({'s1'} is null and {'s2'} is null)")
 
 # Inequality comparison (A != B)
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} != {dt.NULL}", t"0")
-NEAST.add_rules(t"{dt.BOOL} <- {ANY} != {dt.NULL}", t"(case when {'s1'} is null then 0 else 1 end)")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} != {ANY}", t"(case when {'s2'} is null then 0 else 1 end)")
-NEAST.add_rules(t"{dt.BOOL} <- {INTLIKE} != {INTLIKE}", t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} != {NUMBERLIKE}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.GEO} != {dt.GEO}", t"(1 - vsqlimpl_pkg.eq_str_str({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.COLOR} != {dt.COLOR}", t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {TEXT} != {TEXT}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} != {'T1'}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATEDELTA, dt.MONTHDELTA, dt.COLOR]} != {'T1'}", t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} != {dt.DATETIMEDELTA}", t"(1 - vsqlimpl_pkg.eq_datetimedelta_datetimedelta({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} != {[dt.NULLLIST, *LIST]}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} != {dt.NULLLIST}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} != {[dt.INTLIST, dt.NUMBERLIST]}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} != {[dt.STRLIST, dt.CLOBLIST]}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} != {[dt.DATELIST, dt.DATETIMELIST]}", t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.NULLSET}", t"(1 - vsqlimpl_pkg.eq_nullset_nullset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.INTSET}", t"(1 - vsqlimpl_pkg.eq_nullset_intset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.NUMBERSET}", t"(1 - vsqlimpl_pkg.eq_nullset_numberset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.STRSET}", t"(1 - vsqlimpl_pkg.eq_nullset_strset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.DATESET}", t"(1 - vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.DATETIMESET}", t"(1 - vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} != {dt.NULLSET}", t"(1 - vsqlimpl_pkg.eq_intset_nullset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} != {dt.NULLSET}", t"(1 - vsqlimpl_pkg.eq_numberset_nullset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} != {dt.NULLSET}", t"(1 - vsqlimpl_pkg.eq_strset_nullset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.DATESET} != {dt.NULLSET}", t"(1 - vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMESET} != {dt.NULLSET}", t"(1 - vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} != {dt.INTSET}", t"(1 - vsqlimpl_pkg.eq_intset_intset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} != {dt.NUMBERSET}", t"(1 - vsqlimpl_pkg.eq_numberset_numberset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} != {dt.STRSET}", t"(1 - vsqlimpl_pkg.eq_strset_strset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATESET, dt.DATETIMESET]} != {[dt.DATESET, dt.DATETIMESET]}", t"(1 - vsqlimpl_pkg.eq_datetimeset_datetimeset({'s1'}, {'s2'}))")
-NEAST.add_rules(t"{dt.BOOL} <- {ANY} != {ANY}", t"(case when {'s1'} is null and {'s2'} is null then 0 else 1 end)")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} != {dt.NULL}", oracle=t"0", postgres=t"false")
+NEAST.add_rules(t"{dt.BOOL} <- {ANY} != {dt.NULL}", oracle=t"(case when {'s1'} is null then 0 else 1 end)", postgres=t"({'s1'} is not null)")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} != {ANY}", oracle=t"(case when {'s2'} is null then 0 else 1 end)", postgres=t"({'s2'} is not null)")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} != {dt.BOOL}", oracle=t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))", postgres=t"({'s1'}::int::bigint is distinct from {'s2'}::int::bigint)")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} != {dt.INT}", oracle=t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))", postgres=t"({'s1'}::int::bigint is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.INT} != {dt.BOOL}", oracle=t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'}::int::bigint)")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.INT} != {dt.INT}", oracle=t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} != {NUMBERLIKE}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) is distinct from vsqlimpl.number_{'t2'}({'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.GEO} != {dt.GEO}", oracle=t"(1 - vsqlimpl_pkg.eq_str_str({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.COLOR} != {dt.COLOR}", oracle=t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {TEXT} != {TEXT}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} != {'T1'}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATEDELTA, dt.MONTHDELTA, dt.COLOR]} != {'T1'}", oracle=t"(1 - vsqlimpl_pkg.eq_int_int({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} != {dt.DATETIMEDELTA}", oracle=t"(1 - vsqlimpl_pkg.eq_datetimedelta_datetimedelta({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} != {[dt.NULLLIST, *LIST]}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} != {dt.NULLLIST}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} != {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"({'s1'}::numeric[] is distinct from {'s2'}::numeric[])")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} != {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"({'s1'} is distinct from {'s2'})")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} != {[dt.DATELIST, dt.DATETIMELIST]}", oracle=t"(1 - vsqlimpl_pkg.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"({'s1'}::timestamp[] is distinct from {'s2'}::timestamp[])")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.NULLSET}", oracle=t"(1 - vsqlimpl_pkg.eq_nullset_nullset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_nullset_nullset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.INTSET}", oracle=t"(1 - vsqlimpl_pkg.eq_nullset_intset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_nullset_intset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.NUMBERSET}", oracle=t"(1 - vsqlimpl_pkg.eq_nullset_numberset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_nullset_numberset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.STRSET}", oracle=t"(1 - vsqlimpl_pkg.eq_nullset_strset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_nullset_strset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.DATESET}", oracle=t"(1 - vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_nullset_dateset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NULLSET} != {dt.DATETIMESET}", oracle=t"(1 - vsqlimpl_pkg.eq_nullset_datetimeset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_nullset_datetimeset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} != {dt.NULLSET}", oracle=t"(1 - vsqlimpl_pkg.eq_intset_nullset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_intset_nullset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} != {dt.NULLSET}", oracle=t"(1 - vsqlimpl_pkg.eq_numberset_nullset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_numberset_nullset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} != {dt.NULLSET}", oracle=t"(1 - vsqlimpl_pkg.eq_strset_nullset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_strset_nullset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.DATESET} != {dt.NULLSET}", oracle=t"(1 - vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_dateset_nullset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMESET} != {dt.NULLSET}", oracle=t"(1 - vsqlimpl_pkg.eq_datetimeset_nullset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_datetimeset_nullset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.INTSET} != {dt.INTSET}", oracle=t"(1 - vsqlimpl_pkg.eq_intset_intset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_intset_intset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.NUMBERSET} != {dt.NUMBERSET}", oracle=t"(1 - vsqlimpl_pkg.eq_numberset_numberset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_numberset_numberset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {dt.STRSET} != {dt.STRSET}", oracle=t"(1 - vsqlimpl_pkg.eq_strset_strset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_strset_strset({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {[dt.DATESET, dt.DATETIMESET]} != {[dt.DATESET, dt.DATETIMESET]}", oracle=t"(1 - vsqlimpl_pkg.eq_datetimeset_datetimeset({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.eq_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NEAST.add_rules(t"{dt.BOOL} <- {ANY} != {ANY}", oracle=t"(case when {'s1'} is null and {'s2'} is null then 0 else 1 end)", postgres=t"({'s1'} is not null or {'s2'} is not null)")
 
 # The following comparisons always treat ``None`` as uncomparable (expect when comparing with another ``None``)
 
 # Greater-than comparison (A > B)
-GTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} > {dt.NULL}", t"0")
-GTAST.add_rules(t"{dt.BOOL} <- {ANY} > {dt.NULL}", t"(case when {'s1'} is null then 0 else null end)")
-GTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} > {ANY}", t"(case when {'s2'} is null then 0 else null end)")
-GTAST.add_rules(t"{dt.BOOL} <- {INTLIKE} > {INTLIKE}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} > {NUMBERLIKE}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {TEXT} > {TEXT}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} > {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} > {dt.DATEDELTA}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} > {dt.DATETIMEDELTA}", t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} > {[dt.INTLIST, dt.NUMBERLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} > {[dt.STRLIST, dt.CLOBLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} > {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} > {[dt.NULLLIST, *LIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
-GTAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} > {dt.NULLLIST}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} > {dt.NULL}", oracle=t"0", postgres=t"false")
+GTAST.add_rules(t"{dt.BOOL} <- {ANY} > {dt.NULL}", oracle=t"(case when {'s1'} is null then 0 else null end)", postgres=t"(case when {'s1'} is null then false else null end)")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} > {ANY}", oracle=t"(case when {'s2'} is null then 0 else null end)", postgres=t"(case when {'s2'} is null then false else null end)")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} > {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'}::int::bigint > {'s2'}::int::bigint)")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} > {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'}::int::bigint > {'s2'})")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.INT} > {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'} > {'s2'}::int::bigint)")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.INT} > {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'} > {'s2'})")
+GTAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} > {NUMBERLIKE}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) > vsqlimpl.number_{'t2'}({'s2'}))")
+GTAST.add_rules(t"{dt.BOOL} <- {TEXT} > {TEXT}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'} > {'s2'})")
+GTAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} > {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'} > {'s2'})")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} > {dt.DATEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'} > {'s2'})")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} > {dt.DATETIMEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"({'s1'} > {'s2'})")
+GTAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} > {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) > 0)")
+GTAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} > {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) > 0)")
+GTAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} > {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) > 0)")
+GTAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} > {[dt.NULLLIST, *LIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) > 0)")
+GTAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} > {dt.NULLLIST}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 0 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) > 0)")
 
 # Greater-than-or equal comparison (A >= B)
-GEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} >= {dt.NULL}", t"1")
-GEAST.add_rules(t"{dt.BOOL} <- {ANY} >= {dt.NULL}", t"(case when {'s1'} is null then 1 else null end)")
-GEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} >= {ANY}", t"(case when {'s2'} is null then 1 else null end)")
-GEAST.add_rules(t"{dt.BOOL} <- {INTLIKE} >= {INTLIKE}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} >= {NUMBERLIKE}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {TEXT} >= {TEXT}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} >= {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} >= {dt.DATEDELTA}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} >= {dt.DATETIMEDELTA}", t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} >= {[dt.INTLIST, dt.NUMBERLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} >= {[dt.STRLIST, dt.CLOBLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} >= {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} >= {[dt.NULLLIST, *LIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
-GEAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} >= {dt.NULLLIST}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} >= {dt.NULL}", oracle=t"1", postgres=t"true")
+GEAST.add_rules(t"{dt.BOOL} <- {ANY} >= {dt.NULL}", oracle=t"(case when {'s1'} is null then 1 else null end)", postgres=t"(case when {'s1'} is null then true else null end)")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} >= {ANY}", oracle=t"(case when {'s2'} is null then 1 else null end)", postgres=t"(case when {'s2'} is null then true else null end)")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} >= {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'}::int::bigint >= {'s2'}::int::bigint)")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} >= {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'}::int::bigint >= {'s2'})")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.INT} >= {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'} >= {'s2'}::int::bigint)")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.INT} >= {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'} >= {'s2'})")
+GEAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} >= {NUMBERLIKE}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) >= vsqlimpl.number_{'t2'}({'s2'}))")
+GEAST.add_rules(t"{dt.BOOL} <- {TEXT} >= {TEXT}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'} >= {'s2'})")
+GEAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} >= {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'} >= {'s2'})")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} >= {dt.DATEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'} >= {'s2'})")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} >= {dt.DATETIMEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"({'s1'} >= {'s2'})")
+GEAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} >= {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) >= 0)")
+GEAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} >= {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) >= 0)")
+GEAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} >= {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) >= 0)")
+GEAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} >= {[dt.NULLLIST, *LIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) >= 0)")
+GEAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} >= {dt.NULLLIST}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 0 when 0 then 1 when 1 then 1 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) >= 0)")
 
 # Less-than comparison (A < B)
-LTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} < {dt.NULL}", t"0")
-LTAST.add_rules(t"{dt.BOOL} <- {ANY} < {dt.NULL}", t"(case when {'s1'} is null then 0 else null end)")
-LTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} < {ANY}", t"(case when {'s2'} is null then 0 else null end)")
-LTAST.add_rules(t"{dt.BOOL} <- {INTLIKE} < {INTLIKE}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} < {NUMBERLIKE}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {TEXT} < {TEXT}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} < {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} < {dt.DATEDELTA}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} < {dt.DATETIMEDELTA}", t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} < {[dt.INTLIST, dt.NUMBERLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} < {[dt.STRLIST, dt.CLOBLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} < {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} < {[dt.NULLLIST, *LIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
-LTAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} < {dt.NULLLIST}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} < {dt.NULL}", oracle=t"0", postgres=t"false")
+LTAST.add_rules(t"{dt.BOOL} <- {ANY} < {dt.NULL}", oracle=t"(case when {'s1'} is null then 0 else null end)", postgres=t"(case when {'s1'} is null then false else null end)")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.NULL} < {ANY}", oracle=t"(case when {'s2'} is null then 0 else null end)", postgres=t"(case when {'s2'} is null then false else null end)")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} < {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'}::int::bigint < {'s2'}::int::bigint)")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} < {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'}::int::bigint < {'s2'})")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.INT} < {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'} < {'s2'}::int::bigint)")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.INT} < {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'} < {'s2'})")
+LTAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} < {NUMBERLIKE}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) < vsqlimpl.number_{'t2'}({'s2'}))")
+LTAST.add_rules(t"{dt.BOOL} <- {TEXT} < {TEXT}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'} < {'s2'})")
+LTAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} < {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'} < {'s2'})")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} < {dt.DATEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'} < {'s2'})")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} < {dt.DATETIMEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"({'s1'} < {'s2'})")
+LTAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} < {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) < 0)")
+LTAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} < {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) < 0)")
+LTAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} < {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) < 0)")
+LTAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} < {[dt.NULLLIST, *LIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) < 0)")
+LTAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} < {dt.NULLLIST}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 0 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) < 0)")
 
 # Less-than-or equal comparison (A <= B)
-LEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} <= {dt.NULL}", t"1")
-LEAST.add_rules(t"{dt.BOOL} <- {ANY} <= {dt.NULL}", t"(case when {'s1'} is null then 1 else null end)")
-LEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} <= {ANY}", t"(case when {'s2'} is null then 1 else null end)")
-LEAST.add_rules(t"{dt.BOOL} <- {INTLIKE} <= {INTLIKE}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} <= {NUMBERLIKE}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {TEXT} <= {TEXT}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} <= {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} <= {dt.DATEDELTA}", t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} <= {dt.DATETIMEDELTA}", t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} <= {[dt.INTLIST, dt.NUMBERLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} <= {[dt.STRLIST, dt.CLOBLIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} <= {'T1'}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} <= {[dt.NULLLIST, *LIST]}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
-LEAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} <= {dt.NULLLIST}", t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} <= {dt.NULL}", oracle=t"1", postgres=t"true")
+LEAST.add_rules(t"{dt.BOOL} <- {ANY} <= {dt.NULL}", oracle=t"(case when {'s1'} is null then 1 else null end)", postgres=t"(case when {'s1'} is null then true else null end)")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.NULL} <= {ANY}", oracle=t"(case when {'s2'} is null then 1 else null end)", postgres=t"(case when {'s2'} is null then true else null end)")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} <= {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'}::int::bigint <= {'s2'}::int::bigint)")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} <= {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'}::int::bigint <= {'s2'})")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.INT} <= {dt.BOOL}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'} <= {'s2'}::int::bigint)")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.INT} <= {dt.INT}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'} <= {'s2'})")
+LEAST.add_rules(t"{dt.BOOL} <- {NUMBERLIKE} <= {NUMBERLIKE}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) <= vsqlimpl.number_{'t2'}({'s2'}))")
+LEAST.add_rules(t"{dt.BOOL} <- {TEXT} <= {TEXT}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'} <= {'s2'})")
+LEAST.add_rules(t"{dt.BOOL} <- {[dt.DATE, dt.DATETIME]} <= {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'} <= {'s2'})")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.DATEDELTA} <= {dt.DATEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_int_int({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'} <= {'s2'})")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.DATETIMEDELTA} <= {dt.DATETIMEDELTA}", oracle=t"case vsqlimpl_pkg.cmp_number_number({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"({'s1'} <= {'s2'})")
+LEAST.add_rules(t"{dt.BOOL} <- {[dt.INTLIST, dt.NUMBERLIST]} <= {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) <= 0)")
+LEAST.add_rules(t"{dt.BOOL} <- {[dt.STRLIST, dt.CLOBLIST]} <= {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) <= 0)")
+LEAST.add_rules(t"{dt.BOOL} <- {[dt.DATELIST, dt.DATETIMELIST]} <= {'T1'}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) <= 0)")
+LEAST.add_rules(t"{dt.BOOL} <- {dt.NULLLIST} <= {[dt.NULLLIST, *LIST]}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) <= 0)")
+LEAST.add_rules(t"{dt.BOOL} <- {[dt.NULLLIST, *LIST]} <= {dt.NULLLIST}", oracle=t"case vsqlimpl_pkg.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) when -1 then 1 when 0 then 1 when 1 then 0 end", postgres=t"(vsqlimpl.cmp_{'t1'}_{'t2'}({'s1'}, {'s2'}) <= 0)")
 
 # Addition (A + B)
-AddAST.add_rules(t"{dt.INT} <- {INTLIKE} + {INTLIKE}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} + {NUMBERLIKE}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{dt.STR} <- {dt.STR} + {dt.STR}", t"({'s1'} || {'s2'})")
-AddAST.add_rules(t"{dt.CLOB} <- {TEXT} + {TEXT}", t"({'s1'} || {'s2'})")
-AddAST.add_rules(t"{dt.INTLIST} <- {dt.INTLIST} + {dt.INTLIST}", t"vsqlimpl_pkg.add_intlist_intlist({'s1'}, {'s2'})")
-AddAST.add_rules(t"{dt.NUMBERLIST} <- {[dt.INTLIST, dt.NUMBERLIST]} + {[dt.INTLIST, dt.NUMBERLIST]}", t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-AddAST.add_rules(t"{dt.STRLIST} <- {dt.STRLIST} + {dt.STRLIST}", t"vsqlimpl_pkg.add_strlist_strlist({'s1'}, {'s2'})")
-AddAST.add_rules(t"{dt.CLOBLIST} <- {[dt.STRLIST, dt.CLOBLIST]} + {[dt.STRLIST, dt.CLOBLIST]}", t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-AddAST.add_rules(t"{'T1'} <- {[dt.DATELIST, dt.DATETIMELIST]} + {'T1'}", t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-AddAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} + {dt.NULLLIST}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{'T2'} <- {dt.NULLLIST} + {[dt.NULLLIST, *LIST]}", t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-AddAST.add_rules(t"{'T1'} <- {[dt.NULLLIST, *LIST]} + {dt.NULLLIST}", t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-AddAST.add_rules(t"{dt.DATE} <- {dt.DATE} + {dt.DATEDELTA}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIME} + {[dt.DATEDELTA, dt.DATETIMEDELTA]}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} + {dt.MONTHDELTA}", t"vsqlimpl_pkg.add_{'t1'}_months({'s1'}, {'s2'})")
-AddAST.add_rules(t"{'T2'} <- {dt.MONTHDELTA} + {[dt.DATE, dt.DATETIME]}", t"vsqlimpl_pkg.add_months_{'t2'}({'s1'}, {'s2'})")
-AddAST.add_rules(t"{dt.DATEDELTA} <- {dt.DATEDELTA} + {dt.DATEDELTA}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{dt.DATETIMEDELTA} <- {[dt.DATEDELTA, dt.DATETIMEDELTA]} + {[dt.DATEDELTA, dt.DATETIMEDELTA]}", t"({'s1'} + {'s2'})")
-AddAST.add_rules(t"{dt.MONTHDELTA} <- {dt.MONTHDELTA} + {dt.MONTHDELTA}", t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{dt.INT} <- {dt.BOOL} + {dt.BOOL}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'}::int::bigint + {'s2'}::int::bigint)")
+AddAST.add_rules(t"{dt.INT} <- {dt.BOOL} + {dt.INT}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'}::int::bigint + {'s2'})")
+AddAST.add_rules(t"{dt.INT} <- {dt.INT} + {dt.BOOL}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'}::int::bigint)")
+AddAST.add_rules(t"{dt.INT} <- {dt.INT} + {dt.INT}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{dt.NUMBER} <- {dt.BOOL} + {dt.NUMBER}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'}::int::bigint + {'s2'})")
+AddAST.add_rules(t"{dt.NUMBER} <- {dt.NUMBER} + {dt.BOOL}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'}::int::bigint)")
+AddAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} + {NUMBERLIKE}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{dt.STR} <- {dt.STR} + {dt.STR}", oracle=t"({'s1'} || {'s2'})", postgres=t"concat({'s1'}, {'s2'})")
+AddAST.add_rules(t"{dt.CLOB} <- {TEXT} + {TEXT}", oracle=t"({'s1'} || {'s2'})", postgres=t"concat({'s1'}, {'s2'})")
+AddAST.add_rules(t"{dt.INTLIST} <- {dt.INTLIST} + {dt.INTLIST}", oracle=t"vsqlimpl_pkg.add_intlist_intlist({'s1'}, {'s2'})", postgres=t"({'s1'} || {'s2'})")
+AddAST.add_rules(t"{dt.NUMBERLIST} <- {[dt.INTLIST, dt.NUMBERLIST]} + {[dt.INTLIST, dt.NUMBERLIST]}", oracle=t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'}::numeric[] || {'s2'}::numeric[])")
+AddAST.add_rules(t"{dt.STRLIST} <- {dt.STRLIST} + {dt.STRLIST}", oracle=t"vsqlimpl_pkg.add_strlist_strlist({'s1'}, {'s2'})", postgres=t"({'s1'} || {'s2'})")
+AddAST.add_rules(t"{dt.CLOBLIST} <- {[dt.STRLIST, dt.CLOBLIST]} + {[dt.STRLIST, dt.CLOBLIST]}", oracle=t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'} || {'s2'})")
+AddAST.add_rules(t"{'T1'} <- {[dt.DATELIST, dt.DATETIMELIST]} + {'T1'}", oracle=t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s1'} || {'s2'})")
+AddAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} + {dt.NULLLIST}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{'T2'} <- {dt.NULLLIST} + {[dt.NULLLIST, *LIST]}", oracle=t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+AddAST.add_rules(t"{'T1'} <- {[dt.NULLLIST, *LIST]} + {dt.NULLLIST}", oracle=t"vsqlimpl_pkg.add_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.add_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+AddAST.add_rules(t"{dt.DATE} <- {dt.DATE} + {dt.DATEDELTA}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})::date")
+AddAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIME} + {[dt.DATEDELTA, dt.DATETIMEDELTA]}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} + {dt.MONTHDELTA}", oracle=t"vsqlimpl_pkg.add_{'t1'}_months({'s1'}, {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{'T2'} <- {dt.MONTHDELTA} + {[dt.DATE, dt.DATETIME]}", oracle=t"vsqlimpl_pkg.add_months_{'t2'}({'s1'}, {'s2'})", postgres=t"({'s2'} + {'s1'})")
+AddAST.add_rules(t"{dt.DATEDELTA} <- {dt.DATEDELTA} + {dt.DATEDELTA}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{dt.DATETIMEDELTA} <- {[dt.DATEDELTA, dt.DATETIMEDELTA]} + {[dt.DATEDELTA, dt.DATETIMEDELTA]}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
+AddAST.add_rules(t"{dt.MONTHDELTA} <- {dt.MONTHDELTA} + {dt.MONTHDELTA}", oracle=t"({'s1'} + {'s2'})", postgres=t"({'s1'} + {'s2'})")
 
 # Subtraction (A - B)
-SubAST.add_rules(t"{dt.INT} <- {INTLIKE} - {INTLIKE}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} - {NUMBERLIKE}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{dt.DATE} <- {dt.DATE} - {dt.DATEDELTA}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{dt.DATEDELTA} <- {dt.DATE} - {dt.DATE}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{dt.DATETIMEDELTA} <- {dt.DATETIME} - {dt.DATETIME}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} - {dt.MONTHDELTA}", t"vsqlimpl_pkg.add_{'t1'}_months({'s1'}, -{'s2'})")
-SubAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIME} - {[dt.DATEDELTA, dt.DATETIMEDELTA]}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.MONTHDELTA]} - {'T1'}", t"({'s1'} - {'s2'})")
-SubAST.add_rules(t"{dt.DATETIMEDELTA} <- {[dt.DATEDELTA, dt.DATETIMEDELTA]} - {[dt.DATEDELTA, dt.DATETIMEDELTA]}", t"({'s1'} - {'s2'})")
+SubAST.add_rules(t"{dt.INT} <- {dt.BOOL} - {dt.BOOL}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'}::int::bigint - {'s2'}::int::bigint)")
+SubAST.add_rules(t"{dt.INT} <- {dt.BOOL} - {dt.INT}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'}::int::bigint - {'s2'})")
+SubAST.add_rules(t"{dt.INT} <- {dt.INT} - {dt.BOOL}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'}::int::bigint)")
+SubAST.add_rules(t"{dt.INT} <- {dt.INT} - {dt.INT}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'})")
+SubAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} - {NUMBERLIKE}", oracle=t"({'s1'} - {'s2'})", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) - vsqlimpl.number_{'t2'}({'s2'}))")
+SubAST.add_rules(t"{dt.DATE} <- {dt.DATE} - {dt.DATEDELTA}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'})::date")
+SubAST.add_rules(t"{dt.DATEDELTA} <- {dt.DATE} - {dt.DATE}", oracle=t"({'s1'} - {'s2'})", postgres=t"(({'s1'} - {'s2'}) * interval '1 day')")
+SubAST.add_rules(t"{dt.DATETIMEDELTA} <- {dt.DATETIME} - {dt.DATETIME}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'})")
+SubAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} - {dt.MONTHDELTA}", oracle=t"vsqlimpl_pkg.add_{'t1'}_months({'s1'}, -{'s2'})", postgres=t"vsqlimpl.add_{'t1'}_months({'s1'}, -{'s2'})")
+SubAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIME} - {[dt.DATEDELTA, dt.DATETIMEDELTA]}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'})")
+SubAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.MONTHDELTA]} - {'T1'}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'})")
+SubAST.add_rules(t"{dt.DATETIMEDELTA} <- {[dt.DATEDELTA, dt.DATETIMEDELTA]} - {[dt.DATEDELTA, dt.DATETIMEDELTA]}", oracle=t"({'s1'} - {'s2'})", postgres=t"({'s1'} - {'s2'})")
 
 # Multiplication (A * B)
-MulAST.add_rules(t"{dt.INT} <- {INTLIKE} * {INTLIKE}", t"({'s1'} * {'s2'})")
-MulAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} * {NUMBERLIKE}", t"({'s1'} * {'s2'})")
-MulAST.add_rules(t"{'T2'} <- {INTLIKE} * {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", t"({'s1'} * {'s2'})")
-MulAST.add_rules(t"{dt.DATETIMEDELTA} <- {dt.NUMBER} * {dt.DATETIMEDELTA}", t"({'s1'} * {'s2'})")
-MulAST.add_rules(t"{'T2'} <- {INTLIKE} * {TEXT}", t"vsqlimpl_pkg.mul_int_{'t2'}({'s1'}, {'s2'})")
-MulAST.add_rules(t"{'T1'} <- {TEXT} * {INTLIKE}", t"vsqlimpl_pkg.mul_{'t1'}_int({'s1'}, {'s2'})")
-MulAST.add_rules(t"{'T2'} <- {INTLIKE} * {LIST}", t"vsqlimpl_pkg.mul_int_{'t2'}({'s1'}, {'s2'})")
-MulAST.add_rules(t"{'T1'} <- {LIST} * {INTLIKE}", t"vsqlimpl_pkg.mul_{'t1'}_int({'s1'}, {'s2'})")
-MulAST.add_rules(t"{dt.NULLLIST} <- {INTLIKE} * {dt.NULLLIST}", t"({'s1'} * {'s2'})")
-MulAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} * {INTLIKE}", t"({'s1'} * {'s2'})")
+MulAST.add_rules(t"{dt.INT} <- {dt.BOOL} * {dt.BOOL}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'}::int::bigint * {'s2'}::int::bigint)")
+MulAST.add_rules(t"{dt.INT} <- {dt.BOOL} * {dt.INT}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'}::int::bigint * {'s2'})")
+MulAST.add_rules(t"{dt.INT} <- {dt.INT} * {dt.BOOL}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'}::int::bigint)")
+MulAST.add_rules(t"{dt.INT} <- {dt.INT} * {dt.INT}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'})")
+MulAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} * {NUMBERLIKE}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'})")
+MulAST.add_rules(t"{'T2'} <- {dt.BOOL} * {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'}::int::bigint * {'s2'})")
+MulAST.add_rules(t"{'T2'} <- {dt.INT} * {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'})")
+MulAST.add_rules(t"{dt.DATETIMEDELTA} <- {dt.NUMBER} * {dt.DATETIMEDELTA}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'})")
+MulAST.add_rules(t"{'T2'} <- {dt.BOOL} * {TEXT}", oracle=t"vsqlimpl_pkg.mul_int_{'t2'}({'s1'}, {'s2'})", postgres=t"repeat({'s2'}, {'s1'}::int)")
+MulAST.add_rules(t"{'T2'} <- {dt.INT} * {TEXT}", oracle=t"vsqlimpl_pkg.mul_int_{'t2'}({'s1'}, {'s2'})", postgres=t"repeat({'s2'}, {'s1'})")
+MulAST.add_rules(t"{'T1'} <- {TEXT} * {dt.BOOL}", oracle=t"vsqlimpl_pkg.mul_{'t1'}_int({'s1'}, {'s2'})", postgres=t"repeat({'s1'}, {'s2'}::int)")
+MulAST.add_rules(t"{'T1'} <- {TEXT} * {dt.INT}", oracle=t"vsqlimpl_pkg.mul_{'t1'}_int({'s1'}, {'s2'})", postgres=t"repeat({'s1'}, {'s2'})")
+MulAST.add_rules(t"{'T2'} <- {dt.BOOL} * {LIST}", oracle=t"vsqlimpl_pkg.mul_int_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.mul_int_{'t2'}({'s1'}::int::bigint, {'s2'})")
+MulAST.add_rules(t"{'T2'} <- {dt.INT} * {LIST}", oracle=t"vsqlimpl_pkg.mul_int_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.mul_int_{'t2'}({'s1'}, {'s2'})")
+MulAST.add_rules(t"{'T1'} <- {LIST} * {dt.BOOL}", oracle=t"vsqlimpl_pkg.mul_{'t1'}_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.mul_{'t1'}_int({'s1'}, {'s2'}::int::bigint)")
+MulAST.add_rules(t"{'T1'} <- {LIST} * {dt.INT}", oracle=t"vsqlimpl_pkg.mul_{'t1'}_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.mul_{'t1'}_int({'s1'}, {'s2'})")
+MulAST.add_rules(t"{dt.NULLLIST} <- {dt.BOOL} * {dt.NULLLIST}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'}::int::bigint * {'s2'})")
+MulAST.add_rules(t"{dt.NULLLIST} <- {dt.INT} * {dt.NULLLIST}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'})")
+MulAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} * {dt.BOOL}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'}::int::bigint)")
+MulAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} * {dt.INT}", oracle=t"({'s1'} * {'s2'})", postgres=t"({'s1'} * {'s2'})")
 
 # True division (A / B)
-TrueDivAST.add_rules(t"{dt.INT} <- {dt.BOOL} / {dt.BOOL}", t"({'s1'} / {'s2'})")
-TrueDivAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} / {NUMBERLIKE}", t"({'s1'} / {'s2'})")
-TrueDivAST.add_rules(t"{dt.DATETIMEDELTA} <- {dt.DATETIMEDELTA} / {NUMBERLIKE}", t"({'s1'} / {'s2'})")
+TrueDivAST.add_rules(t"{dt.INT} <- {dt.BOOL} / {dt.BOOL}", oracle=t"({'s1'} / {'s2'})", postgres=t"({'s1'}::int::bigint / {'s2'}::int::bigint)")
+TrueDivAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} / {NUMBERLIKE}", oracle=t"({'s1'} / {'s2'})", postgres=t"(vsqlimpl.number_{'t1'}({'s1'}) / vsqlimpl.number_{'t2'}({'s2'}))")
+TrueDivAST.add_rules(t"{dt.DATETIMEDELTA} <- {dt.DATETIMEDELTA} / {NUMBERLIKE}", oracle=t"({'s1'} / {'s2'})", postgres=t"({'s1'} / vsqlimpl.number_{'t2'}({'s2'}))")
 
 # Floor division (A // B)
-FloorDivAST.add_rules(t"{dt.INT} <- {NUMBERLIKE} // {NUMBERLIKE}", t"vsqlimpl_pkg.floordiv_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-FloorDivAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.MONTHDELTA]} // {INTLIKE}", t"vsqlimpl_pkg.floordiv_int_int({'s1'}, {'s2'})")
-FloorDivAST.add_rules(t"{dt.DATEDELTA} <- {dt.DATETIMEDELTA} // {NUMBERLIKE}", t"vsqlimpl_pkg.floordiv_number_int({'s1'}, {'s2'})")
+FloorDivAST.add_rules(t"{dt.INT} <- {NUMBERLIKE} // {NUMBERLIKE}", oracle=t"vsqlimpl_pkg.floordiv_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"floor(vsqlimpl.number_{'t1'}({'s1'}) / vsqlimpl.number_{'t2'}({'s2'}))::bigint")
+FloorDivAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.MONTHDELTA]} // {dt.BOOL}", oracle=t"vsqlimpl_pkg.floordiv_int_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.floordiv_{'t1'}_int({'s1'}, {'s2'}::int::bigint)")
+FloorDivAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.MONTHDELTA]} // {dt.INT}", oracle=t"vsqlimpl_pkg.floordiv_int_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.floordiv_{'t1'}_int({'s1'}, {'s2'})")
+FloorDivAST.add_rules(t"{dt.DATEDELTA} <- {dt.DATETIMEDELTA} // {NUMBERLIKE}", oracle=t"vsqlimpl_pkg.floordiv_number_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.floordiv_datetimedelta_number({'s1'}, vsqlimpl.number_{'t2'}({'s2'}))")
 
 # Modulo operator (A % B)
-ModAST.add_rules(t"{dt.INT} <- {INTLIKE} % {INTLIKE}", t"vsqlimpl_pkg.mod_int_int({'s1'}, {'s2'})")
-ModAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} % {NUMBERLIKE}", t"vsqlimpl_pkg.mod_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-ModAST.add_rules(t"{dt.COLOR} <- {dt.COLOR} % {dt.COLOR}", t"vsqlimpl_pkg.mod_color_color({'s1'}, {'s2'})")
+ModAST.add_rules(t"{dt.INT} <- {dt.BOOL} % {dt.BOOL}", oracle=t"vsqlimpl_pkg.mod_int_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.mod_int_int({'s1'}::int::bigint, {'s2'}::int::bigint)")
+ModAST.add_rules(t"{dt.INT} <- {dt.BOOL} % {dt.INT}", oracle=t"vsqlimpl_pkg.mod_int_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.mod_int_int({'s1'}::int::bigint, {'s2'})")
+ModAST.add_rules(t"{dt.INT} <- {dt.INT} % {dt.BOOL}", oracle=t"vsqlimpl_pkg.mod_int_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.mod_int_int({'s1'}, {'s2'}::int::bigint)")
+ModAST.add_rules(t"{dt.INT} <- {dt.INT} % {dt.INT}", oracle=t"vsqlimpl_pkg.mod_int_int({'s1'}, {'s2'})", postgres=t"vsqlimpl.mod_int_int({'s1'}, {'s2'})")
+ModAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} % {NUMBERLIKE}", oracle=t"vsqlimpl_pkg.mod_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.mod_number_number(vsqlimpl.number_{'t1'}({'s1'}), vsqlimpl.number_{'t2'}({'s2'}))")
+ModAST.add_rules(t"{dt.COLOR} <- {dt.COLOR} % {dt.COLOR}", oracle=t"vsqlimpl_pkg.mod_color_color({'s1'}, {'s2'})", postgres=t"vsqlimpl.mod_color_color({'s1'}, {'s2'})")
 
 # Left shift operator (A << B)
-ShiftLeftAST.add_rules(t"{dt.INT} <- {INTLIKE} << {INTLIKE}", t"trunc({'s1'} * power(2, {'s2'}))")
+ShiftLeftAST.add_rules(t"{dt.INT} <- {dt.BOOL} << {dt.BOOL}", oracle=t"trunc({'s1'} * power(2, {'s2'}))", postgres=t"trunc({'s1'}::int::bigint * power(2, {'s2'}::int::bigint))::bigint")
+ShiftLeftAST.add_rules(t"{dt.INT} <- {dt.BOOL} << {dt.INT}", oracle=t"trunc({'s1'} * power(2, {'s2'}))", postgres=t"trunc({'s1'}::int::bigint * power(2, {'s2'}))::bigint")
+ShiftLeftAST.add_rules(t"{dt.INT} <- {dt.INT} << {dt.BOOL}", oracle=t"trunc({'s1'} * power(2, {'s2'}))", postgres=t"trunc({'s1'} * power(2, {'s2'}::int::bigint))::bigint")
+ShiftLeftAST.add_rules(t"{dt.INT} <- {dt.INT} << {dt.INT}", oracle=t"trunc({'s1'} * power(2, {'s2'}))", postgres=t"trunc({'s1'} * power(2, {'s2'}))::bigint")
 
 # Right shift operator (A >> B)
-ShiftRightAST.add_rules(t"{dt.INT} <- {INTLIKE} >> {INTLIKE}", t"trunc({'s1'} / power(2, {'s2'}))")
+ShiftRightAST.add_rules(t"{dt.INT} <- {dt.BOOL} >> {dt.BOOL}", oracle=t"trunc({'s1'} / power(2, {'s2'}))", postgres=t"trunc({'s1'}::int::bigint / power(2, {'s2'}::int::bigint))::bigint")
+ShiftRightAST.add_rules(t"{dt.INT} <- {dt.BOOL} >> {dt.INT}", oracle=t"trunc({'s1'} / power(2, {'s2'}))", postgres=t"trunc({'s1'}::int::bigint / power(2, {'s2'}))::bigint")
+ShiftRightAST.add_rules(t"{dt.INT} <- {dt.INT} >> {dt.BOOL}", oracle=t"trunc({'s1'} / power(2, {'s2'}))", postgres=t"trunc({'s1'} / power(2, {'s2'}::int::bigint))::bigint")
+ShiftRightAST.add_rules(t"{dt.INT} <- {dt.INT} >> {dt.INT}", oracle=t"trunc({'s1'} / power(2, {'s2'}))", postgres=t"trunc({'s1'} / power(2, {'s2'}))::bigint")
 
 # Logical "and" (A and B)
-AndAST.add_rules(t"{'T1'} <- {ANY} and {dt.NULL}", t"null")
-AndAST.add_rules(t"{'T2'} <- {dt.NULL} and {ANY}", t"null")
-AndAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} and {dt.BOOL}", t"(case when {'s1'} = 1 then {'s2'} else 0 end)")
-AndAST.add_rules(t"{dt.INT} <- {INTLIKE} and {INTLIKE}", t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} and {NUMBERLIKE}", t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{dt.STR} <- {dt.STR} and {dt.STR}", t"nvl2({'s1'}, {'s2'}, {'s1'})")
-AndAST.add_rules(t"{dt.CLOB} <- {dt.STR} and {dt.CLOB}", t"(case when {'s1'} is not null then {'s2'} else to_clob({'s1'}) end)")
-AndAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} and {dt.CLOB}", t"(case when {'s1'} is not null and length({'s1'}) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} and {dt.STR}", t"(case when {'s1'} is not null and length({'s1'}) != 0 then to_clob({'s2'}) else {'s1'} end)")
-AndAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} and {'T1'}", t"nvl2({'s1'}, {'s2'}, {'s1'})")
-AndAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]} and {'T1'}", t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{'T1'} <- {LIST} and {'T1'}", t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{dt.DATETIMELIST} <- {[dt.DATELIST, dt.DATETIMELIST]} and {[dt.DATELIST, dt.DATETIMELIST]}", t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} and {dt.NULLLIST}", t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)")
-AndAST.add_rules(t"{'T2'} <- {dt.NULLLIST} and {LIST}", t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else vsqlimpl_pkg.{'t2'}_fromlen({'s1'}) end)")
-AndAST.add_rules(t"{'T1'} <- {LIST} and {dt.NULLLIST}", t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then vsqlimpl_pkg.{'t1'}_fromlen({'s2'}) else {'s1'} end)")
+AndAST.add_rules(t"{'T1'} <- {ANY} and {dt.NULL}", oracle=t"null", postgres=t"null")
+AndAST.add_rules(t"{'T2'} <- {dt.NULL} and {ANY}", oracle=t"null", postgres=t"null")
+AndAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} and {dt.BOOL}", oracle=t"(case when {'s1'} = 1 then {'s2'} else 0 end)", postgres=t"(case when {'s1'} then {'s2'} else false end)")
+AndAST.add_rules(t"{dt.INT} <- {dt.BOOL} and {dt.BOOL}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when {'s1'}::int::bigint <> 0 then {'s2'}::int::bigint else {'s1'}::int::bigint end)")
+AndAST.add_rules(t"{dt.INT} <- {dt.BOOL} and {dt.INT}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when {'s1'}::int::bigint <> 0 then {'s2'} else {'s1'}::int::bigint end)")
+AndAST.add_rules(t"{dt.INT} <- {dt.INT} and {dt.BOOL}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when {'s1'} <> 0 then {'s2'}::int::bigint else {'s1'} end)")
+AndAST.add_rules(t"{dt.INT} <- {dt.INT} and {dt.INT}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when {'s1'} <> 0 then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} and {NUMBERLIKE}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when vsqlimpl.number_{'t1'}({'s1'}) <> 0 then vsqlimpl.number_{'t2'}({'s2'}) else vsqlimpl.number_{'t1'}({'s1'}) end)")
+AndAST.add_rules(t"{dt.STR} <- {dt.STR} and {dt.STR}", oracle=t"nvl2({'s1'}, {'s2'}, {'s1'})", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{dt.CLOB} <- {dt.STR} and {dt.CLOB}", oracle=t"(case when {'s1'} is not null then {'s2'} else to_clob({'s1'}) end)", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} and {dt.CLOB}", oracle=t"(case when {'s1'} is not null and length({'s1'}) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} and {dt.STR}", oracle=t"(case when {'s1'} is not null and length({'s1'}) != 0 then to_clob({'s2'}) else {'s1'} end)", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} and {'T1'}", oracle=t"nvl2({'s1'}, {'s2'}, {'s1'})", postgres=t"(case when {'s1'} is not null then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]} and {'T1'}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when {'s1'} <> interval '0' then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{'T1'} <- {LIST} and {'T1'}", oracle=t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when cardinality({'s1'}) <> 0 then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{dt.DATETIMELIST} <- {[dt.DATELIST, dt.DATETIMELIST]} and {[dt.DATELIST, dt.DATETIMELIST]}", oracle=t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when cardinality({'s1'}) <> 0 then {'s2'}::timestamp[] else {'s1'}::timestamp[] end)")
+AndAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} and {dt.NULLLIST}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else {'s1'} end)", postgres=t"(case when {'s1'} <> 0 then {'s2'} else {'s1'} end)")
+AndAST.add_rules(t"{'T2'} <- {dt.NULLLIST} and {LIST}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s2'} else vsqlimpl_pkg.{'t2'}_fromlen({'s1'}) end)", postgres=t"(case when {'s1'} <> 0 then {'s2'} else vsqlimpl.{'t2'}_fromlen({'s1'}) end)")
+AndAST.add_rules(t"{'T1'} <- {LIST} and {dt.NULLLIST}", oracle=t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then vsqlimpl_pkg.{'t1'}_fromlen({'s2'}) else {'s1'} end)", postgres=t"(case when cardinality({'s1'}) <> 0 then vsqlimpl.{'t1'}_fromlen({'s2'}) else {'s1'} end)")
 
 # Logical "or" (A or B)
-OrAST.add_rules(t"{'T1'} <- {ANY} or {dt.NULL}", t"{'s1'}")
-OrAST.add_rules(t"{'T2'} <- {dt.NULL} or {ANY}", t"{'s2'}")
-OrAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} or {dt.BOOL}", t"(case when {'s1'} = 1 then 1 else {'s2'} end)")
-OrAST.add_rules(t"{dt.INT} <- {INTLIKE} or {INTLIKE}", t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} or {NUMBERLIKE}", t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{dt.STR} <- {dt.STR} or {dt.STR}", t"nvl({'s1'}, {'s2'})")
-OrAST.add_rules(t"{dt.CLOB} <- {dt.STR} or {dt.CLOB}", t"(case when {'s1'} is not null then to_clob({'s1'}) else {'s2'} end)")
-OrAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} or {dt.CLOB}", t"(case when {'s1'} is not null and length({'s1'}) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} or {dt.STR}", t"(case when {'s1'} is not null and length({'s1'}) != 0 then {'s1'} else to_clob({'s2'}) end)")
-OrAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} or {'T1'}", t"nvl({'s1'}, {'s2'})")
-OrAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]} or {'T1'}", t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{'T1'} <- {LIST} or {'T1'}", t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{dt.DATETIMELIST} <- {[dt.DATELIST, dt.DATETIMELIST]} or {[dt.DATELIST, dt.DATETIMELIST]}", t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} or {dt.NULLLIST}", t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)")
-OrAST.add_rules(t"{'T2'} <- {dt.NULLLIST} or {LIST}", t"(case when nvl({'s1'}, 0) != 0 then vsqlimpl_pkg.{'t2'}_fromlen({'s1'}) else {'s2'} end)")
-OrAST.add_rules(t"{'T1'} <- {LIST} or {dt.NULLLIST}", t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s1'} else vsqlimpl_pkg.{'t1'}_fromlen({'s2'}) end)")
+OrAST.add_rules(t"{'T1'} <- {ANY} or {dt.NULL}", oracle=t"{'s1'}", postgres=t"{'s1'}")
+OrAST.add_rules(t"{'T2'} <- {dt.NULL} or {ANY}", oracle=t"{'s2'}", postgres=t"{'s2'}")
+OrAST.add_rules(t"{dt.BOOL} <- {dt.BOOL} or {dt.BOOL}", oracle=t"(case when {'s1'} = 1 then 1 else {'s2'} end)", postgres=t"(case when {'s1'} then true else {'s2'} end)")
+OrAST.add_rules(t"{dt.INT} <- {dt.BOOL} or {dt.BOOL}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when {'s1'}::int::bigint <> 0 then {'s1'}::int::bigint else {'s2'}::int::bigint end)")
+OrAST.add_rules(t"{dt.INT} <- {dt.BOOL} or {dt.INT}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when {'s1'}::int::bigint <> 0 then {'s1'}::int::bigint else {'s2'} end)")
+OrAST.add_rules(t"{dt.INT} <- {dt.INT} or {dt.BOOL}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when {'s1'} <> 0 then {'s1'} else {'s2'}::int::bigint end)")
+OrAST.add_rules(t"{dt.INT} <- {dt.INT} or {dt.INT}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when {'s1'} <> 0 then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} or {NUMBERLIKE}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when vsqlimpl.number_{'t1'}({'s1'}) <> 0 then vsqlimpl.number_{'t1'}({'s1'}) else vsqlimpl.number_{'t2'}({'s2'}) end)")
+OrAST.add_rules(t"{dt.STR} <- {dt.STR} or {dt.STR}", oracle=t"nvl({'s1'}, {'s2'})", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{dt.CLOB} <- {dt.STR} or {dt.CLOB}", oracle=t"(case when {'s1'} is not null then to_clob({'s1'}) else {'s2'} end)", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} or {dt.CLOB}", oracle=t"(case when {'s1'} is not null and length({'s1'}) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{dt.CLOB} <- {dt.CLOB} or {dt.STR}", oracle=t"(case when {'s1'} is not null and length({'s1'}) != 0 then {'s1'} else to_clob({'s2'}) end)", postgres=t"(case when coalesce({'s1'}, '') <> '' then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{'T1'} <- {[dt.DATE, dt.DATETIME]} or {'T1'}", oracle=t"nvl({'s1'}, {'s2'})", postgres=t"coalesce({'s1'}, {'s2'})")
+OrAST.add_rules(t"{'T1'} <- {[dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]} or {'T1'}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when {'s1'} <> interval '0' then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{'T1'} <- {LIST} or {'T1'}", oracle=t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when cardinality({'s1'}) <> 0 then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{dt.DATETIMELIST} <- {[dt.DATELIST, dt.DATETIMELIST]} or {[dt.DATELIST, dt.DATETIMELIST]}", oracle=t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when cardinality({'s1'}) <> 0 then {'s1'}::timestamp[] else {'s2'}::timestamp[] end)")
+OrAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST} or {dt.NULLLIST}", oracle=t"(case when nvl({'s1'}, 0) != 0 then {'s1'} else {'s2'} end)", postgres=t"(case when {'s1'} <> 0 then {'s1'} else {'s2'} end)")
+OrAST.add_rules(t"{'T2'} <- {dt.NULLLIST} or {LIST}", oracle=t"(case when nvl({'s1'}, 0) != 0 then vsqlimpl_pkg.{'t2'}_fromlen({'s1'}) else {'s2'} end)", postgres=t"(case when {'s1'} <> 0 then vsqlimpl.{'t2'}_fromlen({'s1'}) else {'s2'} end)")
+OrAST.add_rules(t"{'T1'} <- {LIST} or {dt.NULLLIST}", oracle=t"(case when nvl(vsqlimpl_pkg.len_{'t1'}({'s1'}), 0) != 0 then {'s1'} else vsqlimpl_pkg.{'t1'}_fromlen({'s2'}) end)", postgres=t"(case when cardinality({'s1'}) <> 0 then {'s1'} else vsqlimpl.{'t1'}_fromlen({'s2'}) end)")
 
 # Containment test (A in B)
-ContainsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} in {[*LIST, dt.NULLLIST]}", t"vsqlimpl_pkg.contains_null_{'t2'}({'s2'})")
-ContainsAST.add_rules(t"{dt.BOOL} <- {[dt.STR, dt.CLOB]} in {[dt.STR, dt.CLOB, dt.STRLIST, dt.CLOBLIST, dt.STRSET]}", t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-ContainsAST.add_rules(t"{dt.BOOL} <- {[dt.INT, dt.NUMBER]} in {[dt.INTLIST, dt.NUMBERLIST, dt.INTSET, dt.NUMBERSET]}", t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-ContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATE} in {[dt.DATELIST, dt.DATESET]}", t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-ContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATETIME} in {[dt.DATETIMELIST, dt.DATETIMESET]}", t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
-ContainsAST.add_rules(t"{dt.BOOL} <- {ANY} in {dt.NULLLIST}", t"case when {'s1'} is null then vsqlimpl_pkg.contains_null_nulllist({'s2'}) else 0 end")
+ContainsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} in {[*LIST, dt.NULLLIST]}", oracle=t"vsqlimpl_pkg.contains_null_{'t2'}({'s2'})", postgres=t"vsqlimpl.contains_null_{'t2'}({'s2'})")
+ContainsAST.add_rules(t"{dt.BOOL} <- {[dt.STR, dt.CLOB]} in {[dt.STR, dt.CLOB, dt.STRLIST, dt.CLOBLIST, dt.STRSET]}", oracle=t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+ContainsAST.add_rules(t"{dt.BOOL} <- {[dt.INT, dt.NUMBER]} in {[dt.INTLIST, dt.NUMBERLIST, dt.INTSET, dt.NUMBERSET]}", oracle=t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+ContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATE} in {[dt.DATELIST, dt.DATESET]}", oracle=t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+ContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATETIME} in {[dt.DATETIMELIST, dt.DATETIMESET]}", oracle=t"vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'})")
+ContainsAST.add_rules(t"{dt.BOOL} <- {ANY} in {dt.NULLLIST}", oracle=t"case when {'s1'} is null then vsqlimpl_pkg.contains_null_nulllist({'s2'}) else 0 end", postgres=t"case when {'s1'} is null then vsqlimpl.contains_null_nulllist({'s2'}) else false end")
 
 # Inverted containment test (A not in B)
-NotContainsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} not in {[*LIST, dt.NULLLIST]}", t"(1 - vsqlimpl_pkg.contains_null_{'t2'}({'s2'}))")
-NotContainsAST.add_rules(t"{dt.BOOL} <- {[dt.STR, dt.CLOB]} not in {[dt.STR, dt.CLOB, dt.STRLIST, dt.CLOBLIST, dt.STRSET]}", t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NotContainsAST.add_rules(t"{dt.BOOL} <- {[dt.INT, dt.NUMBER]} not in {[dt.INTLIST, dt.NUMBERLIST, dt.INTSET, dt.NUMBERSET]}", t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NotContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATE} not in {[dt.DATELIST, dt.DATESET]}", t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NotContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATETIME} not in {[dt.DATETIMELIST, dt.DATETIMESET]}", t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
-NotContainsAST.add_rules(t"{dt.BOOL} <- {ANY} not in {dt.NULLLIST}", t"case when {'s1'} is null then 1 - vsqlimpl_pkg.contains_null_nulllist({'s2'}) else 1 end")
+NotContainsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} not in {[*LIST, dt.NULLLIST]}", oracle=t"(1 - vsqlimpl_pkg.contains_null_{'t2'}({'s2'}))", postgres=t"(not vsqlimpl.contains_null_{'t2'}({'s2'}))")
+NotContainsAST.add_rules(t"{dt.BOOL} <- {[dt.STR, dt.CLOB]} not in {[dt.STR, dt.CLOB, dt.STRLIST, dt.CLOBLIST, dt.STRSET]}", oracle=t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NotContainsAST.add_rules(t"{dt.BOOL} <- {[dt.INT, dt.NUMBER]} not in {[dt.INTLIST, dt.NUMBERLIST, dt.INTSET, dt.NUMBERSET]}", oracle=t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NotContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATE} not in {[dt.DATELIST, dt.DATESET]}", oracle=t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NotContainsAST.add_rules(t"{dt.BOOL} <- {dt.DATETIME} not in {[dt.DATETIMELIST, dt.DATETIMESET]}", oracle=t"(1 - vsqlimpl_pkg.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))", postgres=t"(not vsqlimpl.contains_{'t1'}_{'t2'}({'s1'}, {'s2'}))")
+NotContainsAST.add_rules(t"{dt.BOOL} <- {ANY} not in {dt.NULLLIST}", oracle=t"case when {'s1'} is null then 1 - vsqlimpl_pkg.contains_null_nulllist({'s2'}) else 1 end", postgres=t"case when {'s1'} is null then not vsqlimpl.contains_null_nulllist({'s2'}) else true end")
 
 # Identity test (A is B)
-IsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is {dt.NULL}", t"1")
-IsAST.add_rules(t"{dt.BOOL} <- {ANY} is {dt.NULL}", t"(case when {'s1'} is null then 1 else 0 end)")
-IsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is {ANY}", t"(case when {'s2'} is null then 1 else 0 end)")
+IsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is {dt.NULL}", oracle=t"1", postgres=t"true")
+IsAST.add_rules(t"{dt.BOOL} <- {ANY} is {dt.NULL}", oracle=t"(case when {'s1'} is null then 1 else 0 end)", postgres=t"({'s1'} is null)")
+IsAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is {ANY}", oracle=t"(case when {'s2'} is null then 1 else 0 end)", postgres=t"({'s2'} is null)")
 
 # Inverted identity test (A is not B)
-IsNotAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is not {dt.NULL}", t"0")
-IsNotAST.add_rules(t"{dt.BOOL} <- {ANY} is not {dt.NULL}", t"(case when {'s1'} is not null then 1 else 0 end)")
-IsNotAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is not {ANY}", t"(case when {'s2'} is not null then 1 else 0 end)")
+IsNotAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is not {dt.NULL}", oracle=t"0", postgres=t"false")
+IsNotAST.add_rules(t"{dt.BOOL} <- {ANY} is not {dt.NULL}", oracle=t"(case when {'s1'} is not null then 1 else 0 end)", postgres=t"({'s1'} is not null)")
+IsNotAST.add_rules(t"{dt.BOOL} <- {dt.NULL} is not {ANY}", oracle=t"(case when {'s2'} is not null then 1 else 0 end)", postgres=t"({'s2'} is not null)")
 
 # Item access operator (A[B])
-ItemAST.add_rules(t"{dt.NULL} <- {dt.NULLLIST}[{INTLIKE}]", t"null")
-ItemAST.add_rules(t"{dt.STR} <- {[dt.STR, dt.CLOB, dt.STRLIST]}[{INTLIKE}]", t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})")
-ItemAST.add_rules(t"{dt.CLOB} <- {dt.CLOBLIST}[{INTLIKE}]", t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})")
-ItemAST.add_rules(t"{dt.INT} <- {dt.INTLIST}[{INTLIKE}]", t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})")
-ItemAST.add_rules(t"{dt.NUMBER} <- {dt.NUMBERLIST}[{INTLIKE}]", t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})")
-ItemAST.add_rules(t"{dt.DATE} <- {dt.DATELIST}[{INTLIKE}]", t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})")
-ItemAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIMELIST}[{INTLIKE}]", t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})")
+ItemAST.add_rules(t"{dt.NULL} <- {dt.NULLLIST}[{INTLIKE}]", oracle=t"null", postgres=t"null")
+ItemAST.add_rules(t"{dt.STR} <- {[dt.STR, dt.CLOB, dt.STRLIST]}[{dt.BOOL}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'}::int::bigint)")
+ItemAST.add_rules(t"{dt.STR} <- {[dt.STR, dt.CLOB, dt.STRLIST]}[{dt.INT}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'})")
+ItemAST.add_rules(t"{dt.CLOB} <- {dt.CLOBLIST}[{dt.BOOL}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'}::int::bigint)")
+ItemAST.add_rules(t"{dt.CLOB} <- {dt.CLOBLIST}[{dt.INT}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'})")
+ItemAST.add_rules(t"{dt.INT} <- {dt.INTLIST}[{dt.BOOL}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'}::int::bigint)")
+ItemAST.add_rules(t"{dt.INT} <- {dt.INTLIST}[{dt.INT}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'})")
+ItemAST.add_rules(t"{dt.NUMBER} <- {dt.NUMBERLIST}[{dt.BOOL}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'}::int::bigint)")
+ItemAST.add_rules(t"{dt.NUMBER} <- {dt.NUMBERLIST}[{dt.INT}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'})")
+ItemAST.add_rules(t"{dt.DATE} <- {dt.DATELIST}[{dt.BOOL}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'}::int::bigint)")
+ItemAST.add_rules(t"{dt.DATE} <- {dt.DATELIST}[{dt.INT}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'})")
+ItemAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIMELIST}[{dt.BOOL}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'}::int::bigint)")
+ItemAST.add_rules(t"{dt.DATETIME} <- {dt.DATETIMELIST}[{dt.INT}]", oracle=t"vsqlimpl_pkg.item_{'t1'}({'s1'}, {'s2'})", postgres=t"vsqlimpl.item_{'t1'}({'s1'}, {'s2'})")
 
 # Bitwise "and" (A & B)
-BitAndAST.add_rules(t"{dt.INT} <- {INTLIKE} & {INTLIKE}", t"bitand({'s1'}, {'s2'})")
-BitAndAST.add_rules(t"{'T1'} <- {dt.INTSET} & {dt.INTSET}", t"vsqlimpl_pkg.bitand_intset({'s1'}, {'s2'})")
-BitAndAST.add_rules(t"{'T1'} <- {dt.NUMBERSET} & {dt.NUMBERSET}", t"vsqlimpl_pkg.bitand_numberset({'s1'}, {'s2'})")
-BitAndAST.add_rules(t"{'T1'} <- {dt.STRSET} & {dt.STRSET}", t"vsqlimpl_pkg.bitand_strset({'s1'}, {'s2'})")
-BitAndAST.add_rules(t"{'T1'} <- {[dt.DATESET, dt.DATETIMESET]} & {'T1'}", t"vsqlimpl_pkg.bitand_datetimeset({'s1'}, {'s2'})")
+BitAndAST.add_rules(t"{dt.INT} <- {dt.BOOL} & {dt.BOOL}", oracle=t"bitand({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint & {'s2'}::int::bigint)")
+BitAndAST.add_rules(t"{dt.INT} <- {dt.BOOL} & {dt.INT}", oracle=t"bitand({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint & {'s2'})")
+BitAndAST.add_rules(t"{dt.INT} <- {dt.INT} & {dt.BOOL}", oracle=t"bitand({'s1'}, {'s2'})", postgres=t"({'s1'} & {'s2'}::int::bigint)")
+BitAndAST.add_rules(t"{dt.INT} <- {dt.INT} & {dt.INT}", oracle=t"bitand({'s1'}, {'s2'})", postgres=t"({'s1'} & {'s2'})")
+BitAndAST.add_rules(t"{'T1'} <- {dt.INTSET} & {dt.INTSET}", oracle=t"vsqlimpl_pkg.bitand_intset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitand_intset({'s1'}, {'s2'})")
+BitAndAST.add_rules(t"{'T1'} <- {dt.NUMBERSET} & {dt.NUMBERSET}", oracle=t"vsqlimpl_pkg.bitand_numberset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitand_numberset({'s1'}, {'s2'})")
+BitAndAST.add_rules(t"{'T1'} <- {dt.STRSET} & {dt.STRSET}", oracle=t"vsqlimpl_pkg.bitand_strset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitand_strset({'s1'}, {'s2'})")
+BitAndAST.add_rules(t"{'T1'} <- {[dt.DATESET, dt.DATETIMESET]} & {'T1'}", oracle=t"vsqlimpl_pkg.bitand_datetimeset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitand_{'t1'}({'s1'}, {'s2'})")
 
 # Bitwise "or" (A | B)
-BitOrAST.add_rules(t"{dt.INT} <- {INTLIKE} | {INTLIKE}", t"vsqlimpl_pkg.bitor_int({'s1'}, {'s2'})")
-BitOrAST.add_rules(t"{'T1'} <- {dt.INTSET} | {dt.INTSET}", t"vsqlimpl_pkg.bitor_intset({'s1'}, {'s2'})")
-BitOrAST.add_rules(t"{'T1'} <- {dt.NUMBERSET} | {dt.NUMBERSET}", t"vsqlimpl_pkg.bitor_numberset({'s1'}, {'s2'})")
-BitOrAST.add_rules(t"{'T1'} <- {dt.STRSET} | {dt.STRSET}", t"vsqlimpl_pkg.bitor_strset({'s1'}, {'s2'})")
-BitOrAST.add_rules(t"{'T1'} <- {[dt.DATESET, dt.DATETIMESET]} | {'T1'}", t"vsqlimpl_pkg.bitor_datetimeset({'s1'}, {'s2'})")
+BitOrAST.add_rules(t"{dt.INT} <- {dt.BOOL} | {dt.BOOL}", oracle=t"vsqlimpl_pkg.bitor_int({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint | {'s2'}::int::bigint)")
+BitOrAST.add_rules(t"{dt.INT} <- {dt.BOOL} | {dt.INT}", oracle=t"vsqlimpl_pkg.bitor_int({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint | {'s2'})")
+BitOrAST.add_rules(t"{dt.INT} <- {dt.INT} | {dt.BOOL}", oracle=t"vsqlimpl_pkg.bitor_int({'s1'}, {'s2'})", postgres=t"({'s1'} | {'s2'}::int::bigint)")
+BitOrAST.add_rules(t"{dt.INT} <- {dt.INT} | {dt.INT}", oracle=t"vsqlimpl_pkg.bitor_int({'s1'}, {'s2'})", postgres=t"({'s1'} | {'s2'})")
+BitOrAST.add_rules(t"{'T1'} <- {dt.INTSET} | {dt.INTSET}", oracle=t"vsqlimpl_pkg.bitor_intset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitor_intset({'s1'}, {'s2'})")
+BitOrAST.add_rules(t"{'T1'} <- {dt.NUMBERSET} | {dt.NUMBERSET}", oracle=t"vsqlimpl_pkg.bitor_numberset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitor_numberset({'s1'}, {'s2'})")
+BitOrAST.add_rules(t"{'T1'} <- {dt.STRSET} | {dt.STRSET}", oracle=t"vsqlimpl_pkg.bitor_strset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitor_strset({'s1'}, {'s2'})")
+BitOrAST.add_rules(t"{'T1'} <- {[dt.DATESET, dt.DATETIMESET]} | {'T1'}", oracle=t"vsqlimpl_pkg.bitor_datetimeset({'s1'}, {'s2'})", postgres=t"vsqlimpl.bitor_{'t1'}({'s1'}, {'s2'})")
 
 # Bitwise "exclusive or" (A ^ B)
-BitXOrAST.add_rules(t"{dt.INT} <- {INTLIKE} ^ {INTLIKE}", t"vsqlimpl_pkg.bitxor_int({'s1'}, {'s2'})")
+BitXOrAST.add_rules(t"{dt.INT} <- {dt.BOOL} ^ {dt.BOOL}", oracle=t"vsqlimpl_pkg.bitxor_int({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint # {'s2'}::int::bigint)")
+BitXOrAST.add_rules(t"{dt.INT} <- {dt.BOOL} ^ {dt.INT}", oracle=t"vsqlimpl_pkg.bitxor_int({'s1'}, {'s2'})", postgres=t"({'s1'}::int::bigint # {'s2'})")
+BitXOrAST.add_rules(t"{dt.INT} <- {dt.INT} ^ {dt.BOOL}", oracle=t"vsqlimpl_pkg.bitxor_int({'s1'}, {'s2'})", postgres=t"({'s1'} # {'s2'}::int::bigint)")
+BitXOrAST.add_rules(t"{dt.INT} <- {dt.INT} ^ {dt.INT}", oracle=t"vsqlimpl_pkg.bitxor_int({'s1'}, {'s2'})", postgres=t"({'s1'} # {'s2'})")
 
 # Logical negation (not A)
-NotAST.add_rules(t"{dt.BOOL} <- not {dt.NULL}", t"1")
-NotAST.add_rules(t"{dt.BOOL} <- not {dt.BOOL}", t"(case {'s1'} when 1 then 0 else 1 end)")
-NotAST.add_rules(t"{dt.BOOL} <- not {[dt.INT, dt.NUMBER, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", t"(case nvl({'s1'}, 0) when 0 then 1 else 0 end)")
-NotAST.add_rules(t"{dt.BOOL} <- not {[dt.DATE, dt.DATETIME, dt.STR, dt.COLOR, dt.GEO]}", t"(case when {'s1'} is null then 1 else 0 end)")
-NotAST.add_rules(t"{dt.BOOL} <- not {ANY}", t"(1 - vsqlimpl_pkg.bool_{'t1'}({'s1'}))")
+NotAST.add_rules(t"{dt.BOOL} <- not {dt.NULL}", oracle=t"1", postgres=t"true")
+NotAST.add_rules(t"{dt.BOOL} <- not {dt.BOOL}", oracle=t"(case {'s1'} when 1 then 0 else 1 end)", postgres=t"(not coalesce({'s1'}, false))")
+NotAST.add_rules(t"{dt.BOOL} <- not {[dt.INT, dt.NUMBER, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", oracle=t"(case nvl({'s1'}, 0) when 0 then 1 else 0 end)", postgres=t"(coalesce({'s1'}, '0') = '0')")
+NotAST.add_rules(t"{dt.BOOL} <- not {[dt.DATE, dt.DATETIME, dt.STR, dt.COLOR, dt.GEO]}", oracle=t"(case when {'s1'} is null then 1 else 0 end)", postgres=t"(not vsqlimpl.bool_{'t1'}({'s1'}))")
+NotAST.add_rules(t"{dt.BOOL} <- not {ANY}", oracle=t"(1 - vsqlimpl_pkg.bool_{'t1'}({'s1'}))", postgres=t"(not vsqlimpl.bool_{'t1'}({'s1'}))")
 
 # Arithmetic negation (-A)
-NegAST.add_rules(t"{dt.INT} <- {dt.BOOL}", t"(-{'s1'})")
-NegAST.add_rules(t"{'T1'} <- {[dt.INT, dt.NUMBER, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", t"(-{'s1'})")
+NegAST.add_rules(t"{dt.INT} <- {dt.BOOL}", oracle=t"(-{'s1'})", postgres=t"(-{'s1'}::int::bigint)")
+NegAST.add_rules(t"{'T1'} <- {[dt.INT, dt.NUMBER, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA]}", oracle=t"(-{'s1'})", postgres=t"(-{'s1'})")
 
 # Bitwise "not" (~A)
-BitNotAST.add_rules(t"{dt.INT} <- {INTLIKE}", t"(-{'s1'} - 1)")
+BitNotAST.add_rules(t"{dt.INT} <- {dt.BOOL}", oracle=t"(-{'s1'} - 1)", postgres=t"(-{'s1'}::int::bigint - 1)")
+BitNotAST.add_rules(t"{dt.INT} <- {dt.INT}", oracle=t"(-{'s1'} - 1)", postgres=t"(-{'s1'} - 1)")
 
 # Ternary "if"/"else" (A if COND else B)
-IfAST.add_rules(t"{'T1'} <- {ANY} if {dt.NULL} else {'T1'}", t"{'s3'}")
-IfAST.add_rules(t"{dt.INT} <- {INTLIKE} if {dt.NULL} else {INTLIKE}", t"{'s3'}")
-IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {dt.NULL} else {NUMBERLIKE}", t"{'s3'}")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {dt.NULL} else {dt.NULL}", t"{'s3'}")
-IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {dt.NULL} else {ANY}", t"{'s3'}")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {NUMBERSTORED} else {'T1'}", t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{dt.INT} <- {INTLIKE} if {NUMBERSTORED} else {INTLIKE}", t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {NUMBERSTORED} else {NUMBERLIKE}", t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {NUMBERSTORED} else {dt.NULL}", t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {NUMBERSTORED} else {ANY}", t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {'T1'}", t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{dt.INT} <- {INTLIKE} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {INTLIKE}", t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {NUMBERLIKE}", t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {dt.NULL}", t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {ANY}", t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {ANY} else {'T1'}", t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{dt.INT} <- {INTLIKE} if {ANY} else {INTLIKE}", t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {ANY} else {NUMBERLIKE}", t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T1'} <- {ANY} if {ANY} else {dt.NULL}", t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)")
-IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {ANY} else {ANY}", t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {dt.NULL} else {'T1'}", oracle=t"{'s3'}", postgres=t"{'s3'}")
+IfAST.add_rules(t"{dt.INT} <- {INTLIKE} if {dt.NULL} else {dt.BOOL}", oracle=t"{'s3'}", postgres=t"{'s3'}::int::bigint")
+IfAST.add_rules(t"{dt.INT} <- {INTLIKE} if {dt.NULL} else {dt.INT}", oracle=t"{'s3'}", postgres=t"{'s3'}")
+IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {dt.NULL} else {NUMBERLIKE}", oracle=t"{'s3'}", postgres=t"vsqlimpl.number_{'t3'}({'s3'})")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {dt.NULL} else {dt.NULL}", oracle=t"{'s3'}", postgres=t"{'s3'}")
+IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {dt.NULL} else {ANY}", oracle=t"{'s3'}", postgres=t"{'s3'}")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {NUMBERSTORED} else {'T1'}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.BOOL} if {NUMBERSTORED} else {dt.BOOL}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'}::int::bigint else {'s3'}::int::bigint end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.BOOL} if {NUMBERSTORED} else {dt.INT}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'}::int::bigint else {'s3'} end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.INT} if {NUMBERSTORED} else {dt.BOOL}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'}::int::bigint end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.INT} if {NUMBERSTORED} else {dt.INT}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {NUMBERSTORED} else {NUMBERLIKE}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then vsqlimpl.number_{'t1'}({'s1'}) else vsqlimpl.number_{'t3'}({'s3'}) end)")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {NUMBERSTORED} else {dt.NULL}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {NUMBERSTORED} else {ANY}", oracle=t"(case when nvl({'s2'}, 0) != 0 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {'T1'}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.BOOL} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {dt.BOOL}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'}::int::bigint else {'s3'}::int::bigint end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.BOOL} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {dt.INT}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'}::int::bigint else {'s3'} end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.INT} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {dt.BOOL}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'}::int::bigint end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.INT} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {dt.INT}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {NUMBERLIKE}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then vsqlimpl.number_{'t1'}({'s1'}) else vsqlimpl.number_{'t3'}({'s3'}) end)")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {dt.NULL}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {[dt.DATE, dt.DATETIME, dt.STR, dt.GEO]} else {ANY}", oracle=t"(case when {'s2'} is not null then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {ANY} else {'T1'}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.BOOL} if {ANY} else {dt.BOOL}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'}::int::bigint else {'s3'}::int::bigint end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.BOOL} if {ANY} else {dt.INT}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'}::int::bigint else {'s3'} end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.INT} if {ANY} else {dt.BOOL}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'}::int::bigint end)")
+IfAST.add_rules(t"{dt.INT} <- {dt.INT} if {ANY} else {dt.INT}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{dt.NUMBER} <- {NUMBERLIKE} if {ANY} else {NUMBERLIKE}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then vsqlimpl.number_{'t1'}({'s1'}) else vsqlimpl.number_{'t3'}({'s3'}) end)")
+IfAST.add_rules(t"{'T1'} <- {ANY} if {ANY} else {dt.NULL}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
+IfAST.add_rules(t"{'T3'} <- {dt.NULL} if {ANY} else {ANY}", oracle=t"(case when vsqlimpl_pkg.bool_{'t2'}({'s2'}) = 1 then {'s1'} else {'s3'} end)", postgres=t"(case when vsqlimpl.bool_{'t2'}({'s2'}) then {'s1'} else {'s3'} end)")
 
 # Slice operator (A[B:C])
-SliceAST.add_rules(t"{'T1'} <- {[*TEXT, *LIST]}[{[dt.NULL, *INTLIKE]}:{[dt.NULL, *INTLIKE]}]", t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})")
-SliceAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST}[{[dt.NULL, *INTLIKE]}:{[dt.NULL, *INTLIKE]}]", t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})")
+SliceAST.add_rules(t"{'T1'} <- {[*TEXT, *LIST]}[{dt.BOOL}:{dt.BOOL}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}::int::bigint, {'s3'}::int::bigint)")
+SliceAST.add_rules(t"{'T1'} <- {[*TEXT, *LIST]}[{dt.BOOL}:{[dt.NULL, dt.INT]}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}::int::bigint, {'s3'})")
+SliceAST.add_rules(t"{'T1'} <- {[*TEXT, *LIST]}[{[dt.NULL, dt.INT]}:{dt.BOOL}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}, {'s3'}::int::bigint)")
+SliceAST.add_rules(t"{'T1'} <- {[*TEXT, *LIST]}[{[dt.NULL, dt.INT]}:{[dt.NULL, dt.INT]}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})")
+SliceAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST}[{dt.BOOL}:{dt.BOOL}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}::int::bigint, {'s3'}::int::bigint)")
+SliceAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST}[{dt.BOOL}:{[dt.NULL, dt.INT]}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}::int::bigint, {'s3'})")
+SliceAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST}[{[dt.NULL, dt.INT]}:{dt.BOOL}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}, {'s3'}::int::bigint)")
+SliceAST.add_rules(t"{dt.NULLLIST} <- {dt.NULLLIST}[{[dt.NULL, dt.INT]}:{[dt.NULL, dt.INT]}]", oracle=t"vsqlimpl_pkg.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})", postgres=t"vsqlimpl.slice_{'t1'}({'s1'}, {'s2'}, {'s3'})")
 
 
 ###

@@ -280,6 +280,15 @@ class IntEnum(enum.IntEnum, metaclass=EnumMeta):
 		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}.{self.name}: {self.value!r}>"
 
 
+class StrEnum(enum.StrEnum, metaclass=EnumMeta):
+	"""
+	Subclass of :class:`enum.StrEnum` where class and instance :func:`repr`
+	output includes the module and fully qualified class name.
+	"""
+	def __repr__(self):
+		return f"<{self.__class__.__module__}.{self.__class__.__qualname__}.{self.name}: {self.value!r}>"
+
+
 class _propclass_Meta(type):
 	def __new__(cls, name, bases, dict):
 		if bases == (property,):

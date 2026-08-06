@@ -6,32 +6,7 @@ To run the tests, :mod:`pytest` is required.
 
 import math, datetime
 
-from conftest import *
-
 from ll import vsql
-
-
-field_table = vsql.Group("vsql_field")
-field_table.add_field("id", vsql.DataType.STR, "{a}.fld_id")
-field_table.add_field("name", vsql.DataType.STR, "{a}.fld_name")
-field_table.add_field("parent", vsql.DataType.STR, "{a}.fld_id_super", "{m}.fld_id_super = {d}.fld_id", field_table)
-
-
-person_table = vsql.Group("vsql_person")
-person_table.add_field("id", vsql.DataType.STR, "{a}.per_id")
-person_table.add_field("firstname", vsql.DataType.STR, "{a}.per_firstname")
-person_table.add_field("lastname", vsql.DataType.STR, "{a}.per_lastname")
-person_table.add_field("gender", vsql.DataType.STR, "{a}.per_gender")
-person_table.add_field("field", vsql.DataType.STR, "{a}.fld_id", "{m}.fld_id = {d}.fld_id", field_table)
-person_table.add_field("date_of_birth", vsql.DataType.DATE, "{a}.per_date_of_birth")
-person_table.add_field("date_of_death", vsql.DataType.DATE, "{a}.per_date_of_death")
-person_table.add_field("country_of_birth", vsql.DataType.STR, "{a}.per_country_of_birth")
-person_table.add_field("grave", vsql.DataType.GEO, "{a}.per_grave")
-person_table.add_field("nobel_prize", vsql.DataType.BOOL, "{a}.per_nobel_prize")
-person_table.add_field("url", vsql.DataType.STR, "{a}.per_url")
-person_table.add_field("createdat", vsql.DataType.DATETIME, "{a}.per_createdat")
-
-p = vsql.Field("p", vsql.DataType.STR, "1 = 1", "2 = 2", refgroup=person_table)
 
 
 def raw_sql(query):
@@ -42,61 +17,61 @@ def raw_sql(query):
 ### Tests
 ###
 
-def test_query_comment(db, vsql_data):
-	q = vsql.Query("foo")
+def test_query_comment(vsql_db, vsql_data):
+	q = vsql_db.query("foo")
 	assert "/* foo */" in raw_sql(q)
 
 
-def test_query_badcomment(db, vsql_data):
-	q = vsql.Query("/* foo */")
+def test_query_badcomment(vsql_db, vsql_data):
+	q = vsql_db.query("/* foo */")
 	assert raw_sql(q).count("*/") == 1
 
 
-def test_query_simple(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_simple(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.select_vsql("p.firstname", alias="fn")
 	q.where_vsql("p.lastname == 'Einstein'")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert rs[0].fn == "Albert"
 
 
-def test_query_foreignkey(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_foreignkey(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.select_vsql("p.field.parent.name", alias="fld")
 	q.where_vsql("p.lastname == 'Einstein'")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert rs[0].fld == "Science"
 
 
-def test_query_count_all(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_count_all(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.aggregate_vsql("count()", "Number of persons", "c")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert rs[0].c == 10
 
 
-def test_query_count_by_gender(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_count_by_gender(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.aggregate_vsql("group(p.gender)")
 	q.aggregate_vsql("count()")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert {r[0]: r[1] for r in rs} == {"f": 3, "m": 7}
 
 
-def test_query_oldest_by_gender(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_oldest_by_gender(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.aggregate_vsql("group(p.gender)")
 	q.aggregate_vsql("max( int( ( (p.date_of_death or @(2000-02-29)) - p.date_of_birth ).days / 365.2425 ) )")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert {r[0]: int(r[1]) for r in rs} == {
 		"f": 66, # Marie Curie
@@ -104,12 +79,12 @@ def test_query_oldest_by_gender(db, vsql_data):
 	}
 
 
-def test_query_count_by_field(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_count_by_field(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.aggregate_vsql("group(p.field.id)")
 	q.aggregate_vsql("count()")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert {r[0]: int(r[1]) for r in rs} == {
 		"computerscience": 1, # Donald Kunth
@@ -122,14 +97,14 @@ def test_query_count_by_field(db, vsql_data):
 	}
 
 
-def test_query_first_last_by_century(db, vsql_data):
-	q = vsql.Query(p=p)
+def test_query_first_last_by_century(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
 	q.from_vsql("p")
 	q.aggregate_vsql("group(p.date_of_birth.year//100)")
 	q.aggregate_vsql("min(str(p.date_of_birth))")
 	q.aggregate_vsql("max(str(p.date_of_birth))")
 	q.aggregate_vsql("count()")
-	rs = execute(db, q)
+	rs = vsql_db.execute(q)
 
 	assert {r[0]: (r[1], r[2], r[3]) for r in rs} == {
 		17: (
@@ -150,13 +125,13 @@ def test_query_first_last_by_century(db, vsql_data):
 	}
 
 
-def test_query_sql(db, vsql_data):
-	q = vsql.Query()
+def test_query_sql(vsql_db, vsql_data):
+	q = vsql_db.query()
 	q.select_sql("upper(per_firstname)")
 	q.select_sql(t"replace(per_lastname, {'e'}, {'x'})")
 	q.from_sql("vsql_person")
 	q.where_sql("per_firstname like 'A%'")
 	q.orderby_sql("per_firstname asc nulls last")
-	rs = [list(r) for r in execute(db, q)]
+	rs = [list(r) for r in vsql_db.execute(q)]
 
 	assert rs == [["ALBERT", "Einstxin"], ["ANGELA", "Mxrkxl"]]
