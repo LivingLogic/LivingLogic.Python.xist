@@ -1108,7 +1108,7 @@ class Query(Repr):
 			"""
 			Converts the value ``value`` to the form expected by this vSQL expression.
 
-			This is used to convert :class:`datetime.dateime` values from Oracle
+			This is used to convert :class:`datetime.datetime` values from Oracle
 			to :class:`datetime.date` for expressions of the ``DataType.DATE``.
 
 			If this is not a vSQL expression ``value`` will be returned unmodified.
