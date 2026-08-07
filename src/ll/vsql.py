@@ -19,7 +19,9 @@ UL4 expressions retargeted for generating SQL expressions used in SQL queries.
 So the end result of using vSQL always is a SQL query that you can execute
 normally.
 
-Currently only Oracle is supported.
+Oracle and PostgreSQL are supported. Which of the two SQL dialects gets
+generated is determined by the class used for building the query:
+:class:`OracleQuery` or :class:`PostgresQuery`.
 
 The purpose of vSQL is not to abstract away differences between the relational
 database and the object oriented world or to shield the developer from having
@@ -34,11 +36,11 @@ while offering the expressive power of an ORM without the overhead.
 Example
 -------
 
-To create an SQL query via vSQL expressions in the simplest form we're using the
-class :class:`Query` like this::
+To create an SQL query via vSQL expressions in the simplest form we're using one
+of the :class:`Query` subclasses like this::
 
 	from ll import vsql
-	q = vsql.Query()
+	q = vsql.OracleQuery()
 
 	# Define the expression we want
 	q.select_vsql("('foo'.upper() + 'bar'.lower())[:3]")
@@ -93,7 +95,7 @@ Selecting from this table then works like this::
 	person_table.add_field("lastname", vsql.DataType.STR, "{a}.per_lastname")
 	person_table.add_field("birthday", vsql.DataType.DATE, "{a}.per_birthday")
 
-	q = vsql.Query(
+	q = vsql.OracleQuery(
 		p=vsql.Field("p", vsql.DataType.INT, refgroup=person_table)
 	)
 
@@ -174,7 +176,7 @@ as the following code demonstrates::
 	person_table.add_field("birthday", vsql.DataType.DATE, "{a}.per_birthday")
 	person_table.add_field("company", vsql.DataType.INT, "{a}.com_id", "{m}.com_id = {d}.com_id", company_table)
 
-	q = vsql.Query(
+	q = vsql.OracleQuery(
 		p=vsql.Field("p", vsql.DataType.INT, refgroup=person_table)
 	)
 
@@ -1071,6 +1073,12 @@ class Group(Repr):
 class Query(Repr):
 	"""
 	A :class:`!Query` object can be used to build an SQL query using vSQL expressions.
+
+	:class:`!Query` itself is abstract: which database the query will be executed
+	in (and with that which SQL dialect will be used) is determined by the class,
+	so use one of the subclasses :class:`OracleQuery` or :class:`PostgresQuery`
+	instead. If you only have a :class:`DBType` at hand, :meth:`fordbtype` will
+	give you the appropriate class.
 	"""
 
 	class SQLExpr(Repr):
@@ -1274,8 +1282,17 @@ class Query(Repr):
 				sqlsource = t"{sqlsource:q} nulls {self.nulls:q}"
 			return sqlsource
 
-	comment : str | None
+	# The database this query will be executed in, and the two configuration
+	# tables that depend on it. All three are set by the subclasses.
 	dbtype : DBType
+	source_aliases : dict[str, str]
+	sqltypes : dict[DataType, tuple[str, str]]
+
+	# Maps each :class:`DBType` to its :class:`!Query` subclass (set below, after
+	# the subclasses have been defined)
+	classes : dict[DBType, type[Query]]
+
+	comment : str | None
 	vars : dict[str, Field]
 	fields : dict[TStringHasher, SQLSelectExpr | VSQLSelectExpr] # Key is the SQL source
 	aggregated_fields : dict[TStringHasher, SQLAggregatedSelectExpr | VSQLAggregatedSelectExpr] # Key is the SQL source
@@ -1284,22 +1301,21 @@ class Query(Repr):
 	_orderby : list[SQLOrderByExpr | VSQLOrderByExpr]
 	_groupby : dict[TStringHasher, SQLGroupByExpr | VSQLGroupByExpr]
 	_offset : int | None
-	_limit = int | None
+	_limit : int | None
 	_identifier_aliases : dict[str, str]
 
-	def __init__(self, comment: str | None = None, dbtype: DBType = DBType.ORACLE, **vars: Field):
+	def __init__(self, comment: str | None = None, **vars: Field):
 		"""
 		Create a new empty :class:`!Query` object.
+
+		The database this query will be executed in is determined by the class,
+		so this must be called on one of the subclasses (:class:`OracleQuery` or
+		:class:`PostgresQuery`).
 
 		Arguments are:
 
 		``comment`` : :class:`str` or ``None``
 			A comment that will be included in the generated SQL.
-
-		``dbtype`` : :class:`DBType`
-			The database this query will be executed in. This decides which of
-			the SQL sources of the vSQL syntax rules will be used and which SQL
-			dialect will be used for the query itself.
 
 		``vars`` : :class:`Field`
 			These are the top level variables that will be availabe for vSQL
@@ -1311,7 +1327,6 @@ class Query(Repr):
 			table, so it has a ``joinsql`` and a ``refgroup``.
 		"""
 		self.comment = comment
-		self.dbtype = DBType(dbtype)
 		self.vars = {identifier: field for (identifier, field) in vars.items() if field is not None}
 		self.fields = {}
 		self.aggregated_fields = {}
@@ -1322,6 +1337,13 @@ class Query(Repr):
 		self._offset = None
 		self._limit = None
 		self._identifier_aliases = {}
+
+	@classmethod
+	def fordbtype(cls, dbtype: DBType) -> type[Query]:
+		"""
+		Return the :class:`!Query` subclass for the database type ``dbtype``.
+		"""
+		return cls.classes[DBType(dbtype)]
 
 	def _register(self, fieldref: FieldRefAST) -> str | None:
 		"""
@@ -1689,7 +1711,7 @@ class Query(Repr):
 		Example::
 
 			>>> from ll import vsql
-			>>> q = vsql.Query("Example query", user=la.User.vsqlfield())
+			>>> q = vsql.OracleQuery("Example query", user=la.User.vsqlfield())
 			>>> q.select_vsql("user.email")
 			>>> q.orderby_vsql("user.firstname asc nulls first")
 			>>> q.orderby_vsql("user.surname desc nulls last")
@@ -1753,6 +1775,22 @@ class Query(Repr):
 		"""
 		self._limit = limit
 
+	def _sqlsource_nofrom(self, a) -> None:
+		"""
+		Add the "from" clause for a query that doesn't use any tables.
+
+		``a`` is the function :meth:`sqlsource` uses for collecting tokens.
+		"""
+		raise NotImplementedError
+
+	def _sqlsource_limit(self, a) -> None:
+		"""
+		Add the clauses that limit the number of records returned.
+
+		``a`` is the function :meth:`sqlsource` uses for collecting tokens.
+		"""
+		raise NotImplementedError
+
 	def sqlsource(self, indent: str = "\t") -> templatelib.Template:
 		"""
 		Return the SQL source code for this query.
@@ -1760,7 +1798,7 @@ class Query(Repr):
 		For example::
 
 			>>> from ll import vsql
-			>>> print(vsql.Query().select_vsql("now()").sqlsource()))
+			>>> print(vsql.OracleQuery().select_vsql("now()").sqlsource()))
 			select
 				sysdate /* now() */
 			from
@@ -1792,9 +1830,7 @@ class Query(Repr):
 			a(t"42")
 		a(None, -1)
 
-		# Postgres doesn't have (and doesn't need) ``dual``, so for a query
-		# without any tables we drop the "from" clause completely.
-		if self._from or self.dbtype is DBType.ORACLE:
+		if self._from:
 			a(t"from", None, +1)
 			first = True
 			for expr in self._from.values():
@@ -1803,9 +1839,9 @@ class Query(Repr):
 				else:
 					a(t",", None)
 				a(expr.sqlsource())
-			if first:
-				a(t"dual")
 			a(None, -1)
+		else:
+			self._sqlsource_nofrom(a)
 
 		if self._where:
 			a(t"where", None, +1)
@@ -1834,16 +1870,7 @@ class Query(Repr):
 				a(expr.sqlsource())
 			a(None, -1)
 
-		if self.dbtype is DBType.ORACLE:
-			if self._offset is not None:
-				a(templatelib.Template(f"offset {self._offset} rows"), None)
-			if self._limit is not None:
-				a(templatelib.Template(f"fetch next {self._limit} rows only"), None)
-		else:
-			if self._limit is not None:
-				a(templatelib.Template(f"limit {self._limit}"), None)
-			if self._offset is not None:
-				a(templatelib.Template(f"offset {self._offset}"), None)
+		self._sqlsource_limit(a)
 
 		source = t""
 		first = True
@@ -1867,6 +1894,99 @@ class Query(Repr):
 		return orasql.flatten_tstring(source)
 
 
+class OracleQuery(Query):
+	"""
+	A :class:`Query` for Oracle databases.
+	"""
+
+	dbtype = DBType.ORACLE
+
+	# Mapping of vSQL datatypes to other datatypes for creating the SQL source
+	# (Oracle stores ``BOOL`` as a number and has no separate type for ``DATE``,
+	# so those vSQL datatypes are represented by other ones)
+	source_aliases = {
+		"bool":         "int",
+		"date":         "datetime",
+		"datelist":     "datetimelist",
+		"intset":       "intlist",
+		"numberset":    "numberlist",
+		"strset":       "strlist",
+		"dateset":      "datetimelist",
+		"datetimeset":  "datetimelist",
+	}
+
+	# Prefix and suffix for the SQL source of list and set constants
+	sqltypes = {
+		DataType.INTLIST: ("integers(", ")"),
+		DataType.NUMBERLIST: ("numbers(", ")"),
+		DataType.STRLIST: ("varchars(", ")"),
+		DataType.CLOBLIST: ("clobs(", ")"),
+		DataType.DATELIST: ("dates(", ")"),
+		DataType.DATETIMELIST: ("dates(", ")"),
+		DataType.INTSET: ("vsqlimpl_pkg.set_intlist(integers(", "))"),
+		DataType.NUMBERSET: ("vsqlimpl_pkg.set_numberlist(numbers(", "))"),
+		DataType.STRSET: ("vsqlimpl_pkg.set_strlist(varchars(", "))"),
+		DataType.DATESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
+		DataType.DATETIMESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
+	}
+
+	def _sqlsource_nofrom(self, a) -> None:
+		# Oracle requires a "from" clause, so we select from ``dual``.
+		a(t"from", None, +1)
+		a(t"dual")
+		a(None, -1)
+
+	def _sqlsource_limit(self, a) -> None:
+		if self._offset is not None:
+			a(templatelib.Template(f"offset {self._offset} rows"), None)
+		if self._limit is not None:
+			a(templatelib.Template(f"fetch next {self._limit} rows only"), None)
+
+
+class PostgresQuery(Query):
+	"""
+	A :class:`Query` for PostgreSQL databases.
+	"""
+
+	dbtype = DBType.POSTGRES
+
+	# Postgres uses the native types ``boolean``, ``date`` and ``timestamp``, so
+	# each vSQL datatype is represented by itself and no mapping is required.
+	source_aliases = {}
+
+	# Prefix and suffix for the SQL source of list and set constants
+	sqltypes = {
+		DataType.INTLIST: ("array[", "]::bigint[]"),
+		DataType.NUMBERLIST: ("array[", "]::numeric[]"),
+		DataType.STRLIST: ("array[", "]::text[]"),
+		DataType.CLOBLIST: ("array[", "]::text[]"),
+		DataType.DATELIST: ("array[", "]::date[]"),
+		DataType.DATETIMELIST: ("array[", "]::timestamp[]"),
+		DataType.INTSET: ("vsqlimpl.set_intlist(array[", "]::bigint[])"),
+		DataType.NUMBERSET: ("vsqlimpl.set_numberlist(array[", "]::numeric[])"),
+		DataType.STRSET: ("vsqlimpl.set_strlist(array[", "]::text[])"),
+		DataType.DATESET: ("vsqlimpl.set_datelist(array[", "]::date[])"),
+		DataType.DATETIMESET: ("vsqlimpl.set_datetimelist(array[", "]::timestamp[])"),
+	}
+
+	def _sqlsource_nofrom(self, a) -> None:
+		# Postgres doesn't have (and doesn't need) ``dual``, so a query without
+		# any tables gets no "from" clause at all.
+		pass
+
+	def _sqlsource_limit(self, a) -> None:
+		if self._limit is not None:
+			a(templatelib.Template(f"limit {self._limit}"), None)
+		if self._offset is not None:
+			a(templatelib.Template(f"offset {self._offset}"), None)
+
+
+Query.classes = {
+	DBType.ORACLE: OracleQuery,
+	DBType.POSTGRES: PostgresQuery,
+}
+
+
 class Rule(Repr):
 	"""
 	:class:`!Rule` is used to store a type specific vSQL grammar rule.
@@ -1884,25 +2004,6 @@ class Rule(Repr):
 	_re_specials = re.compile(r"{([st])(\d)}")
 	_re_sep = re.compile(r"\W+")
 	_re_tokenize = re.compile(r"\b[A-Z_0-9]+\b")
-
-	# Mappings of vSQL datatypes to other datatypes for creating the SQL source
-	# (for each database type, since the two databases use different
-	# representations for the vSQL datatypes: Oracle stores ``BOOL`` as a number
-	# and has no separate type for ``DATE``/``DATETIME``, whereas Postgres uses
-	# the native types ``boolean``, ``date`` and ``timestamp``)
-	source_aliases = {
-		DBType.ORACLE: {
-			"bool":         "int",
-			"date":         "datetime",
-			"datelist":     "datetimelist",
-			"intset":       "intlist",
-			"numberset":    "numberlist",
-			"strset":       "strlist",
-			"dateset":      "datetimelist",
-			"datetimeset":  "datetimelist",
-		},
-		DBType.POSTGRES: {},
-	}
 
 	def __init__(
 		self,
@@ -2010,7 +2111,7 @@ class Rule(Repr):
 
 	@classmethod
 	def _make_source(cls, dbtype:DBType, signature:tuple[DataType, ...], source:templatelib.Template) -> tuple[int | str, ...]:
-		aliases = cls.source_aliases[dbtype]
+		aliases = Query.fordbtype(dbtype).source_aliases
 		final_source = []
 
 		def append(text):
@@ -2537,7 +2638,7 @@ class AST(Repr):
 
 			Note that the type name embedded by ``{'t1'}`` depends on the database,
 			since both databases use different representations for the vSQL
-			datatypes (see :attr:`Rule.source_aliases`). For example for a ``BOOL``
+			datatypes (see :attr:`Query.source_aliases`). For example for a ``BOOL``
 			operand ``{'t1'}`` embeds ``int`` for Oracle (where a vSQL ``BOOL``
 			value is stored as the number 0 or 1), but ``bool`` for Postgres
 			(which uses its native ``boolean`` type).
@@ -3039,7 +3140,7 @@ class _SeqAST(AST):
 		if self.datatype is self.nulltype:
 			return t"{self.nodevalue:q}"
 		else:
-			(prefix, suffix) = self.sqltypes[query.dbtype][self.datatype]
+			(prefix, suffix) = query.sqltypes[self.datatype]
 			result = t"{prefix:q}"
 			for (i, item) in enumerate(self.items):
 				if i:
@@ -3083,25 +3184,6 @@ class ListAST(_SeqAST):
 	nodetype = NodeType.LIST
 	nulltype = DataType.NULLLIST
 	precedence = 20
-
-	sqltypes = {
-		DBType.ORACLE: {
-			DataType.INTLIST: ("integers(", ")"),
-			DataType.NUMBERLIST: ("numbers(", ")"),
-			DataType.STRLIST: ("varchars(", ")"),
-			DataType.CLOBLIST: ("clobs(", ")"),
-			DataType.DATELIST: ("dates(", ")"),
-			DataType.DATETIMELIST: ("dates(", ")"),
-		},
-		DBType.POSTGRES: {
-			DataType.INTLIST: ("array[", "]::bigint[]"),
-			DataType.NUMBERLIST: ("array[", "]::numeric[]"),
-			DataType.STRLIST: ("array[", "]::text[]"),
-			DataType.CLOBLIST: ("array[", "]::text[]"),
-			DataType.DATELIST: ("array[", "]::date[]"),
-			DataType.DATETIMELIST: ("array[", "]::timestamp[]"),
-		},
-	}
 
 	def __init__(self, *content:AST | str):
 		super().__init__(*content)
@@ -3165,23 +3247,6 @@ class SetAST(_SeqAST):
 	nodetype = NodeType.SET
 	nulltype = DataType.NULLSET
 	precedence = 20
-
-	sqltypes = {
-		DBType.ORACLE: {
-			DataType.INTSET: ("vsqlimpl_pkg.set_intlist(integers(", "))"),
-			DataType.NUMBERSET: ("vsqlimpl_pkg.set_numberlist(numbers(", "))"),
-			DataType.STRSET: ("vsqlimpl_pkg.set_strlist(varchars(", "))"),
-			DataType.DATESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
-			DataType.DATETIMESET: ("vsqlimpl_pkg.set_datetimelist(dates(", "))"),
-		},
-		DBType.POSTGRES: {
-			DataType.INTSET: ("vsqlimpl.set_intlist(array[", "]::bigint[])"),
-			DataType.NUMBERSET: ("vsqlimpl.set_numberlist(array[", "]::numeric[])"),
-			DataType.STRSET: ("vsqlimpl.set_strlist(array[", "]::text[])"),
-			DataType.DATESET: ("vsqlimpl.set_datelist(array[", "]::date[])"),
-			DataType.DATETIMESET: ("vsqlimpl.set_datetimelist(array[", "]::timestamp[])"),
-		},
-	}
 
 	def __init__(self, *content:AST | str):
 		super().__init__(*content)

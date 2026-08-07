@@ -11,6 +11,21 @@ see :ref:`MIGRATION`.
 Changes in 5.89 (released 2026-0?-??)
 -------------------------------------
 
+*	:mod:`ll.vsql` now supports PostgreSQL in addition to Oracle. Which of the
+	two SQL dialects gets generated is determined by the class used for building
+	the query: :class:`ll.vsql.OracleQuery` or :class:`ll.vsql.PostgresQuery`.
+	:class:`ll.vsql.Query` itself is abstract now and can no longer be
+	instantiated directly, so::
+
+		q = vsql.Query()
+
+	has to be changed to::
+
+		q = vsql.OracleQuery()
+
+	If you only have a :class:`ll.vsql.DBType` at hand,
+	:meth:`ll.vsql.Query.fordbtype` will return the appropriate class.
+
 *	Added the attribute :attr:`ll.vsql.Field.description` which isn't used anywhere
 	but can be used by external tools for documentation.
 

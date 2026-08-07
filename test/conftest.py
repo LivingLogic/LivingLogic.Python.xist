@@ -1,4 +1,4 @@
-import os, datetime, decimal, filelock
+import os, datetime, decimal, filelock, aod
 
 import psycopg
 from psycopg import rows, sql
@@ -22,7 +22,7 @@ class VSQLDB:
 	supports_nul = True
 
 	def query(self, comment=None, **vars):
-		return vsql.Query(comment, self.dbtype, **vars)
+		return self.queryclass(comment, **vars)
 
 	def execute(self, query):
 		sql = query.sqlsource()
@@ -44,6 +44,11 @@ class VSQLDB:
 
 class VSQLOracle(VSQLDB):
 	dbtype = vsql.DBType.ORACLE
+	queryclass = vsql.OracleQuery
+
+	# Connect on first use, so that the tests for the other database can be run
+	# (via ``-m 'not oracle'``) without an Oracle database being available
+	db = aod.Attr[orasql.Connection]("connect")
 
 	test_table = vsql.Group("vsql_test")
 	test_table.add_field("identifier", vsql.DataType.STR, "{a}.vs_identifier", description="The identifier")
@@ -98,7 +103,7 @@ class VSQLOracle(VSQLDB):
 	def type_for_monthdelta(months=0):
 		return months
 
-	def __init__(self):
+	def connect(self):
 		self.db = orasql.connect(dbname_oracle, readlobs=True)
 
 	def extract_result(self, value):
@@ -111,6 +116,11 @@ class VSQLOracle(VSQLDB):
 
 class VSQLPostgres(VSQLDB):
 	dbtype = vsql.DBType.POSTGRES
+	queryclass = vsql.PostgresQuery
+
+	# Connect on first use, so that the tests for the other database can be run
+	# (via ``-m 'not postgres'``) without a PostgreSQL database being available
+	db = aod.Attr[psycopg.Connection]("connect")
 
 	# PostgreSQL rejects ``U+0000`` in ``text`` values
 	supports_nul = False
@@ -171,7 +181,7 @@ class VSQLPostgres(VSQLDB):
 		years = int(months/12)
 		return datetime.timedelta(days=years * 365 + (months - 12 * years) * 30)
 
-	def __init__(self):
+	def connect(self):
 		self.db = psycopg.connect(dbname_postgres, row_factory=rows.namedtuple_row)
 
 	def extract_result(self, value):
