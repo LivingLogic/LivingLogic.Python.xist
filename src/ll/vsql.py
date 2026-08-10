@@ -107,7 +107,7 @@ Selecting from this table then works like this::
 	q.select_vsql("p.firstname + ' ' + p.lastname")
 	q.select_vsql("p.birthday")
 
-	# Return anly people born 1990 or later
+	# Return only people born 1990 or later
 	q.where_vsql("p.birthday > @(1990-01-01)")
 
 	# Youngest first
@@ -189,7 +189,7 @@ as the following code demonstrates::
 	q.select_vsql("p.birthday")
 	q.select_vsql("p.company.name")
 
-	# Return anly people born 1990 or later
+	# Return only people born 1990 or later
 	q.where_vsql("p.birthday > @(1990-01-01)")
 
 	# Youngest first
