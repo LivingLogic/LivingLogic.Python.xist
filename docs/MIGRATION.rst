@@ -8,6 +8,52 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.89
+=========================
+
+Changes to :mod:`ll.vsql`
+-------------------------
+
+*	Since :mod:`ll.vsql` supports PostgreSQL in addition to Oracle now, the
+	class :class:`ll.vsql.Query` is abstract and can no longer be instantiated
+	directly. For using Oracle::
+
+		q = vsql.Query()
+
+	has to be changed to::
+
+		q = vsql.OracleQuery()
+
+*	The fields of a :class:`ll.vsql.Group` are passed as positional arguments
+	now, and each :class:`ll.vsql.Field` must carry its own identifier (instead
+	of getting it from the keyword argument name), i.e.::
+
+		group = vsql.Group(
+			"vsql_person",
+			firstname=vsql.Field("firstname", vsql.DataType.STR, "{a}.per_firstname"),
+			lastname=vsql.Field("lastname", vsql.DataType.STR, "{a}.per_lastname"),
+		)
+
+	or::
+
+		group = vsql.Group(
+			"vsql_person",
+			firstname=(vsql.DataType.STR, "{a}.per_firstname"),
+			lastname=(vsql.DataType.STR, "{a}.per_lastname"),
+		)
+
+	has to be changed to::
+
+		group = vsql.Group(
+			"vsql_person",
+			vsql.Field("firstname", vsql.DataType.STR, "{a}.per_firstname"),
+			vsql.Field("lastname", vsql.DataType.STR, "{a}.per_lastname"),
+		)
+
+	(Using :meth:`ll.vsql.Group.add_field` for adding the fields is unaffected
+	by this change.)
+
+
 Migrating to version 5.87
 =========================
 
