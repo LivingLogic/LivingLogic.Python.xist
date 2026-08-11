@@ -565,7 +565,7 @@ def vsql_data(tmp_path_factory, worker_id):
 	# to support running under ``pytest-xdist``
 
 	if worker_id == "master":
-		# setup_vsql_data_oracle()
+		setup_vsql_data_oracle()
 		setup_vsql_data_postgres()
 		return
 
@@ -581,7 +581,7 @@ def vsql_data(tmp_path_factory, worker_id):
 	with filelock.FileLock(ln):
 		if not fn.is_file():
 			# Create test data
-			# setup_vsql_data_oracle()
+			setup_vsql_data_oracle()
 			setup_vsql_data_postgres()
 			# Record that test data has been created
 			fn.write_text("done")
