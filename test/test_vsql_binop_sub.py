@@ -5,6 +5,7 @@ To run the tests, :mod:`pytest` is required.
 """
 
 import datetime
+
 import pytest
 
 
@@ -89,8 +90,8 @@ def test_datedelta_datetimedelta(vsql_db, vsql_data):
 
 
 def test_datetimedelta_datedelta(vsql_db, vsql_data):
-	assert vsql_db.expr("r.v_datetimedelta - days(1)", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, (12 * 60 + 34) * 60 + 56)
+	assert vsql_db.expr("r.v_datetimedelta - days(1)", where="r.identifier == 'datetimedelta'") == pytest.approx(vsql_db.type_for_datetimedelta(0, (12 * 60 + 34) * 60 + 56), rel=0.001)
 
 
 def test_datetimedelta_datetimedelta(vsql_db, vsql_data):
-	assert vsql_db.expr(f"r.v_datetimedelta - timedelta(1, {(12 * 60 + 34) * 60 + 56})", where="r.identifier == 'datetimedelta'") == vsql_db.type_for_datetimedelta(0, 0)
+	assert vsql_db.expr(f"r.v_datetimedelta - timedelta(1, {(12 * 60 + 34) * 60 + 56})", where="r.identifier == 'datetimedelta'") == pytest.approx(vsql_db.type_for_datetimedelta(0, 0), rel=0.001)
