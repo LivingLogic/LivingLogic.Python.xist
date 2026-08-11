@@ -430,25 +430,25 @@ def make_records(dbtype, db):
 
 
 def setup_vsql_data_oracle():
-	dbo = orasql.connect(dbname_oracle, readlobs=True)
+	db = orasql.connect(dbname_oracle, readlobs=True)
 
-	co = dbo.cursor()
+	c = db.cursor()
 	try:
-		co.execute("drop table vsql_test")
+		c.execute("drop table vsql_test")
 	except Exception:
 		pass
 
 	try:
-		co.execute("drop table vsql_field")
+		c.execute("drop table vsql_field")
 	except Exception:
 		pass
 
 	try:
-		co.execute("drop table vsql_person")
+		c.execute("drop table vsql_person")
 	except Exception:
 		pass
 
-	co.execute("""
+	c.execute("""
 		create table vsql_test
 		(
 			vs_identifier varchar2(100),
@@ -465,7 +465,7 @@ def setup_vsql_data_oracle():
 		)
 	""")
 
-	co.execute("""
+	c.execute("""
 		create table vsql_field
 		(
 			fld_id varchar2(16),
@@ -474,7 +474,7 @@ def setup_vsql_data_oracle():
 		)
 	""")
 
-	co.execute("""
+	c.execute("""
 		create table vsql_person
 		(
 			per_id varchar2(16),
@@ -492,20 +492,20 @@ def setup_vsql_data_oracle():
 		)
 	""")
 
-	make_records(vsql.DBType.ORACLE, dbo)
+	make_records(vsql.DBType.ORACLE, db)
 
-	dbo.commit()
+	db.commit()
 
 
 def setup_vsql_data_postgres():
-	dbp = psycopg.connect(dbname_postgres, row_factory=rows.namedtuple_row)
+	db = psycopg.connect(dbname_postgres, row_factory=rows.namedtuple_row)
 
-	cp = dbp.cursor()
-	cp.execute("drop schema if exists vsql_test cascade")
+	c = db.cursor()
+	c.execute("drop schema if exists vsql_test cascade")
 
-	cp.execute("create schema vsql_test")
+	c.execute("create schema vsql_test")
 
-	cp.execute("""
+	c.execute("""
 		create table vsql_test.vsql_test
 		(
 			vs_identifier text,
@@ -522,7 +522,7 @@ def setup_vsql_data_postgres():
 		)
 	""")
 
-	cp.execute("""
+	c.execute("""
 		create table vsql_test.vsql_field
 		(
 			fld_id varchar(16),
@@ -531,7 +531,7 @@ def setup_vsql_data_postgres():
 		)
 	""")
 
-	cp.execute("""
+	c.execute("""
 		create table vsql_test.vsql_person
 		(
 			per_id varchar(16),
@@ -549,9 +549,9 @@ def setup_vsql_data_postgres():
 		)
 	""")
 
-	make_records(vsql.DBType.POSTGRES, dbp)
+	make_records(vsql.DBType.POSTGRES, db)
 
-	dbp.commit()
+	db.commit()
 
 
 @pytest.fixture(scope="session")
