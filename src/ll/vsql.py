@@ -220,9 +220,12 @@ vSQL standard library
 ---------------------
 
 Many vSQL operations can not be converted to simple SQL expressions.
-For these vSQL uses an Oracle package ``vsqlimpl_pkg`` that contains
-the "vSQL standard library". This packages is available from Github at
-https://github.com/LivingLogic/LivingLogic.Oracle.ul4
+For these vSQL uses a package ``vsqlimpl_pkg`` for Oracle and a schema
+``vsqlimpl`` for Postgres that contain the "vSQL standard library".
+
+These packages ar available from Github at
+https://github.com/LivingLogic/LivingLogic.Oracle.ul4 and
+https://github.com/LivingLogic/LivingLogic.Postgre.ul4
 
 
 Module content
