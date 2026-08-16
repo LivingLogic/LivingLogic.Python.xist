@@ -34,6 +34,14 @@ def test_strlist_int(vsql_db, vsql_data):
 	assert vsql_db.expr("['gurk', 'hurz', 'hinz', 'kunz'][2]") == 'hinz'
 
 
+def test_cloblist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob, 'hurz'][True]", where="r.identifier == 'shortclob'") == 'hurz'
+
+
+def test_cloblist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("['hurz', r.v_clob][1]", where="r.identifier == 'shortclob'") == 'gurk'
+
+
 def test_intlist_bool(vsql_db, vsql_data):
 	assert vsql_db.expr("[1, 2, 3][True]") == 2
 

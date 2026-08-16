@@ -248,6 +248,22 @@ def test_str_int3(vsql_db, vsql_data):
 	assert vsql_db.expr("r.v_str * r.v_int", where="r.identifier == 'str'") is None
 
 
+def test_clob_bool1(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob * True", where="r.identifier == 'none'") is None
+
+
+def test_clob_bool2(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob * True", where="r.identifier == 'shortclob'") == "gurk"
+
+
+def test_clob_int1(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob * 2", where="r.identifier == 'none'") is None
+
+
+def test_clob_int2(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob * 2", where="r.identifier == 'shortclob'") == "gurkgurk"
+
+
 def test_bool_intlist1(vsql_db, vsql_data):
 	assert vsql_db.expr("r.v_bool * [1, 2, 3]", where="r.identifier == 'none'") is None
 
@@ -266,6 +282,42 @@ def test_int_intlist1(vsql_db, vsql_data):
 
 def test_int_intlist2(vsql_db, vsql_data):
 	assert vsql_db.expr("2 * [1, 2, 3]") == [1, 2, 3, 1, 2, 3]
+
+
+def test_bool_numberlist(vsql_db, vsql_data):
+	assert vsql_db.expr("True * [1.5, 2.5]") == [1.5, 2.5]
+
+
+def test_bool_strlist(vsql_db, vsql_data):
+	assert vsql_db.expr("True * ['gurk', 'hurz']") == ['gurk', 'hurz']
+
+
+def test_bool_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("True * [r.v_clob]", where="r.identifier == 'shortclob'") == ['gurk']
+
+
+def test_bool_datelist(vsql_db, vsql_data):
+	assert vsql_db.expr("True * [@(2000-02-29), @(2000-03-01)]") == [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 3, 1)]
+
+
+def test_bool_datetimelist(vsql_db, vsql_data):
+	assert vsql_db.expr("True * [@(2000-02-29T12:34:56)]") == [datetime.datetime(2000, 2, 29, 12, 34, 56)]
+
+
+def test_int_strlist(vsql_db, vsql_data):
+	assert vsql_db.expr("2 * ['gurk', 'hurz']") == ['gurk', 'hurz', 'gurk', 'hurz']
+
+
+def test_int_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("2 * [r.v_clob]", where="r.identifier == 'shortclob'") == ['gurk', 'gurk']
+
+
+def test_int_datelist(vsql_db, vsql_data):
+	assert vsql_db.expr("2 * [@(2000-02-29)]") == [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 2, 29)]
+
+
+def test_int_datetimelist(vsql_db, vsql_data):
+	assert vsql_db.expr("2 * [@(2000-02-29T12:34:56)]") == [datetime.datetime(2000, 2, 29, 12, 34, 56), datetime.datetime(2000, 2, 29, 12, 34, 56)]
 
 
 def test_bool_nulllist1(vsql_db, vsql_data):
@@ -330,3 +382,51 @@ def test_nulllist3_int(vsql_db, vsql_data):
 
 def test_nulllist4_int(vsql_db, vsql_data):
 	assert vsql_db.expr("[None, None] * 2") == 4
+
+
+def test_intlist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[1, 2] * True") == [1, 2]
+
+
+def test_intlist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("[1, 2] * 2") == [1, 2, 1, 2]
+
+
+def test_numberlist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[1.5, 2.5] * True") == [1.5, 2.5]
+
+
+def test_numberlist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("[1.5, 2.5] * 2") == [1.5, 2.5, 1.5, 2.5]
+
+
+def test_strlist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("['gurk', 'hurz'] * True") == ['gurk', 'hurz']
+
+
+def test_strlist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("['gurk', 'hurz'] * 2") == ['gurk', 'hurz', 'gurk', 'hurz']
+
+
+def test_cloblist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] * True", where="r.identifier == 'shortclob'") == ['gurk']
+
+
+def test_cloblist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] * 2", where="r.identifier == 'shortclob'") == ['gurk', 'gurk']
+
+
+def test_datelist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01)] * True") == [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 3, 1)]
+
+
+def test_datelist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29)] * 2") == [vsql_db.type_for_date(2000, 2, 29), vsql_db.type_for_date(2000, 2, 29)]
+
+
+def test_datetimelist_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29T12:34:56)] * True") == [datetime.datetime(2000, 2, 29, 12, 34, 56)]
+
+
+def test_datetimelist_int(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29T12:34:56)] * 2") == [datetime.datetime(2000, 2, 29, 12, 34, 56), datetime.datetime(2000, 2, 29, 12, 34, 56)]

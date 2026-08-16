@@ -583,7 +583,7 @@ class DataType(misc.Enum):
 		elif required in {DataType.INTLIST, DataType.NUMBERLIST, DataType.STRLIST, DataType.CLOBLIST, DataType.DATELIST, DataType.DATETIMELIST} and given is DataType.NULLLIST:
 			return None
 		# nullset can be used as any set
-		elif required in {DataType.INTSET, DataType.NUMBERSET, DataType.STRSET, DataType.DATESET, DataType.DATETIMESET} and given is DataType.NULSET:
+		elif required in {DataType.INTSET, DataType.NUMBERSET, DataType.STRSET, DataType.DATESET, DataType.DATETIMESET} and given is DataType.NULLSET:
 			return None
 		else:
 			return Error[f"DATATYPE_{required.name}"]
@@ -4474,7 +4474,7 @@ TEXT = (dt.STR, dt.CLOB)
 LIST = (dt.INTLIST, dt.NUMBERLIST, dt.STRLIST, dt.CLOBLIST, dt.DATELIST, dt.DATETIMELIST)
 SET = (dt.INTSET, dt.NUMBERSET, dt.STRSET, dt.DATESET, dt.DATETIMESET)
 SEQ = (*TEXT, *LIST, *SET)
-ANY = (dt.NULL, dt.BOOL, dt.INT, dt.NUMBER, dt.COLOR, dt.GEO, dt.DATE, dt.DATETIME, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA, dt.NULLLIST, *SEQ)
+ANY = (dt.NULL, dt.BOOL, dt.INT, dt.NUMBER, dt.COLOR, dt.GEO, dt.DATE, dt.DATETIME, dt.DATEDELTA, dt.DATETIMEDELTA, dt.MONTHDELTA, dt.NULLLIST, dt.NULLSET, *SEQ)
 
 # Field references and constants (will not be used for generating source,
 # but for checking that the node type is valid and that they have no child nodes)
@@ -4756,8 +4756,8 @@ MethAST.add_rules(t"{'T1'} <- {TEXT}.{'replace'}({dt.STR}, {dt.STR})", oracle=t"
 # Method ``split()``
 MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}()", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null)")
 MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}()", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null)")
-MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str(null, null)", postgres=t"vsqlimpl.split_{'t1'}_str(null, null)")
-MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str(null, null)", postgres=t"vsqlimpl.split_{'t1'}_str(null, null)")
+MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null)")
+MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, null)", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, null)")
 MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")
 MethAST.add_rules(t"{dt.CLOBLIST} <- {dt.CLOB}.{'split'}({dt.STR})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")
 MethAST.add_rules(t"{dt.STRLIST} <- {dt.STR}.{'split'}({dt.STR}, {dt.NULL})", oracle=t"vsqlimpl_pkg.split_{'t1'}_str({'s1'}, {'s2'})", postgres=t"vsqlimpl.split_{'t1'}_str({'s1'}, {'s2'})")

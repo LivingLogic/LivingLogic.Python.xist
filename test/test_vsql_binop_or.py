@@ -8,6 +8,8 @@ import datetime
 
 import pytest
 
+import conftest
+
 
 ###
 ### Tests
@@ -219,3 +221,97 @@ def test_datetimelist_nulllist1(vsql_db, vsql_data):
 
 def test_datetimelist_nulllist2(vsql_db, vsql_data):
 	assert vsql_db.expr("[@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)] or [None]") == [dt1, dt2]
+
+
+def test_bool_int(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_bool or [None, 42][1]", where="r.identifier == 'bool_true'") == 1
+
+
+def test_int_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("[None, 42][1] or r.v_bool", where="r.identifier == 'bool_true'") == 42
+
+
+def test_bool_number(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_bool or 42.5", where="r.identifier == 'bool_true'") == 1
+
+
+def test_number_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("42.5 or r.v_bool", where="r.identifier == 'bool_true'") == 42.5
+
+
+def test_int_number(vsql_db, vsql_data):
+	assert vsql_db.expr("[None, 42][1] or 42.5") == 42
+
+
+def test_number_int(vsql_db, vsql_data):
+	assert vsql_db.expr("[None, 42.5][1] or 42") == 42.5
+
+
+def test_str_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("'hurz' or r.v_clob", where="r.identifier == 'shortclob'") == 'hurz'
+
+
+def test_clob_str(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob or 'hurz'", where="r.identifier == 'shortclob'") == 'gurk'
+
+
+def test_clob_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob or (r.v_clob + 'x')", where="r.identifier == 'shortclob'") == 'gurk'
+
+
+def test_monthdelta_monthdelta(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_monthdelta or months(9)", where="r.identifier == 'monthdelta'") == vsql_db.type_for_monthdelta(3)
+
+
+def test_strlist_strlist(vsql_db, vsql_data):
+	assert vsql_db.expr("['a'] or ['b']") == ['a']
+
+
+def test_cloblist_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] or ['x', r.v_clob]", where="r.identifier == 'shortclob'") == ['gurk']
+
+
+def test_datelist_datelist(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29)] or [@(2000-03-01)]") == [vsql_db.type_for_date(2000, 2, 29)]
+
+
+def test_datetimelist_datetimelist(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29T12:34:56)] or [@(2000-03-01T12:34:56)]") == [datetime.datetime(2000, 2, 29, 12, 34, 56)]
+
+
+def test_datelist_datetimelist(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-02-29)] or [@(2000-03-01T12:34:56)]") == [datetime.datetime(2000, 2, 29)]
+
+
+def test_datetimelist_datelist(vsql_db, vsql_data):
+	assert vsql_db.expr("[@(2000-03-01T12:34:56)] or [@(2000-02-29)]") == [datetime.datetime(2000, 3, 1, 12, 34, 56)]
+
+
+def test_nulllist_nulllist(vsql_db, vsql_data):
+	assert vsql_db.expr("[None] or [None, None]") == 1
+
+
+def test_nulllist_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("[None, None] or [r.v_clob]", where="r.identifier == 'shortclob'") == [None, None]
+
+
+def test_cloblist_nulllist(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] or [None, None]", where="r.identifier == 'shortclob'") == ['gurk']
+
+
+def test_null_null(vsql_db, vsql_data):
+	# This can't use the ``==`` trick from ``test_all_types_null`` below,
+	# since the SQL for ``NULL == NULL`` is a constant that never evaluates
+	# its operands, so the ``or`` would never be executed
+	assert vsql_db.expr("[None, None][0] or None") is None
+
+
+@pytest.mark.parametrize("t", conftest.vsql_cmp_exprs)
+def test_all_types_null(vsql_db, vsql_data, t):
+	# The canonical expressions are non-constant and their values are all
+	# truthy (or ``null`` for the type ``NULL``), so combining them with
+	# ``None`` via ``or`` always returns the value of the expression itself
+	(expr, identifier) = conftest.vsql_cmp_exprs[t]
+	where = f"r.identifier == '{identifier}'" if identifier else None
+	assert vsql_db.expr(f"(({expr}) or None) == ({expr})", where=where) == 1
+	assert vsql_db.expr(f"(None or ({expr})) == ({expr})", where=where) == 1

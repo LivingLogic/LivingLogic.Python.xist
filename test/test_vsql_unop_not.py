@@ -45,6 +45,14 @@ def test_str2(vsql_db, vsql_data):
 	assert vsql_db.expr("not r.v_str", where="r.identifier == 'str'") == False
 
 
+def test_clob1(vsql_db, vsql_data):
+	assert vsql_db.expr("not r.v_clob", where="r.identifier == 'none'") == True
+
+
+def test_clob2(vsql_db, vsql_data):
+	assert vsql_db.expr("not r.v_clob", where="r.identifier == 'shortclob'") == False
+
+
 def test_date1(vsql_db, vsql_data):
 	assert vsql_db.expr("not r.v_date", where="r.identifier == 'none'") == True
 
@@ -95,3 +103,70 @@ def test_color2(vsql_db, vsql_data):
 
 def test_geo(vsql_db, vsql_data):
 	assert vsql_db.expr("not geo(49, 11, 'Here')") == False
+
+
+def test_null(vsql_db, vsql_data):
+	# ``not None`` would be constant-folded by UL4, but ``[None, None][0]``
+	# is a non-constant expression of type ``NULL``, so the database really
+	# executes the operator
+	assert vsql_db.expr("not [None, None][0]") == True
+
+
+def test_nulllist1(vsql_db, vsql_data):
+	assert vsql_db.expr("not []") == True
+
+
+def test_nulllist2(vsql_db, vsql_data):
+	assert vsql_db.expr("not [None, None]") == False
+
+
+def test_intlist(vsql_db, vsql_data):
+	assert vsql_db.expr("not [1, 2]") == False
+
+
+def test_numberlist(vsql_db, vsql_data):
+	assert vsql_db.expr("not [1.5, 2.5]") == False
+
+
+def test_strlist(vsql_db, vsql_data):
+	assert vsql_db.expr("not ['gurk', 'hurz']") == False
+
+
+def test_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("not [r.v_clob]", where="r.identifier == 'shortclob'") == False
+
+
+def test_datelist(vsql_db, vsql_data):
+	assert vsql_db.expr("not [@(2000-02-29), @(2000-03-01)]") == False
+
+
+def test_datetimelist(vsql_db, vsql_data):
+	assert vsql_db.expr("not [@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)]") == False
+
+
+def test_intset(vsql_db, vsql_data):
+	assert vsql_db.expr("not {1, 2}") == False
+
+
+def test_numberset(vsql_db, vsql_data):
+	assert vsql_db.expr("not {1.5, 2.5}") == False
+
+
+def test_strset(vsql_db, vsql_data):
+	assert vsql_db.expr("not {'gurk', 'hurz'}") == False
+
+
+def test_dateset(vsql_db, vsql_data):
+	assert vsql_db.expr("not {@(2000-02-29), @(2000-03-01)}") == False
+
+
+def test_datetimeset(vsql_db, vsql_data):
+	assert vsql_db.expr("not {@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)}") == False
+
+
+def test_nullset1(vsql_db, vsql_data):
+	assert vsql_db.expr("not {/}") == True
+
+
+def test_nullset2(vsql_db, vsql_data):
+	assert vsql_db.expr("not {None, None}") == False

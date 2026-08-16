@@ -6,6 +6,8 @@ To run the tests, :mod:`pytest` is required.
 
 import datetime
 
+import pytest
+
 
 ###
 ### Tests
@@ -379,3 +381,42 @@ def test_nulllist_14(vsql_db, vsql_data):
 
 def test_nulllist_15(vsql_db, vsql_data):
 	assert vsql_db.expr(f"[][:]") == 0
+
+
+# The slice operator supports ``BOOL``, ``INT`` and ``NULL`` (i.e. an omitted
+# bound) for both bounds on every sliceable type. The following test covers
+# all those combinations, comparing against Python's slicing behaviour. The
+# indexes are chosen so that the result is never empty (Oracle can't
+# distinguish an empty string from ``None``).
+
+_slice_objs = dict(
+	str=("'gurkhurz'", None, "gurkhurz", None),
+	clob=("(r.v_clob + r.v_clob)", "shortclob", "gurkgurk", None),
+	nulllist=("[None, None, None]", None, [None, None, None], "nulllist"),
+	intlist=("[1, 2, 3, 4]", None, [1, 2, 3, 4], None),
+	numberlist=("[1.5, 2.5, 3.5]", None, [1.5, 2.5, 3.5], None),
+	strlist=("['a', 'b', 'c']", None, ["a", "b", "c"], None),
+	cloblist=("['a', r.v_clob, 'c']", "shortclob", ["a", "gurk", "c"], None),
+	datelist=("[@(2000-02-29), @(2000-03-01), @(2000-03-02)]", None, [(2000, 2, 29), (2000, 3, 1), (2000, 3, 2)], "date"),
+	datetimelist=("[@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)]", None, [datetime.datetime(2000, 2, 29, 12, 34, 56), datetime.datetime(2000, 3, 1, 12, 34, 56)], None),
+)
+
+_slice_starts = dict(null=("", None), bool=("False", False), int=("0", 0))
+_slice_ends = dict(null=("", None), bool=("True", True), int=("3", 3))
+
+@pytest.mark.parametrize("i2", _slice_ends)
+@pytest.mark.parametrize("i1", _slice_starts)
+@pytest.mark.parametrize("obj", _slice_objs)
+def test_all_type_combinations(vsql_db, vsql_data, obj, i1, i2):
+	(objexpr, identifier, value, conv) = _slice_objs[obj]
+	(startsrc, start) = _slice_starts[i1]
+	(endsrc, end) = _slice_ends[i2]
+	where = f"r.identifier == '{identifier}'" if identifier else None
+	result = vsql_db.expr(f"{objexpr}[{startsrc}:{endsrc}]", where=where)
+	expected = value[start:end]
+	if conv == "nulllist":
+		# A ``NULLLIST`` result is returned as the number of its elements
+		expected = len(expected)
+	elif conv == "date":
+		expected = [vsql_db.type_for_date(*d) for d in expected]
+	assert result == expected

@@ -663,3 +663,170 @@ def test_datetimelist_nulllist2(vsql_db, vsql_data):
 
 def test_datetimelist_nulllist3(vsql_db, vsql_data):
 	assert vsql_db.expr("[@(2000-02-29T12:34:56)] >= [None, None]") is None
+
+
+def test_null_none(vsql_db, vsql_data):
+	# ``None`` on both sides would be constant-folded by UL4, but
+	# ``[None, None][0]`` is a non-constant expression of type ``NULL``,
+	# so the database really executes the operator
+	assert vsql_db.expr("[None, None][0] >= None")
+
+
+def test_geo_none(vsql_db, vsql_data):
+	assert vsql_db.expr("geo(49, 11, 'Here') >= None") is None
+
+
+def test_none_geo(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= geo(49, 11, 'Here')") is None
+
+
+def test_nulllist_none(vsql_db, vsql_data):
+	assert vsql_db.expr("[] >= None") is None
+
+
+def test_none_nulllist(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= []") is None
+
+
+def test_nullset_none(vsql_db, vsql_data):
+	assert vsql_db.expr("{None} >= None") is None
+
+
+def test_none_nullset(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= {None}") is None
+
+
+def test_clob_none1(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob >= None", where="r.identifier == 'none'")
+
+
+def test_clob_none2(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob >= None", where="r.identifier == 'shortclob'") is None
+
+
+def test_none_clob1(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= r.v_clob", where="r.identifier == 'none'")
+
+
+def test_none_clob2(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= r.v_clob", where="r.identifier == 'shortclob'") is None
+
+
+def test_cloblist_none(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] >= None", where="r.identifier == 'shortclob'") is None
+
+
+def test_none_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= [r.v_clob]", where="r.identifier == 'shortclob'") is None
+
+
+def test_intset_none(vsql_db, vsql_data):
+	assert vsql_db.expr("{1, 2} >= None") is None
+
+
+def test_none_intset(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= {1, 2}") is None
+
+
+def test_numberset_none(vsql_db, vsql_data):
+	assert vsql_db.expr("{1.5, 2.5} >= None") is None
+
+
+def test_none_numberset(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= {1.5, 2.5}") is None
+
+
+def test_strset_none(vsql_db, vsql_data):
+	assert vsql_db.expr("{'gurk', 'hurz'} >= None") is None
+
+
+def test_none_strset(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= {'gurk', 'hurz'}") is None
+
+
+def test_dateset_none(vsql_db, vsql_data):
+	assert vsql_db.expr("{@(2000-02-29)} >= None") is None
+
+
+def test_none_dateset(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= {@(2000-02-29)}") is None
+
+
+def test_datetimeset_none(vsql_db, vsql_data):
+	assert vsql_db.expr("{@(2000-02-29T12:34:56)} >= None") is None
+
+
+def test_none_datetimeset(vsql_db, vsql_data):
+	assert vsql_db.expr("None >= {@(2000-02-29T12:34:56)}") is None
+
+
+def test_int_number1(vsql_db, vsql_data):
+	assert not vsql_db.expr("r.v_int >= 1776.5", where="r.identifier == 'int'")
+
+
+def test_int_number2(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_int >= 1775.5", where="r.identifier == 'int'")
+
+
+def test_str_clob1(vsql_db, vsql_data):
+	assert not vsql_db.expr("'gu' >= r.v_clob", where="r.identifier == 'shortclob'")
+
+
+def test_str_clob2(vsql_db, vsql_data):
+	assert vsql_db.expr("'hurz' >= r.v_clob", where="r.identifier == 'shortclob'")
+
+
+def test_clob_str1(vsql_db, vsql_data):
+	assert not vsql_db.expr("r.v_clob >= 'hurz'", where="r.identifier == 'shortclob'")
+
+
+def test_clob_str2(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob >= 'gu'", where="r.identifier == 'shortclob'")
+
+
+def test_clob_clob1(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob >= r.v_clob", where="r.identifier == 'shortclob'")
+
+
+def test_clob_clob2(vsql_db, vsql_data):
+	assert vsql_db.expr("(r.v_clob + 'x') >= r.v_clob", where="r.identifier == 'shortclob'")
+
+
+def test_intlist_numberlist(vsql_db, vsql_data):
+	assert not vsql_db.expr("[1, 2] >= [1.5]")
+
+
+def test_numberlist_intlist(vsql_db, vsql_data):
+	assert vsql_db.expr("[1.5] >= [1, 2]")
+
+
+def test_strlist_cloblist(vsql_db, vsql_data):
+	assert not vsql_db.expr("['aa'] >= [r.v_clob]", where="r.identifier == 'shortclob'")
+
+
+def test_cloblist_strlist(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] >= ['aa']", where="r.identifier == 'shortclob'")
+
+
+def test_cloblist_cloblist1(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] >= [r.v_clob]", where="r.identifier == 'shortclob'")
+
+
+def test_cloblist_cloblist2(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob, r.v_clob] >= [r.v_clob]", where="r.identifier == 'shortclob'")
+
+
+def test_nulllist_cloblist1(vsql_db, vsql_data):
+	assert not vsql_db.expr("[] >= [r.v_clob]", where="r.identifier == 'shortclob'")
+
+
+def test_nulllist_cloblist2(vsql_db, vsql_data):
+	assert vsql_db.expr("[None] >= [r.v_clob]", where="r.identifier == 'shortclob'") is None
+
+
+def test_cloblist_nulllist1(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] >= []", where="r.identifier == 'shortclob'")
+
+
+def test_cloblist_nulllist2(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] >= [None]", where="r.identifier == 'shortclob'") is None

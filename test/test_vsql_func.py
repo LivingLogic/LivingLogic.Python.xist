@@ -4,7 +4,7 @@ Tests for vSQL functions.
 To run the tests, :mod:`pytest` is required.
 """
 
-import math, datetime
+import itertools, math, datetime
 
 import pytest
 
@@ -841,3 +841,153 @@ def test_sqrt_number1(vsql_db, vsql_data):
 
 def test_sqrt_number2(vsql_db, vsql_data):
 	assert vsql_db.expr("sqrt(-16.0)") is None
+
+
+def test_bool_geo(vsql_db, vsql_data):
+	assert vsql_db.expr("bool(geo(49, 11, 'Here'))") == True
+
+
+def test_bool_clob1(vsql_db, vsql_data):
+	assert vsql_db.expr("bool(r.v_clob)", where="r.identifier == 'none'") == False
+
+
+def test_bool_clob2(vsql_db, vsql_data):
+	assert vsql_db.expr("bool(r.v_clob)", where="r.identifier == 'shortclob'") == True
+
+
+def test_bool_nulllist1(vsql_db, vsql_data):
+	assert vsql_db.expr("bool([])") == False
+
+
+def test_bool_nulllist2(vsql_db, vsql_data):
+	assert vsql_db.expr("bool([None, None])") == True
+
+
+def test_bool_nullset1(vsql_db, vsql_data):
+	assert vsql_db.expr("bool({/})") == False
+
+
+def test_bool_nullset2(vsql_db, vsql_data):
+	assert vsql_db.expr("bool({None})") == True
+
+
+def test_bool_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("bool([r.v_clob])", where="r.identifier == 'shortclob'") == True
+
+
+def test_int_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("int(('42' + r.v_clob)[0:2])", where="r.identifier == 'shortclob'") == 42
+
+
+def test_float_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("float(('4.5' + r.v_clob)[0:3])", where="r.identifier == 'shortclob'") == 4.5
+
+
+def test_str_null(vsql_db, vsql_data):
+	assert vsql_db.expr("str(None)") is None
+
+
+def test_str_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("str(r.v_clob)", where="r.identifier == 'shortclob'") == "gurk"
+
+
+def test_str_nulllist(vsql_db, vsql_data):
+	assert vsql_db.expr("str([None, None])") == "[None, None]"
+
+
+def test_str_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("str([r.v_clob])", where="r.identifier == 'shortclob'") == "['gurk']"
+
+
+def test_str_nullset(vsql_db, vsql_data):
+	assert vsql_db.expr("str({None})") == "{None}"
+
+
+def test_repr_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("repr(r.v_clob)", where="r.identifier == 'shortclob'") == "'gurk'"
+
+
+def test_repr_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("repr([r.v_clob])", where="r.identifier == 'shortclob'") == "['gurk']"
+
+
+def test_repr_nulllist(vsql_db, vsql_data):
+	assert vsql_db.expr("repr([None, None])") == "[None, None]"
+
+
+def test_repr_nullset(vsql_db, vsql_data):
+	assert vsql_db.expr("repr({None})") == "{None}"
+
+
+def test_len_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("len(r.v_clob)", where="r.identifier == 'shortclob'") == 4
+
+
+def test_len_nulllist(vsql_db, vsql_data):
+	assert vsql_db.expr("len([None, None])") == 2
+
+
+def test_len_nullset(vsql_db, vsql_data):
+	assert vsql_db.expr("len({None})") == 1
+
+
+def test_len_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("len([r.v_clob])", where="r.identifier == 'shortclob'") == 1
+
+
+def test_list_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("list(r.v_clob)", where="r.identifier == 'shortclob'") == ["g", "u", "r", "k"]
+
+
+def test_list_nulllist(vsql_db, vsql_data):
+	# A ``NULLLIST`` result is returned as the number of its elements
+	assert vsql_db.expr("list([None, None])") == 2
+
+
+def test_list_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("list([r.v_clob])", where="r.identifier == 'shortclob'") == ["gurk"]
+
+
+def test_list_nullset(vsql_db, vsql_data):
+	# A ``NULLLIST`` result is returned as the number of its elements
+	assert vsql_db.expr("list({None})") == 1
+
+
+def test_set_clob(vsql_db, vsql_data):
+	assert set(vsql_db.expr("set(r.v_clob)", where="r.identifier == 'shortclob'")) == {"g", "u", "r", "k"}
+
+
+def test_set_nulllist(vsql_db, vsql_data):
+	# A ``NULLSET`` result is returned as the number of its elements
+	assert vsql_db.expr("set([None, None])") == 1
+
+
+# ``rgb()`` and ``geo()`` accept every combination of ``BOOL``/``INT``/
+# ``NUMBER`` for their numeric arguments. Since testing each of those type
+# combinations individually would be excessive, the following tests are
+# parametrized with all combinations instead.
+
+_rgb_args = dict(bool=("True", 255), int=("1", 255), number=("0.5", 128))
+
+@pytest.mark.parametrize("types", [t for n in (3, 4) for t in itertools.product(sorted(_rgb_args), repeat=n)], ids="_".join)
+def test_rgb_all_type_combinations(vsql_db, vsql_data, types):
+	expr = f"rgb({', '.join(_rgb_args[t][0] for t in types)})"
+	expected = 0
+	for t in types:
+		expected = expected * 256 + _rgb_args[t][1]
+	if len(types) == 3:
+		expected = expected * 256 + 255
+	assert vsql_db.expr(expr) == expected
+
+
+_geo_args = dict(bool=("True", 1), int=("49", 49), number=("49.5", 49.5))
+_geo_combos = list(itertools.product(sorted(_geo_args), repeat=2))
+
+@pytest.mark.parametrize("types", _geo_combos + [t + ("str",) for t in _geo_combos], ids="_".join)
+def test_geo_all_type_combinations(vsql_db, vsql_data, types):
+	args = [_geo_args[t][0] for t in types[:2]]
+	if len(types) == 3:
+		args.append("'Here'")
+	expr = f"geo({', '.join(args)})"
+	assert vsql_db.expr(f"{expr}.lat") == _geo_args[types[0]][1]
+	assert vsql_db.expr(f"{expr}.long") == _geo_args[types[1]][1]

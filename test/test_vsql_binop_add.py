@@ -33,7 +33,7 @@ dt2 = datetime.datetime(2000, 3, 1, 12, 34, 56)
 
 
 def test_bool_bool1(vsql_db, vsql_data):
-	vsql_db.expr("r.v_bool + True", where="r.identifier == 'none'") is None
+	assert vsql_db.expr("r.v_bool + True", where="r.identifier == 'none'") is None
 
 
 def test_bool_bool2(vsql_db, vsql_data):
@@ -64,6 +64,14 @@ def test_int_number(vsql_db, vsql_data):
 	assert vsql_db.expr("1 + r.v_number", where="r.identifier == 'number'") == 43.5
 
 
+def test_number_bool(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_number + True", where="r.identifier == 'number'") == 43.5
+
+
+def test_number_number(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_number + 1.5", where="r.identifier == 'number'") == 44.0
+
+
 def test_str_str1(vsql_db, vsql_data):
 	assert vsql_db.expr("'gurk' + r.v_str", where="r.identifier == 'none'") == "gurk"
 
@@ -88,6 +96,10 @@ def test_clob_str2(vsql_db, vsql_data):
 	assert vsql_db.expr("r.v_clob + 'hurz'", where="r.identifier == 'clob'") == "gurk" * 100000 + "hurz"
 
 
+def test_clob_clob(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob + r.v_clob", where="r.identifier == 'shortclob'") == "gurkgurk"
+
+
 def test_intlist_intlist(vsql_db, vsql_data):
 	assert vsql_db.expr("[1, 2] + [3, 4]") == [1, 2, 3, 4]
 
@@ -106,6 +118,18 @@ def test_numberlist_numberlist(vsql_db, vsql_data):
 
 def test_strlist_strlist(vsql_db, vsql_data):
 	assert vsql_db.expr("['gurk', 'hurz'] + ['hinz', 'kunz']") == ['gurk', 'hurz', 'hinz', 'kunz']
+
+
+def test_strlist_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("['hinz', 'kunz'] + [r.v_clob]", where="r.identifier == 'shortclob'") == ['hinz', 'kunz', 'gurk']
+
+
+def test_cloblist_strlist(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] + ['hinz', 'kunz']", where="r.identifier == 'shortclob'") == ['gurk', 'hinz', 'kunz']
+
+
+def test_cloblist_cloblist(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] + [r.v_clob]", where="r.identifier == 'shortclob'") == ['gurk', 'gurk']
 
 
 def test_datelist_datelist(vsql_db, vsql_data):
@@ -199,6 +223,14 @@ def test_nulllist_strlist2(vsql_db, vsql_data):
 	assert vsql_db.expr("[None, None] + ['gurk', None, 'hurz']") == [None, None, 'gurk', None, 'hurz']
 
 
+def test_nulllist_cloblist1(vsql_db, vsql_data):
+	assert vsql_db.expr("[] + [r.v_clob, None, r.v_clob]", where="r.identifier == 'shortclob'") == ['gurk', None, 'gurk']
+
+
+def test_nulllist_cloblist2(vsql_db, vsql_data):
+	assert vsql_db.expr("[None, None] + [r.v_clob, None, r.v_clob]", where="r.identifier == 'shortclob'") == [None, None, 'gurk', None, 'gurk']
+
+
 def test_nulllist_datelist1(vsql_db, vsql_data):
 	assert vsql_db.expr(f"[] + [{d1_v}, None, {d2_v}]") == [d1(vsql_db), None, d2(vsql_db)]
 
@@ -237,6 +269,14 @@ def test_strlist_nulllist1(vsql_db, vsql_data):
 
 def test_strlist_nulllist2(vsql_db, vsql_data):
 	assert vsql_db.expr("['gurk', None, 'hurz'] + [None, None]") == ['gurk', None, 'hurz', None, None]
+
+
+def test_cloblist_nulllist1(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob, None, r.v_clob] + []", where="r.identifier == 'shortclob'") == ['gurk', None, 'gurk']
+
+
+def test_cloblist_nulllist2(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob, None, r.v_clob] + [None, None]", where="r.identifier == 'shortclob'") == ['gurk', None, 'gurk', None, None]
 
 
 def test_datelist_nulllist1(vsql_db, vsql_data):

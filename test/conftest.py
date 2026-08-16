@@ -210,6 +210,61 @@ all_vsql_dbs = dict(
 )
 
 
+# Canonical vSQL expressions for each vSQL data type, as a mapping from the
+# lowercase type name to the expression and the identifier of the test record
+# required to make the expression's value non-null (or ``None`` if the
+# expression doesn't reference any field). All expressions are non-constant
+# (so that UL4 doesn't constant-fold operators applied to two of them) and
+# their values are chosen to be pairwise unequal (even across compatible
+# types), so tests can rely on any two different expressions comparing as
+# unequal.
+vsql_cmp_exprs = dict(
+	null=("[None, None][0]", None),
+	bool=("r.v_bool", "bool_true"),
+	int=("[None, 42][1]", None),
+	number=("[None, 42.5][1]", None),
+	str=("[None, 'hurz'][1]", None),
+	clob=("r.v_clob", "shortclob"),
+	color=("r.v_color", "color"),
+	geo=("geo(49, 11, 'Here')", None),
+	date=("[None, @(2000-02-29)][1]", None),
+	datetime=("[None, @(2000-03-01T12:34:56)][1]", None),
+	datedelta=("r.v_datedelta", "datedelta"),
+	datetimedelta=("r.v_datetimedelta", "datetimedelta"),
+	monthdelta=("r.v_monthdelta", "monthdelta"),
+	nulllist=("[None]", None),
+	intlist=("[1, 2]", None),
+	numberlist=("[1.5, 2.5]", None),
+	strlist=("['hinz']", None),
+	cloblist=("[r.v_clob]", "shortclob"),
+	datelist=("[@(2000-02-29)]", None),
+	datetimelist=("[@(2000-03-01T12:34:56)]", None),
+	nullset=("{None}", None),
+	intset=("{1, 2}", None),
+	numberset=("{1.5, 2.5}", None),
+	strset=("{'hinz'}", None),
+	dateset=("{@(2000-02-29)}", None),
+	datetimeset=("{@(2000-03-01T12:34:56)}", None),
+)
+
+
+# All fields of the ``vsql_test`` table (i.e. all vSQL data types that can be
+# stored in a field). On the ``none`` test record all of them are ``null``.
+vsql_cmp_fields = (
+	"v_bool",
+	"v_int",
+	"v_number",
+	"v_str",
+	"v_clob",
+	"v_date",
+	"v_datetime",
+	"v_datedelta",
+	"v_datetimedelta",
+	"v_monthdelta",
+	"v_color",
+)
+
+
 @pytest.fixture(scope="module", params=vsql_db_params)
 def vsql_db(request):
 	return all_vsql_dbs[request.param]

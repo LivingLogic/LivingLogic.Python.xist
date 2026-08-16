@@ -81,6 +81,22 @@ def test_str4(vsql_db, vsql_data):
 	assert vsql_db.expr("None is not r.v_str", where="r.identifier == 'str'") == 1
 
 
+def test_clob1(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob is not None", where="r.identifier == 'none'") == 0
+
+
+def test_clob2(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_clob is not None", where="r.identifier == 'shortclob'") == 1
+
+
+def test_clob3(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not r.v_clob", where="r.identifier == 'none'") == 0
+
+
+def test_clob4(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not r.v_clob", where="r.identifier == 'shortclob'") == 1
+
+
 def test_color1(vsql_db, vsql_data):
 	assert vsql_db.expr("r.v_color is not None", where="r.identifier == 'none'") == 0
 
@@ -185,6 +201,26 @@ def test_geo2(vsql_db, vsql_data):
 	assert vsql_db.expr("None is not geo(49, 11, 'Here')") == 1
 
 
+def test_null1(vsql_db, vsql_data):
+	# ``None is not None`` would be constant-folded by UL4, but
+	# ``[None, None][0]`` is a non-constant expression of type ``NULL``,
+	# so the database really executes the operator
+	assert vsql_db.expr("[None, None][0] is not None") == 0
+
+
+def test_null2(vsql_db, vsql_data):
+	# Not constant-folded (see ``test_null1``)
+	assert vsql_db.expr("None is not [None, None][0]") == 0
+
+
+def test_nulllist1(vsql_db, vsql_data):
+	assert vsql_db.expr("[None, None] is not None") == 1
+
+
+def test_nulllist2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not [None, None]") == 1
+
+
 def test_intlist1(vsql_db, vsql_data):
 	assert vsql_db.expr("[1, 2, 3] is not None") == 1
 
@@ -209,6 +245,14 @@ def test_strlist2(vsql_db, vsql_data):
 	assert vsql_db.expr("None is not ['gurk', 'hurz']") == 1
 
 
+def test_cloblist1(vsql_db, vsql_data):
+	assert vsql_db.expr("[r.v_clob] is not None", where="r.identifier == 'shortclob'") == 1
+
+
+def test_cloblist2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not [r.v_clob]", where="r.identifier == 'shortclob'") == 1
+
+
 def test_datelist1(vsql_db, vsql_data):
 	assert vsql_db.expr("[@(2000-02-29), @(2000-03-01)] is not None") == 1
 
@@ -223,3 +267,53 @@ def test_datetimelist1(vsql_db, vsql_data):
 
 def test_datetimelist2(vsql_db, vsql_data):
 	assert vsql_db.expr("None is not [@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)]") == 1
+
+
+def test_intset1(vsql_db, vsql_data):
+	assert vsql_db.expr("{1, 2, 3} is not None") == 1
+
+
+def test_intset2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not {1, 2, 3}") == 1
+
+
+def test_numberset1(vsql_db, vsql_data):
+	assert vsql_db.expr("{1.1, 2.2, 3.3} is not None") == 1
+
+
+def test_numberset2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not {1.1, 2.2, 3.3}") == 1
+
+
+def test_strset1(vsql_db, vsql_data):
+	assert vsql_db.expr("{'gurk', 'hurz'} is not None") == 1
+
+
+def test_strset2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not {'gurk', 'hurz'}") == 1
+
+
+def test_dateset1(vsql_db, vsql_data):
+	assert vsql_db.expr("{@(2000-02-29), @(2000-03-01)} is not None") == 1
+
+
+def test_dateset2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not {@(2000-02-29), @(2000-03-01)}") == 1
+
+
+def test_datetimeset1(vsql_db, vsql_data):
+	assert vsql_db.expr("{@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)} is not None") == 1
+
+
+def test_datetimeset2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not {@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)}") == 1
+
+
+
+def test_nullset1(vsql_db, vsql_data):
+	assert vsql_db.expr("{None} is not None") == 1
+
+
+
+def test_nullset2(vsql_db, vsql_data):
+	assert vsql_db.expr("None is not {None}") == 1

@@ -4,6 +4,10 @@ Tests for the vSQL equality comparision operator ``==``.
 To run the tests, :mod:`pytest` is required.
 """
 
+import pytest
+
+import conftest
+
 
 ###
 ### Tests
@@ -753,4 +757,32 @@ def test_datetimeset_nullset4(vsql_db, vsql_data):
 	assert not vsql_db.expr("{@(2000-02-29T12:34:56), @(2000-03-01T12:34:56)} == {None, None}")
 
 
-# FIXME Add tests for mixed type comparisons?
+###
+### Systematic tests for all type combinations
+###
+
+# ``==`` supports comparing all vSQL data types with each other. For
+# incompatible type combinations the values are never equal — except when both
+# values happen to be ``null``. The following test systematically covers all
+# type combinations, using the canonical expressions from
+# ``conftest.vsql_cmp_exprs``: those are non-constant (so that UL4 doesn't
+# constant-fold the comparison) and their values are pairwise unequal, so two
+# different expressions must always compare as unequal, while comparing an
+# expression with itself must compare as equal.
+
+@pytest.mark.parametrize("t2", conftest.vsql_cmp_exprs)
+@pytest.mark.parametrize("t1", conftest.vsql_cmp_exprs)
+def test_all_type_combinations(vsql_db, vsql_data, t1, t2):
+	(expr1, identifier1) = conftest.vsql_cmp_exprs[t1]
+	(expr2, identifier2) = conftest.vsql_cmp_exprs[t2]
+	identifier = identifier1 or identifier2
+	where = f"r.identifier == '{identifier}'" if identifier else None
+	assert vsql_db.expr(f"{expr1} == {expr2}", where=where) == int(t1 == t2)
+
+
+@pytest.mark.parametrize("f2", conftest.vsql_cmp_fields)
+@pytest.mark.parametrize("f1", conftest.vsql_cmp_fields)
+def test_all_type_combinations_null(vsql_db, vsql_data, f1, f2):
+	# On the ``none`` record all fields are ``null``, and two ``null`` values
+	# compare as equal — even when their types are incompatible
+	assert vsql_db.expr(f"r.{f1} == r.{f2}", where="r.identifier == 'none'") == 1

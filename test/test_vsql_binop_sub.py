@@ -73,6 +73,14 @@ def test_date_monthdelta(vsql_db, vsql_data):
 	assert vsql_db.expr("@(2000-03-31) - months(1)") == vsql_db.type_for_date(2000, 2, 29)
 
 
+def test_datetime_datedelta(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_datetime - days(1)", where="r.identifier == 'datetime'") == vsql_db.type_for_datetime(2000, 2, 28, 12, 34, 56)
+
+
+def test_datetime_datetimedelta(vsql_db, vsql_data):
+	assert vsql_db.expr("r.v_datetime - timedelta(1, 1)", where="r.identifier == 'datetime'") == vsql_db.type_for_datetime(2000, 2, 28, 12, 34, 55)
+
+
 def test_datetime_monthdelta(vsql_db, vsql_data):
 	assert vsql_db.expr("@(2000-03-31T12:34:56) - months(1)") == vsql_db.type_for_datetime(2000, 2, 29, 12, 34, 56)
 

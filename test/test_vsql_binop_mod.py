@@ -68,8 +68,23 @@ def test_number_number4(vsql_db, vsql_data):
 
 
 def test_color_color1(vsql_db, vsql_data):
+	# With two constant colors UL4 folds the expression at compile time,
+	# so this tests the constant folding path, not the database rule
 	assert vsql_db.expr("#369 % #fff") == 0x336699ff
 
 
 def test_color_color2(vsql_db, vsql_data):
-	assert vsql_db.expr("#369c % #fff6") == 0x4573a2e0
+	# Constant-folded by UL4 (see ``test_color_color1``)
+	assert vsql_db.expr("#369c % #fff6") == 0x4674a2e0
+
+
+def test_color_color3(vsql_db, vsql_data):
+	# Use a field as one operand to prevent UL4 from constant folding the
+	# expression, so that the database really executes the operator
+	assert vsql_db.expr("#369c % r.v_color", where="r.identifier == 'none'") is None
+
+
+def test_color_color4(vsql_db, vsql_data):
+	# Use a field as one operand to prevent UL4 from constant folding the
+	# expression, so that the database really executes the operator
+	assert vsql_db.expr("#369c % r.v_color", where="r.identifier == 'color'") == 0x2c5c8cff

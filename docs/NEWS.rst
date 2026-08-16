@@ -29,10 +29,25 @@ Changes in 5.89 (released 2026-0?-??)
 *	Added the attribute :attr:`ll.vsql.Field.description` which isn't used anywhere
 	but can be used by external tools for documentation.
 
-*	Changed the color constructor :meth:`ll.color.Color.__init__` and the blending
-	operator :meth:`ll.color.Color.__mod__` to round float values to their
-	final integer value instead of truncating them since this better matches what
-	the CSS blending algorithm does.
+*	The vSQL type ``NULLSET`` is now part of the ``ANY`` type group (as
+	``NULLLIST`` has always been), so it can now be combined with all other
+	types in ``==``, ``!=``, ``is``, ``is not``, ``not``, ``bool()``,
+	``A if cond else B`` etc.
+
+*	Fixed the vSQL grammar rules for ``STR.split(None)`` and
+	``CLOB.split(None)``: the generated SQL passed ``null`` instead of the
+	string object to the split function, so the result was always empty.
+
+*	Fixed a typo in :mod:`ll.vsql` (``DataType.NULSET``) that broke the check
+	whether a ``NULLSET`` value can be used where a specific set type is
+	required.
+
+*	Changed the color factory method :meth:`ll.color.Color.fromrgb` (through
+	which :meth:`ll.color.Color.fromhsv`, :meth:`ll.color.Color.fromhls` and the
+	UL4 function ``rgb()`` work too) and the blending operator
+	:meth:`ll.color.Color.__mod__` to round float values to their final integer
+	value instead of truncating them since this matches what browsers do for the
+	CSS color blending algorithm.
 
 
 Changes in 5.88 (released 2026-07-28)
