@@ -139,7 +139,7 @@ def test_rellight():
 
 
 def test_withsat():
-	assert color.css("#7f7f7f") == color.css("#0f0").withsat(0.0)
+	assert color.css("#808080") == color.css("#0f0").withsat(0.0)
 	assert color.css("#0f0") == color.css("#0f0").withsat(1.0)
 
 

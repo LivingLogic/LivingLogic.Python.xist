@@ -114,7 +114,8 @@ class Color(tuple):
 		``r``, ``g``, ``b`` and ``a``. All values will be clipped to the range
 		[0; 1].
 		"""
-		return cls(255*r, 255*g, 255*b, 255*a)
+		# Round half up (``round()`` would round half to even)
+		return cls(255*r + 0.5, 255*g + 0.5, 255*b + 0.5, 255*a + 0.5)
 
 	@classmethod
 	def fromhsv(cls, h:Number, s:Number, v:Number, a:Number=1.0) -> "Color":
@@ -411,7 +412,7 @@ class Color(tuple):
 		Blends ``self`` with the background color ``other`` according to the
 		`CSS specification`__
 
-		__ https://www.w3.org/TR/2013/WD-compositing-1-20131010/#simplealphacompositing
+		__ https://www.w3.org/TR/compositing-1/#simplealphacompositing
 		"""
 		# Scale our values to the range [0, 1]
 		rt = self[0]/255.
@@ -447,11 +448,11 @@ class Color(tuple):
 			gf /= af
 			bf /= af
 
-		# Scale back to [0, 255]
-		r = int(255*rf)
-		g = int(255*gf)
-		b = int(255*bf)
-		a = int(255*af)
+		# Scale back to [0, 255], rounding half up like the browsers do
+		r = int(255*rf + 0.5)
+		g = int(255*gf + 0.5)
+		b = int(255*bf + 0.5)
+		a = int(255*af + 0.5)
 
 		# create final color
 		return self.__class__(r, g, b, a)

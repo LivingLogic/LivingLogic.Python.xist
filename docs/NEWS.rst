@@ -29,6 +29,11 @@ Changes in 5.89 (released 2026-0?-??)
 *	Added the attribute :attr:`ll.vsql.Field.description` which isn't used anywhere
 	but can be used by external tools for documentation.
 
+*	Changed the color constructor :meth:`ll.color.Color.__init__` and the blending
+	operator :meth:`ll.color.Color.__mod__` to round float values to their
+	final integer value instead of truncating them since this better matches what
+	the CSS blending algorithm does.
+
 
 Changes in 5.88 (released 2026-07-28)
 -------------------------------------
