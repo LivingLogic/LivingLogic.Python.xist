@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.89 (released 2026-0?-??)
+Changes in 5.89 (released 2026-08-17)
 -------------------------------------
 
 *	:mod:`ll.vsql` now supports PostgreSQL in addition to Oracle. Which of the
