@@ -2172,19 +2172,13 @@ class Rule(Repr):
 		return tuple(final_source)
 
 	def java_source(self) -> str:
-		key = ", ".join(
-			f"VSQLDataType.{p.name}" if isinstance(p, DataType) else misc.javaexpr(p)
-			for p in self.key
-		)
+		def list_of(args):
+			return f"List.of({', '.join(args)})"
+		sig = list_of(f"VSQLDataType.{p.name}" if isinstance(p, DataType) else misc.javaexpr(p) for p in self.key)
+		oracle_sql = list_of(misc.javaexpr(s) for s in self.source[DBType.ORACLE])
+		postgres_sql = list_of(misc.javaexpr(s) for s in self.source[DBType.POSTGRES])
 
-		# The Java implementation has to support all databases, so we pass the
-		# SQL source for each of them.
-		sources = ", ".join(
-			f"VSQLDBType.{dbtype.name}, List.of({', '.join(misc.javaexpr(s) for s in source)})"
-			for (dbtype, source) in self.source.items()
-		)
-
-		return f"addRule(rules, VSQLDataType.{self.result.name}, List.of({key}), Map.of({sources}));"
+		return f"addRule(rules, VSQLDataType.{self.result.name}, {sig}, {oracle_sql}, {postgres_sql});"
 
 	def oracle_fields(self) -> dict[str, int | str | sqlliteral]:
 		fields = {}
