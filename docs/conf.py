@@ -57,7 +57,7 @@ extensions = [
 	"sphinx.ext.intersphinx",
 	"sphinx.ext.viewcode",
 	"sphinxcontrib.jquery",
-	"linklint.ext",
+	"sphinx_linklint.ext",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
