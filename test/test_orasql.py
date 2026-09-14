@@ -466,143 +466,41 @@ def test_decimal():
 
 
 @pytest.mark.db
-def test_execute_tstring_bindparameter():
+def test_execute_tstring():
+	# t-strings are implemented by ``oracledb`` itself (since 26.0.0), so this
+	# test only makes sure that :meth:`orasql.Cursor.execute` passes them
+	# through and that the semantics that :mod:`ll.orasql` (``{ddprefix:q}``)
+	# and :mod:`ll.vsql` (via :func:`orasql.flatten_tstring`) rely on still
+	# hold in the ``oracledb`` version that is installed.
 	if dbname:
 		db = orasql.connect(dbname)
 		c = db.cursor()
 
-		# Interpolated values are passed as bind parameters
+		# Interpolated values are passed as bind parameters, ``None`` as ``null``
 		value = "gurk"
-		c.execute(t"select {value} from dual")
-		r = c.fetchone()
-		assert r[0] == "gurk"
-
-		# Multiple interpolations get separate bind parameters
-		x = 17
-		y = 23
-		c.execute(t"select {x} + {y} from dual")
-		r = c.fetchone()
-		assert r[0] == 40
-
-		# ``None`` gets bound as ``null``
 		none = None
-		c.execute(t"select nvl({none}, 'gurk') from dual")
+		c.execute(t"select {value}, nvl({none}, 'hurz') from dual")
 		r = c.fetchone()
 		assert r[0] == "gurk"
+		assert r[1] == "hurz"
 
-
-@pytest.mark.db
-def test_execute_tstring_literal():
-	if dbname:
-		db = orasql.connect(dbname)
-		c = db.cursor()
-
-		# Interpolations with the format spec ``q`` are embedded literally
-		# into the SQL statement (a table name can't be a bind parameter)
+		# ``q`` embeds the value literally; ``None`` contributes nothing
 		tablename = "dual"
-		c.execute(t"select 42 from {tablename:q}")
+		where = None
+		c.execute(t"select 42 from {tablename:q}{where:q}")
 		r = c.fetchone()
 		assert r[0] == 42
 
-
-@pytest.mark.db
-def test_execute_tstring_sqlliteral():
-	if dbname:
-		db = orasql.connect(dbname)
-		c = db.cursor()
-
-		# Interpolations with the format spec ``l`` are embedded into the SQL
-		# statement as a proper SQL literal (a string in single quotes here)
-		value = "gurk"
-		c.execute(t"select {value:l} from dual")
-		r = c.fetchone()
-		assert r[0] == "gurk"
-
-		# Strings are quoted properly (embedded single quotes get doubled)
+		# ``l`` embeds the value as a proper SQL literal, ``None`` as ``null``
 		value = "gu'rk"
-		c.execute(t"select {value:l} from dual")
+		none = None
+		c.execute(t"select {value:l}, nvl({none:l}, 'hurz') from dual")
 		r = c.fetchone()
 		assert r[0] == "gu'rk"
+		assert r[1] == "hurz"
 
-		# Numbers are embedded literally
-		value = 42
-		c.execute(t"select {value:l} from dual")
-		r = c.fetchone()
-		assert r[0] == 42
-
-		# In contrast to ``q``, ``None`` is embedded as the SQL keyword ``null``
-		value = None
-		c.execute(t"select nvl({value:l}, 'gurk') from dual")
-		r = c.fetchone()
-		assert r[0] == "gurk"
-
-
-@pytest.mark.db
-def test_execute_tstring_mixed():
-	if dbname:
-		db = orasql.connect(dbname)
-		c = db.cursor()
-
-		# Bind parameters and literal interpolations can be mixed
-		value = 42
-		c.execute(t"select {value} from {'dual':q}")
-		r = c.fetchone()
-		assert r[0] == 42
-
-
-@pytest.mark.db
-def test_execute_tstring_parameter_names():
-	if dbname:
-		db = orasql.connect(dbname)
-		c = db.cursor()
-
-		# Generated bind parameter names skip names that are already used
-		# by additional keyword arguments (``{x}`` must become ``:p2`` here)
-		x = 17
-		c.execute(t"select {x} + :p1 from dual", p1=23)
-		r = c.fetchone()
-		assert r[0] == 40
-
-
-@pytest.mark.db
-def test_execute_tstring_recursive():
-	if dbname:
-		db = orasql.connect(dbname)
-		c = db.cursor()
-
-		# Interpolated t-strings are embedded recursively (using the format
-		# spec ``q``), with their own interpolations turned into bind parameters
-		value = "gurk"
-		condition = t"{value} = 'gurk'"
-		c.execute(t"select 42 from dual where {condition:q}")
-		r = c.fetchone()
-		assert r[0] == 42
-
-		# Recursive t-strings can mix bind parameters and literal interpolations
-		tablename = "dual"
-		x = 17
-		y = 23
-		inner = t"{x} + {y} from {tablename:q}"
-		c.execute(t"select {inner:q}")
-		r = c.fetchone()
-		assert r[0] == 40
-
-		# Bind parameter names are generated across nesting levels
-		a = 1
-		b = 2
-		inner = t"{b}"
-		c.execute(t"select {a} + {inner:q} from dual")
-		r = c.fetchone()
-		assert r[0] == 3
-
-
-@pytest.mark.db
-def test_execute_tstring_recursive_deep():
-	if dbname:
-		db = orasql.connect(dbname)
-		c = db.cursor()
-
-		# t-strings can be nested across more than one level
+		# Interpolated t-strings are embedded recursively via ``q``, with
+		# their own interpolations turned into bind parameters
 		a = 1
 		b = 2
 		d = 4
@@ -611,3 +509,16 @@ def test_execute_tstring_recursive_deep():
 		c.execute(t"select {inner:q} from dual")
 		r = c.fetchone()
 		assert r[0] == 7
+
+
+@pytest.mark.db
+def test_execute_tstring_parameters():
+	# In contrast to the old XIST implementation, ``oracledb`` doesn't allow
+	# combining a t-string with additional bind parameters (see ``MIGRATION``)
+	if dbname:
+		db = orasql.connect(dbname)
+		c = db.cursor()
+
+		value = 42
+		with pytest.raises(orasql.ProgrammingError):
+			c.execute(t"select {value} from dual where 1 = :x", x=1)
