@@ -66,13 +66,13 @@ block itself only collects the initial tasks::
 
 
 	def walk(task, dir):
-		task.log(f"Walking {dir}")
+		task.log(t"Walking {dir}")
 		for file in dir.iterdir():
 			if file.is_dir():
 				task.submit(walk, file.name, file)
 			elif file.suffix == ".json":
 				task.submit(prettyprint, file.name, file)
-		task.log(f"Walked {dir}")
+		task.log(t"Walked {dir}")
 
 
 	def prettyprint(task, file):
@@ -91,6 +91,19 @@ Each task runs in its own :class:`multiprocessing.Process`. At most
 are queued until a slot becomes free. The swarm is finished when all tasks
 (including those submitted by other tasks) have finished.
 Then a summary of the total, mean and longest wait and run times is printed.
+
+Log messages and task names can be strings or t-strings (i.e.
+:class:`string.templatelib.Template` objects). A t-string is passed to the
+swarm unchanged and formatted there by :meth:`Swarm.format_message`: Each
+interpolated value is formatted (and colored) according to its type by
+:meth:`Swarm.format`, so the task function doesn't have to do that itself.
+When the type isn't enough to decide how a value should be formatted (e.g.
+a database schema name that is a plain :class:`str`), the format spec
+selects the formatting: ``t"Exporting {name:schema}"`` calls the method
+``format_schema`` of the swarm (which a subclass can add). Since the
+t-string is sent to the main process via a :class:`multiprocessing.Queue`,
+all interpolated values must be picklable. Values that aren't must be
+preformatted by the task (e.g. ``t"Exporting {str(obj):sqlobject}"``).
 
 
 Output
@@ -117,11 +130,10 @@ In-place output (``continuous=False``)
 In both modes values are colored via ANSI escape sequences (see
 :meth:`Swarm.format`), unless :attr:`Swarm.plain_output` is true, which is
 the case on Windows or if ``stdout`` isn't a terminal. The formatting can be
-customized by overwriting the class methods :meth:`Swarm.format`,
-:meth:`Swarm.format_sep` and :meth:`Swarm.format_task` in a subclass. As they
-are class methods, they can also be used by the task functions (which run in
-other processes and have no access to the :class:`Swarm` object) to format
-their log messages consistently.
+customized by overwriting the methods :meth:`Swarm.format`,
+:meth:`Swarm.format_sep` and :meth:`Swarm.format_task` in a subclass, or by
+adding ``format_<spec>`` methods that can be selected via the format spec in
+t-strings (see above).
 
 When running in iTerm2, the title of the swarm and the current progress are
 also shown in the iTerm2 session status (see
@@ -129,7 +141,8 @@ also shown in the iTerm2 session status (see
 tab even when another tab is active.
 """
 
-import sys, datetime, operator, pathlib, multiprocessing
+import sys, builtins, datetime, operator, pathlib, pickle, multiprocessing
+from string import templatelib
 
 from ll import iterm2
 
@@ -183,21 +196,26 @@ class Swarm:
 	After the ``with`` block the attributes :attr:`tasks`, :attr:`run_time`
 	and :attr:`mean_load` can be used to inspect the result.
 
-	All output of the swarm goes through the class methods :meth:`format`,
-	:meth:`format_sep` and :meth:`format_task`, so the formatting can be
-	changed by overwriting them in a subclass.
+	All output of the swarm goes through the methods :meth:`format_message`,
+	:meth:`format`, :meth:`format_sep` and :meth:`format_task`, so the
+	formatting can be changed by overwriting them in a subclass.
+
+	The following attributes influence the formatting and can be changed
+	after the constructor call:
+
+	``plain_output`` : bool
+		If true, no ANSI escape sequences are output. Defaults to true on
+		Windows or if ``stdout`` isn't a terminal.
+
+	``currentdir`` : :class:`pathlib.Path`
+		:meth:`format` prints paths relative to this directory (if possible).
+		Defaults to the current directory when the swarm was created.
 	"""
-
-	#: If true, :meth:`format` and :meth:`format_sep` don't emit ANSI escape
-	#: sequences. This is the case on Windows or if ``stdout`` isn't a terminal.
-	plain_output = (sys.platform == "win32" or not sys.stdout.isatty())
-
-	#: The current directory at import time. :meth:`format` prints paths
-	#: relative to this directory (if possible).
-	currentdir = pathlib.Path.cwd()
 
 	def __init__(self, title, processes, continuous):
 		self.title = title
+		self.plain_output = (sys.platform == "win32" or not sys.stdout.isatty())
+		self.currentdir = pathlib.Path.cwd()
 		self.process_id = 0
 		self.count_done = 0
 		self.started_at = None
@@ -242,17 +260,29 @@ class Swarm:
 
 		return self.finished_at - self.started_at if self.finished_at is not None and self.started_at is not None else None
 
-	@classmethod
-	def format(cls, obj):
+	def format(self, obj, spec=""):
 		"""
 		Format ``obj`` for the output of the swarm (with ANSI colors).
 
-		The formatting depends on the type of ``obj``: :class:`pathlib.Path`
-		objects are output relative to :attr:`currentdir` (if possible) in
-		yellow, numbers and :class:`~datetime.datetime` objects in bold
-		magenta, :class:`~datetime.timedelta` objects as ``HH:MM:SS`` with the
-		leading zeros in normal magenta and the rest in bold magenta.
-		Everything else is simply converted with :class:`str`.
+		``spec`` is the format spec from a t-string (see
+		:meth:`format_message`) and is used as follows:
+
+		*	If ``spec`` isn't empty and the swarm has a method named
+			``format_<spec>``, this method is called with ``obj``. This is how
+			a subclass can support formatting values whose type isn't enough
+			to decide how they should be formatted (e.g. ``{name:schema}``
+			calls ``self.format_schema(name)``).
+
+		*	Otherwise the formatting depends on the type of ``obj``:
+			:class:`pathlib.Path` objects are output relative to
+			:attr:`currentdir` (if possible) in yellow, numbers and
+			:class:`~datetime.datetime` objects in bold magenta (with ``spec``
+			as the format spec, or ``,`` for :class:`int` and ``,.01f`` for
+			:class:`float` if ``spec`` is empty), :class:`~datetime.timedelta`
+			objects as ``HH:MM:SS`` with the leading zeros in normal magenta
+			and the rest in bold magenta (``spec`` is ignored). Everything
+			else is formatted with the builtin :func:`format` and ``spec`` (so
+			an unknown ``spec`` raises a :exc:`ValueError`).
 
 		If :attr:`plain_output` is true, no ANSI escape sequences are output.
 
@@ -260,22 +290,26 @@ class Swarm:
 		support additional types.
 		"""
 
-		if cls.plain_output:
-			return str(obj)
-		else:
-			if isinstance(obj, pathlib.Path):
-				try:
-					obj = obj.relative_to(cls.currentdir)
-				except ValueError:
-					pass
-				return f"\033[33m{obj}\033[0m"
-			if isinstance(obj, int):
-				return f"\033[1;35m{obj:,}\033[0m"
-			elif isinstance(obj, float):
-				return f"\033[1;35m{obj:,.01f}\033[0m"
-			elif isinstance(obj, datetime.datetime):
-				return f"\033[1;35m{obj}\033[0m"
-			elif isinstance(obj, datetime.timedelta):
+		if spec:
+			method = getattr(self, f"format_{spec}", None)
+			if method is not None:
+				return method(obj)
+		if isinstance(obj, pathlib.Path):
+			try:
+				obj = obj.relative_to(self.currentdir)
+			except ValueError:
+				pass
+			return str(obj) if self.plain_output else f"\033[33m{obj}\033[0m"
+		elif isinstance(obj, int):
+			return builtins.format(obj, spec or ",") if self.plain_output else f"\033[1;35m{obj:{spec or ','}}\033[0m"
+		elif isinstance(obj, float):
+			return builtins.format(obj, spec or ",.01f") if self.plain_output else f"\033[1;35m{obj:{spec or ',.01f'}}\033[0m"
+		elif isinstance(obj, datetime.datetime):
+			return builtins.format(obj, spec) if self.plain_output else f"\033[1;35m{obj:{spec}}\033[0m"
+		elif isinstance(obj, datetime.timedelta):
+			if self.plain_output:
+				return str(obj)
+			else:
 				value = str(obj).split('.')[0]
 				value = value.rjust(8, "0")
 				if not value.startswith("0"):
@@ -288,11 +322,10 @@ class Swarm:
 					else:
 						value = f"\033[35m{value}\033[0m"
 				return value
-			else:
-				return str(obj)
+		else:
+			return builtins.format(obj, spec)
 
-	@classmethod
-	def format_sep(cls, text):
+	def format_sep(self, text):
 		"""
 		Format the separator ``text`` for the output of the swarm (i.e. in
 		dark grey).
@@ -300,19 +333,50 @@ class Swarm:
 		If :attr:`plain_output` is true, no ANSI escape sequences are output.
 		"""
 
-		if cls.plain_output:
+		if self.plain_output:
 			return text
 		else:
 			return f"\033[30;1m{text}\033[0m"
 
-	@classmethod
-	def format_task(cls, task):
+	def format_task(self, task):
 		"""
 		Format the "full name" of ``task`` (i.e. the names of all tasks in
 		:meth:`Task.path` joined with separators) for the output of the swarm.
 		"""
 
-		return f" {cls.format_sep('::')} ".join(t.name for t in task.path())
+		return f" {self.format_sep('::')} ".join(self.format_message(t.name) for t in task.path())
+
+	def format_message(self, message):
+		"""
+		Format the log message or task name ``message`` for the output of
+		the swarm.
+
+		If ``message`` is a t-string (i.e. a :class:`string.templatelib.Template`
+		object) each interpolated value is converted according to its
+		conversion (``!r``, ``!s`` or ``!a``) and then formatted with
+		:meth:`format` (passing the format spec). A :class:`str` is returned
+		unchanged, everything else is converted with :class:`str`.
+		"""
+
+		if isinstance(message, str):
+			return message
+		elif isinstance(message, templatelib.Template):
+			parts = []
+			for part in message:
+				if isinstance(part, templatelib.Interpolation):
+					value = part.value
+					if part.conversion == "r":
+						value = repr(value)
+					elif part.conversion == "s":
+						value = str(value)
+					elif part.conversion == "a":
+						value = ascii(value)
+					parts.append(self.format(value, part.format_spec))
+				else:
+					parts.append(part)
+			return "".join(parts)
+		else:
+			return str(message)
 
 	def submit(self, func, name, *args, **kwargs):
 		"""
@@ -322,7 +386,7 @@ class Swarm:
 		will be called as ``func(task, *args, **kwargs)`` (where ``task`` is
 		the :class:`Task` object). The task is finished when ``func`` returns
 		or raises an exception. ``name`` is the name of the task used in the
-		output.
+		output. It can be a string or a t-string (see :meth:`format_message`).
 
 		Tasks submitted before the ``with`` block is exited are started (in
 		submission order, as far as free slots are available) when the block
@@ -331,7 +395,7 @@ class Swarm:
 		"""
 
 		task = Task(self.process_id, self.queue, name)
-		process = multiprocessing.Process(target=_run_task, name=name, args=(func, task) + args, kwargs=kwargs)
+		process = multiprocessing.Process(target=_run_task, name=task.plain_name, args=(func, task) + args, kwargs=kwargs)
 		self.pending_tasks[task.process_id] = (process, task)
 		self.tasks[task.process_id] = (process, task)
 		self.process_id += 1
@@ -414,7 +478,7 @@ class Swarm:
 
 		while True:
 			self._schedule_pending_tasks()
-			(process_id, timestamp, type, data) = self.queue.get()
+			(process_id, timestamp, type, data) = pickle.loads(self.queue.get())
 			self.count_events += 1
 			self.total_load += self.current_load
 			(process, task) = self.tasks[process_id]
@@ -429,7 +493,7 @@ class Swarm:
 				else:
 					# The failure message might contain line feeds (e.g. from a
 					# multi-line exception message), which would break the output.
-					message = " ".join(data.splitlines())
+					message = " ".join(self.format_message(data).splitlines())
 				self._print(timestamp, message, task=task)
 				slot = self.slots[process_id]
 				if not self.continuous:
@@ -440,7 +504,7 @@ class Swarm:
 					break
 				self._schedule_pending_tasks()
 			elif type == "log":
-				self._print(timestamp, data, task=task)
+				self._print(timestamp, self.format_message(data), task=task)
 			elif type == "submit":
 				(func, name, args, kwargs) = data
 				new_task = self.submit(func, name, *args, **kwargs)
@@ -468,10 +532,10 @@ class Swarm:
 		total_run = sum((task.run_time for (process, task) in self.tasks.values()), start=datetime.timedelta(0))
 		max_wait = max((task for (process, task) in self.tasks.values()), key=operator.attrgetter("wait_time"))
 		max_run =  max((task for (process, task) in self.tasks.values()), key=operator.attrgetter("run_time"))
-		print(f"Executed {self.format(len(self.tasks))} tasks in {self.format(self.run_time)}")
-		print(f"Total wait time {self.format(total_wait)}, total run time {self.format(total_run)}")
-		print(f"Mean wait time {self.format(total_wait/len(self.tasks))}, mean run time {self.format(total_run/len(self.tasks))}")
-		print(f"Longest wait time {self.format(max_wait.wait_time)} ({self.format_task(max_wait)}), longest run time {self.format(max_run.run_time)} ({self.format_task(max_run)})")
+		print(self.format_message(t"Executed {len(self.tasks)} tasks in {self.run_time}"))
+		print(self.format_message(t"Total wait time {total_wait}, total run time {total_run}"))
+		print(self.format_message(t"Mean wait time {total_wait/len(self.tasks)}, mean run time {total_run/len(self.tasks)}"))
+		print(self.format_message(t"Longest wait time {max_wait.wait_time} ({max_wait:task}), longest run time {max_run.run_time} ({max_run:task})"))
 		iterm2.clear_session_status()
 
 
@@ -485,13 +549,20 @@ class Task:
 	outputs a progress message and :meth:`submit` submits further tasks. The
 	task is finished when the task function returns.
 
+	Everything sent to the swarm (log messages, names and arguments of new
+	tasks) is pickled by the task itself before it's put into the
+	:class:`multiprocessing.Queue`, so that unpicklable values raise an
+	exception in the task function (instead of silently losing the message
+	in the feeder thread of the queue).
+
 	The following attributes are available:
 
 	``process_id`` : int
 		The unique id of the task inside the swarm.
 
-	``name`` : string
-		The name of the task (used in the output).
+	``name`` : string or t-string
+		The name of the task (used in the output, see
+		:meth:`Swarm.format_message`).
 
 	``parent`` : :class:`Task` or ``None``
 		The task that submitted this task (or ``None`` for tasks submitted
@@ -522,7 +593,21 @@ class Task:
 		formatting, see :meth:`Swarm.format_task` for that).
 		"""
 
-		return " :: ".join(t.name for t in self.path())
+		return " :: ".join(t.plain_name for t in self.path())
+
+	@property
+	def plain_name(self):
+		"""
+		The :attr:`name` of the task as a plain string.
+
+		If the name is a t-string, the interpolated values are simply
+		converted with :class:`str` (format specs are ignored).
+		"""
+
+		if isinstance(self.name, templatelib.Template):
+			return "".join(str(part.value) if isinstance(part, templatelib.Interpolation) else part for part in self.name)
+		else:
+			return str(self.name)
 
 	@property
 	def wait_time(self):
@@ -552,12 +637,28 @@ class Task:
 			yield from self.parent.path()
 		yield self
 
+	def _put(self, type, data):
+		"""
+		Send the event ``type`` with the payload ``data`` to the swarm.
+
+		The event is pickled here (i.e. in the task process) so that
+		unpicklable values in ``data`` raise the exception in the task
+		function.
+		"""
+
+		self.queue.put(pickle.dumps((self.process_id, datetime.datetime.now(), type, data)))
+
 	def log(self, message):
 		"""
 		Output the progress message ``message`` for this task.
+
+		``message`` can be a string or a t-string (see
+		:meth:`Swarm.format_message`). All interpolated values of a t-string
+		must be picklable; preformat those that aren't (e.g.
+		``t"{str(obj):sqlobject}"``).
 		"""
 
-		self.queue.put((self.process_id, datetime.datetime.now(), "log", message))
+		self._put("log", message)
 
 	def _done(self, message):
 		"""
@@ -568,7 +669,7 @@ class Task:
 		(see :func:`_run_task`), not by the task function.
 		"""
 
-		self.queue.put((self.process_id, datetime.datetime.now(), "done", message))
+		self._put("done", message)
 
 	def submit(self, func, name, *args, **kwargs):
 		"""
@@ -576,8 +677,8 @@ class Task:
 
 		The arguments have the same meaning as for :meth:`Swarm.submit`. The
 		new task will have this task as its :attr:`parent`. ``func``,
-		``args`` and ``kwargs`` are sent to the main process via a
+		``name``, ``args`` and ``kwargs`` are sent to the main process via a
 		:class:`multiprocessing.Queue`, so they must be picklable.
 		"""
 
-		self.queue.put((self.process_id, datetime.datetime.now(), "submit", (func, name, args, kwargs)))
+		self._put("submit", (func, name, args, kwargs))

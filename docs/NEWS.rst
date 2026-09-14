@@ -44,8 +44,12 @@ Changes in 5.90 (released 2026-09-??)
 	block is exited. A running task can itself submit new tasks to the swarm
 	(e.g. a task that walks a directory can submit one task for each file it
 	finds), so the total number of tasks doesn't have to be known in advance.
-	The progress is shown on the terminal (either as a continuous log or
-	updated in place, one line per process) and in the iTerm2 session status.
+	Log messages and task names can be t-strings: the values are formatted
+	(and colored) by the swarm according to their type, and a format spec
+	like ``{name:schema}`` selects a ``format_schema`` method of the swarm
+	(sub)class for values whose type is ambiguous. The progress is shown on
+	the terminal (either as a continuous log or updated in place, one line
+	per process) and in the iTerm2 session status.
 
 
 Changes in 5.89 (released 2026-08-17)
