@@ -25,6 +25,8 @@ Content
    sisyphus
    color
    misc
+   iterm2
+   taskswarm
    pysql
    orasql
    nightshade

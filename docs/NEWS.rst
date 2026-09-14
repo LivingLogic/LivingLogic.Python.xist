@@ -28,6 +28,25 @@ Changes in 5.90 (released 2026-09-??)
 
 	.. _oracledb: https://oracle.github.io/python-oracledb/
 
+*	The new module :mod:`ll.iterm2` contains functions for working with the
+	terminal emulator iTerm2_: :func:`~ll.iterm2.running_in_iterm2` detects
+	whether the program runs inside iTerm2, and there are functions that
+	return the escape sequences for setting the session status, the tab and
+	window title, the badge and for posting notifications. For each of those
+	there's also a ``set_*`` variant that writes the sequence directly to the
+	controlling terminal (and does nothing when not running in iTerm2).
+
+	.. _iTerm2: https://iterm2.com/
+
+*	The new module :mod:`ll.taskswarm` executes tasks in parallel processes
+	(via :mod:`multiprocessing`). Tasks are submitted to a
+	:class:`~ll.taskswarm.Swarm` inside a ``with`` block and executed when the
+	block is exited. A running task can itself submit new tasks to the swarm
+	(e.g. a task that walks a directory can submit one task for each file it
+	finds), so the total number of tasks doesn't have to be known in advance.
+	The progress is shown on the terminal (either as a continuous log or
+	updated in place, one line per process) and in the iTerm2 session status.
+
 
 Changes in 5.89 (released 2026-08-17)
 -------------------------------------
