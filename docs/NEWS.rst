@@ -8,6 +8,27 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.90 (released 2026-09-??)
+-------------------------------------
+
+*	XIST now requires oracledb_ 26.0.0 or later.
+
+*	Since oracledb_ 26.0.0 supports t-strings in :meth:`Cursor.execute` itself
+	(with the format specs ``q`` and ``l`` working like they did in XIST, and
+	the additional format spec ``i`` for SQL identifiers), the t-string support
+	has been removed from :meth:`ll.orasql.Cursor.execute`. See
+	:ref:`MIGRATION` for the one incompatible detail.
+
+*	oracledb_ 26.0.0 no longer accepts :class:`str` or :class:`bytes` values
+	for bind variables of type ``CLOB`` or ``BLOB``. :mod:`ll.orasql` (when
+	calling procedures and functions with large string arguments or
+	:class:`bytes` arguments) and :mod:`ll.pysql` (when passing such arguments
+	to ``procedure()`` and ``sql()`` commands) now create temporary LOBs via
+	:meth:`Connection.createlob` instead.
+
+	.. _oracledb: https://oracle.github.io/python-oracledb/
+
+
 Changes in 5.89 (released 2026-08-17)
 -------------------------------------
 

@@ -8,6 +8,32 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.90
+=========================
+
+Changes to :mod:`ll.orasql`
+---------------------------
+
+*	XIST now requires oracledb_ 26.0.0 or later.
+
+*	The t-string support has been removed from :meth:`ll.orasql.Cursor.execute`,
+	since oracledb_ 26.0.0 supports t-strings itself. The format specs ``q``
+	and ``l`` work like they did in XIST, so existing code should continue to
+	work unchanged. The only exception is that a t-string can no longer be
+	combined with additional bind parameters passed via ``parameters`` or
+	keyword arguments, i.e.::
+
+		cursor.execute(t"select {value} from dual where 1 = :x", x=1)
+
+	has to be changed to::
+
+		cursor.execute(t"select {value} from dual where 1 = {1}")
+
+	(oracledb_ raises ``DPY-2076`` for the old form).
+
+	.. _oracledb: https://oracle.github.io/python-oracledb/
+
+
 Migrating to version 5.89
 =========================
 

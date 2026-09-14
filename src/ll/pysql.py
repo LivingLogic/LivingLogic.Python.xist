@@ -1168,9 +1168,12 @@ class OracleHandler(DBHandler):
 		else:
 			return None
 
-	@staticmethod
-	def _createvar(cursor, type, value):
+	def _createvar(self, cursor, type, value):
 		var = cursor.var(type)
+		is_clob_str = type is oracledb.DB_TYPE_CLOB and isinstance(value, str)
+		is_blob_bytes = type is oracledb.DB_TYPE_BLOB and isinstance(value, bytes)
+		if is_clob_str or is_blob_bytes:
+			value = self.connection.createlob(type, value)
 		var.setvalue(0, value)
 		return var
 

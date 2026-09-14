@@ -917,163 +917,8 @@ class Cursor(Cursor):
 		Executes the statement ``statement`` against the database.
 
 		This works similar to :meth:`oracledb.Cursor.execute`, but results are
-		wrapped in :class:`Record` objects, and t-strings are supported for
-		``statement``.
-
-		If ``statement`` is a t-string (i.e. a
-		:class:`string.templatelib.Template` object), each interpolated value
-		will be passed to the database as a bind parameter, i.e.::
-
-			name = "Doe"
-			cursor.execute(t"select * from person where lastname = {name}")
-
-		is equivalent to::
-
-			name = "Doe"
-			cursor.execute(
-				"select * from person where lastname = :p1",
-				p1=name
-			)
-
-		The generated parameter names are ``p1``, ``p2``, etc. (skipping any
-		names that are already used in ``parameters`` or ``kwargs``).
-
-		However, if an interpolation uses the format spec ``q``, its value will
-		not be passed as a bind parameter, but will be embedded literally into
-		the SQL statement (which of course should only be done with trusted
-		values, as this opens the door for SQL injection)::
-
-			tablename = "person"
-			cursor.execute(t"select count(*) from {tablename:q}")
-
-		is equivalent to ::
-
-			cursor.execute("select count(*) from person")
-
-		A literal value is embedded by converting it to a string via
-		:class:`str`, with one exception: ``None`` is embedded as nothing at
-		all (i.e. it contributes an empty string to the statement), so ::
-		
-			where = None
-			cursor.execute(t"select 42 from dual{where:q}")
-
-		is equivalent to ::
-
-			cursor.execute("select 42 from dual")
-
-		This makes it easy to conditionally include parts of a statement.
-		Note that this means ``None`` is *not* embedded as the SQL keyword
-		``null``; to get a SQL ``NULL`` use a normal bind parameter
-		interpolation instead, i.e. ``t"select {None} from dual"`` (which binds
-		``None`` as ``null``).
-
-		The format spec ``l`` works similar to ``q`` in that the value is
-		embedded literally into the SQL statement instead of being passed as a
-		bind parameter. However, instead of simply converting the value to a
-		string, it is converted to a proper SQL literal via :func:`sqlliteral`,
-		so ::
-
-			name = "Doe"
-			cursor.execute(t"select * from person where lastname = {name:l}")
-
-		is equivalent to ::
-
-			cursor.execute("select * from person where lastname = 'Doe'")
-
-		In contrast to ``q``, here ``"Doe"`` *is* embedded as the SQL string
-		constant ``'Doe'``. The supported types are those handled by
-		:func:`sqlliteral` (``None``, :class:`int`, :class:`float`,
-		:class:`datetime.date`, :class:`datetime.datetime` and :class:`str`);
-		any other type raises a :exc:`TypeError`. As with ``q``, this embeds the
-		value directly into the statement, so it should only be done with trusted
-		values.
-
-		For a normal value comparison in a query you would normally use a bind
-		parameter interpolation (i.e. ``{name}``), which is safer and allows the
-		database to reuse the execution plan. ``l`` is useful in those places
-		where Oracle does *not* allow bind parameters, but the value still has to
-		be embedded into the statement with proper quoting and type conversion.
-		This is most often the case in DDL statements, e.g. when adding a check
-		constraint::
-
-			mindate = datetime.date(2000, 1, 1)
-			cursor.execute(t'''
-				alter table person
-				add constraint person_birthday_ck
-				check (birthday >= {mindate:l})
-			''')
-
-		is equivalent to::
-
-			cursor.execute(
-				"alter table person "
-				"add constraint person_birthday_ck "
-				"check (birthday >= to_date('2000-01-01', 'YYYY-MM-DD'))"
-			)
-
-		Using a bind parameter (``{mindate}``) here would fail, since Oracle
-		doesn't allow bind parameters in DDL, and using ``q`` would embed the
-		date as the invalid SQL fragment ``2000-01-01``. The same applies to
-		other positions that require literals, such as partition bounds or
-		``default`` clauses. ``l`` also takes care of quoting strings correctly,
-		so ``{"O'Brien":l}`` produces the properly escaped literal ``'O''Brien'``
-		instead of the broken ``O'Brien`` that ``q`` would produce.
-
-		Interpolations can also be t-strings themselves. In this case the nested
-		t-string will be embedded into the SQL statement recursively, with its
-		own interpolations turned into bind parameters (or literal parts) in the
-		same way. Like the embedding of other literal values, this recursive
-		embedding is triggered by the format spec ``q`` (with no conversion)::
-
-			name = "Doe"
-			condition = t"lastname = {name}"
-			cursor.execute(t"select * from person where {condition:q}")
-
-		is equivalent to::
-
-			name = "Doe"
-			cursor.execute(
-				"select * from person where lastname = :p1",
-				p1=name
-			)
-
-		All types of interpolations can be combined in one statement and can be
-		mixed with additional bind parameters passed via ``parameters`` or
-		``kwargs``.
+		wrapped in :class:`Record` objects.
 		"""
-		if isinstance(statement, templatelib.Template):
-			real_statement = []
-			first_index = 1
-
-			def append(part):
-				nonlocal first_index
-
-				if isinstance(part, str):
-					real_statement.append(part)
-				elif part.conversion is None and part.format_spec == "q":
-					if isinstance(part.value, templatelib.Template):
-						# Embed template content recursively
-						for subpart in part.value:
-							append(subpart)
-					elif part.value is not None:
-						# Embed value as a literal part of the query
-						real_statement.append(str(part.value))
-				elif part.conversion is None and part.format_spec == "l":
-					# Embed value the appropriate SQL literal
-					real_statement.append(sqlliteral(part.value))
-				else:
-					# Use value as a parameter (with an unused parameter name)
-					param_name = f"p{first_index}"
-					while param_name in kwargs or (isinstance(parameters, dict) and param_name in parameters):
-						first_index += 1
-						param_name = f"p{first_index}"
-					real_statement.append(f":{param_name}")
-					kwargs[param_name] = part.value
-
-			for part in statement:
-				append(part)
-
-			statement = "".join(real_statement)
 		if parameters is not None:
 			result = super().execute(statement, parameters, **kwargs)
 		else:
@@ -3875,8 +3720,10 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 			raise TypeError(f"can't handle parameter {arginfo.name} of type {arginfo.datatype} with value {arg!r} in {self!r}")
 		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``
 			t = DB_TYPE_BLOB
+			arg = cursor.connection.createlob(t, arg)
 		elif isinstance(arg, str) and len(arg) >= 2000:
 			t = DB_TYPE_CLOB
+			arg = cursor.connection.createlob(t, arg)
 		var = cursor.var(t)
 		var.setvalue(0, arg)
 		return var
