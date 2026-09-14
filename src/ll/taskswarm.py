@@ -115,8 +115,13 @@ In-place output (``continuous=False``)
 	that understands ANSI escape sequences.
 
 In both modes values are colored via ANSI escape sequences (see
-:func:`format`), unless :data:`plain_output` is true, which is the case on
-Windows or if ``stdout`` isn't a terminal.
+:meth:`Swarm.format`), unless :attr:`Swarm.plain_output` is true, which is
+the case on Windows or if ``stdout`` isn't a terminal. The formatting can be
+customized by overwriting the class methods :meth:`Swarm.format`,
+:meth:`Swarm.format_sep` and :meth:`Swarm.format_task` in a subclass. As they
+are class methods, they can also be used by the task functions (which run in
+other processes and have no access to the :class:`Swarm` object) to format
+their log messages consistently.
 
 When running in iTerm2, the title of the swarm and the current progress are
 also shown in the iTerm2 session status (see
@@ -127,74 +132,6 @@ tab even when another tab is active.
 import sys, datetime, operator, pathlib, multiprocessing
 
 from ll import iterm2
-
-
-#: The current directory at import time. :func:`format` prints paths relative
-#: to this directory (if possible).
-currentdir = pathlib.Path.cwd()
-
-#: If true, :func:`format` and :func:`format_sep` don't emit ANSI escape
-#: sequences. This is the case on Windows or if ``stdout`` isn't a terminal.
-plain_output = (sys.platform == "win32" or not sys.stdout.isatty())
-
-
-def format(obj):
-	"""
-	Format ``obj`` for terminal output with ANSI colors.
-
-	The formatting depends on the type of ``obj``: :class:`pathlib.Path`
-	objects are output relative to :data:`currentdir` (if possible) in
-	yellow, numbers and :class:`~datetime.datetime` objects in bold magenta,
-	:class:`~datetime.timedelta` objects as ``HH:MM:SS`` with the leading
-	zeros in normal magenta and the rest in bold magenta. Everything else is
-	simply converted with :class:`str`.
-
-	If :data:`plain_output` is true, no ANSI escape sequences are output.
-	"""
-
-	if plain_output:
-		return str(obj)
-	else:
-		if isinstance(obj, pathlib.Path):
-			try:
-				obj = obj.relative_to(currentdir)
-			except ValueError:
-				pass
-			return f"\033[33m{obj}\033[0m"
-		if isinstance(obj, int):
-			return f"\033[1;35m{obj:,}\033[0m"
-		elif isinstance(obj, float):
-			return f"\033[1;35m{obj:,.01f}\033[0m"
-		elif isinstance(obj, datetime.datetime):
-			return f"\033[1;35m{obj}\033[0m"
-		elif isinstance(obj, datetime.timedelta):
-			value = str(obj).split('.')[0]
-			value = value.rjust(8, "0")
-			if not value.startswith("0"):
-				value = f"\033[35m{value}\033[0m"
-			else:
-				for (i, c) in enumerate(value):
-					if c not in "0:":
-						value = f"\033[35m{value[:i]}\033[1;35m{value[i:]}\033[0m"
-						break
-				else:
-					value = f"\033[35m{value}\033[0m"
-			return value
-		else:
-			return str(obj)
-
-
-def format_sep(text):
-	"""
-	Format the separator ``text`` for terminal output (i.e. in dark grey).
-
-	If :data:`plain_output` is true, no ANSI escape sequences are output.
-	"""
-
-	if plain_output:
-		return text
-	else:
-		return f"\033[30;1m{text}\033[0m"
 
 
 def _run_task(func, task, *args, **kwargs):
@@ -245,7 +182,19 @@ class Swarm:
 
 	After the ``with`` block the attributes :attr:`tasks`, :attr:`run_time`
 	and :attr:`mean_load` can be used to inspect the result.
+
+	All output of the swarm goes through the class methods :meth:`format`,
+	:meth:`format_sep` and :meth:`format_task`, so the formatting can be
+	changed by overwriting them in a subclass.
 	"""
+
+	#: If true, :meth:`format` and :meth:`format_sep` don't emit ANSI escape
+	#: sequences. This is the case on Windows or if ``stdout`` isn't a terminal.
+	plain_output = (sys.platform == "win32" or not sys.stdout.isatty())
+
+	#: The current directory at import time. :meth:`format` prints paths
+	#: relative to this directory (if possible).
+	currentdir = pathlib.Path.cwd()
 
 	def __init__(self, title, processes, continuous):
 		self.title = title
@@ -293,6 +242,78 @@ class Swarm:
 
 		return self.finished_at - self.started_at if self.finished_at is not None and self.started_at is not None else None
 
+	@classmethod
+	def format(cls, obj):
+		"""
+		Format ``obj`` for the output of the swarm (with ANSI colors).
+
+		The formatting depends on the type of ``obj``: :class:`pathlib.Path`
+		objects are output relative to :attr:`currentdir` (if possible) in
+		yellow, numbers and :class:`~datetime.datetime` objects in bold
+		magenta, :class:`~datetime.timedelta` objects as ``HH:MM:SS`` with the
+		leading zeros in normal magenta and the rest in bold magenta.
+		Everything else is simply converted with :class:`str`.
+
+		If :attr:`plain_output` is true, no ANSI escape sequences are output.
+
+		Overwrite this method in a subclass to change the formatting or to
+		support additional types.
+		"""
+
+		if cls.plain_output:
+			return str(obj)
+		else:
+			if isinstance(obj, pathlib.Path):
+				try:
+					obj = obj.relative_to(cls.currentdir)
+				except ValueError:
+					pass
+				return f"\033[33m{obj}\033[0m"
+			if isinstance(obj, int):
+				return f"\033[1;35m{obj:,}\033[0m"
+			elif isinstance(obj, float):
+				return f"\033[1;35m{obj:,.01f}\033[0m"
+			elif isinstance(obj, datetime.datetime):
+				return f"\033[1;35m{obj}\033[0m"
+			elif isinstance(obj, datetime.timedelta):
+				value = str(obj).split('.')[0]
+				value = value.rjust(8, "0")
+				if not value.startswith("0"):
+					value = f"\033[35m{value}\033[0m"
+				else:
+					for (i, c) in enumerate(value):
+						if c not in "0:":
+							value = f"\033[35m{value[:i]}\033[1;35m{value[i:]}\033[0m"
+							break
+					else:
+						value = f"\033[35m{value}\033[0m"
+				return value
+			else:
+				return str(obj)
+
+	@classmethod
+	def format_sep(cls, text):
+		"""
+		Format the separator ``text`` for the output of the swarm (i.e. in
+		dark grey).
+
+		If :attr:`plain_output` is true, no ANSI escape sequences are output.
+		"""
+
+		if cls.plain_output:
+			return text
+		else:
+			return f"\033[30;1m{text}\033[0m"
+
+	@classmethod
+	def format_task(cls, task):
+		"""
+		Format the "full name" of ``task`` (i.e. the names of all tasks in
+		:meth:`Task.path` joined with separators) for the output of the swarm.
+		"""
+
+		return f" {cls.format_sep('::')} ".join(t.name for t in task.path())
+
 	def submit(self, func, name, *args, **kwargs):
 		"""
 		Submit a new task to the swarm and return the :class:`Task` object.
@@ -331,7 +352,7 @@ class Swarm:
 			slot = min(self.free_slots)
 			self.free_slots.remove(slot)
 			self.slots[task.process_id] = slot
-			self._print(datetime.datetime.now(), format_sep("Started"), task=task)
+			self._print(datetime.datetime.now(), self.format_sep("Started"), task=task)
 			process.start()
 
 	def _print(self, timestamp, message, task=None, slot=None):
@@ -345,13 +366,13 @@ class Swarm:
 
 		if task is not None:
 			slot = self.slots[task.process_id]
-		output = f"{format(timestamp - self.started_at)}"
+		output = f"{self.format(timestamp - self.started_at)}"
 
 		if self.continuous:
-			output += f" {format_sep('::')} ⏾ {format(len(self.pending_tasks))} {format_sep('→')} 🏃 {format(len(self.running_tasks))} {format_sep('→')} ✓ {format(self.count_done)}"
+			output += f" {self.format_sep('::')} ⏾ {self.format(len(self.pending_tasks))} {self.format_sep('→')} 🏃 {self.format(len(self.running_tasks))} {self.format_sep('→')} ✓ {self.format(self.count_done)}"
 		if task is not None:
-			output += f" {format_sep('::')} {task}"
-		output += f" {format_sep('>>')} {message}"
+			output += f" {self.format_sep('::')} {self.format_task(task)}"
+		output += f" {self.format_sep('>>')} {message}"
 
 		if self.continuous:
 			print(output)
@@ -360,7 +381,7 @@ class Swarm:
 			pre = f"\033[{c}A\033[K"
 			post = f"\033[{c}B"
 			print(f"{pre}{output}\n{post}", end="", flush=True)
-			print(f"\033[1A\033[K{format(datetime.datetime.now() - self.started_at)} {format_sep('>>')} Tasks 😴 {format(len(self.pending_tasks))} wait {format_sep('\N{MIDDLE DOT}')} 🏃 {format(len(self.running_tasks))} run {format_sep('\N{MIDDLE DOT}')} ✅ {format(self.count_done)} done {format_sep('\N{EM DASH}')} Load {format(self.current_load)} now {format_sep('\N{MIDDLE DOT}')} {format(self.mean_load) if self.mean_load is not None else '-'} avg\n\033[1B", end="", flush=True)
+			print(f"\033[1A\033[K{self.format(datetime.datetime.now() - self.started_at)} {self.format_sep('>>')} Tasks 😴 {self.format(len(self.pending_tasks))} wait {self.format_sep('\N{MIDDLE DOT}')} 🏃 {self.format(len(self.running_tasks))} run {self.format_sep('\N{MIDDLE DOT}')} ✅ {self.format(self.count_done)} done {self.format_sep('\N{EM DASH}')} Load {self.format(self.current_load)} now {self.format_sep('\N{MIDDLE DOT}')} {self.format(self.mean_load) if self.mean_load is not None else '-'} avg\n\033[1B", end="", flush=True)
 
 	def __enter__(self):
 		return self
@@ -389,7 +410,7 @@ class Swarm:
 				print()
 			print()
 			for i in range(self.processes):
-				self._print(self.started_at, format_sep("Idle"), slot=i)
+				self._print(self.started_at, self.format_sep("Idle"), slot=i)
 
 		while True:
 			self._schedule_pending_tasks()
@@ -404,7 +425,7 @@ class Swarm:
 				del self.running_tasks[process_id]
 				self.count_done += 1
 				if data is None:
-					message = format_sep("Done")
+					message = self.format_sep("Done")
 				else:
 					# The failure message might contain line feeds (e.g. from a
 					# multi-line exception message), which would break the output.
@@ -412,7 +433,7 @@ class Swarm:
 				self._print(timestamp, message, task=task)
 				slot = self.slots[process_id]
 				if not self.continuous:
-					self._print(timestamp, format_sep("Idle"), slot=slot)
+					self._print(timestamp, self.format_sep("Idle"), slot=slot)
 				del self.slots[process_id]
 				self.free_slots.add(slot)
 				if not self.running_tasks:
@@ -447,10 +468,10 @@ class Swarm:
 		total_run = sum((task.run_time for (process, task) in self.tasks.values()), start=datetime.timedelta(0))
 		max_wait = max((task for (process, task) in self.tasks.values()), key=operator.attrgetter("wait_time"))
 		max_run =  max((task for (process, task) in self.tasks.values()), key=operator.attrgetter("run_time"))
-		print(f"Executed {format(len(self.tasks))} tasks in {format(self.run_time)}")
-		print(f"Total wait time {format(total_wait)}, total run time {format(total_run)}")
-		print(f"Mean wait time {format(total_wait/len(self.tasks))}, mean run time {format(total_run/len(self.tasks))}")
-		print(f"Longest wait time {format(max_wait.wait_time)} ({max_wait}), longest run time {format(max_run.run_time)} ({max_run})")
+		print(f"Executed {self.format(len(self.tasks))} tasks in {self.format(self.run_time)}")
+		print(f"Total wait time {self.format(total_wait)}, total run time {self.format(total_run)}")
+		print(f"Mean wait time {self.format(total_wait/len(self.tasks))}, mean run time {self.format(total_run/len(self.tasks))}")
+		print(f"Longest wait time {self.format(max_wait.wait_time)} ({self.format_task(max_wait)}), longest run time {self.format(max_run.run_time)} ({self.format_task(max_run)})")
 		iterm2.clear_session_status()
 
 
@@ -497,10 +518,11 @@ class Task:
 	def __str__(self):
 		"""
 		The names of all tasks in :meth:`path` joined with ``::``, i.e. the
-		"full name" of the task including its ancestors.
+		"full name" of the task including its ancestors (without any
+		formatting, see :meth:`Swarm.format_task` for that).
 		"""
 
-		return f" {format_sep('::')} ".join(t.name for t in self.path())
+		return " :: ".join(t.name for t in self.path())
 
 	@property
 	def wait_time(self):
