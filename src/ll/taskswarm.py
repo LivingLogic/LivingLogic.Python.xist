@@ -52,9 +52,9 @@ Usage
 =====
 
 A task is a function (or other callable) that gets a :class:`Task` object as
-its first argument. It may report its progress via :meth:`Task.log`, submit
-further tasks via :meth:`Task.submit` and **must** call :meth:`Task.done`
-when it's finished (otherwise the swarm will wait forever).
+its first argument. It may report its progress via :meth:`Task.log` and
+submit further tasks via :meth:`Task.submit`. The task is finished when the
+function returns (or raises an exception).
 
 Tasks are submitted to a :class:`Swarm` object inside a ``with`` block.
 The tasks are started when the ``with`` block is exited, so the ``with``
@@ -72,13 +72,13 @@ block itself only collects the initial tasks::
 				task.submit(walk, file.name, file)
 			elif file.suffix == ".json":
 				task.submit(prettyprint, file.name, file)
-		task.done(f"Walked {dir}")
+		task.log(f"Walked {dir}")
 
 
 	def prettyprint(task, file):
 		data = json.loads(file.read_text())
 		file.write_text(json.dumps(data, indent="\t"))
-		task.done("Done")
+		task.log("Pretty printed")
 
 
 	if __name__ == "__main__":
@@ -89,7 +89,7 @@ block itself only collects the initial tasks::
 Each task runs in its own :class:`multiprocessing.Process`. At most
 ``processes`` (20 in the example) tasks run at the same time, additional tasks
 are queued until a slot becomes free. The swarm is finished when all tasks
-(including those submitted by other tasks) have called :meth:`Task.done`.
+(including those submitted by other tasks) have finished.
 Then a summary of the total, mean and longest wait and run times is printed.
 
 
@@ -197,6 +197,27 @@ def format_sep(text):
 		return f"\033[30;1m{text}\033[0m"
 
 
+def _run_task(func, task, *args, **kwargs):
+	"""
+	Run the task function ``func`` in the task process and report to the
+	swarm when it's finished.
+
+	This is the target of the :class:`multiprocessing.Process` created for
+	each task. If ``func`` raises an exception, the swarm is informed about
+	the failure (so that it doesn't wait for the task forever) and the
+	exception is reraised (so that :mod:`multiprocessing` prints the
+	traceback).
+	"""
+
+	try:
+		func(task, *args, **kwargs)
+	except BaseException as exc:
+		task._done(f"Failed with {exc.__class__.__qualname__}: {exc}")
+		raise
+	else:
+		task._done(None)
+
+
 class Swarm:
 	"""
 	A :class:`!Swarm` executes tasks in parallel processes.
@@ -278,8 +299,9 @@ class Swarm:
 
 		``func`` is the callable that gets executed in a separate process. It
 		will be called as ``func(task, *args, **kwargs)`` (where ``task`` is
-		the :class:`Task` object) and must call :meth:`Task.done` when it's
-		finished. ``name`` is the name of the task used in the output.
+		the :class:`Task` object). The task is finished when ``func`` returns
+		or raises an exception. ``name`` is the name of the task used in the
+		output.
 
 		Tasks submitted before the ``with`` block is exited are started (in
 		submission order, as far as free slots are available) when the block
@@ -288,7 +310,7 @@ class Swarm:
 		"""
 
 		task = Task(self.process_id, self.queue, name)
-		process = multiprocessing.Process(target=func, name=name, args=(task,) + args, kwargs=kwargs)
+		process = multiprocessing.Process(target=_run_task, name=name, args=(func, task) + args, kwargs=kwargs)
 		self.pending_tasks[task.process_id] = (process, task)
 		self.tasks[task.process_id] = (process, task)
 		self.process_id += 1
@@ -381,7 +403,13 @@ class Swarm:
 				task.finished_at = datetime.datetime.now()
 				del self.running_tasks[process_id]
 				self.count_done += 1
-				self._print(timestamp, data, task=task)
+				if data is None:
+					message = format_sep("Done")
+				else:
+					# The failure message might contain line feeds (e.g. from a
+					# multi-line exception message), which would break the output.
+					message = " ".join(data.splitlines())
+				self._print(timestamp, message, task=task)
 				slot = self.slots[process_id]
 				if not self.continuous:
 					self._print(timestamp, format_sep("Idle"), slot=slot)
@@ -433,8 +461,8 @@ class Task:
 	It is created by :meth:`Swarm.submit` (or :meth:`Task.submit`) and passed
 	as the first argument to the task function. The task function uses it to
 	communicate with the swarm (which runs in the main process): :meth:`log`
-	outputs a progress message, :meth:`submit` submits further tasks and
-	:meth:`done` signals that the task is finished.
+	outputs a progress message and :meth:`submit` submits further tasks. The
+	task is finished when the task function returns.
 
 	The following attributes are available:
 
@@ -509,14 +537,13 @@ class Task:
 
 		self.queue.put((self.process_id, datetime.datetime.now(), "log", message))
 
-	def done(self, message):
+	def _done(self, message):
 		"""
-		Signal that this task is finished and output ``message`` as the final
-		message for this task.
+		Signal to the swarm that this task is finished. ``message`` is an
+		error message if the task failed, or ``None`` if it succeeded.
 
-		Every task must call this method exactly once at the end, otherwise
-		the swarm will never finish. After the call the task function should
-		return.
+		This is called by the swarm itself when the task function returns
+		(see :func:`_run_task`), not by the task function.
 		"""
 
 		self.queue.put((self.process_id, datetime.datetime.now(), "done", message))
