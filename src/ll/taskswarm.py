@@ -94,9 +94,10 @@ Then a summary of the total, mean and longest wait and run times is printed.
 
 Log messages and task names can be strings or t-strings (i.e.
 :class:`string.templatelib.Template` objects). A t-string is passed to the
-swarm unchanged and formatted there by :meth:`Swarm.format_message`: Each
-interpolated value is formatted (and colored) according to its type by
-:meth:`Swarm.format`, so the task function doesn't have to do that itself.
+swarm unchanged and formatted there by :meth:`Swarm.format`: Each
+interpolated value is formatted (and colored) according to its type (again
+by :meth:`Swarm.format`), so the task function doesn't have to do that
+itself.
 When the type isn't enough to decide how a value should be formatted (e.g.
 a database schema name that is a plain :class:`str`), the format spec
 selects the formatting: ``t"Exporting {name:schema}"`` calls the method
@@ -196,9 +197,9 @@ class Swarm:
 	After the ``with`` block the attributes :attr:`tasks`, :attr:`run_time`
 	and :attr:`mean_load` can be used to inspect the result.
 
-	All output of the swarm goes through the methods :meth:`format_message`,
-	:meth:`format`, :meth:`format_sep` and :meth:`format_task`, so the
-	formatting can be changed by overwriting them in a subclass.
+	All output of the swarm goes through the methods :meth:`format`,
+	:meth:`format_sep` and :meth:`format_task`, so the formatting can be
+	changed by overwriting them in a subclass.
 
 	The following attributes influence the formatting and can be changed
 	after the constructor call:
@@ -262,10 +263,17 @@ class Swarm:
 
 	def format(self, obj, spec=""):
 		"""
-		Format ``obj`` for the output of the swarm (with ANSI colors).
+		Format ``obj`` (a log message, a task name or a value interpolated
+		in one of them) for the output of the swarm (with ANSI colors).
 
-		``spec`` is the format spec from a t-string (see
-		:meth:`format_message`) and is used as follows:
+		If ``obj`` is a t-string (i.e. a :class:`string.templatelib.Template`
+		object) each interpolated value is converted according to its
+		conversion (``!r``, ``!s`` or ``!a``) and then formatted with
+		:meth:`format` (passing the format spec); ``spec`` itself is ignored
+		in this case.
+
+		Otherwise ``spec`` is the format spec from a t-string and is used as
+		follows:
 
 		*	If ``spec`` isn't empty and the swarm has a method named
 			``format_<spec>``, this method is called with ``obj``. This is how
@@ -290,6 +298,21 @@ class Swarm:
 		support additional types.
 		"""
 
+		if isinstance(obj, templatelib.Template):
+			parts = []
+			for part in obj:
+				if isinstance(part, templatelib.Interpolation):
+					value = part.value
+					if part.conversion == "r":
+						value = repr(value)
+					elif part.conversion == "s":
+						value = str(value)
+					elif part.conversion == "a":
+						value = ascii(value)
+					parts.append(self.format(value, part.format_spec))
+				else:
+					parts.append(part)
+			return "".join(parts)
 		if spec:
 			method = getattr(self, f"format_{spec}", None)
 			if method is not None:
@@ -344,39 +367,7 @@ class Swarm:
 		:meth:`Task.path` joined with separators) for the output of the swarm.
 		"""
 
-		return f" {self.format_sep('::')} ".join(self.format_message(t.name) for t in task.path())
-
-	def format_message(self, message):
-		"""
-		Format the log message or task name ``message`` for the output of
-		the swarm.
-
-		If ``message`` is a t-string (i.e. a :class:`string.templatelib.Template`
-		object) each interpolated value is converted according to its
-		conversion (``!r``, ``!s`` or ``!a``) and then formatted with
-		:meth:`format` (passing the format spec). A :class:`str` is returned
-		unchanged, everything else is converted with :class:`str`.
-		"""
-
-		if isinstance(message, str):
-			return message
-		elif isinstance(message, templatelib.Template):
-			parts = []
-			for part in message:
-				if isinstance(part, templatelib.Interpolation):
-					value = part.value
-					if part.conversion == "r":
-						value = repr(value)
-					elif part.conversion == "s":
-						value = str(value)
-					elif part.conversion == "a":
-						value = ascii(value)
-					parts.append(self.format(value, part.format_spec))
-				else:
-					parts.append(part)
-			return "".join(parts)
-		else:
-			return str(message)
+		return f" {self.format_sep('::')} ".join(self.format(t.name) for t in task.path())
 
 	def submit(self, func, name, *args, **kwargs):
 		"""
@@ -386,7 +377,7 @@ class Swarm:
 		will be called as ``func(task, *args, **kwargs)`` (where ``task`` is
 		the :class:`Task` object). The task is finished when ``func`` returns
 		or raises an exception. ``name`` is the name of the task used in the
-		output. It can be a string or a t-string (see :meth:`format_message`).
+		output. It can be a string or a t-string (see :meth:`format`).
 
 		Tasks submitted before the ``with`` block is exited are started (in
 		submission order, as far as free slots are available) when the block
@@ -493,7 +484,7 @@ class Swarm:
 				else:
 					# The failure message might contain line feeds (e.g. from a
 					# multi-line exception message), which would break the output.
-					message = " ".join(self.format_message(data).splitlines())
+					message = " ".join(self.format(data).splitlines())
 				self._print(timestamp, message, task=task)
 				slot = self.slots[process_id]
 				if not self.continuous:
@@ -504,7 +495,7 @@ class Swarm:
 					break
 				self._schedule_pending_tasks()
 			elif type == "log":
-				self._print(timestamp, self.format_message(data), task=task)
+				self._print(timestamp, self.format(data), task=task)
 			elif type == "submit":
 				(func, name, args, kwargs) = data
 				new_task = self.submit(func, name, *args, **kwargs)
@@ -532,10 +523,10 @@ class Swarm:
 		total_run = sum((task.run_time for (process, task) in self.tasks.values()), start=datetime.timedelta(0))
 		max_wait = max((task for (process, task) in self.tasks.values()), key=operator.attrgetter("wait_time"))
 		max_run =  max((task for (process, task) in self.tasks.values()), key=operator.attrgetter("run_time"))
-		print(self.format_message(t"Executed {len(self.tasks)} tasks in {self.run_time}"))
-		print(self.format_message(t"Total wait time {total_wait}, total run time {total_run}"))
-		print(self.format_message(t"Mean wait time {total_wait/len(self.tasks)}, mean run time {total_run/len(self.tasks)}"))
-		print(self.format_message(t"Longest wait time {max_wait.wait_time} ({max_wait:task}), longest run time {max_run.run_time} ({max_run:task})"))
+		print(self.format(t"Executed {len(self.tasks)} tasks in {self.run_time}"))
+		print(self.format(t"Total wait time {total_wait}, total run time {total_run}"))
+		print(self.format(t"Mean wait time {total_wait/len(self.tasks)}, mean run time {total_run/len(self.tasks)}"))
+		print(self.format(t"Longest wait time {max_wait.wait_time} ({max_wait:task}), longest run time {max_run.run_time} ({max_run:task})"))
 		iterm2.clear_session_status()
 
 
@@ -562,7 +553,7 @@ class Task:
 
 	``name`` : string or t-string
 		The name of the task (used in the output, see
-		:meth:`Swarm.format_message`).
+		:meth:`Swarm.format`).
 
 	``parent`` : :class:`Task` or ``None``
 		The task that submitted this task (or ``None`` for tasks submitted
@@ -653,7 +644,7 @@ class Task:
 		Output the progress message ``message`` for this task.
 
 		``message`` can be a string or a t-string (see
-		:meth:`Swarm.format_message`). All interpolated values of a t-string
+		:meth:`Swarm.format`). All interpolated values of a t-string
 		must be picklable; preformat those that aren't (e.g.
 		``t"{str(obj):sqlobject}"``).
 		"""
