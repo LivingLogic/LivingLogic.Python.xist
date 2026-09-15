@@ -98,9 +98,8 @@ Log messages and task names can be strings or t-strings (i.e.
 swarm unchanged and formatted there by :meth:`Swarm.format`: Each
 interpolated value is formatted (and colored) according to its type (again
 by :meth:`Swarm.format`), so the task function doesn't have to do that
-itself.
-When the type isn't enough to decide how a value should be formatted (e.g.
-a database schema name that is a plain :class:`str`), the format spec
+itself. When the type isn't enough to decide how a value should be formatted
+(e.g. a database schema name that is a plain :class:`str`), the format spec
 selects the formatting: ``t"Exporting {name:schema}"`` calls the method
 ``format_schema`` of the swarm (which a subclass can add). Since the
 t-string is sent to the main process via a :class:`multiprocessing.Queue`,
