@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.90 (released 2026-09-??)
+Changes in 5.90 (released 2026-09-15)
 -------------------------------------
 
 *	XIST now requires oracledb_ 26.0.0 or later.
