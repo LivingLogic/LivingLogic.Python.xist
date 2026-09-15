@@ -76,9 +76,10 @@ block itself only collects the initial tasks::
 
 
 	def prettyprint(task, file):
+		task.log(t"Pretty printing {file}")
 		data = json.loads(file.read_text())
 		file.write_text(json.dumps(data, indent="\t"))
-		task.log("Pretty printed")
+		task.log(t"Pretty printed {file}")
 
 
 	if __name__ == "__main__":
