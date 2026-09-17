@@ -13,7 +13,18 @@ You can download XIST from the Cheeseshop_, go directly to the
 5.90.1 (released 09/17/2026)
 ----------------------------
 
-(no files for this version)
+.. tabularcolumns:: |l|l|r|
+
+.. rst-class:: download
+
+=========================================================================================================================================================== =========================== =====
+File                                                                                                                                                        Type                        Size
+=========================================================================================================================================================== =========================== =====
+`ll_xist-5.90.1-cp314-cp314-macosx_26_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.90.1-cp314-cp314-macosx_26_0_arm64.whl>`_ Mac wheel (Python 3.14)     1427K
+`ll_xist-5.90.1-cp314-cp314-win32.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.90.1-cp314-cp314-win32.whl>`_                         Windows wheel (Python 3.14) 622K
+`ll_xist-5.90.1-cp314-cp314-win_amd64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.90.1-cp314-cp314-win_amd64.whl>`_                 Windows wheel (Python 3.14) 625K
+`ll_xist-5.90.1.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.90.1.tar.gz>`_                                                       Source                      838K
+=========================================================================================================================================================== =========================== =====
 
 
 5.90 (released 09/15/2026)
