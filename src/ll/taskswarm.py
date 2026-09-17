@@ -213,6 +213,10 @@ class Swarm:
 		Defaults to the current directory when the swarm was created.
 	"""
 
+	icon_wait = "🚦"
+	icon_run = "🚀"
+	icon_done = "✅"
+
 	def __init__(self, title, processes, continuous):
 		self.title = title
 		self.plain_output = (sys.platform == "win32" or not sys.stdout.isatty())
@@ -421,13 +425,12 @@ class Swarm:
 
 		if task is not None:
 			slot = self.slots[task.process_id]
-		output = f"{self.format(timestamp - self.started_at)}"
-
+		output = self.format(t"{timestamp - self.started_at}")
 		if self.continuous:
-			output += f" {self.format_sep('::')} ⏾ {self.format(len(self.pending_tasks))} {self.format_sep('→')} 🏃 {self.format(len(self.running_tasks))} {self.format_sep('→')} ✓ {self.format(self.count_done)}"
+			output += self.format(t" {'::':sep} {self.icon_wait} {len(self.pending_tasks)} {'→':sep} {self.icon_run} {len(self.running_tasks)} {'→':sep} {self.icon_done} {self.count_done}")
 		if task is not None:
-			output += f" {self.format_sep('::')} {self.format_task(task)}"
-		output += f" {self.format_sep('>>')} {message}"
+			output += self.format(t" {'::':sep} {task:task}")
+		output += self.format(t" {'>>':sep} {message}")
 
 		if self.continuous:
 			print(output)
@@ -435,8 +438,9 @@ class Swarm:
 			c = self.processes - slot + 1
 			pre = f"\033[{c}A\033[K"
 			post = f"\033[{c}B"
-			print(f"{pre}{output}\n{post}", end="", flush=True)
-			print(f"\033[1A\033[K{self.format(datetime.datetime.now() - self.started_at)} {self.format_sep('>>')} Tasks 😴 {self.format(len(self.pending_tasks))} wait {self.format_sep('\N{MIDDLE DOT}')} 🏃 {self.format(len(self.running_tasks))} run {self.format_sep('\N{MIDDLE DOT}')} ✅ {self.format(self.count_done)} done {self.format_sep('\N{EM DASH}')} Load {self.format(self.current_load)} now {self.format_sep('\N{MIDDLE DOT}')} {self.format(self.mean_load) if self.mean_load is not None else '-'} avg\n\033[1B", end="", flush=True)
+			print(f"{pre}{output}{post}\r", end="", flush=True)
+			status = self.format(t"{datetime.datetime.now() - self.started_at} {'>>':sep} Tasks {self.icon_wait} {len(self.pending_tasks)} wait {'\N{MIDDLE DOT}':sep} {self.icon_run} {len(self.running_tasks)} run {'\N{MIDDLE DOT}':sep} {self.icon_done} {self.count_done} done {'\N{EM DASH}':sep} Load {self.current_load} now {'\N{MIDDLE DOT}':sep} {self.mean_load if self.mean_load is not None else '-'} avg")
+			print(f"\033[1A\033[K{status}\033[1B\r", end="", flush=True)
 
 	def __enter__(self):
 		return self
@@ -507,11 +511,11 @@ class Swarm:
 				detail=
 					f"Time  {runtime}\n"
 					"Tasks "
-						f"😴\N{THIN SPACE}{len(self.pending_tasks):,} wait"
+						f"{self.icon_wait}\N{THIN SPACE}{len(self.pending_tasks):,} wait"
 						" \N{MIDDLE DOT} "
-						f"🏃\N{THIN SPACE}{len(self.running_tasks):,} run"
+						f"{self.icon_run}\N{THIN SPACE}{len(self.running_tasks):,} run"
 						" \N{MIDDLE DOT} "
-						f"✅\N{THIN SPACE}{self.count_done:,} done"
+						f"{self.icon_done}\N{THIN SPACE}{self.count_done:,} done"
 					"\n"
 					"Load  "
 						f"{self.current_load:,} now"

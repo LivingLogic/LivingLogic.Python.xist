@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.90.1 (released 2026-09-17)
+---------------------------------------
+
+*	Fixed cursor positioning for in-place output of running taskswarms.
+
+
 Changes in 5.90 (released 2026-09-15)
 -------------------------------------
 
