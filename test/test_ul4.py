@@ -6033,6 +6033,21 @@ def test_renderblocks(T):
 
 	assert t6.renders() in {"<type undefinedvariable>" * 3, "<type undefined>" * 3}
 
+	# Check that a <?def?> inside <?renderblocks?> is a closure over the local
+	# variables and parameters of the enclosing template (like any other <?def?>)
+	t7 = T("""
+		<?whitespace strip?>
+		<?def bracket(content)?>
+			(<?render content()?>)
+		<?end def?>
+		<?code x = "gurk"?>
+		<?renderblocks bracket()?>
+			<?def content?><?print x?>/<?print y?><?end def?>
+		<?end renderblocks?>
+	""", signature="y")
+
+	assert "(gurk/hurz)" == t7.renders(y="hurz")
+
 
 @pytest.mark.ul4
 def test_pass_function(T):

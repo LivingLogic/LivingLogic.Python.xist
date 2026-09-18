@@ -6600,7 +6600,14 @@ class TemplateClosure(BlockAST):
 
 	def __init__(self, template, context, signature):
 		self.template = template
-		self.vars = context.vars.maps[0]
+		# Capture all local scopes of the chain (i.e. everything except the
+		# last two maps, which are the globals and the builtins), not just the
+		# innermost one. Inside a <?renderblocks?> block the innermost scope
+		# is a fresh, empty block scope (see ``RenderBlocksAST.eval``), so a
+		# closure created there would otherwise lose access to the local
+		# variables and parameters of the enclosing template.
+		local_maps = context.vars.maps[:-2]
+		self.vars = collections.ChainMap(*local_maps) if len(local_maps) > 1 else local_maps[0]
 		self.signature = signature
 
 	@withcontext

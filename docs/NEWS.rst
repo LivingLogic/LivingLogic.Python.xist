@@ -8,6 +8,18 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.90.2 (released 2026-09-18)
+---------------------------------------
+
+*	Fixed a long standing regression in the UL4 tag ``<?renderblocks?>`` that was
+	introduced in XIST 5.56 together with the support for global variables:
+	Local templates defined inside the ``<?renderblocks?>`` body only saw the
+	variables defined inside the body itself (and the global variables), but
+	not the local variables or parameters of the enclosing template. Since
+	those variables were silently undefined, the problem produced empty output
+	instead of an error.
+
+
 Changes in 5.90.1 (released 2026-09-17)
 ---------------------------------------
 
