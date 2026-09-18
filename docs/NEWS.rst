@@ -15,9 +15,7 @@ Changes in 5.90.2 (released 2026-09-18)
 	introduced in XIST 5.56 together with the support for global variables:
 	Local templates defined inside the ``<?renderblocks?>`` body only saw the
 	variables defined inside the body itself (and the global variables), but
-	not the local variables or parameters of the enclosing template. Since
-	those variables were silently undefined, the problem produced empty output
-	instead of an error.
+	not the local variables or parameters of the enclosing template.
 
 
 Changes in 5.90.1 (released 2026-09-17)
