@@ -6,6 +6,8 @@ To run the tests, :mod:`pytest` is required.
 
 import math, datetime
 
+import pytest
+
 from ll import vsql
 
 
@@ -135,3 +137,86 @@ def test_query_sql(vsql_db, vsql_data):
 	rs = [list(r) for r in vsql_db.execute(q)]
 
 	assert rs == [["ALBERT", "Einstxin"], ["ANGELA", "Mxrkxl"]]
+
+
+def test_query_replacement_var(vsql_db, vsql_data):
+	# ``f`` is a replacement variable that stands for ``p.field`` in this
+	# select expression only.
+	q = vsql_db.query(p=vsql_db.p)
+	q.from_vsql("p")
+	q.select_vsql("f.parent.name", alias="fld", f="p.field")
+	q.where_vsql("p.lastname == 'Einstein'")
+	rs = vsql_db.execute(q)
+
+	assert rs[0].fld == "Science"
+
+
+def test_query_replacement_var_shares_join(vsql_db, vsql_data):
+	# The replaced expression references the same fields as the direct
+	# expression, so the table is joined only once.
+	q = vsql_db.query(p=vsql_db.p)
+	q.from_vsql("p")
+	q.select_vsql("p.field.name", alias="fld")
+	q.where_vsql("f.name == 'Physics'", f="p.field")
+	sql = raw_sql(q)
+
+	assert sql.count("vsql_field") == 1
+	assert "p.field.name" in sql and "/* f" not in sql
+
+
+def test_query_replacement_var_overrides_query_var(vsql_db, vsql_data):
+	# A replacement variable replaces the query variable with the same name
+	# for this expression only.
+	q = vsql_db.query(p=vsql_db.p, r=vsql_db.r)
+	q.from_vsql("p")
+	q.select_vsql("p.firstname", alias="fn")
+	q.where_vsql("r.lastname == 'Einstein'", r="p")
+	rs = vsql_db.execute(q)
+
+	assert rs[0].fn == "Albert"
+	# The table of the query variable ``r`` isn't joined.
+	assert "/* r */" not in raw_sql(q)
+
+
+def test_query_replacement_var_unavailable_elsewhere(vsql_db, vsql_data):
+	q = vsql_db.query(p=vsql_db.p)
+	q.from_vsql("p")
+	q.where_vsql("f.name == 'Physics'", f="p.field")
+
+	with pytest.raises(vsql.VSQLUnknownNameError):
+		q.where_vsql("f.name == 'Physics'")
+
+
+def test_query_replacement_var_references_replacement_var(vsql_db, vsql_data):
+	# Replacement variables may only reference real variables.
+	q = vsql_db.query(p=vsql_db.p)
+
+	with pytest.raises(vsql.VSQLReplacementVariableError):
+		q.where_vsql("g.name == 'Physics'", f="p.field", g="f")
+	with pytest.raises(vsql.VSQLReplacementVariableError):
+		q.where_vsql("f.name == 'Physics'", f="f")
+
+
+def test_source_parenthesized_call(vsql_db, vsql_data):
+	# The reconstructed source of a parenthesized call that is used in
+	# another call must be the original source.
+	sources = [
+		"(p.lastname.upper()).lower()",
+		"len((p.lastname.upper())) > 1",
+		"( p.lastname.upper( ) ).lower( )",
+		"(p.lastname.upper() + 'x').lower()",
+	]
+	for source in sources:
+		assert vsql.AST.fromsource(source, p=vsql_db.p).source() == source
+
+
+def test_query_replacement_var_interpolation(vsql_db, vsql_data):
+	# Interpolations in the expression and in the replacement expression
+	# become bind parameters.
+	q = vsql_db.query(p=vsql_db.p)
+	q.from_vsql("p")
+	q.select_vsql("p.firstname", alias="fn")
+	q.where_vsql(t"p.lastname == {'Einstein'} and p.field.name == x", x=t"{'Physics'}")
+	rs = vsql_db.execute(q)
+
+	assert rs[0].fn == "Albert"

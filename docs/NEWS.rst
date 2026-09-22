@@ -8,6 +8,48 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.91 (released 2026-??-??)
+-------------------------------------
+
+*	:meth:`ll.vsql.AST.fromsource` now also accepts vSQL expressions as
+	variables (in addition to the :class:`~ll.vsql.Field` objects that
+	describe real variables). Every reference to such a variable is replaced
+	by that expression before the source is compiled, so an expression that
+	has been written for one variable can be compiled for another one. E.g. a
+	condition on a person ``p`` can be compiled for the author of a book
+	``b``::
+
+		vsql.AST.fromsource("p.lastname == 'Einstein'", b=book, p="b.author")
+
+	compiles the same expression as::
+
+		vsql.AST.fromsource("b.author.lastname == 'Einstein'", b=book)
+
+	The methods :meth:`~ll.vsql.Query.select_vsql`,
+	:meth:`~ll.vsql.Query.aggregate_vsql`, :meth:`~ll.vsql.Query.where_vsql`,
+	:meth:`~ll.vsql.Query.groupby_vsql` and :meth:`~ll.vsql.Query.orderby_vsql`
+	accept such variables as keyword arguments for the expression they add::
+
+		q.where_vsql("p.lastname == 'Einstein'", p="b.author")
+
+	Such a variable is only available in that expression and replaces a
+	variable of the query with the same name there. The expression for such
+	a variable can only reference the real variables (referencing another
+	replacement variable raises a :exc:`ll.vsql.VSQLReplacementVariableError`).
+
+*	:meth:`ll.vsql.Query.from_vsql` now accepts an attribute path (e.g.
+	``"b.author"``) in addition to the name of a query variable, and returns
+	the alias of the table for an already joined field too. This makes it
+	possible to add SQL conditions (via :meth:`~ll.vsql.Query.where_sql`) on
+	the tables that vSQL expressions join.
+
+*	Fixed the source code that :meth:`ll.vsql.AST.source` reconstructs for a
+	parenthesized method or function call that is used in a further call, e.g.
+	``(a.upper()).lower()``: The opening parenthesis was lost and the rest of
+	the source was shifted by one character. Only the source (used in SQL
+	comments and error messages) was affected, not the generated SQL.
+
+
 Changes in 5.90.2 (released 2026-09-18)
 ---------------------------------------
 

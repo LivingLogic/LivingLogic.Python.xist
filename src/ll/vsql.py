@@ -250,6 +250,10 @@ from typing import *
 
 T_sql = str | templatelib.Template
 
+# A vSQL expression that is a simple variable or attribute reference
+# (``b`` or ``b.author``), see :meth:`AST._replace_vars`.
+_simple_field_reference = re.compile(r"\s*[A-Za-z_][A-Za-z_0-9]*(\s*\.\s*[A-Za-z_][A-Za-z_0-9]*)*\s*")
+
 
 ###
 ### Global configurations
@@ -752,6 +756,22 @@ class VSQLWrongDatatypeError(VSQLError):
 		return f"The expression should be of type `{self.cause_ast.error.name[9:]}` but is of type `{self.cause_ast.datatype.name}`."
 
 
+class VSQLReplacementVariableError(ValueError):
+	"""
+	Exception that is raised when a replacement variable (see
+	:meth:`AST.fromsource`) references another replacement variable.
+
+	This happens before the expression is compiled, so unlike the
+	:class:`VSQLError` subclasses this exception has no AST nodes.
+	"""
+	def __init__(self, name:str, referenced_name:str):
+		self.name = name
+		self.referenced_name = referenced_name
+
+	def __str__(self) -> str:
+		return f"Replacement variable `{self.name}` references the replacement variable `{self.referenced_name}`."
+
+
 class Error(str, misc.Enum):
 	"""
 	The types of errors that can lead to invalid vSQL AST nodes.
@@ -1106,9 +1126,9 @@ class Query(Repr):
 		expr : AST
 		comment : str | None
 
-		def __init__(self, query, expr: str, comment: str | None = None):
+		def __init__(self, query, expr: str, comment: str | None = None, **vars: T_sql):
 			self.query = query
-			self.expr = query._vsql(expr, self.context)
+			self.expr = query._vsql(expr, self.context, **vars)
 			self.comment = comment
 
 		def sqlsource(self) -> templatelib.Template:
@@ -1120,7 +1140,7 @@ class Query(Repr):
 			Converts the value ``value`` to the form expected by this vSQL expression.
 
 			This is used to convert :class:`datetime.datetime` values from Oracle
-			to :class:`datetime.date` for expressions of the ``DataType.DATE``.
+			to :class:`datetime.date` for expressions of the type ``DataType.DATE``.
 
 			If this is not a vSQL expression ``value`` will be returned unmodified.
 			"""
@@ -1148,8 +1168,8 @@ class Query(Repr):
 		context = "select"
 		alias : templatelib.Template | None
 
-		def __init__(self, query, expr, comment=None, alias=None):
-			super().__init__(query, expr, comment)
+		def __init__(self, query, expr, comment=None, alias=None, **vars: T_sql):
+			super().__init__(query, expr, comment, **vars)
 			self.alias = to_tstring(alias)
 
 		def sqlsource(self) -> templatelib.Template:
@@ -1166,9 +1186,9 @@ class Query(Repr):
 		context = "aggregate"
 		aggregate : Aggregate
 
-		def __init__(self, query, expr, comment=None, alias=None):
+		def __init__(self, query, expr, comment=None, alias=None, **vars: T_sql):
 			self.query = query
-			expr = AST.fromsource(expr, **query.vars)
+			expr = AST.fromsource(expr, **{**query.vars, **vars})
 			if not isinstance(expr, FuncAST):
 				raise VSQLAggregationtError(expr, expr, self.context)
 			if expr.name == "count" and not expr.args:
@@ -1225,8 +1245,8 @@ class Query(Repr):
 	class VSQLWhereExpr(VSQLExpr):
 		context = "where"
 
-		def __init__(self, query, expr, comment=None):
-			super().__init__(query, expr, comment)
+		def __init__(self, query, expr, comment=None, **vars: T_sql):
+			super().__init__(query, expr, comment, **vars)
 
 			if self.expr.datatype is not DataType.BOOL:
 				self.expr = FuncAST.make("bool", self.expr)
@@ -1272,8 +1292,8 @@ class Query(Repr):
 		dir : str | None
 		nulls : str | None
 
-		def __init__(self, query, expr, comment, dir, nulls):
-			super().__init__(query, expr, comment)
+		def __init__(self, query, expr, comment, dir, nulls, **vars: T_sql):
+			super().__init__(query, expr, comment, **vars)
 			self.dir = dir
 			self.nulls = nulls
 
@@ -1362,24 +1382,36 @@ class Query(Repr):
 			# Also we don't need a table alias to access this field.
 			return None
 
-		identifier = fieldref.parent.full_identifier
+		return self._register_table(fieldref.parent)
+
+	def _register_table(self, fieldref: FieldRefAST) -> str | None:
+		"""
+		Registers the table that the :class:`FieldRefAST` object `fieldref`
+		references (i.e. the table containing the fields of ``fieldref``).
+
+		The table (and its join condition) will be added to the "from" and
+		"where" clauses (together with all the tables required to join it),
+		unless that has been done before. Returns the alias of the table (or
+		``None`` if the field isn't part of a table).
+		"""
+		identifier = fieldref.full_identifier
 		if identifier in self._identifier_aliases:
 			alias = self._identifier_aliases[identifier]
 			return alias
 
-		alias = self._register(fieldref.parent)
+		alias = self._register(fieldref)
 
 		newalias = f"t{len(self._from)+1}"
-		joincond = fieldref.parent.field.joinsql
+		joincond = fieldref.field.joinsql
 		if joincond is not None:
 			# Only add to "where" if the join condition is not empty
 			if alias is not None:
 				joincond = tstring_replace(joincond, "{m}", alias)
 			joincond = tstring_replace(joincond, "{d}", newalias)
 			hasher = TStringHasher(joincond)
-			self._where[hasher] = self.SQLWhereExpr(self, joincond, fieldref.parent.source())
+			self._where[hasher] = self.SQLWhereExpr(self, joincond, fieldref.source())
 
-		if fieldref.parent.field.refgroup.tablesql is None:
+		if fieldref.field.refgroup.tablesql is None:
 			# If this field is not part of a table (which can happen e.g. for
 			# the request parameters, which we get from function calls),
 			# we don't add the table aliases to the list of table aliases
@@ -1387,47 +1419,37 @@ class Query(Repr):
 			return None
 
 		self._identifier_aliases[identifier] = newalias
-		sql = fieldref.parent.field.refgroup.tablesql
+		sql = fieldref.field.refgroup.tablesql
 		hasher = TStringHasher(t"{sql:q} {newalias:q}")
-		self._from[hasher] = self.SQLFromExpr(self, sql, comment=fieldref.parent.source(), alias=newalias)
+		self._from[hasher] = self.SQLFromExpr(self, sql, comment=fieldref.source(), alias=newalias)
 		return newalias
 
 	def from_vsql(self, identifier: str) -> str | None:
 		"""
-		Registers the field identifier ``identifier`` as a table to select from.
+		Registers the field ``identifier`` as a table to select from and
+		returns the alias of that table.
 
-		``identifier`` must belong to one of the fields passed to the constructor
-		and it should reference a table.
+		``identifier`` is either the name of one of the fields passed to the
+		constructor or an attribute path starting with such a field (e.g.
+		``"b.author"``); it should reference a table.
 
 		:meth:`from_vsql` will then make sure that this referenced table will
 		be added to the "from" list, even if it is never referenced explicitely
-		in any of the "from" and "where" clauses.
+		in any of the "from" and "where" clauses. Since the alias is returned,
+		the table can be used in SQL expressions (e.g. via :meth:`where_sql`)
+		too. Registering a table that has been joined before (explicitly or
+		by a vSQL expression) returns the alias of the existing join.
 		"""
-		if identifier not in self.vars:
+		fieldref = AST.fromsource(identifier, **self.vars)
+		if not isinstance(fieldref, FieldRefAST):
+			raise ValueError(f"{identifier!r} is not a field reference!")
+		if fieldref.field is None:
 			raise ValueError(f"Unknown field {identifier!r}!")
-		field = self.vars[identifier]
-		newalias = f"t{len(self._from)+1}"
-		joincond = field.joinsql
-		if joincond is not None:
-			# Only add to "where" if the join condition is not empty
-			joincond = tstring_replace(joincond, "{d}", newalias)
-			hasher = TStringHasher(joincond)
-			self._where[hasher] = self.SQLWhereExpr(self, joincond, identifier)
+		if fieldref.field.refgroup is None:
+			raise ValueError(f"Field {identifier!r} doesn't reference a table!")
+		return self._register_table(fieldref)
 
-		if field.refgroup.tablesql is None:
-			# If this field is not part of a table (which can happen e.g. for
-			# the request parameters, which we get from function calls),
-			# we don't add the table aliases to the list of table aliases
-			# and we don't add a table to the "from" list.
-			return None
-
-		self._identifier_aliases[identifier] = newalias
-		sql = field.refgroup.tablesql
-		hasher = TStringHasher(t"{sql:q} {newalias:q}")
-		self._from[hasher] = self.SQLFromExpr(self, sql, identifier, newalias)
-		return newalias
-
-	def _vsql(self, expr: T_sql, context: str) -> None:
+	def _vsql(self, expr: T_sql, context: str, **vars: T_sql) -> AST:
 		"""
 		Compiles ``expr`` to a vSQL :class:`AST` and register all field references in it.
 
@@ -1436,8 +1458,13 @@ class Query(Repr):
 		``context`` is the query context in which this expression is used and
 		can be ``"select"``, ``"from"``, ``"where"`` and ``"orderby``".
 		(This is used as additional information in exceptions)
+
+		``vars`` are additional variables for this expression only. Each value
+		is a vSQL expression that references the variables of the query
+		(see :meth:`AST.fromsource`). Such a variable replaces a variable of
+		the query with the same name for this expression.
 		"""
-		vsqlexpr = AST.fromsource(expr, **self.vars)
+		vsqlexpr = AST.fromsource(expr, **{**self.vars, **vars})
 		vsqlexpr.check_valid(context)
 		for fieldref in vsqlexpr.fieldrefs():
 			self._register(fieldref)
@@ -1447,7 +1474,8 @@ class Query(Repr):
 		self,
 		expr: T_sql,
 		comment: str | None = None,
-		alias: str | None = None
+		alias: str | None = None,
+		**vars: T_sql
 	) -> Query.VSQLSelectExpr:
 		"""
 		Add the vSQL expression ``expr`` to the list of expression to select.
@@ -1455,6 +1483,10 @@ class Query(Repr):
 		``comment`` will be added as a comment after the column expression.
 
 		``alias`` can be used to give the expression a column alias.
+
+		``vars`` are additional variables for ``expr`` only, given as vSQL
+		expressions that reference the variables of the query (see
+		:meth:`where_vsql` for an example).
 
 		This compiles ``expr`` and adds the resulting SQL. To add an
 		SQL expression directly use :meth:`select_sql` instead.
@@ -1464,7 +1496,7 @@ class Query(Repr):
 		if self._groupby:
 			raise TypeError("Can't mix non-aggregated select expressions and groupby expressions")
 
-		vsqlexpr = self.VSQLSelectExpr(self, expr, comment, alias)
+		vsqlexpr = self.VSQLSelectExpr(self, expr, comment, alias, **vars)
 		sqlsource = vsqlexpr.sqlsource()
 		hasher = TStringHasher(sqlsource)
 		if hasher in self.fields:
@@ -1505,7 +1537,8 @@ class Query(Repr):
 		self,
 		expr: T_sql,
 		comment: str | None = None,
-		alias: str | None = None
+		alias: str | None = None,
+		**vars: T_sql
 	) -> Query.VSQLAggregatedSelectExpr:
 		"""
 		Add the aggregating vSQL expression ``expr`` to the list of expression to select.
@@ -1513,6 +1546,10 @@ class Query(Repr):
 		``comment`` will be added as a comment after the column expression.
 
 		``alias`` can be used to give the expression a column alias.
+
+		``vars`` are additional variables for ``expr`` only, given as vSQL
+		expressions that reference the variables of the query (see
+		:meth:`where_vsql` for an example).
 
 		Note that it's not possible to mix aggregated and non-aggregated
 		fields. For a vSQL expression to be an aggregating expression it
@@ -1541,7 +1578,7 @@ class Query(Repr):
 		"""
 		if self.fields:
 			raise TypeError("Can't mix aggregated and non-aggregated select expressions")
-		vsqlexpr = self.VSQLAggregatedSelectExpr(self, expr, comment, alias)
+		vsqlexpr = self.VSQLAggregatedSelectExpr(self, expr, comment, alias, **vars)
 		sqlsource = vsqlexpr.sqlsource()
 		hasher = TStringHasher(sqlsource)
 		if hasher in self.aggregated_fields:
@@ -1608,7 +1645,7 @@ class Query(Repr):
 		self._from[hasher] = sqlexpr
 		return sqlexpr
 
-	def where_vsql(self, expr: T_sql) -> Query.VSQLWhereExpr:
+	def where_vsql(self, expr: T_sql, **vars: T_sql) -> Query.VSQLWhereExpr:
 		"""
 		Add vSQL condition ``expr`` to the ``where`` clause.
 
@@ -1617,8 +1654,26 @@ class Query(Repr):
 
 		If ``expr`` doesn't have the datatype ``BOOL`` it will be automatically
 		converted to ``BOOL``.
+
+		``vars`` are additional variables for ``expr`` only, given as vSQL
+		expressions that reference the variables of the query. Every reference
+		to such a variable in ``expr`` is replaced by that expression (see
+		:meth:`AST.fromsource`). This makes it possible to apply a condition
+		that has been written for one variable to another one. For example
+		a condition on a person ``p`` can be applied to the author
+		``b.author`` of a book ``b`` like this::
+
+			q = vsql.OracleQuery("Example query", b=book)
+			q.where_vsql("p.lastname == 'Einstein'", p="b.author")
+
+		which is equivalent to::
+
+			q.where_vsql("b.author.lastname == 'Einstein'")
+
+		A variable in ``vars`` replaces a variable of the query with the same
+		name for this condition, and it isn't available to other expressions.
 		"""
-		vsqlexpr = self.VSQLWhereExpr(self, expr)
+		vsqlexpr = self.VSQLWhereExpr(self, expr, **vars)
 		sqlsource = vsqlexpr.sqlsource()
 		hasher = TStringHasher(sqlsource)
 		if hasher in self._where:
@@ -1641,15 +1696,19 @@ class Query(Repr):
 		self._where[hasher] = sqlexpr
 		return sqlexpr
 
-	def groupby_vsql(self, expr: T_sql, comment: str | None = None) -> Query.VSQLGroupByExpr:
+	def groupby_vsql(self, expr: T_sql, comment: str | None = None, **vars: T_sql) -> Query.VSQLGroupByExpr:
 		"""
 		Add the grouping vSQL expression ``expr`` to the list of expression to group by.
 
 		``comment`` will be added as a comment after the column expression.
+
+		``vars`` are additional variables for ``expr`` only, given as vSQL
+		expressions that reference the variables of the query (see
+		:meth:`where_vsql` for an example).
 		"""
 		if self.fields:
 			raise TypeError("Can't mix groupby and non-aggregated select expressions")
-		vsqlexpr = self.VSQLGroupByExpr(self, expr, comment)
+		vsqlexpr = self.VSQLGroupByExpr(self, expr, comment, **vars)
 		sqlsource = vsqlexpr.sqlsource()
 		hasher = TStringHasher(sqlsource)
 		if hasher in self._groupby:
@@ -1694,7 +1753,7 @@ class Query(Repr):
 			dir = None
 		return (expr, dir, nulls)
 
-	def orderby_vsql(self, expr: T_sql, comment: str | None = None) -> Query.VSQLOrderByExpr:
+	def orderby_vsql(self, expr: T_sql, comment: str | None = None, **vars: T_sql) -> Query.VSQLOrderByExpr:
 		r"""
 		Add the "order by" vSQL expression ``expr`` to this query.
 
@@ -1710,6 +1769,10 @@ class Query(Repr):
 
 		``nulls first`` outputs ``null`` values first, ``nulls last`` outputs
 		them last.
+
+		``vars`` are additional variables for ``expr`` only, given as vSQL
+		expressions that reference the variables of the query (see
+		:meth:`where_vsql` for an example).
 
 		Example::
 
@@ -1731,7 +1794,7 @@ class Query(Repr):
 				t1.ide_surname /* user.surname */ desc nulls last
 		"""
 		(expr, dir, nulls) = self._extract_orderby(expr)
-		vsqlexpr = self.VSQLOrderByExpr(self, expr, None, dir, nulls)
+		vsqlexpr = self.VSQLOrderByExpr(self, expr, None, dir, nulls, **vars)
 		self._orderby.append(vsqlexpr)
 		return vsqlexpr
 
@@ -2390,7 +2453,10 @@ class AST(Repr):
 		elif isinstance(node, ul4c.CallAST):
 			obj = cls.fromul4(node.obj, **vars)
 
-			content = [*obj.content]
+			# ``node.obj`` is passed too, so that the source between the start of
+			# the call and the start of the called object (e.g. the opening
+			# parenthesis in ``(a.upper()).lower()``) isn't lost.
+			content = [node.obj, *obj.content]
 			callargs = []
 
 			if isinstance(obj, FieldRefAST):
@@ -2420,7 +2486,7 @@ class AST(Repr):
 		raise TypeError(f"Can't compile UL4 expression of type {misc.format_class(node)}!")
 
 	@classmethod
-	def fromsource(cls, source:T_sql, **vars: Field) -> AST:
+	def fromsource(cls, source:T_sql, **vars: Field | T_sql) -> AST:
 		"""
 		Create a vSQL expression from it source code.
 
@@ -2429,7 +2495,28 @@ class AST(Repr):
 			vsql.AST.fromsource("'foo'.lower() + 'bar'.upper()")
 
 		``vars`` contains the "root" variables that can be referenced in
-		the vSQL expression.
+		the vSQL expression. The value for a variable is either a
+		:class:`Field` object that describes the variable, or a vSQL
+		expression (as a :class:`str` or a t-string) that references the
+		:class:`Field` variables. In the second case every reference to the
+		variable in ``source`` is replaced by that expression before
+		``source`` is compiled. This makes it possible to compile an expression
+		that has been written for one variable for another one. For example
+		the condition ``p.lastname == 'Einstein'`` on a person ``p`` can be
+		compiled for the author ``b.author`` of a book ``b`` like this::
+
+			vsql.AST.fromsource("p.lastname == 'Einstein'", b=book, p="b.author")
+
+		which is equivalent to::
+
+			vsql.AST.fromsource("b.author.lastname == 'Einstein'", b=book)
+
+		The replacement expression is enclosed in parentheses unless it is a
+		simple variable or attribute reference like ``b.author``, so the
+		precedence of the operators around the variable is preserved. A
+		replacement expression can only reference the :class:`Field`
+		variables; referencing a variable that is a replacement expression
+		itself raises a :exc:`VSQLReplacementVariableError`.
 
 		If source is a t-string and contains interpolated values, those
 		will be retained as interpolations using the matching vSQL datatype
@@ -2456,18 +2543,92 @@ class AST(Repr):
 					return name
 				index += 1
 
-		source = to_tstring(source)
-		compilable_source = ""
-		for part in source:
-			if isinstance(part, str):
-				compilable_source += part
-			else:
-				name = new_var(part)
-				compilable_source += name
+		def compilable(source):
+			source = to_tstring(source)
+			compilable_source = ""
+			for part in source:
+				if isinstance(part, str):
+					compilable_source += part
+				else:
+					compilable_source += new_var(part)
+			return compilable_source
+
+		compilable_source = compilable(source)
+
+		# Replace the references to the variables that are vSQL expressions
+		# (``compilable()`` adds the fields for their interpolations to ``vars``).
+		replacements = {name: value for (name, value) in vars.items() if not isinstance(value, Field)}
+		if replacements:
+			replacements = {name: compilable(value) for (name, value) in replacements.items()}
+			# Replacements are done once and not recursively, so a replacement
+			# expression may only reference the real variables.
+			for (name, expr) in replacements.items():
+				for node in cls._var_refs(expr):
+					if node.name in replacements:
+						raise VSQLReplacementVariableError(name, node.name)
+			compilable_source = cls._replace_vars(compilable_source, replacements)
+
+		# Only the real variables (i.e. the fields) are available to the compiler.
+		fields = {name: value for (name, value) in vars.items() if isinstance(value, Field)}
 
 		template = ul4c.Template(f"<?return {compilable_source}?>")
 		expr = template.content[-1].obj
-		return cls.fromul4(expr, **vars)
+		return cls.fromul4(expr, **fields)
+
+	@classmethod
+	def _replace_vars(cls, source:str, replacements:dict[str, str]) -> str:
+		"""
+		Return the vSQL source ``source`` with every reference to one of the
+		variables in ``replacements`` replaced by the expression in
+		``replacements``.
+
+		The replacement is done in the source code, but only variable
+		references are replaced (found by parsing the source), so e.g. string
+		constants that contain the variable name are left alone.
+		"""
+		def parenthesize(expr):
+			# Simple variable/attribute references (``b`` or ``b.author``) can
+			# be inserted as they are, everything else keeps its precedence via
+			# parentheses (so that ``x * 2`` with ``x="b.pages + 1"`` gives
+			# ``(b.pages + 1) * 2``).
+			if _simple_field_reference.fullmatch(expr):
+				return expr
+			else:
+				return f"({expr})"
+
+		replacements = {name: parenthesize(expr) for (name, expr) in replacements.items()}
+
+		fullsource = cls._template_source(source)
+		# Replace from the end, so that the positions of the earlier variable
+		# references stay valid.
+		spans = [(node.pos.start, node.pos.stop, node.name) for node in cls._var_refs(source) if node.name in replacements]
+		for (start, stop, name) in sorted(spans, reverse=True):
+			fullsource = fullsource[:start] + replacements[name] + fullsource[stop:]
+		return fullsource[len("<?return "):-len("?>")]
+
+	@classmethod
+	def _template_source(cls, source:str) -> str:
+		"""
+		Return the source of the UL4 template that is used to parse the vSQL
+		source ``source``.
+		"""
+		return f"<?return {source}?>"
+
+	@classmethod
+	def _var_refs(cls, source:str) -> Generator[ul4c.VarAST, None, None]:
+		"""
+		Return the variable references in the vSQL source ``source`` as UL4
+		:class:`~ll.ul4c.VarAST` nodes.
+
+		The positions of the nodes refer to the template source returned by
+		:meth:`_template_source`.
+		"""
+		template = ul4c.Template(cls._template_source(source))
+		expr = template.content[-1].obj
+		for path in expr.walkpaths():
+			node = path[-1]
+			if isinstance(node, ul4c.VarAST):
+				yield node
 
 	def sqlsource(self, query:Query) -> templatelib.Template:
 		sqlsource = self._sqlsource(query)
