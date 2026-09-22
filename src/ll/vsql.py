@@ -250,10 +250,6 @@ from typing import *
 
 T_sql = str | templatelib.Template
 
-# A vSQL expression that is a simple variable or attribute reference
-# (``b`` or ``b.author``), see :meth:`AST._replace_vars`.
-_simple_field_reference = re.compile(r"\s*[A-Za-z_][A-Za-z_0-9]*(\s*\.\s*[A-Za-z_][A-Za-z_0-9]*)*\s*")
-
 
 ###
 ### Global configurations
@@ -1030,6 +1026,45 @@ class Field(Repr):
 		self.fieldsql = decoder.load()
 		self.joinsql = decoder.load()
 		self.refgroup = decoder.load()
+
+
+class ReplacementField(Field):
+	"""
+	A variable of a vSQL expression that stands for another vSQL expression
+	(a "replacement variable", see :meth:`AST.fromsource`).
+
+	Every reference to such a variable is replaced by the compiled replacement
+	expression. The replacement expression may only reference real variables
+	(i.e. :class:`Field` objects that aren't replacement variables).
+	"""
+
+	source : str
+
+	def __init__(self, identifier: str, source: str, datatype: DataType | None = None):
+		super().__init__(identifier, datatype)
+		self.source = source
+
+	def make_ast(self, vars: dict[str, Field], sourceprefix: str, sourcesuffix: str) -> AST:
+		"""
+		Compile the replacement expression for one reference to this variable.
+
+		``sourceprefix`` and ``sourcesuffix`` are the parts of the source
+		around the variable reference (e.g. parentheses); they are retained in
+		the source of the resulting expression. The replacement expression is
+		enclosed in parentheses unless it is a simple variable or attribute
+		reference, so the precedence of the operators around the variable is
+		preserved.
+		"""
+		# Compile against the real variables only, so that a replacement
+		# expression can't reference replacement variables (which would
+		# recurse endlessly for a variable that references itself).
+		fields = {name: field for (name, field) in vars.items() if not isinstance(field, ReplacementField)}
+		ast = AST.fromsource(self.source, **fields)
+		if not isinstance(ast, (FieldRefAST, AttrAST)):
+			sourceprefix += "("
+			sourcesuffix = ")" + sourcesuffix
+		ast._wrap_source(sourceprefix, sourcesuffix)
+		return ast
 
 
 @ul4on.register("de.livinglogic.vsql.group")
@@ -2430,6 +2465,13 @@ class AST(Repr):
 
 		if isinstance(node, ul4c.VarAST):
 			field = vars.get(node.name, None)
+			if isinstance(field, ReplacementField):
+				# A replacement variable stands for another vSQL expression,
+				# which replaces the reference to the variable. The source of
+				# the reference might include parentheses around the name.
+				source = node.fullsource[node.pos]
+				pos = source.index(node.name)
+				return field.make_ast(vars, source[:pos], source[pos+len(node.name):])
 			return FieldRefAST(None, node.name, field, *cls._make_content_from_ul4(node))
 		elif isinstance(node, ul4c.AttrAST):
 			obj = cls.fromul4(node.obj, **vars)
@@ -2499,7 +2541,7 @@ class AST(Repr):
 		:class:`Field` object that describes the variable, or a vSQL
 		expression (as a :class:`str` or a t-string) that references the
 		:class:`Field` variables. In the second case every reference to the
-		variable in ``source`` is replaced by that expression before
+		variable in ``source`` is replaced by the compiled expression when
 		``source`` is compiled. This makes it possible to compile an expression
 		that has been written for one variable for another one. For example
 		the condition ``p.lastname == 'Einstein'`` on a person ``p`` can be
@@ -2555,80 +2597,42 @@ class AST(Repr):
 
 		compilable_source = compilable(source)
 
-		# Replace the references to the variables that are vSQL expressions
-		# (``compilable()`` adds the fields for their interpolations to ``vars``).
-		replacements = {name: value for (name, value) in vars.items() if not isinstance(value, Field)}
-		if replacements:
-			replacements = {name: compilable(value) for (name, value) in replacements.items()}
-			# Replacements are done once and not recursively, so a replacement
-			# expression may only reference the real variables.
-			for (name, expr) in replacements.items():
-				for node in cls._var_refs(expr):
-					if node.name in replacements:
-						raise VSQLReplacementVariableError(name, node.name)
-			compilable_source = cls._replace_vars(compilable_source, replacements)
+		# The variables that are vSQL expressions become replacement variables
+		# (``compilable()`` adds the fields for their interpolations to ``vars``,
+		# so iterate over a copy).
+		replacements = {name: compilable(value) for (name, value) in list(vars.items()) if not isinstance(value, Field)}
 
 		# Only the real variables (i.e. the fields) are available to the compiler.
-		fields = {name: value for (name, value) in vars.items() if isinstance(value, Field)}
+		realfields = {name: value for (name, value) in vars.items() if isinstance(value, Field)}
+		fields = dict(realfields)
+		for (name, replacement_source) in replacements.items():
+			# Compile the replacement expression against the real variables to
+			# check which variables it references and to determine its type.
+			# Replacements are not recursive, so a replacement expression may
+			# only reference the real variables.
+			ast = cls.fromsource(replacement_source, **realfields)
+			for fieldref in ast.fieldrefs():
+				root = fieldref
+				while root.parent is not None:
+					root = root.parent
+				if root.identifier in replacements:
+					raise VSQLReplacementVariableError(name, root.identifier)
+			fields[name] = ReplacementField(name, replacement_source, ast.datatype)
 
 		template = ul4c.Template(f"<?return {compilable_source}?>")
 		expr = template.content[-1].obj
 		return cls.fromul4(expr, **fields)
 
-	@classmethod
-	def _replace_vars(cls, source:str, replacements:dict[str, str]) -> str:
+	def _wrap_source(self, prefix: str, suffix: str) -> None:
 		"""
-		Return the vSQL source ``source`` with every reference to one of the
-		variables in ``replacements`` replaced by the expression in
-		``replacements``.
-
-		The replacement is done in the source code, but only variable
-		references are replaced (found by parsing the source), so e.g. string
-		constants that contain the variable name are left alone.
+		Add the source snippets ``prefix`` and ``suffix`` around the source of
+		this node (without changing its meaning), e.g. to enclose it in
+		parentheses.
 		"""
-		def parenthesize(expr):
-			# Simple variable/attribute references (``b`` or ``b.author``) can
-			# be inserted as they are, everything else keeps its precedence via
-			# parentheses (so that ``x * 2`` with ``x="b.pages + 1"`` gives
-			# ``(b.pages + 1) * 2``).
-			if _simple_field_reference.fullmatch(expr):
-				return expr
-			else:
-				return f"({expr})"
-
-		replacements = {name: parenthesize(expr) for (name, expr) in replacements.items()}
-
-		fullsource = cls._template_source(source)
-		# Replace from the end, so that the positions of the earlier variable
-		# references stay valid.
-		spans = [(node.pos.start, node.pos.stop, node.name) for node in cls._var_refs(source) if node.name in replacements]
-		for (start, stop, name) in sorted(spans, reverse=True):
-			fullsource = fullsource[:start] + replacements[name] + fullsource[stop:]
-		return fullsource[len("<?return "):-len("?>")]
-
-	@classmethod
-	def _template_source(cls, source:str) -> str:
-		"""
-		Return the source of the UL4 template that is used to parse the vSQL
-		source ``source``.
-		"""
-		return f"<?return {source}?>"
-
-	@classmethod
-	def _var_refs(cls, source:str) -> Generator[ul4c.VarAST, None, None]:
-		"""
-		Return the variable references in the vSQL source ``source`` as UL4
-		:class:`~ll.ul4c.VarAST` nodes.
-
-		The positions of the nodes refer to the template source returned by
-		:meth:`_template_source`.
-		"""
-		template = ul4c.Template(cls._template_source(source))
-		expr = template.content[-1].obj
-		for path in expr.walkpaths():
-			node = path[-1]
-			if isinstance(node, ul4c.VarAST):
-				yield node
+		if prefix:
+			self.content.insert(0, prefix)
+		if suffix:
+			self.content.append(suffix)
 
 	def sqlsource(self, query:Query) -> templatelib.Template:
 		sqlsource = self._sqlsource(query)
@@ -2962,21 +2966,28 @@ class AST(Repr):
 		self.pos = decoder.load()
 
 	@classmethod
-	def _make_content_from_ul4(cls, node:ul4c.AST, *args:ul4c.AST | AST | str | None) -> tuple[AST | str, ...]:
+	def _make_content_from_ul4(cls, node:ul4c.AST, *args:ul4c.AST | AST | str | None) -> list[AST | str]:
+		"""
+		Return the content (source snippets and child nodes) of the vSQL node
+		that is created from the UL4 node ``node``.
+
+		``args`` contains the UL4 child nodes of ``node``, each followed by the
+		vSQL nodes and source snippets it has been compiled to. The source
+		snippets between the children are cut from the UL4 source via the
+		positions of the UL4 child nodes. The source of the vSQL nodes is never
+		used for that, so it may differ from the UL4 source (e.g. for
+		replacement variables, see :class:`ReplacementField`).
+		"""
 		content = []
 		lastpos = node.pos.start
 		for subnode in args:
-			if isinstance(subnode, AST):
-				content.append(subnode)
-				lastpos += len(subnode.source())
-			elif isinstance(subnode, ul4c.AST):
-				if lastpos != subnode.pos.start:
+			if isinstance(subnode, ul4c.AST):
+				if lastpos < subnode.pos.start:
 					content.append(node.fullsource[lastpos:subnode.pos.start])
-					lastpos = subnode.pos.start
-			elif isinstance(subnode, str):
+				lastpos = subnode.pos.stop
+			elif subnode is not None:
 				content.append(subnode)
-				lastpos += len(subnode)
-		if lastpos != node.pos.stop:
+		if lastpos < node.pos.stop:
 			content.append(node.fullsource[lastpos:node.pos.stop])
 		return content
 
