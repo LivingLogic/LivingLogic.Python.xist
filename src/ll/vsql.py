@@ -1731,6 +1731,41 @@ class Query(Repr):
 		self._where[hasher] = sqlexpr
 		return sqlexpr
 
+	def compile_vsql(self, expr: T_sql, **vars: T_sql) -> templatelib.Template:
+		"""
+		Compile the vSQL expression ``expr`` and return the resulting SQL.
+
+		Unlike :meth:`select_vsql`, :meth:`where_vsql` etc. this doesn't add
+		the expression to the query. However the tables that the expression
+		references (and their join conditions) are added to the "from" and
+		"where" clauses, so the returned SQL can be embedded in an SQL
+		expression that is added to the query via :meth:`select_sql`,
+		:meth:`where_sql` etc. This makes it possible to use vSQL expressions
+		in SQL constructs that vSQL has no equivalent for, e.g. a ``case``
+		expression that applies one of several vSQL conditions depending on
+		another column::
+
+			q = vsql.OracleQuery("Example query", b=book)
+			alias = q.from_vsql("b")
+			q.where_sql(
+				t"(case {alias:q}.boo_type" +
+				t" when 'novel' then {q.compile_vsql("b.pages > 200"):q}" +
+				t" when 'poetry' then {q.compile_vsql("b.author.lastname == 'Goethe'"):q}" +
+				t" else 1 end) = 1"
+			)
+
+		Note that the SQL for a ``BOOL`` expression is a number in Oracle (``1``
+		for true and ``0`` for false) and a boolean in Postgres, so as a
+		condition it has to be compared with ``1`` in Oracle (as in the example
+		above). Unlike :meth:`where_vsql` this doesn't convert ``expr`` to
+		``BOOL``.
+
+		``vars`` are additional variables for ``expr`` only, given as vSQL
+		expressions that reference the variables of the query (see
+		:meth:`where_vsql` for an example).
+		"""
+		return self.VSQLExpr(self, expr, **vars).sqlsource()
+
 	def groupby_vsql(self, expr: T_sql, comment: str | None = None, **vars: T_sql) -> Query.VSQLGroupByExpr:
 		"""
 		Add the grouping vSQL expression ``expr`` to the list of expression to group by.

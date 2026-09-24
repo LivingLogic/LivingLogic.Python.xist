@@ -8,6 +8,19 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.92 (released 2026-??-??)
+-------------------------------------
+
+*	The new method :meth:`ll.vsql.Query.compile_vsql` compiles a vSQL
+	expression and returns the resulting SQL without adding the expression to
+	the query. The tables the expression references are joined though, so the
+	SQL can be embedded in SQL expressions added via
+	:meth:`~ll.vsql.Query.select_sql`, :meth:`~ll.vsql.Query.where_sql` etc.
+	This makes it possible to use vSQL expressions in SQL constructs that vSQL
+	has no equivalent for, e.g. a ``case`` expression that applies one of
+	several vSQL conditions depending on another column.
+
+
 Changes in 5.91 (released 2026-09-22)
 -------------------------------------
 

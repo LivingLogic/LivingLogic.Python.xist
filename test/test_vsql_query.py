@@ -220,3 +220,20 @@ def test_query_replacement_var_interpolation(vsql_db, vsql_data):
 	rs = vsql_db.execute(q)
 
 	assert rs[0].fn == "Albert"
+
+
+def test_query_compile_vsql(vsql_db, vsql_data):
+	# ``compile_vsql()`` returns the SQL of the expression without adding it
+	# to the query, but the tables the expression references are joined, so
+	# the SQL can be used in SQL expressions.
+	q = vsql_db.query(p=vsql_db.p)
+	q.from_vsql("p")
+	q.select_vsql("p.firstname", alias="fn")
+	fld = q.compile_vsql("f.name", f="p.field")
+	q.where_sql(t"upper({fld:q}) = 'PHYSICS'")
+	rs = vsql_db.execute(q)
+
+	assert {r.fn for r in rs} == {"Albert", "Marie"}
+	sql = raw_sql(q)
+	assert sql.count("vsql_field") == 1
+	assert sql.count("p.field.name") == 1
