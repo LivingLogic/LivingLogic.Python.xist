@@ -8,7 +8,7 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
-Changes in 5.92 (released 2026-??-??)
+Changes in 5.92 (released 2026-09-24)
 -------------------------------------
 
 *	The new method :meth:`ll.vsql.Query.compile_vsql` compiles a vSQL
