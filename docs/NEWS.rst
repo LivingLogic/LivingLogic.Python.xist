@@ -8,6 +8,12 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.93 (released 2026-10-??)
+-------------------------------------
+
+*	Fixed typo in name for class :class:`ll.xist.vsql.VSQLAggregationError`.
+
+
 Changes in 5.92 (released 2026-09-24)
 -------------------------------------
 

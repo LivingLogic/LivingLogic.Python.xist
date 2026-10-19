@@ -8,6 +8,16 @@ incompatible changes are listed here. For a list of all changes see
 :ref:`NEWS`.
 
 
+Migrating to version 5.93
+=========================
+
+Changes to :mod:`ll.vsql`
+---------------------------
+
+*	:class:`ll.xist.vsql.VSQLAggregationtError` has been renamed to
+	:class:`ll.xist.vsql.VSQLAggregationError`.
+
+
 Migrating to version 5.90
 =========================
 

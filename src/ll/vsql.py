@@ -714,7 +714,7 @@ class VSQLMalformedConstantError(VSQLError):
 		return f"Constant `{self.cause_ast.nodevalue}` is malformed."
 
 
-class VSQLAggregationtError(VSQLError):
+class VSQLAggregationError(VSQLError):
 	def detail(self) -> str:
 		return f"Aggregation call is malformed."
 
@@ -1225,7 +1225,7 @@ class Query(Repr):
 			self.query = query
 			expr = AST.fromsource(expr, **{**query.vars, **vars})
 			if not isinstance(expr, FuncAST):
-				raise VSQLAggregationtError(expr, expr, self.context)
+				raise VSQLAggregationError(expr, expr, self.context)
 			if expr.name == "count" and not expr.args:
 				self.aggregate = Aggregate.COUNT
 				self.expr = None
@@ -1236,7 +1236,7 @@ class Query(Repr):
 				for fieldref in expr.fieldrefs():
 					query._register(fieldref)
 			else:
-				raise VSQLAggregationtError(expr, expr, self.context)
+				raise VSQLAggregationError(expr, expr, self.context)
 			self.comment = comment
 			self.alias = to_tstring(alias)
 
