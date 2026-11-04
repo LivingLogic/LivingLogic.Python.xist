@@ -327,6 +327,16 @@ args = dict(
 )
 
 if havecython:
+	# The modules compiled by Cython can't be imported in subinterpreters: this
+	# would require the Cython directive ``subinterpreters_compatible=own_gil``
+	# plus the C macro ``CYTHON_USE_MODULE_STATE=1``, but Cython (as of 3.3.0)
+	# still keeps part of the module state (e.g. the cached builtins) in
+	# process-global C variables, so concurrent imports in subinterpreters
+	# with their own GIL crash (see https://github.com/cython/cython/issues/3689,
+	# https://github.com/cython/cython/issues/8006 and
+	# https://github.com/cython/cython/issues/8007). An installation without
+	# ``LL_USE_CYTHON`` uses the pure Python modules, which work in
+	# subinterpreters.
 	args["cmdclass"] = {"build_ext": build_ext}
 	args["ext_modules"].extend([
 		# setuptools.Extension("ll.xist.xsc", ["src/ll/xist/xsc.py"]),

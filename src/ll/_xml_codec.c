@@ -647,6 +647,7 @@ static PyMethodDef _functions[] =
 
 
 static PyModuleDef_Slot _xml_codec_slots[] = {
+	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
 	{0, NULL}
 };
 

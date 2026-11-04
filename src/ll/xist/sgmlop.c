@@ -41,6 +41,8 @@
  * 2004-04-04 fl  Fixed parsing of non-ascii attribute values (@XMLTOOLKIT38)
  * 2007-09-12 wd  Python 2.5 updates: use Py_ssize_t
  * 2021-01-12 wd  Switch to PEP 393 strings
+ * 2026-10-23 wd  Multi-phase module init, heap type and module state,
+ *                so the module can be loaded into subinterpreters
  *
  * Copyright (c) 1998-2025 by Secret Labs AB
  * Copyright (c) 1998-2025 by Fredrik Lundh
@@ -83,6 +85,8 @@ static char copyright[] = " SGMLOP 1.1.2 Copyright (c) 1998-2003 by Secret Labs 
 
 #include <ctype.h>
 
+/* Creates a new string; callers pass it to PyObject_CallFunction() with the
+   "N" format, which steals the reference */
 #define MAKESTRING(start, len) PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, start, len)
 
 #define NAMECHAR(ch)\
@@ -145,7 +149,18 @@ typedef struct {
 	PyObject *handle_comment;
 } FastParserObject;
 
-PyTypeObject FastParser_Type;
+/* module state: holds the (heap) parser type, so each interpreter
+   gets its own type object */
+typedef struct {
+	PyObject *FastParser_Type;
+} sgmlop_state;
+
+static inline sgmlop_state *get_sgmlop_state(PyObject *module)
+{
+	void *state = PyModule_GetState(module);
+	assert(state != NULL);
+	return (sgmlop_state *)state;
+}
 
 /* forward declarations */
 static Py_ssize_t fastfeed(FastParserObject *self);
@@ -167,11 +182,14 @@ static Checker wf_checker = {
 /* -------------------------------------------------------------------- */
 /* parser */
 
-static PyObject *_sgmlop_new(int xml)
+static PyObject *_sgmlop_new(PyObject *module, int xml)
 {
 	FastParserObject *self;
+	PyTypeObject *type = (PyTypeObject *)get_sgmlop_state(module)->FastParser_Type;
 
-	self = PyObject_GC_New(FastParserObject, &FastParser_Type);
+	/* PyType_GenericAlloc zeroes the object, holds a reference to the heap
+	   type and starts GC tracking */
+	self = (FastParserObject *)PyType_GenericAlloc(type, 0);
 
 	if (self == NULL)
 		return NULL;
@@ -203,8 +221,6 @@ static PyObject *_sgmlop_new(int xml)
 	self->handle_cdata = NULL;
 	self->handle_comment = NULL;
 
-	PyObject_GC_Track(self);
-
 	return (PyObject *)self;
 }
 
@@ -213,7 +229,7 @@ static PyObject *_sgmlop_sgmlparser(PyObject* self, PyObject* args)
 	if (!PyArg_ParseTuple(args, ":SGMLParser"))
 		return NULL;
 
-	return _sgmlop_new(0);
+	return _sgmlop_new(self, 0);
 }
 
 static PyObject *_sgmlop_xmlparser(PyObject* self, PyObject* args)
@@ -221,7 +237,7 @@ static PyObject *_sgmlop_xmlparser(PyObject* self, PyObject* args)
 	if (!PyArg_ParseTuple(args, ":XMLParser"))
 		return NULL;
 
-	return _sgmlop_new(1);
+	return _sgmlop_new(self, 1);
 }
 
 static int _sgmlop_traverse(PyObject *_self, visitproc visit, void *arg)
@@ -248,6 +264,9 @@ static int _sgmlop_traverse(PyObject *_self, visitproc visit, void *arg)
 	VISIT(handle_text);
 	VISIT(handle_cdata);
 	VISIT(handle_comment);
+
+	/* heap types are referenced by their instances */
+	Py_VISIT(Py_TYPE(_self));
 
 	return 0;
 }
@@ -279,11 +298,15 @@ static int _sgmlop_clear(PyObject *_self)
 static void _sgmlop_dealloc(PyObject* _self)
 {
 	FastParserObject *self = (FastParserObject *)_self;
+	PyTypeObject *type = Py_TYPE(_self);
+	freefunc tp_free = (freefunc)PyType_GetSlot(type, Py_tp_free);
 	PyObject_GC_UnTrack(_self);
 	if (self->buffer)
 		free(self->buffer);
 	_sgmlop_clear(_self);
-	PyObject_GC_Del(_self);
+	tp_free(_self);
+	/* release the reference to the heap type held by the instance */
+	Py_DECREF(type);
 }
 
 static PyObject *_sgmlop_register(FastParserObject* self, PyObject* args)
@@ -442,37 +465,22 @@ static PyMethodDef _sgmlop_methods[] = {
 	{NULL, NULL}
 };
 
-PyTypeObject FastParser_Type = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"FastParser", /* tp_name */
-	sizeof(FastParserObject), /* tp_size */
-	0, /* tp_itemsize */
-	/* methods */
-	_sgmlop_dealloc, /* tp_dealloc */
-	0, /* tp_print */
-	0, /* tp_getattr */
-	0, /* tp_setattr */
-	0,                      /*tp_reserved*/
-	0,                      /*tp_repr*/
-	0,                      /*tp_as_number*/
-	0,                      /*tp_as_sequence*/
-	0,                      /*tp_as_mapping*/
-	0,                      /*tp_hash*/
-	0,                      /*tp_call*/
-	0,                      /*tp_str*/
-	PyObject_GenericGetAttr,/*tp_getattro*/
-	0,                      /*tp_setattro*/
-	0,                      /*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC,     /*tp_flags*/
-	0,                      /*tp_doc*/
-	_sgmlop_traverse,       /*tp_traverse*/
-	_sgmlop_clear,          /*tp_clear*/
-	0,                      /*tp_richcompare*/
-	0,                      /*tp_weaklistoffset*/
-	0,                      /*tp_iter*/
-	0,                      /*tp_iternext*/
-	_sgmlop_methods,        /*tp_methods*/
-	0,                      /*tp_members*/
+static PyType_Slot FastParser_slots[] = {
+	{Py_tp_dealloc, _sgmlop_dealloc},
+	{Py_tp_traverse, _sgmlop_traverse},
+	{Py_tp_clear, _sgmlop_clear},
+	{Py_tp_methods, _sgmlop_methods},
+	{0, NULL}
+};
+
+/* No Py_tp_new slot: parsers are only created via SGMLParser()/XMLParser(),
+   so PyType_FromModuleAndSpec marks the type as not instantiable */
+static PyType_Spec FastParser_spec = {
+	.name = "ll.xist.sgmlop.FastParser",
+	.basicsize = sizeof(FastParserObject),
+	.itemsize = 0,
+	.flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
+	.slots = FastParser_slots
 };
 
 /* ==================================================================== */
@@ -484,19 +492,56 @@ static PyMethodDef _functions[] = {
 	{NULL, NULL}
 };
 
+static int sgmlop_exec(PyObject *module)
+{
+	sgmlop_state *state = get_sgmlop_state(module);
+
+	state->FastParser_Type = PyType_FromModuleAndSpec(module, &FastParser_spec, NULL);
+	if (state->FastParser_Type == NULL)
+		return -1;
+	return 0;
+}
+
+static int sgmlop_traverse(PyObject *module, visitproc visit, void *arg)
+{
+	sgmlop_state *state = get_sgmlop_state(module);
+	Py_VISIT(state->FastParser_Type);
+	return 0;
+}
+
+static int sgmlop_clear(PyObject *module)
+{
+	sgmlop_state *state = get_sgmlop_state(module);
+	Py_CLEAR(state->FastParser_Type);
+	return 0;
+}
+
+static void sgmlop_free(void *module)
+{
+	(void)sgmlop_clear((PyObject *)module);
+}
+
+static PyModuleDef_Slot sgmlop_slots[] = {
+	{Py_mod_exec, sgmlop_exec},
+	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
+	{0, NULL}
+};
+
 static struct PyModuleDef sgmlopmodule = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "sgmlop",
 	.m_doc = 0, /* module doc */
-	.m_size = -1,
-	.m_methods = _functions
+	.m_size = sizeof(sgmlop_state),
+	.m_methods = _functions,
+	.m_slots = sgmlop_slots,
+	.m_traverse = sgmlop_traverse,
+	.m_clear = sgmlop_clear,
+	.m_free = sgmlop_free
 };
 
 PyMODINIT_FUNC PyInit_sgmlop(void)
 {
-	if (PyType_Ready(&FastParser_Type) < 0)
-		return NULL;
-	return PyModule_Create(&sgmlopmodule);
+	return PyModuleDef_Init(&sgmlopmodule);
 }
 
 /* -------------------------------------------------------------------- */
@@ -852,7 +897,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 			/* flush any raw data before this tag */
 			PyObject* res;
 			res = PyObject_CallFunction(
-				self->handle_text, "O", MAKESTRING(s, q-s)
+				self->handle_text, "N", MAKESTRING(s, q-s)
 				);
 			if (!res)
 				return -1;
@@ -865,7 +910,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 				if (self->handle_endtag) {
 					PyObject* res;
 					res = PyObject_CallFunction(
-						self->handle_endtag, "O", MAKESTRING(b, t-b)
+						self->handle_endtag, "N", MAKESTRING(b, t-b)
 						);
 					if (!res)
 						return -1;
@@ -877,7 +922,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 				if (self->handle_special) {
 					PyObject* res;
 					res = PyObject_CallFunction(
-						self->handle_special, "O", MAKESTRING(b, e-b)
+						self->handle_special, "N", MAKESTRING(b, e-b)
 						);
 					if (!res)
 						return -1;
@@ -890,7 +935,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					while (Py_UNICODE_ISSPACE(*t))
 						t++;
 					res = PyObject_CallFunction(
-						self->handle_proc, "OO",
+						self->handle_proc, "NN",
 						MAKESTRING(b, len), MAKESTRING(t, e-t)
 						);
 					if (!res)
@@ -909,7 +954,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					while (Py_UNICODE_ISSPACE(*t))
 						t++;
 					res = PyObject_CallFunction(
-						self->handle_enterstarttag, "O", MAKESTRING(b, len)
+						self->handle_enterstarttag, "N", MAKESTRING(b, len)
 					);
 					if (!res)
 						return -1;
@@ -919,7 +964,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 						return -1;
 					if (self->handle_leavestarttag) {
 						res = PyObject_CallFunction(
-							self->handle_leavestarttag, "O", MAKESTRING(b, len)
+							self->handle_leavestarttag, "N", MAKESTRING(b, len)
 							);
 						if (!res)
 							return -1;
@@ -931,7 +976,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 							))
 							return -1;
 						res = PyObject_CallFunction(
-							self->handle_endtag, "O", MAKESTRING(b, len)
+							self->handle_endtag, "N", MAKESTRING(b, len)
 							);
 						if (!res)
 							return -1;
@@ -956,7 +1001,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					/* all builtin entities fit in a Py_UCS4 */
 					ch = (Py_UCS4) charref;
 					res = PyObject_CallFunction(
-						self->handle_text, "O", MAKESTRING(&ch, 1)
+						self->handle_text, "N", MAKESTRING(&ch, 1)
 					);
 					if (!res)
 						return -1;
@@ -970,7 +1015,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 				if (self->check && !self->check->entityref(self->check, b, e))
 					return -1;
 				res = PyObject_CallFunction(
-					self->handle_entityref, "O", MAKESTRING(b, e-b)
+					self->handle_entityref, "N", MAKESTRING(b, e-b)
 				);
 				if (!res)
 					return -1;
@@ -989,7 +1034,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 			if (self->handle_charref) {
 				PyObject* res;
 				res = PyObject_CallFunction(
-					self->handle_charref, "O", MAKESTRING(b, e-b)
+					self->handle_charref, "N", MAKESTRING(b, e-b)
 				);
 				if (!res)
 					return -1;
@@ -1005,7 +1050,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 					PyObject *res;
 					Py_UCS4 ch = charref;
 					res = PyObject_CallFunction(
-						self->handle_text, "O", MAKESTRING(&ch, 1)
+						self->handle_text, "N", MAKESTRING(&ch, 1)
 					);
 					if (!res)
 						return -1;
@@ -1016,12 +1061,12 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 			PyObject *res;
 			if (self->handle_cdata) {
 				res = PyObject_CallFunction(
-					self->handle_cdata, "O", MAKESTRING(b, e-b)
+					self->handle_cdata, "N", MAKESTRING(b, e-b)
 				);
 			} else {
 				/* fallback: handle cdata as plain data */
 				res = PyObject_CallFunction(
-					self->handle_text, "O", MAKESTRING(b, e-b)
+					self->handle_text, "N", MAKESTRING(b, e-b)
 				);
 			}
 			if (!res)
@@ -1032,7 +1077,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 			if (self->check && !self->check->comment(self->check, b, e))
 				return -1;
 			res = PyObject_CallFunction(
-				self->handle_comment, "O", MAKESTRING(b, e-b)
+				self->handle_comment, "N", MAKESTRING(b, e-b)
 			);
 			if (!res)
 				return -1;
@@ -1046,7 +1091,7 @@ static Py_ssize_t fastfeed(FastParserObject *self)
 	eol: /* end of line */
 	if (q != s && self->handle_text) {
 		PyObject *res;
-		res = PyObject_CallFunction(self->handle_text, "O", MAKESTRING(s, q-s));
+		res = PyObject_CallFunction(self->handle_text, "N", MAKESTRING(s, q-s));
 		if (!res)
 			return -1;
 		Py_DECREF(res);
@@ -1060,7 +1105,7 @@ static int handle_text(FastParserObject *self, const Py_UCS4 *b, const Py_UCS4 *
 {
 	if (self->handle_text && b != e) {
 		PyObject *res = PyObject_CallFunction(
-			self->handle_text, "O", MAKESTRING(b, e-b)
+			self->handle_text, "N", MAKESTRING(b, e-b)
 		);
 		if (!res)
 			return -1;
@@ -1075,7 +1120,7 @@ static int handle_entityref(FastParserObject *self, const Py_UCS4 *b, const Py_U
 	if (code == -1) {
 		if (self->handle_entityref) {
 			PyObject *res = PyObject_CallFunction(
-				self->handle_entityref, "O", MAKESTRING(b, e-b)
+				self->handle_entityref, "N", MAKESTRING(b, e-b)
 			);
 			if (!res)
 				return -1;

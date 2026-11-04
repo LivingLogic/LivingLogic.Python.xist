@@ -184,7 +184,7 @@ def _transport_js_v8(obj, indent):
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		dir = os.path.expanduser("~/checkouts/LivingLogic/Javascript.ul4")
 		cmd = f"d8 {dir}/dist/umd/ul4.js {f.name}"
 		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	stdout = result.stdout.decode("utf-8")
@@ -216,7 +216,7 @@ def _transport_js_node(obj, indent):
 	"""
 	dump = ul4on.dumps(obj, indent=indent)
 	js = f"""
-		const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
+		const ul4 = require('{home}/checkouts/LivingLogic/Javascript.ul4/dist/umd/ul4');
 		var obj = ul4.loads({ul4c._asjson(dump)});
 		console.log(JSON.stringify(ul4.dumps(obj, {ul4c._asjson(indent)})));
 	"""
@@ -226,7 +226,7 @@ def _transport_js_node(obj, indent):
 	with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 		f.write(js.encode("utf-8"))
 		f.flush()
-		dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+		dir = os.path.expanduser("~/checkouts/LivingLogic/Javascript.ul4")
 		cmd = f"node {f.name}"
 		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	stdout = result.stdout.decode("utf-8")
@@ -287,7 +287,7 @@ def run(data, indent=None):
 	dump = dump.encode("utf-8")
 	currentdir = pathlib.Path.cwd()
 	try:
-		os.chdir(pathlib.Path.home() / "checkouts/LivingLogic.Java.ul4")
+		os.chdir(pathlib.Path.home() / "checkouts/LivingLogic/Java.ul4")
 		result = subprocess.run("./gradlew -q --console=plain execute_ul4on", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 	finally:
 		os.chdir(currentdir)

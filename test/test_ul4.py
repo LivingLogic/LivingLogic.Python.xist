@@ -185,7 +185,7 @@ class TemplateJava:
 		dump = dump.encode("utf-8")
 		currentdir = pathlib.Path.cwd()
 		try:
-			os.chdir(pathlib.Path.home() / "checkouts/LivingLogic.Java.ul4")
+			os.chdir(pathlib.Path.home() / "checkouts/LivingLogic/Java.ul4")
 			result = subprocess.run("./gradlew -q --console=plain execute_ul4", input=dump, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		finally:
 			os.chdir(currentdir)
@@ -384,7 +384,7 @@ class TemplateJavascript:
 		with tempfile.NamedTemporaryFile(mode="wb", suffix=".js") as f:
 			f.write(source.encode("utf-8"))
 			f.flush()
-			dir = os.path.expanduser("~/checkouts/LivingLogic.Javascript.ul4")
+			dir = os.path.expanduser("~/checkouts/LivingLogic/Javascript.ul4")
 			cmd = command.format(cmd=command, dir=dir, fn=f.name)
 			result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		stdout = result.stdout.decode("utf-8", "passbytes")
@@ -449,7 +449,7 @@ class TemplateJavascriptNode(TemplateJavascript):
 			raise ValueError("positional arguments not supported")
 
 		return f"""
-			const ul4 = require('{home}/checkouts/LivingLogic.Javascript.ul4/dist/umd/ul4');
+			const ul4 = require('{home}/checkouts/LivingLogic/Javascript.ul4/dist/umd/ul4');
 
 			var template = {self.template.jssource()};
 			var vars = ul4._map2object(ul4.loads({ul4c._asjson(ul4on.dumps(kwargs))}));

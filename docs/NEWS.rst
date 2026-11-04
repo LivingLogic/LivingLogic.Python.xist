@@ -13,6 +13,20 @@ Changes in 5.93 (released 2026-10-??)
 
 *	Fixed typo in name for class :class:`ll.xist.vsql.VSQLAggregationError`.
 
+*	The C extension modules :mod:`ll._ansistyle`, :mod:`ll._misc`,
+	:mod:`ll._xml_codec` and :mod:`ll.xist.sgmlop` can now be imported in
+	subinterpreters that have their own GIL (see :pep:`684` and
+	:mod:`concurrent.interpreters`). Previously importing any of them in a
+	subinterpreter failed with an :exc:`ImportError`. Note that this doesn't
+	apply to the modules compiled by Cython when XIST is installed with
+	``LL_USE_CYTHON`` (:mod:`ll.misc`, :mod:`ll.url` and :mod:`ll.xist.parse`),
+	as Cython's support for subinterpreters is still incomplete (see the
+	comment in ``setup.py``). To use XIST in subinterpreters, install it
+	without ``LL_USE_CYTHON``.
+
+*	Fixed a reference leak in :mod:`ll.xist.sgmlop`: Every string passed to a
+	callback leaked a reference.
+
 
 Changes in 5.92 (released 2026-09-24)
 -------------------------------------

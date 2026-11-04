@@ -689,7 +689,7 @@ Python's warning framework is used, so the warning will be printed only once
 
 	>>> node = cool(python(), adj="pretty")
 	>>> print(node.bytes())
-	/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2368: \
+	/Users/walter/checkouts/LivingLogic/Python.xist/src/ll/xist/xsc.py:2368: \
 	IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj
 	  warnings.warn(IllegalAttrValueWarning(self))
 	b'<cool adj="very"><python /></cool>'
@@ -710,7 +710,7 @@ is such an attribute, so we'll get:
 	>>> from ll.xist.ns import html
 	>>> node = html.img(src="eggs.png")
 	>>> print(node.bytes())
-	/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/xsc.py:2770: \
+	/Users/walter/checkouts/LivingLogic/Python.xist/src/ll/xist/xsc.py:2770: \
 	RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
 	  warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 	<img src="eggs.png" />

@@ -17,7 +17,7 @@ from ll import url
 import pytest
 
 # This must point to an ssh account (in the form ``user@hostname``)
-# that has a directory ``LivingLogic.Python.xist``.
+# that has a directory ``LivingLogic/Python.xist``.
 remote_user = os.environ["LL_SSH_TEST_CONNECT"]
 
 @pytest.mark.net
@@ -37,8 +37,8 @@ def test_remove():
 
 	check(__file__.rstrip("c"))
 	check(url.URL(__file__.rstrip("c")))
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/")
 
 
 @pytest.mark.net
@@ -57,8 +57,8 @@ def test_link():
 			assert not u2.exists()
 
 	check(__file__.rstrip("c"))
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/setup.py")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/setup.py")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/setup.py")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/setup.py")
 
 
 @pytest.mark.net
@@ -76,8 +76,8 @@ def test_symlink():
 			assert not u2.exists()
 
 	check(__file__.rstrip("c"))
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/setup.py")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/setup.py")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/setup.py")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/setup.py")
 
 
 @pytest.mark.net
@@ -97,8 +97,8 @@ def test_chmod():
 				u.remove()
 
 	check("~/foo_chmod")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/foo")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/foo")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/foo")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/foo")
 
 
 @pytest.mark.net
@@ -147,9 +147,9 @@ def test_size():
 			u = url.URL(u)
 			assert len(u.open("rb").read()) == u.open("rb").size() == u.size() == 1479
 
-	check("~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
 	check("https://python.livinglogic.de/_static/favicon.png")
 
 
@@ -160,9 +160,9 @@ def test_imagesize():
 			u = url.URL(u)
 			assert u.imagesize() == (32, 32)
 
-	check("~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
 	check("https://python.livinglogic.de/_static/favicon.png")
 
 
@@ -174,8 +174,8 @@ def test_mimetype():
 			assert u.mimetype() == u.open().mimetype() == mt
 
 	check(__file__.rstrip("c"), "text/x-python")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/setup.py", "text/x-python")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/setup.py", "text/x-python")
 	check("https://python.livinglogic.de/", "text/html")
 
 
@@ -207,8 +207,8 @@ def test_readline():
 			assert r.read().startswith(firstline)
 
 	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/setup.py", b"#! /usr/bin/env python\n")
 	check("https://python.livinglogic.de/_static/css/theme.css", b'/* sphinx_ll_theme version 0.1 | MIT license */\n')
 
 
@@ -222,8 +222,8 @@ def test_iter():
 			list(r)
 
 	check(__file__.rstrip("c"), b"#!/usr/bin/env python\n")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/setup.py", b"#! /usr/bin/env python\n")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/setup.py", b"#! /usr/bin/env python\n")
 	check("https://python.livinglogic.de/_static/css/theme.css", b'/* sphinx_ll_theme version 0.1 | MIT license */\n')
 
 
@@ -240,8 +240,8 @@ def test_autocreate_dir():
 				u.withoutfile().rmdir()
 
 	check("gurk/hurz.txt")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/gurk/hurz.txt")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/gurk/hurz.txt")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/gurk/hurz.txt")
 
 
 @pytest.mark.net
@@ -264,9 +264,9 @@ def test_seek_tell():
 			assert r.tell() == 1479
 			assert r.read() == b""
 
-	check("~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/docs/_static/favicon.png")
+	check("~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/docs/_static/favicon.png")
 
 
 @pytest.mark.net
@@ -285,8 +285,8 @@ def test_truncate():
 				u.remove()
 
 	check(__file__)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/")
 
 
 @pytest.mark.net
@@ -301,8 +301,8 @@ def test_owner():
 
 	check(__file__, "walter")
 	check("/", "root")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", remote_user_name)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", remote_user_name)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", remote_user_name)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", remote_user_name)
 
 
 @pytest.mark.net
@@ -315,8 +315,8 @@ def test_stat():
 			assert stat.st_mode & 0o600 == 0o600
 
 	check(url.File(__file__)/"../README.rst")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst")
 
 
 @pytest.mark.net
@@ -331,8 +331,8 @@ def test_group():
 
 	check(__file__, "users", "staff", "walter")
 	check("/", "root", "admin", "wheel")
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", remote_user_name)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", remote_user_name)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", remote_user_name)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", remote_user_name)
 
 
 @pytest.mark.net
@@ -342,8 +342,8 @@ def test_cdate():
 			assert url.URL(u).cdate() >= datetime.datetime(*args)
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", 2006, 6, 29)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", 2006, 6, 29)
 
 
 @pytest.mark.net
@@ -354,8 +354,8 @@ def test_mdate():
 			assert u.mdate() == u.open().mdate() >= datetime.datetime(*args)
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", 2006, 6, 29)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", 2006, 6, 29)
 	check("https://python.livinglogic.de/XIST.html", 2006, 10, 3)
 
 
@@ -366,8 +366,8 @@ def test_adate():
 			assert url.URL(u).adate() >= datetime.datetime(*args)
 
 	check(__file__.rstrip("c"), 2006, 10, 24)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", 2006, 6, 29)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", 2006, 6, 29)
 
 
 @pytest.mark.net
@@ -380,10 +380,10 @@ def test_exists():
 	check(__file__, True)
 	check(__file__ + "no", False)
 	check("/", True)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", True)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", True)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", True)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", True)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/DONTREADME.rst", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/DONTREADME.rst", False)
 
 
 @pytest.mark.net
@@ -396,10 +396,10 @@ def test_isfile():
 	check(__file__, True)
 	check(__file__ + "no", False)
 	check("/", False)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", True)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", True)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", True)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", True)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/", False)
 
 
 @pytest.mark.net
@@ -412,10 +412,10 @@ def test_isdir():
 	check(__file__, False)
 	check(__file__ + "no", False)
 	check("/", True)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/", True)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/", True)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/", True)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/", True)
 	check(f"ssh://{remote_user}/~/checkouts/", True)
 	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/", True)
 
@@ -429,10 +429,10 @@ def test_islink():
 
 	check(__file__, False)
 	check("/", False)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/", False)
 
 
 @pytest.mark.net
@@ -444,10 +444,10 @@ def test_ismount():
 
 	check(__file__, False)
 	check("/", True)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", False)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/", False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/", False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/", False)
 	check(f"ssh://{remote_user}/~livpython", False)
 	check(f"ssh-nocheck://{remote_user}:22/~livpython", False)
 
@@ -461,10 +461,10 @@ def test_access():
 
 	check(__file__, os.F_OK, True)
 	check(__file__ + "no", os.F_OK, False)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", os.F_OK, True)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", os.F_OK, True)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", os.F_OK, False)
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/DONTREADME.rst", os.F_OK, False)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", os.F_OK, True)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", os.F_OK, True)
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/DONTREADME.rst", os.F_OK, False)
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/DONTREADME.rst", os.F_OK, False)
 
 
 @pytest.mark.net
@@ -477,8 +477,8 @@ def test_resheaders():
 				assert realheaders[k] == v
 
 	check(url.File(__file__)/"../README.rst", {"Content-type": "text/x-rst"})
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "text/x-rst"})
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "text/x-rst"})
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/README.rst", {"Content-Type": "text/x-rst"})
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/README.rst", {"Content-Type": "text/x-rst"})
 	check("https://python.livinglogic.de/XIST.html", {"Content-type": "text/html"})
 
 
@@ -506,8 +506,8 @@ def test_mkdir_rmdir():
 				u.rmdir()
 
 	check(__file__)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/")
 
 
 @pytest.mark.net
@@ -524,8 +524,8 @@ def test_makedirs():
 				(u/"../").rmdir()
 
 	check(__file__)
-	check(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/")
-	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/")
+	check(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/")
+	check(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/")
 
 
 @pytest.mark.net
@@ -544,10 +544,10 @@ def test_dir():
 
 	check(os.path.basename(__file__), os.path.dirname(__file__), True)
 	check("lib/", "/usr/", False)
-	check("README.rst", f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/", True)
-	check("README.rst", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/", True)
-	check("LivingLogic.Python.xist/", f"ssh://{remote_user}/~/checkouts/", False)
-	check("LivingLogic.Python.xist/", f"ssh-nocheck://{remote_user}:22/~/checkouts/", False)
+	check("README.rst", f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/", True)
+	check("README.rst", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/", True)
+	check("LivingLogic/Python.xist/", f"ssh://{remote_user}/~/checkouts/", False)
+	check("LivingLogic/Python.xist/", f"ssh-nocheck://{remote_user}:22/~/checkouts/", False)
 	check("lib/", "/usr/", False, "lib")
 	check("lib/", "/usr/", False, None, "nolib")
 
@@ -567,23 +567,23 @@ def test_walk():
 				assert any(u==wu for wu in pu.walkdirs(include=include, exclude=exclude))
 
 	check(os.path.basename(__file__), os.path.dirname(__file__), True)
-	check("src/ll/xist/", url.Dir("~/checkouts/LivingLogic.Python.xist/"), False)
-	check("ll/xist/ns/html.py", f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/src/", True)
-	check("ll/xist/ns/html.py", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/src/", True)
-	check("ll/xist/ns/", f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/src/", False)
-	check("ll/xist/ns/", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/src/", False)
+	check("src/ll/xist/", url.Dir("~/checkouts/LivingLogic/Python.xist/"), False)
+	check("ll/xist/ns/html.py", f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/src/", True)
+	check("ll/xist/ns/html.py", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/src/", True)
+	check("ll/xist/ns/", f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/src/", False)
+	check("ll/xist/ns/", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/src/", False)
 
 
 @pytest.mark.net
 def test_ssh_params():
 	with url.Context():
-		u1 = url.URL(f"ssh://{remote_user}/~/checkouts/LivingLogic.Python.xist/")
+		u1 = url.URL(f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/")
 		assert u1.isdir(python="/home/walter/.local/bin/python3") is True
 		assert u1.isdir(nice=20) is True
 		assert u1.isdir(check=False) is True
 		assert u1.isdir(check=True) is True
 
-		u2 = url.URL(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic.Python.xist/")
+		u2 = url.URL(f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/")
 		assert u2.isdir(python="/home/walter/.local/bin/python3") is True
 		assert u2.isdir(nice=20) is True
 		assert u2.isdir(check=False) is True

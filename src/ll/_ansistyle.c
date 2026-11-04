@@ -107,6 +107,7 @@ static char module__doc__[] = PyDoc_STR(
 );
 
 static PyModuleDef_Slot _ansistyle_slots[] = {
+	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
 	{0, NULL}
 };
 

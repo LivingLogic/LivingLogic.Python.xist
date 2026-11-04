@@ -180,7 +180,7 @@ automatically:
 	>>> from ll.xist.ns import html
 	>>> node = html.p(html.p(u"foo"))
 	>>> print(node.string())
-	/Users/walter/checkouts/LivingLogic.Python.xist/src/ll/xist/sims.py:222: \
+	/Users/walter/checkouts/LivingLogic/Python.xist/src/ll/xist/sims.py:222: \
 	WrongElementWarning: element <ll.xist.ns.html.p element object (1 child/no attrs) at 0x270b30> \
 	may not contain element <ll.xist.ns.html.p element object (1 child/no attrs) at 0x69850>
 	  warnings.warn(WrongElementWarning(node, child, self.elements))
