@@ -546,8 +546,8 @@ def test_dir():
 	check("lib/", "/usr/", False)
 	check("README.rst", f"ssh://{remote_user}/~/checkouts/LivingLogic/Python.xist/", True)
 	check("README.rst", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/Python.xist/", True)
-	check("LivingLogic/Python.xist/", f"ssh://{remote_user}/~/checkouts/", False)
-	check("LivingLogic/Python.xist/", f"ssh-nocheck://{remote_user}:22/~/checkouts/", False)
+	check("Python.xist/", f"ssh://{remote_user}/~/checkouts/LivingLogic/", False)
+	check("Python.xist/", f"ssh-nocheck://{remote_user}:22/~/checkouts/LivingLogic/", False)
 	check("lib/", "/usr/", False, "lib")
 	check("lib/", "/usr/", False, None, "nolib")
 
