@@ -1,4 +1,4 @@
-.PHONY: install develop parser test  dist upload windist winupload livinglogic
+.PHONY: install develop parser test dist upload build windist winupload livinglogic
 
 
 install:
@@ -19,10 +19,8 @@ test: install
 
 
 build:
-	rm -rf dist/*
-	# setuptools-scm is installed, which would add all GIT controlled files to the package
-	# we dont want that, so set `SETUPTOOLS_SCM_IGNORE_VCS_ROOTS`
-	SETUPTOOLS_SCM_IGNORE_VCS_ROOTS=$(CURDIR) python -m build
+	rm -rf dist/* src/*.egg-info
+	_PYTHON_HOST_PLATFORM=macosx-11.0-arm64 MACOSX_DEPLOYMENT_TARGET=11.0 python -m build --no-isolation
 
 dist: build
 	LL_URL_SSH_PYTHON=python3.2 python -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/

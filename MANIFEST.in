@@ -4,3 +4,4 @@ include Makefile
 recursive-include demos *
 recursive-include scripts *.py
 include src/ll/xist/data/px/spc.gif
+prune docs/sphinx_ll_theme
