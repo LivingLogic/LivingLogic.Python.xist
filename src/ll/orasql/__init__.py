@@ -3714,8 +3714,15 @@ class Callable(MixinNormalDates, MixinCodeSQL, OwnedSchemaObject):
 		try:
 			if arg is None:
 				t = self._ora2cx[arginfo.datatype]
+			elif isinstance(arg, Object):
+				t = arg.type
 			else:
-				t = arg.type if isinstance(arg, Object) else type(arg)
+				for base in (str, bytes, bool, int, float, datetime.date, datetime.datetime):
+					if isinstance(arg, base):
+						t = base
+						break
+				else:
+					t = type(arg)
 		except KeyError:
 			raise TypeError(f"can't handle parameter {arginfo.name} of type {arginfo.datatype} with value {arg!r} in {self!r}")
 		if isinstance(arg, bytes): # ``bytes`` is treated as binary data, always wrap it in a ``BLOB``

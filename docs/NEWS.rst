@@ -27,6 +27,10 @@ Changes in 5.93 (released 2026-10-??)
 *	Fixed a reference leak in :mod:`ll.xist.sgmlop`: Every string passed to a
 	callback leaked a reference.
 
+*	:class:`ll.orasql.Procedure` and :class:`ll.orasql.Function` now bind
+	instances of subclasses of :class:`str`, :class:`int`, :class:`float` etc.
+	(e.g. :class:`enum.StrEnum` members) by their base type.
+
 
 Changes in 5.92 (released 2026-09-24)
 -------------------------------------
