@@ -10,6 +10,12 @@ You can download XIST from the Cheeseshop_, go directly to the
 .. autogenerate start
 
 
+5.94 (released 11/18/2026)
+--------------------------
+
+(no files for this version)
+
+
 5.93 (released 11/09/2026)
 --------------------------
 
@@ -20,8 +26,9 @@ You can download XIST from the Cheeseshop_, go directly to the
 ======================================================================================================================================================= ======================= =====
 File                                                                                                                                                    Type                    Size
 ======================================================================================================================================================= ======================= =====
+`ll_xist-5.93-cp314-cp314-macosx_11_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.93-cp314-cp314-macosx_11_0_arm64.whl>`_ Mac wheel (Python 3.14) 1430K
 `ll_xist-5.93-cp314-cp314-macosx_27_0_arm64.whl <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.93-cp314-cp314-macosx_27_0_arm64.whl>`_ Mac wheel (Python 3.14) 1433K
-`ll_xist-5.93.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.93.tar.gz>`_                                                       Source                  844K
+`ll_xist-5.93.tar.gz <http://python-downloads.livinglogic.de/download/xist/ll_xist-5.93.tar.gz>`_                                                       Source                  843K
 ======================================================================================================================================================= ======================= =====
 
 
