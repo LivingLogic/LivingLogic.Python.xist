@@ -12,7 +12,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 download:
-	LL_URL_SSH_PYTHON=python3 python makedownloads.py
+	LL_URL_SSH_PYTHON=python3 uv run --with execnet==1.9.0 --with=ll-xist python makedownloads.py
 
 deploy:
 	scp -r build/html/* livpython@python.livinglogic.de:~/public_html/
