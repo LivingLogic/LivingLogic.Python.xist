@@ -1327,6 +1327,13 @@ class Query(Repr):
 		dir : str | None
 		nulls : str | None
 
+		# Length of the prefix of a ``CLOB`` value that is used for sorting in
+		# Oracle. Oracle counts this in UTF-16 code units, each of which takes
+		# at most 3 bytes (in ``AL32UTF8`` as well as in the CESU-8 character
+		# set ``UTF8``), so the prefix always fits into the 4000 bytes of a
+		# ``varchar2``.
+		orderby_clob_prefix_length = 1000
+
 		def __init__(self, query, expr, comment, dir, nulls, **vars: T_sql):
 			super().__init__(query, expr, comment, **vars)
 			self.dir = dir
@@ -1334,6 +1341,10 @@ class Query(Repr):
 
 		def sqlsource(self) -> templatelib.Template:
 			sqlsource = super().sqlsource()
+			# Oracle can't sort by a ``CLOB``, so we sort by a prefix instead
+			# (see :meth:`Query.orderby_vsql`). Postgres has no such restriction.
+			if self.query.dbtype is DBType.ORACLE and self.expr.datatype is DataType.CLOB:
+				sqlsource = t"dbms_lob.substr({sqlsource:q}, {self.orderby_clob_prefix_length:q}, 1)"
 			if self.dir is not None:
 				sqlsource = t"{sqlsource:q} {self.dir:q}"
 			if self.nulls is not None:
@@ -1839,6 +1850,12 @@ class Query(Repr):
 
 		``nulls first`` outputs ``null`` values first, ``nulls last`` outputs
 		them last.
+
+		Oracle can't sort by ``CLOB`` values. So if ``expr`` is of type
+		``CLOB``, an Oracle query sorts by a prefix of the value instead (see
+		:attr:`Query.VSQLOrderByExpr.orderby_clob_prefix_length` for its length),
+		i.e. the order of two values that only differ after that prefix is
+		undefined. A Postgres query sorts by the complete value.
 
 		``vars`` are additional variables for ``expr`` only, given as vSQL
 		expressions that reference the variables of the query (see

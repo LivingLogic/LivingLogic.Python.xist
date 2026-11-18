@@ -8,6 +8,14 @@ of XIST. For a description of how to update your code to each versions of XIST
 see :ref:`MIGRATION`.
 
 
+Changes in 5.94 (released 2026-11-18)
+-------------------------------------
+
+*	:meth:`ll.vsql.Query.orderby_vsql` now supports expressions of type
+	``CLOB`` in Oracle queries too. As Oracle can't sort by ``CLOB`` values,
+	a prefix of the value is used for sorting instead.
+
+
 Changes in 5.93 (released 2026-11-09)
 -------------------------------------
 

@@ -139,6 +139,20 @@ def test_query_sql(vsql_db, vsql_data):
 	assert rs == [["ALBERT", "Einstxin"], ["ANGELA", "Mxrkxl"]]
 
 
+def test_query_orderby_clob(vsql_db, vsql_data):
+	def identifiers(orderby):
+		q = vsql_db.query(r=vsql_db.r)
+		q.select_vsql("r.identifier")
+		q.where_vsql("r.v_clob is not None")
+		q.orderby_vsql(orderby)
+		return [r[0] for r in vsql_db.execute(q)]
+
+	# The short value is a prefix of the long one, so it sorts first
+	assert identifiers("r.v_clob") == ["shortclob", "clob"]
+	assert identifiers("r.v_clob desc") == ["clob", "shortclob"]
+	assert identifiers("r.v_clob.upper() asc nulls first") == ["shortclob", "clob"]
+
+
 def test_query_replacement_var(vsql_db, vsql_data):
 	# ``f`` is a replacement variable that stands for ``p.field`` in this
 	# select expression only.
