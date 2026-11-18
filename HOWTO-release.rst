@@ -35,7 +35,7 @@ Make sure that the tests pass by running::
 
 Add the new version in ``docs/makedownloads.py`` and run (in ``docs/``)::
 
-	LL_URL_SSH_PYTHON=python3 python makedownloads.py
+	LL_URL_SSH_PYTHON=python3 uv run --with execnet==1.9.0 --with=ll-xist python makedownloads.py
 
 
 Creating the packages
