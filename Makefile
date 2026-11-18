@@ -23,7 +23,7 @@ build:
 	_PYTHON_HOST_PLATFORM=macosx-11.0-arm64 MACOSX_DEPLOYMENT_TARGET=11.0 python -m build --no-isolation
 
 dist: build
-	LL_URL_SSH_PYTHON=python3.2 python -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
+	LL_URL_SSH_PYTHON=python3.2 uv run --with execnet==1.9.0 --with=ll-xist python -mll.scripts.ucp -vyes -ulivpython -glivpython dist/*.tar.gz dist/*.whl ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
 
 
 upload: build
@@ -33,12 +33,12 @@ upload: build
 livinglogic:
 	rm -rf dist/*
 	python -m build
-	LL_URL_SSH_PYTHON=python3 python -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.whl ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
+	LL_URL_SSH_PYTHON=python3 uv run --with execnet==1.9.0 --with=ll-xist python -mll.scripts.ucp -vyes dist/*.tar.gz dist/*.whl ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
 
 
 windist:
 	python setup.py bdist --formats=wininst
-	LL_URL_SSH_PYTHON=python3 python -mll.scripts.ucp -vyes -cno -ulivpython -glivpython dist/*.exe ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
+	LL_URL_SSH_PYTHON=python3 uv run --with execnet==1.9.0 --with=ll-xist python -mll.scripts.ucp -vyes -cno -ulivpython -glivpython dist/*.exe ssh://livpython@python-downloads.livinglogic.de/~/public_downloads/xist/
 
 
 winupload:
@@ -47,4 +47,4 @@ winupload:
 
 winlivinglogic:
 	python setup.py bdist --formats=wininst
-	LL_URL_SSH_PYTHON=python3 python -mll.scripts.ucp -vyes -cno -uintranet -gintranet dist/*.exe ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
+	LL_URL_SSH_PYTHON=python3 uv run --with execnet==1.9.0 --with=ll-xist python -mll.scripts.ucp -vyes -cno -uintranet -gintranet dist/*.exe ssh://intranet@intranet.livinglogic.de/~/documentroot/intranet.livinglogic.de/python-downloads/
